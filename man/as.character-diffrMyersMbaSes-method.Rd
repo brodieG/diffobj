@@ -3,7 +3,7 @@
 \docType{methods}
 \name{as.character,diffrMyersMbaSes-method}
 \alias{as.character,diffrMyersMbaSes-method}
-\title{Generate a character representation of shortest edit sequence}
+\title{Generate a character representation of Shortest Edit Sequence}
 \usage{
 \S4method{as.character}{diffrMyersMbaSes}(x, ...)
 }
@@ -16,6 +16,9 @@
 character vector
 }
 \description{
-Generate a character representation of shortest edit sequence
+Generate a character representation of Shortest Edit Sequence
+}
+\seealso{
+\code{\link{diff_ses}}
 }
 

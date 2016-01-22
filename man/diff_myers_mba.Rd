@@ -23,4 +23,5 @@ ones for tracking the longest reaching paths and for recording the shortest
 edit scripts.  Additionally all error handling and memory allocation calls
 have been moved to the internal R functions designed to handle those things.
 }
+\keyword{internal}
 

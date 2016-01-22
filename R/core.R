@@ -26,12 +26,9 @@ setClass(
     TRUE
   }
 )
-#' Generate a character representation of shortest edit sequence
+#' Generate a character representation of Shortest Edit Sequence
 #'
-#' Intended primarily for debugging or for other applications that understand
-#' that particular format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}
-#' for how to interpret the symbols.
-#'
+#' @seealso \code{\link{diff_ses}}
 #' @param x S4 object of class \code{diffrMyersMbaSes}
 #' @param ... unused
 #' @return character vector
@@ -86,6 +83,19 @@ setMethod("as.character", "diffrMyersMbaSes",
       },
       character(1L)
 ) } )
+#' Produce Shortest Edit Script
+#'
+#' Intended primarily for debugging or for other applications that understand
+#' that particular format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}
+#' for how to interpret the symbols.
+#'
+#' @export
+#' @param a character
+#' @param b character
+#' @return character
+
+diff_ses <- function(a, b) as.character(diff_myers_mba(a, b))
+
 #' Diff two character vectors
 #'
 #' Implementation of Myer's with linear space refinement originally implemented
@@ -96,7 +106,7 @@ setMethod("as.character", "diffrMyersMbaSes",
 #' edit scripts.  Additionally all error handling and memory allocation calls
 #' have been moved to the internal R functions designed to handle those things.
 #'
-#' @export
+#' @keywords internal
 #' @param a character
 #' @param b character
 #' @return list
