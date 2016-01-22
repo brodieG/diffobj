@@ -268,7 +268,7 @@ char_diff_int <- function(x, y) {
 # for use since the MBA myers implemenation should be far superior
 
 char_diff_myers_simple <- function(target, current) {
-  path <- char_diff_myers_int(target, current)
+  path <- char_diff_myers_simple_int(target, current)
   diff_path_to_diff(path, target, current)
 }
 char_diff_myers_simple_int <- function(A, B) {
