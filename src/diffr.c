@@ -20,7 +20,6 @@ SEXP DIFFR_diffr(SEXP a, SEXP b) {
 
   d = diff(a, 0, n, b, 0, m, NULL, 0, ses, &sn);
 
-  Rprintf("d=%d sn=%d\n", d, sn);
   SEXP res = PROTECT(allocVector(VECSXP, 3));
   SEXP type = PROTECT(allocVector(INTSXP, sn));
   SEXP count = PROTECT(allocVector(INTSXP, sn));
