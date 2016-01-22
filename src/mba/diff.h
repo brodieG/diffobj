@@ -20,10 +20,8 @@ extern "C" {
 #endif /* WIN32 */
 #endif /* LIBMBA_API */
 
-#include <mba/varray.h>
-#include <mba/hashmap.h> /* cmp_fn */
-
-typedef const void *(*idx_fn)(const void *s, int idx, void *context);
+#include <R.h>
+#include <Rinternals.h>
 
 typedef enum {
 	DIFF_MATCH = 1,
@@ -39,11 +37,11 @@ struct diff_edit {
 
 /* consider alternate behavior for each NULL parameter
  */
-LIBMBA_API int diff(const void *a, int aoff, int n,
-		const void *b, int boff, int m,
-		idx_fn idx, cmp_fn cmp, void *context, int dmax,
-		struct varray *ses, int *sn,
-		struct varray *buf);
+LIBMBA_API int diff(SEXP a, int aoff, int n,
+		SEXP b, int boff, int m,
+		void *context, int dmax,
+		struct diff_edit *ses, int *sn
+		);
 
 #ifdef __cplusplus
 }
