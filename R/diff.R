@@ -709,7 +709,9 @@ Rdiff_obj <- function(from, to, ...) {
     vapply(
       list(from, to),
       function(x) {
-        if(is.chr1(x) && file_test("-f", x)) {
+        if(
+          is.character(x) && length(x) == 1L && !is.na(x) && file_test("-f", x)
+        ) {
           rdstry <- tryCatch(readRDS(x), error=function(x) dummy.env)
           if(!identical(rdstry, dummy.env)) x <- rdstry
         }
