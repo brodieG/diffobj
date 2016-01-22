@@ -21,7 +21,7 @@ SEXP DIFFR_diffr(SEXP a, SEXP b) {
   d = diff(a, 0, n, b, 0, m, NULL, 0, ses, &sn);
 
   Rprintf("d=%d sn=%d\n", d, sn);
-  SEXP res = PROTECT(allocVector(VECSXP, 2));
+  SEXP res = PROTECT(allocVector(VECSXP, 3));
   SEXP type = PROTECT(allocVector(INTSXP, sn));
   SEXP count = PROTECT(allocVector(INTSXP, sn));
   SEXP offs = PROTECT(allocVector(INTSXP, sn));
@@ -31,13 +31,13 @@ SEXP DIFFR_diffr(SEXP a, SEXP b) {
 
     switch (e->op) {
       case DIFF_MATCH:
-        INTEGER(type)[i] = 0;
-        break;
-      case DIFF_INSERT:
         INTEGER(type)[i] = 1;
         break;
-      case DIFF_DELETE:
+      case DIFF_INSERT:
         INTEGER(type)[i] = 2;
+        break;
+      case DIFF_DELETE:
+        INTEGER(type)[i] = 3;
         break;
     }
     INTEGER(count)[i] = e->len;
@@ -46,7 +46,7 @@ SEXP DIFFR_diffr(SEXP a, SEXP b) {
   SET_VECTOR_ELT(res, 0, type);
   SET_VECTOR_ELT(res, 1, count);
   SET_VECTOR_ELT(res, 2, offs);
-  UNPROTECT(3);
+  UNPROTECT(4);
 
   return res;
 }
