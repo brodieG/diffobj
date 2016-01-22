@@ -28,6 +28,9 @@ setClass(
 )
 #' Generate a character representation of shortest edit sequence
 #'
+#' Intended primarily for debugging or for other applications that understand
+#' that particular format.
+#'
 #' @param x S4 object of class \code{diffrMyersMbaSes}
 #' @param ... unused
 #' @return character vector
@@ -42,12 +45,12 @@ setMethod("as.character", "diffrMyersMbaSes",
     # so that if we have an insert command we can get the insert position in
     # `a`
 
-    dat$last.a <- cummax(ifelse(dat$type != "Insert", dat$off + dat$length, 1L))
+    dat$last.a <- cummax(ifelse(dat$type != "Insert", dat$off + dat$len, 1L))
 
     # Split our data into sections that have either deletes or inserts and get
     # rid of the matches
 
-    dat <- dat[dat$type != "Match"]
+    dat <- dat[dat$type != "Match", ]
     d.s <- split(dat, dat$section)
 
     # For each section, compute whether we should display, change, insert,
@@ -57,21 +60,27 @@ setMethod("as.character", "diffrMyersMbaSes",
       paste0(off, if(len > 1L) paste0(",", off + len - 1L))
 
     vapply(
-      d.s,
+      unname(d.s),
       function(d) {
         del <- sum(d$len[d$type == "Delete"])
         ins <- sum(d$len[d$type == "Insert"])
-        if(del && ins) {
+        if(del) {
           del.first <- which.min(d$type == "Delete")
-          ins.first <- which.min(d$type == "Insert")
           del.off <- d$off[del.first]
+        }
+        if(ins) {
+          ins.first <- which.min(d$type == "Insert")
           ins.off <- d$off[ins.first]
+        }
+        if(del && ins) {
           paste0(ses_rng(del.off, del), "c", ses_rng(ins.off, ins))
         } else if (del) {
           paste0(ses_rng(del.off, del), "d", del.off)
         } else if (ins) {
           paste0(d$last.a[[1L]], "a", ses_rng(ins.off, ins))
-        } else stop("Logic Error: unexpected edit type; contact maintainer.")
+        } else {
+          stop("Logic Error: unexpected edit type; contact maintainer.")
+        }
       },
       character(1L)
 ) } )
