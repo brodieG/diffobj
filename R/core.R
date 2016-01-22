@@ -107,7 +107,7 @@ diff_myers_mba <- function(a, b) {
   types <- c("Match", "Insert", "Delete")
   res$type <- factor(types[res$type], levels=types)
   res$offset <- res$offset + 1L  # C 0-indexing originally
-  res.s4 <- try(do.call("new", c(list("diffrMyersMbaSes"), res)))
+  res.s4 <- try(do.call("new", c(list("diffrMyersMbaSes", a=a, b=b), res)))
   if(inherits(res.s4, "try-error"))
     stop(
       "Logic Error: unable to instantiate shortest edit script object; contact ",
@@ -115,13 +115,25 @@ diff_myers_mba <- function(a, b) {
     )
   res.s4
 }
-
 #' Print Method for Shortest Edit Path
+#'
+#' Bare bones display of shortest edit path using GNU diff conventions
+#'
+#' @param object object to display
+#' @return character the shortest edit path character representation, invisibly
+
+setMethod("show", "diffrMyersMbaSes",
+  function(object) {
+    res <- as.character(object)
+    cat(res)
+    invisibe(res)
+} )
+#' Summary Method for Shortest Edit Path
 #'
 #' Displays the data required to generate the shortest edit path for comparison
 #' between two strings.
 #'
-#' @param x the \code{diff_myers_mba} object to display
+#' @param object the \code{diff_myers_mba} object to display
 #' @param with.match logical(1L) whether to show what text the edit command
 #'   refers to
 #' @param ... forwarded to the data frame print method used to actually display
@@ -129,32 +141,25 @@ diff_myers_mba <- function(a, b) {
 #' @return whatever the data frame print method returns
 #' @export
 
-print.diff_myers_mba <- function(x, with.match=FALSE, ...) {
-  stopifnot(
-    is.list(x), length(unique(unlist(lapply(x, length)))) == 1L,
-    identical(
-      vapply(x, class, ""),
-      c(type="factor", length="integer", offset="integer")
-    ),
-  )
-  what <- vapply(
-    seq_along(x$type),
-    function(y) {
+setMethod("summary", "diffrMyersMbaSes",
+  function(object, with.match=FALSE, ...) {
+    what <- vapply(
+      seq_along(object$type),
+      function(y) {
+        with(
+          object, {
+            vec <- if(type[[y]] == "Insert") b else a
+            paste0(vec[offset[[y]]:(offset[[y]] + length[[y]] - 1L)], collapse="")
+      } ) },
+      character(1L)
+    )
+    print(
       with(
-        x, {
-          vec <- if(type[[y]] == "Insert") b else a
-          paste0(vec[offset[[y]]:(offset[[y]] + length[[y]] - 1L)], collapse="")
-    } ) },
-    character(1L)
-  )
-  print(
-    with(
-      x,
-      data.frame(type, if(with.match) what, length, offset)
-    ),
-    ...
-  )
-}
+        object,
+        data.frame(type, if(with.match) what, length, offset)
+      ),
+      ...
+) } )
 # Carries out the comparison between two character vectors and returns the
 # elements that match and those that don't as a unitizerDiffDiffs object
 
