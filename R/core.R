@@ -29,7 +29,8 @@ setClass(
 #' Generate a character representation of shortest edit sequence
 #'
 #' Intended primarily for debugging or for other applications that understand
-#' that particular format.
+#' that particular format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}
+#' for how to interpret the symbols.
 #'
 #' @param x S4 object of class \code{diffrMyersMbaSes}
 #' @param ... unused
@@ -45,7 +46,8 @@ setMethod("as.character", "diffrMyersMbaSes",
     # so that if we have an insert command we can get the insert position in
     # `a`
 
-    dat$last.a <- cummax(ifelse(dat$type != "Insert", dat$off + dat$len, 1L))
+    dat$last.a <-
+      cummax(ifelse(dat$type != "Insert", dat$off + dat$len, 1L)) - 1L
 
     # Split our data into sections that have either deletes or inserts and get
     # rid of the matches
@@ -75,7 +77,7 @@ setMethod("as.character", "diffrMyersMbaSes",
         if(del && ins) {
           paste0(ses_rng(del.off, del), "c", ses_rng(ins.off, ins))
         } else if (del) {
-          paste0(ses_rng(del.off, del), "d", del.off)
+          paste0(ses_rng(del.off, del), "d", del.off - 1L)
         } else if (ins) {
           paste0(d$last.a[[1L]], "a", ses_rng(ins.off, ins))
         } else {
@@ -125,8 +127,8 @@ diff_myers_mba <- function(a, b) {
 setMethod("show", "diffrMyersMbaSes",
   function(object) {
     res <- as.character(object)
-    cat(res)
-    invisibe(res)
+    cat(res, sep="\n")
+    invisible(res)
 } )
 #' Summary Method for Shortest Edit Path
 #'
