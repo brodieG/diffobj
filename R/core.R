@@ -45,6 +45,10 @@ setMethod("as.character", "diffrMyersMbaSes",
 
     dat$last.a <-
       cummax(ifelse(dat$type != "Insert", dat$off + dat$len, 1L)) - 1L
+    # Do same thing with `b`, complicated because the matching entries are all
+    # in terms of `a`
+
+    dat$last.b <- cumsum(ifelse(dat$type != "Delete", dat$len, 0L))
 
     # Split our data into sections that have either deletes or inserts and get
     # rid of the matches
@@ -74,7 +78,7 @@ setMethod("as.character", "diffrMyersMbaSes",
         if(del && ins) {
           paste0(ses_rng(del.off, del), "c", ses_rng(ins.off, ins))
         } else if (del) {
-          paste0(ses_rng(del.off, del), "d", del.off - 1L)
+          paste0(ses_rng(del.off, del), "d", d$last.b[[1L]])
         } else if (ins) {
           paste0(d$last.a[[1L]], "a", ses_rng(ins.off, ins))
         } else {
