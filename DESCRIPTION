@@ -9,5 +9,6 @@ Description: More about what it does (maybe more than one line)
 License: What license is it under?
 RoxygenNote: 5.0.1
 Collate:
+    'system.R'
     'core.R'
     'diff.R'
