@@ -54,8 +54,10 @@
 struct _ctx {
   void *context;
   int *buf;               // used to be varray
+  int bufmax;
   struct diff_edit *ses;  // used to be varray
   int si;
+  int simax;
   int dmax;
 };
 
@@ -72,6 +74,11 @@ _setv(struct _ctx *ctx, int k, int r, int val)
   */
   j = k <= 0 ? -k * 4 + r : k * 4 + (r - 2);
 
+  if(j > ctx->bufmax || j < 0)
+    error(
+      "Logic Error: exceeded buffer size (%d vs %d); contact maintainer.",
+      j, ctx->bufmax
+    );
   i = ctx->buf + j;
   *i = val;
 }
@@ -81,10 +88,30 @@ _v(struct _ctx *ctx, int k, int r)
   int j;
 
   j = k <= 0 ? -k * 4 + r : k * 4 + (r - 2);
+  if(j > ctx->bufmax || j < 0)
+    error(
+      "Logic Error: exceeded buffer 2 size (%d vs %d); contact maintainer.",
+      j, ctx->bufmax
+    );
 
-  return *(ctx->buf + j);
+  int bufval = *(ctx->buf + j);
+  return bufval;
 }
-
+/* Compare character vector values
+ *
+ * Needs to account for special case when indeces are oob for the strings.  The
+ * oob checks seem to be necessary since algo is requesting reads past length
+ * of string, but not sure if that is intentional or not.  In theory it should
+ * not be, but perhaps this was handled gracefully by the varray business b4
+ * we changed it.
+ */
+int _comp_chr(SEXP a, int aidx, SEXP b, int bidx) {
+  int alen = XLENGTH(a);
+  int blen = XLENGTH(b);
+  if(aidx >= alen && bidx >= blen) return(1);
+  if(aidx >= alen || bidx >= blen) return(0);
+  return(STRING_ELT(a, aidx) == STRING_ELT(b, bidx));
+}
   static int
 _find_middle_snake(SEXP a, int aoff, int n,
     SEXP b, int boff, int m,
@@ -118,9 +145,7 @@ _find_middle_snake(SEXP a, int aoff, int n,
 
       ms->x = x;
       ms->y = y;
-      while(
-        x < n && y < m && STRING_ELT(a, aoff + x) == STRING_ELT(b, boff + y)
-      ) {
+      while(x < n && y < m && _comp_chr(a, aoff + x, b, boff + y)) {
         x++; y++;
       }
       _setv(ctx, k, 0, x);
@@ -145,9 +170,8 @@ _find_middle_snake(SEXP a, int aoff, int n,
 
       ms->u = x;
       ms->v = y;
-      while (
-        x > 0 && y > 0 && STRING_ELT(a, aoff + x) == STRING_ELT(b, boff + y)
-      ) {
+
+      while (x > 0 && y > 0 && _comp_chr(a, aoff + x, b, boff + y)) {
         x--; y--;
       }
       _setv(ctx, kr, 1, x);
@@ -179,9 +203,13 @@ _edit(struct _ctx *ctx, int op, int off, int len)
                    * coalesce if the op is the same)
                    */
   e = ctx->ses + ctx->si;
+  if(ctx->si > ctx->simax)
+    error("Logic Error: exceed edit script length; contact maintainer.");
   if (e->op != op) {
     if (e->op) {
       ctx->si++;
+      if(ctx->si > ctx->simax)
+        error("Logic Error: exceed edit script length; contact maintainer.");
       e = ctx->ses + ctx->si;
     }
     e->op = op;
@@ -199,6 +227,7 @@ _ses(SEXP a, int aoff, int n,
     SEXP b, int boff, int m,
     struct _ctx *ctx)
 {
+  R_CheckUserInterrupt();
   struct middle_snake ms;
   int d;
 
@@ -215,16 +244,17 @@ _ses(SEXP a, int aoff, int n,
      */
     d = _find_middle_snake(a, aoff, n, b, boff, m, ctx, &ms);
     if (d == -1) {
-      return -1;
+      error(
+        "Logic error: failed trying to find middle snake, contact maintainer."
+      );
     } else if (d >= ctx->dmax) {
       return ctx->dmax;
     } else if (ctx->ses == NULL) {
       return d;
     } else if (d > 1) {
       if (_ses(a, aoff, ms.x, b, boff, ms.y, ctx) == -1) {
-        return -1;
+        error("Logic error: failed trying to run ses; contact maintainer.");
       }
-
       _edit(ctx, DIFF_MATCH, aoff + ms.x, ms.u - ms.x);
 
       aoff += ms.u;
@@ -232,7 +262,7 @@ _ses(SEXP a, int aoff, int n,
       n -= ms.u;
       m -= ms.v;
       if (_ses(a, aoff, n, b, boff, m, ctx) == -1) {
-        return -1;
+        error("Logic error: failed trying to run ses 2; contact maintainer.");
       }
     } else {
       int x = ms.x;
@@ -287,18 +317,27 @@ diff(SEXP a, int aoff, int n,
     void *context, int dmax,
     struct diff_edit *ses, int *sn)
 {
+  if(n < 0 || m < 0)
+    error("Logic Error: negative lengths; contact maintainer.");
   struct _ctx ctx;
   int d, x, y;
   struct diff_edit *e = NULL;
-  int *tmp = (int *) R_alloc(n + m + 1, sizeof(int));
+  int bufmax = 2 * (n + m + 1) + 1;  // n + m + 1 appears necessary
+  if(bufmax < n || bufmax < m)
+    error("Logic Error: exceeded maximum allowable combined string length.");
+
+  int *tmp = (int *) R_alloc(bufmax, sizeof(int));
+  for(int i = 0; i < bufmax; i++) *(tmp + 1) = 0;
 
   ctx.context = context;
 
   /* initialize buffer
    */
   ctx.buf = tmp;
+  ctx.bufmax = bufmax;
   ctx.ses = ses;
   ctx.si = 0;
+  ctx.simax = n + m;
   ctx.dmax = dmax ? dmax : INT_MAX;
 
   /* initialize first ses edit struct*/
@@ -310,12 +349,14 @@ diff(SEXP a, int aoff, int n,
   }
 
   /* The _ses function assumes the SES will begin or end with a delete
-   * or insert. The following will insure this is true by eating any
+   * or insert. The following will ensure this is true by eating any
    * beginning matches. This is also a quick to process sequences
    * that match entirely.
    */
   x = y = 0;
-  while (x < n && y < m && STRING_ELT(a, aoff + x) == STRING_ELT(b, boff + y)) {
+  while (
+    x < n && y < m && _comp_chr(a, aoff + x, b, boff + y)
+  ) {
     x++; y++;
     if(boff + y < boff + y - 1 || aoff + x < aoff + x - 1)
       error("Logic Error: exceeded int size 45823; contact maintainer");
@@ -324,6 +365,12 @@ diff(SEXP a, int aoff, int n,
 
   d = _ses(a, aoff + x, n - x, b, boff + y, m - y, &ctx);
   if (ses && sn) {
+    if(ctx.si >= ctx.simax) {
+      error(
+        "Logic Error: exceeded edit list size(%d vs %d); contact maintainer",
+        ctx.si, ctx.simax
+      );
+    }
     *sn = e->op ? ctx.si + 1 : 0;
   }
   return d;
