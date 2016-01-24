@@ -16,25 +16,25 @@ NULL
 
 #' @rdname diffobj_s4method_doc
 
-setMethod("any", "diffobjDiff",
+setMethod("any", "diffObjDiff",
   function(x, ..., na.rm = FALSE) {
     dots <- list(...)
     if(length(dots))
-      stop("`any` method for `diffobjDiff` supports only one argument")
+      stop("`any` method for `diffObjDiff` supports only one argument")
     any(tarDiff(x), curDiff(x))
 } )
 #' @rdname diffobj_s4method_doc
 
-setMethod("any", "diffobjDiffDiffs",
+setMethod("any", "diffObjDiffDiffs",
   function(x, ..., na.rm = FALSE) {
     dots <- list(...)
     if(length(dots))
-      stop("`any` method for `diffobjDiff` supports only one argument")
+      stop("`any` method for `diffObjDiff` supports only one argument")
     any(tarDiff(x), curDiff(x))
 } )
 #' @rdname diffobj_s4method_doc
 
-setMethod("as.character", "diffobjDiff",
+setMethod("as.character", "diffObjDiff",
   function(x, context, width, ...) {
     context <- check_context(context)
     width <- check_width(width)
@@ -103,7 +103,7 @@ setMethod("as.character", "diffobjDiff",
         tar.r.h.txt <- regmatches(x@tar.capt[tar.head], tar.r.h)
 
         x.r.h <- new(
-          "diffobjDiff", tar.capt=tar.r.h.txt, cur.capt=cur.r.h.txt,
+          "diffObjDiff", tar.capt=tar.r.h.txt, cur.capt=cur.r.h.txt,
           diffs=char_diff(tar.r.h.txt, cur.r.h.txt, white.space=white.space)
         )
         r.h.diff <- diff_line(x.r.h)
@@ -133,20 +133,20 @@ setMethod("as.character", "diffobjDiff",
     ) )
 } )
 setGeneric("tarDiff", function(x, ...) standardGeneric("tarDiff"))
-setMethod("tarDiff", "diffobjDiff", function(x, ...) tarDiff(x@diffs))
+setMethod("tarDiff", "diffObjDiff", function(x, ...) tarDiff(x@diffs))
 setGeneric("curDiff", function(x, ...) standardGeneric("curDiff"))
-setMethod("curDiff", "diffobjDiff", function(x, ...) curDiff(x@diffs))
-setMethod("tarDiff", "diffobjDiffDiffs", function(x, ...) {
+setMethod("curDiff", "diffObjDiff", function(x, ...) curDiff(x@diffs))
+setMethod("tarDiff", "diffObjDiffDiffs", function(x, ...) {
   is.na(x@target) | !!x@target
 } )
-setMethod("curDiff", "diffobjDiffDiffs", function(x, ...) {
+setMethod("curDiff", "diffObjDiffDiffs", function(x, ...) {
   is.na(x@current) | !!x@current
 } )
 diff_rdiff <- function(target, current) {
   stopifnot(is.character(target), is.character(current))
-  a <- tempfile("diffobjRdiffa")
+  a <- tempfile("diffObjRdiffa")
   writeLines(target, a)
-  b <- tempfile("diffobjRdiffb")
+  b <- tempfile("diffObjRdiffb")
   writeLines(current, b)
   diff <- capture.output(system(paste("diff -bw", shQuote(a), shQuote(b))))
 }
@@ -158,7 +158,7 @@ diff_rdiff <- function(target, current) {
 # this can include out of range indices if one object is larger than the other
 
 diff_range <- function(x, context) {
-  stopifnot(is(x, "diffobjDiff"))
+  stopifnot(is(x, "diffObjDiff"))
   context <- check_context(context)
   len.max <- max(length(x@tar.capt), length(x@cur.capt))
   first.diff <- if(!any(x)) 1L else min(which(tarDiff(x)), which(curDiff(x)))
@@ -505,7 +505,7 @@ diff_print_internal <- function(
   diffs <- char_diff(tar.capt, cur.capt, white.space=white.space)
 
   new(
-    "diffobjDiff", tar.capt=tar.capt, cur.capt=cur.capt,
+    "diffObjDiff", tar.capt=tar.capt, cur.capt=cur.capt,
     tar.exp=tar.exp, cur.exp=cur.exp, diffs=diffs, mode="print",
     tar.capt.def=tar.capt.def, cur.capt.def=cur.capt.def
   )
@@ -571,7 +571,7 @@ diff_str_internal <- function(
   tar.exp <- call("str", tar.exp, max.level=lvl)
   cur.exp <- call("str", cur.exp, max.level=lvl)
   new(
-    "diffobjDiff", tar.capt=obj.rem.capt.str, cur.capt=obj.add.capt.str,
+    "diffObjDiff", tar.capt=obj.rem.capt.str, cur.capt=obj.add.capt.str,
     tar.exp=tar.exp, cur.exp=cur.exp, diffs=diffs, mode="str"
   )
 }

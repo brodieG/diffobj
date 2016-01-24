@@ -5,11 +5,11 @@ NULL
 #' Generate a character representation of Shortest Edit Sequence
 #'
 #' @seealso \code{\link{diff_ses}}
-#' @param x S4 object of class \code{diffobjMyersMbaSes}
+#' @param x S4 object of class \code{diffObjMyersMbaSes}
 #' @param ... unused
 #' @return character vector
 
-setMethod("as.character", "diffobjMyersMbaSes",
+setMethod("as.character", "diffObjMyersMbaSes",
   function(x, ...) {
     dat <- as.data.frame(x)
 
@@ -165,7 +165,7 @@ diff_myers_mba <- function(a, b) {
   types <- c("Match", "Insert", "Delete")
   res$type <- factor(types[res$type], levels=types)
   res$offset <- res$offset + 1L  # C 0-indexing originally
-  res.s4 <- try(do.call("new", c(list("diffobjMyersMbaSes", a=a, b=b), res)))
+  res.s4 <- try(do.call("new", c(list("diffObjMyersMbaSes", a=a, b=b), res)))
   if(inherits(res.s4, "try-error"))
     stop(
       "Logic Error: unable to instantiate shortest edit script object; contact ",
@@ -180,7 +180,7 @@ diff_myers_mba <- function(a, b) {
 #' @param object object to display
 #' @return character the shortest edit path character representation, invisibly
 
-setMethod("show", "diffobjMyersMbaSes",
+setMethod("show", "diffObjMyersMbaSes",
   function(object) {
     res <- as.character(object)
     cat(res, sep="\n")
@@ -199,7 +199,7 @@ setMethod("show", "diffobjMyersMbaSes",
 #' @return whatever the data frame print method returns
 #' @export
 
-setMethod("summary", "diffobjMyersMbaSes",
+setMethod("summary", "diffObjMyersMbaSes",
   function(object, with.match=FALSE, ...) {
     what <- vapply(
       seq_along(object@type),

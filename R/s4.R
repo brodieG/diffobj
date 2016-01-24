@@ -17,7 +17,7 @@ NULL
 # means that it does not match
 
 setClass(
-  "diffobjDiffDiffs",
+  "diffObjDiffDiffs",
   slots=c(target="integer", current="integer", white.space="logical"),
   validity=function(object) {
     if(!is.TF(object@white.space))
@@ -26,14 +26,14 @@ setClass(
   }
 )
 setClass(
-  "diffobjDiff",
+  "diffObjDiff",
   slots=c(
     tar.capt="character",
     cur.capt="character",
     tar.exp="ANY",
     cur.exp="ANY",
     mode="character",
-    diffs="diffobjDiffDiffs",
+    diffs="diffObjDiffDiffs",
     tar.capt.def="charOrNULL",
     cur.capt.def="charOrNULL"
   ),
@@ -48,7 +48,7 @@ setClass(
     TRUE
 } )
 setClass(
-  "diffobjMyersMbaSes",
+  "diffObjMyersMbaSes",
   slots=c(
     a="character",
     b="character",
