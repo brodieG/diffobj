@@ -89,4 +89,17 @@ local({
       capture.output(print(diffobj:::diff_myers_mba(A, B))), diff_ses(A, B)
     )
   })
+  test_that("translate", {
+    aa <- c("a", "b", "b", "c", "e")
+    bb <- c("x", "y", "c", "f", "e")
+    expect_identical(
+      diffobj:::diffObjCompact(diffobj:::diff_myers_mba(A, B)),
+      list(target = c(NA, NA, 0L, NA, 0L, 0L, 0L), current = c(0L, 0L, NA, 0L, 0L, NA))
+    )
+    expect_identical(
+      diffobj:::diffObjCompact(diffobj:::diff_myers_mba(aa, bb)),
+      list(target = c(1L, 2L, NA, 0L, 0L), current = c(1L, 2L, 0L, NA, 0L))
+    )
+
+  } )
 })
