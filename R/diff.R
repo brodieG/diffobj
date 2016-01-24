@@ -1,3 +1,7 @@
+#' @include s4.R
+
+NULL
+
 #' R Object Comparison Using \code{diff}
 #'
 #' Compare R objects by computing a \code{diff} on their text representations
@@ -10,53 +14,6 @@
 
 NULL
 
-setClassUnion("charOrNULL", c("character", "NULL"))
-
-#' Dummy Doc File for S4 Methods with Existing Generics
-#'
-#' @keywords internal
-#' @name diffobj_s4method_doc
-#' @rdname diffobj_s4method_doc
-
-NULL
-
-# Classes for tracking intermediate diff obj data
-#
-# DiffDiffs contains a slot corresponding to each of target and current where
-# a TRUE value means the corresponding value matches in both objects and FALSE
-# means that it does not match
-
-setClass(
-  "diffobjDiffDiffs",
-  slots=c(target="integer", current="integer", white.space="logical"),
-  validity=function(object) {
-    if(!is.TF(object@white.space))
-      return("slot `white.space` must be TRUE or FALSE")
-    TRUE
-  }
-)
-setClass(
-  "diffobjDiff",
-  slots=c(
-    tar.capt="character",
-    cur.capt="character",
-    tar.exp="ANY",
-    cur.exp="ANY",
-    mode="character",
-    diffs="diffobjDiffDiffs",
-    tar.capt.def="charOrNULL",
-    cur.capt.def="charOrNULL"
-  ),
-  prototype=list(mode="print"),
-  validity=function(object) {
-    if(!is.chr1(object@mode) || ! object@mode %in% c("print", "str"))
-      return("slot `mode` must be either \"print\" or \"str\"")
-    if(length(object@tar.capt) != length(object@diffs@target))
-      return("slot `tar.capt` must be same length as slot `diffs@target`")
-    if(length(object@cur.capt) != length(object@diffs@current))
-      return("slot `cur.capt` must be same length as slot `diffs@current`")
-    TRUE
-} )
 #' @rdname diffobj_s4method_doc
 
 setMethod("any", "diffobjDiff",
@@ -66,6 +23,8 @@ setMethod("any", "diffobjDiff",
       stop("`any` method for `diffobjDiff` supports only one argument")
     any(tarDiff(x), curDiff(x))
 } )
+#' @rdname diffobj_s4method_doc
+
 setMethod("any", "diffobjDiffDiffs",
   function(x, ..., na.rm = FALSE) {
     dots <- list(...)
@@ -73,7 +32,6 @@ setMethod("any", "diffobjDiffDiffs",
       stop("`any` method for `diffobjDiff` supports only one argument")
     any(tarDiff(x), curDiff(x))
 } )
-
 #' @rdname diffobj_s4method_doc
 
 setMethod("as.character", "diffobjDiff",

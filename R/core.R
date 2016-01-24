@@ -1,31 +1,7 @@
-# Files that actually carry out the diff computations
+#' @include s4.R
 
-setClass(
-  "diffobjMyersMbaSes",
-  slots=c(
-    a="character",
-    b="character",
-    type="factor",
-    length="integer",
-    offset="integer"
-  ),
-  prototype=list(
-    type=factor(character(), levels=c("Match", "Insert", "Delete"))
-  ),
-  validity=function(object) {
-    if(!identical(levels(object@type), c("Match", "Insert", "Delete")))
-      return("Slot `type` levels incorrect")
-    if(any(is.na(c(object@a, object@b))))
-      return("Slots `a` and `b` may not contain NA values")
-    if(any(is.na(c(object@type, object@length, object@offset))))
-      return("Slots `type`, `length`,  or `offset` may not contain NA values")
-    if(any(c(object@type, object@length, object@offset)) < 0)
-      return(
-        "Slots `type`, `length`,  and `offset` must have values greater than zero"
-      )
-    TRUE
-  }
-)
+NULL
+
 #' Generate a character representation of Shortest Edit Sequence
 #'
 #' @seealso \code{\link{diff_ses}}
