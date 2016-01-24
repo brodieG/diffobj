@@ -42,7 +42,7 @@
  */
 
 #include <stdlib.h>
-#include "diffr.h"
+#include "diffobj.h"
 
 #define FV(k) _v(ctx, (k), 0)
 #define RV(k) _v(ctx, (k), 1)
@@ -108,9 +108,13 @@ _v(struct _ctx *ctx, int k, int r)
 int _comp_chr(SEXP a, int aidx, SEXP b, int bidx) {
   int alen = XLENGTH(a);
   int blen = XLENGTH(b);
-  if(aidx >= alen && bidx >= blen) return(1);
-  if(aidx >= alen || bidx >= blen) return(0);
-  return(STRING_ELT(a, aidx) == STRING_ELT(b, bidx));
+  int comp;
+  if(aidx >= alen && bidx >= blen) {
+    comp = 1;
+  } else if(aidx >= alen || bidx >= blen) {
+    comp = 0;
+  } else comp = STRING_ELT(a, aidx) == STRING_ELT(b, bidx);
+  return(comp);
 }
   static int
 _find_middle_snake(SEXP a, int aoff, int n,
@@ -171,7 +175,7 @@ _find_middle_snake(SEXP a, int aoff, int n,
       ms->u = x;
       ms->v = y;
 
-      while (x > 0 && y > 0 && _comp_chr(a, aoff + x, b, boff + y)) {
+      while (x > 0 && y > 0 && _comp_chr(a, aoff + x - 1, b, boff + y - 1)) {
         x--; y--;
       }
       _setv(ctx, kr, 1, x);
@@ -290,7 +294,7 @@ _ses(SEXP a, int aoff, int n,
           _edit(ctx, DIFF_INSERT, boff, 1);
           _edit(ctx, DIFF_MATCH, aoff, n);
         }
-      } else {
+      } else if (m < n) {
         if (x == u) {
           _edit(ctx, DIFF_MATCH, aoff, m);
           _edit(ctx, DIFF_DELETE, aoff + (n - 1), 1);
@@ -298,6 +302,9 @@ _ses(SEXP a, int aoff, int n,
           _edit(ctx, DIFF_DELETE, aoff, 1);
           _edit(ctx, DIFF_MATCH, aoff + 1, m);
         }
+      } else {
+        // Should never get here since this should be a D 2 case
+        error("Very special case n %d m %d aoff %d boff %d u %d\n", n, m, aoff, boff, ms.u);
       }
     }
   }
@@ -365,12 +372,6 @@ diff(SEXP a, int aoff, int n,
 
   d = _ses(a, aoff + x, n - x, b, boff + y, m - y, &ctx);
   if (ses && sn) {
-    if(ctx.si >= ctx.simax) {
-      error(
-        "Logic Error: exceeded edit list size(%d vs %d); contact maintainer",
-        ctx.si, ctx.simax
-      );
-    }
     *sn = e->op ? ctx.si + 1 : 0;
   }
   return d;

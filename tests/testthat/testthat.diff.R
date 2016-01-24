@@ -105,59 +105,6 @@ local({
       c("\033[36m@@ lst.1 @@\033[39m", "\033[90m   ~~ omitted 5 lines w/o diffs ~~\033[39m", "   $z[[1]][[1]]", "\033[31m-  \033[39m[1] \"a\" \"\033[31mb\033[39m\" \"c\"", "   ", "\033[90m   ~~ omitted 34 lines w/ 4 diffs ~~\033[39m", "\033[36m@@ lst.2 @@\033[39m", "\033[90m   ~~ omitted 5 lines w/o diffs ~~\033[39m", "   $z[[1]][[1]]", "\033[32m+  \033[39m[1] \"a\"       \"\033[32mbananas\033[39m\" \"c\"", "   ", "\033[90m   ~~ omitted 35 lines w/ 5 diffs ~~\033[39m")
     )
   } )
-  test_that("diff myers", {
-    expect_identical(
-      unitizer:::char_diff_myers(character(), character()),
-      list(target = integer(0), current = integer(0))
-    )
-    expect_identical(
-      unitizer:::char_diff_myers("a", character()),
-      list(target = NA_integer_, current = integer(0))
-    )
-    expect_identical(
-      unitizer:::char_diff_myers(character(), "a"),
-      list(target = integer(0), current = NA_integer_)
-    )
-    expect_identical(
-      unitizer:::char_diff_myers("a", "a"), list(target = 0L, current = 0L)
-    )
-    expect_identical(
-      unitizer:::char_diff_myers("a", "b"),
-      list(target = 1L, current = 1L)
-    )
-    expect_identical(
-      unitizer:::char_diff_myers(c("a", "b"), "b"),
-      list(target = c(NA, 0L), current = 0L)
-    )
-    expect_identical(
-      unitizer:::char_diff_myers(c("a", "b"), "a"),
-      list(target = c(0L, NA), current = 0L)
-    )
-    expect_identical(
-      unitizer:::char_diff_myers("a", c("a", "b")),
-      list(target = 0L, current = c(0L, NA))
-    )
-    expect_identical(
-      unitizer:::char_diff_myers("b", c("a", "b")),
-      list(target = 0L, current = c(NA, 0L))
-    )
-    expect_identical(
-      unitizer:::char_diff_myers(c("a", "b"), c("b", "c")),
-      list(target = c(NA, 0L), current = c(0L, NA))
-    )
-    expect_identical(
-      unitizer:::char_diff_myers(c("a", "b", "c", "d"), c("a", "c", "d", "b")),
-      list(target = c(0L, NA, 0L, 0L), current = c(0L, 0L,  0L, NA))
-    )
-    # Actual Myers sample string
-    expect_identical(
-      unitizer:::char_diff_myers(
-        c("a", "b", "c", "a", "b", "b", "a"),
-        c("c", "b", "a", "b", "a", "c")
-      ),
-      list(target = c(NA, NA, 0L, 0L, 0L, NA, 0L), current = c(0L,  NA, 0L, 0L, 0L, NA))
-    )
-  } )
   set.seed(2)
   w1 <- sample(
     c(

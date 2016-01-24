@@ -1,7 +1,7 @@
 # Files that actually carry out the diff computations
 
 setClass(
-  "diffrMyersMbaSes",
+  "diffobjMyersMbaSes",
   slots=c(
     a="character",
     b="character",
@@ -29,11 +29,11 @@ setClass(
 #' Generate a character representation of Shortest Edit Sequence
 #'
 #' @seealso \code{\link{diff_ses}}
-#' @param x S4 object of class \code{diffrMyersMbaSes}
+#' @param x S4 object of class \code{diffobjMyersMbaSes}
 #' @param ... unused
 #' @return character vector
 
-setMethod("as.character", "diffrMyersMbaSes",
+setMethod("as.character", "diffobjMyersMbaSes",
   function(x, ...) {
     len <- length(x@type)
     mod <- c("Insert", "Delete")
@@ -114,16 +114,16 @@ diff_ses <- function(a, b) as.character(diff_myers_mba(a, b))
 #' @param a character
 #' @param b character
 #' @return list
-#' @useDynLib diffr, .registration=TRUE, .fixes="DIFFR_"
+#' @useDynLib diffobj, .registration=TRUE, .fixes="DIFFOBJ_"
 
 diff_myers_mba <- function(a, b) {
   stopifnot(is.character(a), is.character(b), all(!is.na(c(a, b))))
-  res <- .Call(DIFFR_diffr, a, b)
+  res <- .Call(DIFFOBJ_diffobj, a, b)
   res <- setNames(res, c("type", "length", "offset"))
   types <- c("Match", "Insert", "Delete")
   res$type <- factor(types[res$type], levels=types)
   res$offset <- res$offset + 1L  # C 0-indexing originally
-  res.s4 <- try(do.call("new", c(list("diffrMyersMbaSes", a=a, b=b), res)))
+  res.s4 <- try(do.call("new", c(list("diffobjMyersMbaSes", a=a, b=b), res)))
   if(inherits(res.s4, "try-error"))
     stop(
       "Logic Error: unable to instantiate shortest edit script object; contact ",
@@ -138,7 +138,7 @@ diff_myers_mba <- function(a, b) {
 #' @param object object to display
 #' @return character the shortest edit path character representation, invisibly
 
-setMethod("show", "diffrMyersMbaSes",
+setMethod("show", "diffobjMyersMbaSes",
   function(object) {
     res <- as.character(object)
     cat(res, sep="\n")
@@ -157,7 +157,7 @@ setMethod("show", "diffrMyersMbaSes",
 #' @return whatever the data frame print method returns
 #' @export
 
-setMethod("summary", "diffrMyersMbaSes",
+setMethod("summary", "diffobjMyersMbaSes",
   function(object, with.match=FALSE, ...) {
     what <- vapply(
       seq_along(object$type),
@@ -358,8 +358,8 @@ char_diff_myers_simple_int <- function(A, B) {
   }
   stop("Logic Error, should not get here")
 }
-# Translates a diff path produced by the Myers Algorithm into the standard
-# format we use in the rest of unitizer
+# Translates a diff path produced by the simple Myers Algorithm into the
+# standard format we use in the rest of unitizer
 
 diff_path_to_diff <- function(path, target, current) {
   stopifnot(

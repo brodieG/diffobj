@@ -5,7 +5,7 @@
 #include <Rinternals.h>
 #include "mba/diff.h"
 
-SEXP DIFFR_diffr(SEXP a, SEXP b);
+SEXP DIFFOBJ_diffobj(SEXP a, SEXP b);
 
 #endif
 

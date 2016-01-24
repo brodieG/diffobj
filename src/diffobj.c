@@ -3,9 +3,9 @@ Code based on libmba-0.9.1/examples/strdiff.c
 */
 
 #include <stdlib.h>
-#include "diffr.h"
+#include "diffobj.h"
 
-SEXP DIFFR_diffr(SEXP a, SEXP b) {
+SEXP DIFFOBJ_diffobj(SEXP a, SEXP b) {
   int n, m, d;
   int sn, i;
   /* allocate max possible size for edit script; wasteful, but this greatly

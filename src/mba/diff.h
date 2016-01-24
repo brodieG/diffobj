@@ -20,9 +20,6 @@ extern "C" {
 #endif /* WIN32 */
 #endif /* LIBMBA_API */
 
-#include <R.h>
-#include <Rinternals.h>
-
 typedef enum {
 	DIFF_MATCH = 1,
 	DIFF_DELETE,
