@@ -136,22 +136,22 @@ setMethod("show", "diffobjMyersMbaSes",
 setMethod("summary", "diffobjMyersMbaSes",
   function(object, with.match=FALSE, ...) {
     what <- vapply(
-      seq_along(object$type),
+      seq_along(object@type),
       function(y) {
-        with(
-          object, {
-            vec <- if(type[[y]] == "Insert") b else a
-            paste0(vec[offset[[y]]:(offset[[y]] + length[[y]] - 1L)], collapse="")
-      } ) },
+        t <- object@type[[y]]
+        o <- object@offset[[y]]
+        l <- object@length[[y]]
+        vec <- if(t == "Insert") b else a
+        paste0(vec[o:(o + l - 1L)], collapse="")
+      },
       character(1L)
     )
-    print(
-      with(
-        object,
-        data.frame(type, if(with.match) what, length, offset)
-      ),
-      ...
-) } )
+    res <- data.frame(
+      type=object@type, string=what, len=object@length, offset=object@offset
+    )
+    if(!with.match) res <- res[-2L]
+    print(res, ...)
+} )
 # Carries out the comparison between two character vectors and returns the
 # elements that match and those that don't as a unitizerDiffDiffs object
 
