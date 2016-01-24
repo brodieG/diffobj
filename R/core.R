@@ -11,20 +11,7 @@ NULL
 
 setMethod("as.character", "diffobjMyersMbaSes",
   function(x, ...) {
-    len <- length(x@type)
-    mod <- c("Insert", "Delete")
-    dat <- data.frame(type=x@type, len=x@length, off=x@offset)
-    dat$section <- cumsum(dat$type == "Match")
-    # Track what the max offset observed so far for elements of the `a` string
-    # so that if we have an insert command we can get the insert position in
-    # `a`
-
-    dat$last.a <-
-      cummax(ifelse(dat$type != "Insert", dat$off + dat$len, 1L)) - 1L
-    # Do same thing with `b`, complicated because the matching entries are all
-    # in terms of `a`
-
-    dat$last.b <- cumsum(ifelse(dat$type != "Delete", dat$len, 0L))
+    dat <- as.data.frame(x)
 
     # Split our data into sections that have either deletes or inserts and get
     # rid of the matches
@@ -63,6 +50,85 @@ setMethod("as.character", "diffobjMyersMbaSes",
       },
       character(1L)
 ) } )
+setMethod("as.data.frame", "diffObjMyersMbaSes",
+  function(x, row.names=NULL, optional=FALSE, ...) {
+    len <- length(x@type)
+    mod <- c("Insert", "Delete")
+    dat <- data.frame(type=x@type, len=x@length, off=x@offset)
+    matches <- dat$type == "Match"
+    dat$section <- cumsum(matches + c(0L, head(matches, -1L)))
+
+    # Track what the max offset observed so far for elements of the `a` string
+    # so that if we have an insert command we can get the insert position in
+    # `a`
+
+    dat$last.a <-
+      cummax(ifelse(dat$type != "Insert", dat$off + dat$len, 1L)) - 1L
+
+    # Do same thing with `b`, complicated because the matching entries are all
+    # in terms of `a`
+
+    dat$last.b <- cumsum(ifelse(dat$type != "Delete", dat$len, 0L))
+    dat
+} )
+# Used to generate data in format closer to existing `diffobj` functions.
+# Not super efficient, but should be good enough for our purposes.
+
+setGeneric("diffObjCompact", function(x, ...) standardGeneric("diffObjCompact"))
+setMethod("diffObjCompact", "diffObjMyersMbaSes",
+  function(x, ...) {
+    # Split our data into sections that have either deletes/inserts or matches
+
+    dat <- as.data.frame(x)
+    d.s <- split(dat, dat$section)
+    j <- 0L
+
+    # For each section, figure out how to represent target and current where
+    # 0 means match, 1:n is a matched mismatch (change in edit script parlance),
+    # and NA is a full mismatch (d or i).
+
+    res.l <- lapply(
+      seq_along(d.s),
+      function(i) {
+        d <- d.s[[i]]
+        un.type <- length(unique(d$type))
+        if(un.type == 2L) { # must have delete/insert
+          if(!all(d$type %in% c("Delete", "Insert")))
+            stop("Logic Error: unexpected edit types; contact maintainer.")
+          # Idea here is to number all the insert/deletes so that we can then
+          # line them up later; we use `j` to ensure we produce unique indices
+
+          ins.len <- d$len[[which(d$type == "Insert")]]
+          del.len <- d$len[[which(d$type == "Delete")]]
+          min.len <- min(ins.len, del.len)
+          match.seq <- seq_len(min.len) + j
+          j <<- j + min.len
+
+          tar <- c(match.seq, rep(NA_integer_, del.len - min.len))
+          cur <- c(match.seq, rep(NA_integer_, ins.len - min.len))
+        } else if (un.type == 1L) {
+          if(d$type == "Match") {
+            tar <- cur <- rep(0L, d$len)
+          } else if (d$type == "Insert") {
+            tar <- integer()
+            cur <- rep(NA_integer_, d$len)
+          } else if (d$type == "Delete") {
+            cur <- integer()
+            tar <- rep(NA_integer_, d$len)
+          } else
+            stop("Logic Error: unexpected edit types 2; contact maintainer.")
+        }
+        list(target=tar, current=cur)
+    } )
+    tars <- unlist(lapply(res.l, "[[", "target"))
+    curs <- unlist(lapply(res.l, "[[", "current"))
+    if(length(tars) != length(x@a) || length(curs) != length(x@b))
+      stop(
+        "Logic Error: mismatch ids don't match original string lengths; ",
+        "contact maintainer"
+      )
+    list(target=tars, current=curs)
+} )
 #' Produce Shortest Edit Script
 #'
 #' Intended primarily for debugging or for other applications that understand
