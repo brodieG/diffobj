@@ -1,31 +1,4 @@
-Much of the code in this package was created by Brodie Gaslam and is under the GPL-3 license:
-
-Copyright (C) 2016 Brodie Gaslam
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 -------------------------------------------------------------------------------
-
-The only exception is the C implementation of the Myer's Diff Algorithm with Linear Space Refinement which is included in modified form as the files in the src/ folder.
-
-The files original source code is available at:
-
-  http://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz
-
-The libmba code is licensed under the MIT License:
-
-Copyright (c) 2004 Michael B. Allen <mba2000 ioplex.com>
 
   The MIT License
 
@@ -46,4 +19,10 @@ Copyright (c) 2004 Michael B. Allen <mba2000 ioplex.com>
   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
   OTHER DEALINGS IN THE SOFTWARE.
+
+-------------------------------------------------------------------------------
+
+  GNU GENERAL PUBLIC LICENSE Version 3 (GPL-3)
+
+  See <http://www.gnu.org/licenses/gpl-3.0.txt>.
 
