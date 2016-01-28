@@ -3,8 +3,8 @@ Type: Package
 Title: R Object Comparison Using Diff
 Description: Compare R objects by computing a `diff` on their text
     representations (e.g. the `print`ed console output). This is similar to
-    `tools::Rdiff` except the diff is computed directly on R objects instead of text
-    files and does not rely on the system `diff` utility.
+    `tools::Rdiff` except the diff is computed directly on R objects instead of
+    text files and does not rely on the system `diff` utility.
 Version: 0.0.1
 Date: 2016-01-20
 Authors@R: c(
@@ -25,3 +25,5 @@ Collate:
     'core.R'
     'diff.R'
     'system.R'
+Imports:
+    ansistyle
