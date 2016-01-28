@@ -9,6 +9,7 @@ NULL
 #' \code{\link{tools::Rdiff}} except the diff is computed directly on R objects
 #' instead of text files and does not rely on the system \code{diff} utility.
 #'
+#' @import ansistyle
 #' @name diffobj-package
 #' @docType package
 
@@ -51,8 +52,11 @@ setMethod("as.character", "diffObjDiff",
             "spaces. You can re-run diff with `white.space=TRUE` to show them."
           )
       }
-      return(clr(word_wrap(msg, width=width), "silver"))
-    }
+      return(
+        ansi_style(
+          word_wrap(msg, width=width), "silver",
+          use.style=getOption("diffobj.use.ansi")
+    ) ) }
     show.range <- diff_range(x, context)
     show.range.tar <- intersect(show.range, seq_along(x@tar.capt))
     show.range.cur <- intersect(show.range, seq_along(x@cur.capt))
@@ -236,9 +240,13 @@ diff_line <- function(
   tar.line.diff <- setdiff(which(tarDiff(x)[tar.range]), tar.ids.mismatch)
   cur.line.diff <- setdiff(which(curDiff(x)[cur.range]), cur.ids.mismatch)
 
-  tar.txt[tar.line.diff] <- clr(tar.txt[tar.line.diff], color="red")
-  cur.txt[cur.line.diff] <- clr(cur.txt[cur.line.diff], color="green")
-
+  tar.txt[tar.line.diff] <- ansi_style(
+    tar.txt[tar.line.diff], color="red", use.style=getOption("diffobj.use.ansi")
+  )
+  cur.txt[cur.line.diff] <- ansi_style(
+    cur.txt[cur.line.diff], color="green",
+    use.style=getOption("diffobj.use.ansi")
+  )
   # Re-sub back into the entire character vector
 
   x@tar.capt[tar.range] <- tar.txt
@@ -371,7 +379,9 @@ diff_color <- function(txt, diffs, range, color) {
     all(range > 0 & range <= length(txt)), is.chr1(color)
   )
   to.color <- diffs & seq_along(diffs) %in% range
-  txt[to.color] <- clr(txt[to.color], color)
+  txt[to.color] <- ansi_style(
+    txt[to.color], color, use.style=getOption("diffobj.use.ansi")
+  )
   txt
 }
 #' Show Diffs Between the Screen Display Versions of Two Objects
@@ -767,7 +777,9 @@ obj_screen_chr <- function(
       pad.all[diffs] <- pad
       pad.all <- format(pad.all)
     }
-    pad.all[diffs] <- clr(pad.all[diffs], color)
+    pad.all[diffs] <- ansi_style(
+      pad.all[diffs], color=color, use.style=getOption("diffobj.use.ansi")
+    )
     pad.pre.post <- paste0(rep(" ", pad.chars), collapse="")
 
     omit.first <- max(min(range[[1L]] - 1L, len.obj), 0L)
@@ -786,25 +798,28 @@ obj_screen_chr <- function(
         if(diffs.last != 1L) "s"
     ) }
     if(!is.null(post)) {
-      post <- clr(
+      post <- ansi_style(
         paste0(
           pad.pre.post,
           word_wrap(paste0(post, extra, " ~~"), width - pad.chars)
         ),
-        "silver"
+        "silver", use.style=getOption("diffobj.use.ansi")
     ) }
     if (!is.null(pre)) {
-      pre <- clr(
+      pre <- ansi_style(
         paste0(
           pad.pre.post,
           word_wrap(
             paste0(pre, if(is.null(post)) extra, " ~~"), width - pad.chars
         ) ),
-        "silver",
+        "silver", use.style=getOption("diffobj.use.ansi")
     ) }
   }
   c(
-    clr(paste0("@@ ", obj.name.dep, " @@"), "cyan"),
+    ansi_style(
+      paste0("@@ ", obj.name.dep, " @@"), "cyan",
+      use.style=getOption("diffobj.use.ansi")
+    ),
     paste0(
       c(pre, paste0(pad.all, obj.chr)[range[range <= len.obj]], post)
     )
