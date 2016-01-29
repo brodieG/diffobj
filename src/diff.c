@@ -3,7 +3,9 @@
  *
  * The main changes are adapting to use in an R context (memory allocations with
  * R_alloc) and simplifying code by removing the variable arrays and the
- * ability to specify custom comparison functions.
+ * ability to specify custom comparison functions.  Because we don't use the
+ * variable arrays we need to pre-allocate 4 * (n + m + abs(n - m)) + 1 vector
+ * which is wasteful but still linear so should be okay.
  */
 
 /* diff - compute a shortest edit script (SES) given two sequences
@@ -64,21 +66,27 @@ struct _ctx {
 struct middle_snake {
   int x, y, u, v;
 };
-
+/*
+ * k = diagonal number
+ * val = x value
+ * r = presumably whether we are looking up in reverse snakes
+ */
   static void
 _setv(struct _ctx *ctx, int k, int r, int val)
 {
   int j;
   int *i;
-  /* Pack -N to N into 0 to N * 2
-  */
+  /* Pack -N to N into 0 to N * 2, but also pack reverse and forward snakes
+   * in that same space which is why we need the * 4
+   */
   j = k <= 0 ? -k * 4 + r : k * 4 + (r - 2);
 
-  if(j > ctx->bufmax || j < 0)
+  if(j > ctx->bufmax || j < 0) {
     error(
       "Logic Error: exceeded buffer size (%d vs %d); contact maintainer.",
       j, ctx->bufmax
     );
+  }
   i = ctx->buf + j;
   *i = val;
 }
@@ -329,7 +337,9 @@ diff(SEXP a, int aoff, int n,
   struct _ctx ctx;
   int d, x, y;
   struct diff_edit *e = NULL;
-  int bufmax = 2 * (n + m + 1) + 1;  // n + m + 1 appears necessary
+  int delta = n - m;
+  if(delta < 0) delta = -delta;
+  int bufmax = 4 * (n + m + delta) + 1;  // see _setv
   if(bufmax < n || bufmax < m)
     error("Logic Error: exceeded maximum allowable combined string length.");
 

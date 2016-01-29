@@ -75,6 +75,8 @@ local({
     )
     # Actual Myers sample string
     expect_identical(diff_ses(A, B), c("1,2d0", "4d1", "5a3", "7a6"))
+    # This used to cause errors due to under-allocated buffer vector
+    expect_identical(diff_ses(letters[1:10], LETTERS[1:2]), "1,10c1,2")
   } )
   test_that("print/summary", {
     expect_identical(
