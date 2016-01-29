@@ -228,7 +228,7 @@ char_diff <- function(x, y, white.space=FALSE) {
     x <- gsub(pat.2, " ", gsub(pat.1, "", x))
     y <- gsub(pat.2, " ", gsub(pat.1, "", y))
   }
-  diffs.int <- diffObjCompact(diff_myers_mba(aa, bb))
+  diffs.int <- diffObjCompact(diff_myers_mba(x, y))
   if(sum(!diffs.int[[1L]], na.rm=TRUE) != sum(!diffs.int[[2L]], na.rm=TRUE))
     stop(
       "Logic Error: diff produced unequal number of matching lines; contact ",
