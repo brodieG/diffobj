@@ -47,7 +47,7 @@ setMethod("as.character", "diffObjDiff",
       if(!x@diffs@white.space) {
         xa <- char_diff(x@tar.capt, x@cur.capt, white.space=TRUE)
         if(any(xa))
-          msg <- cc(
+          msg <- paste0(
             "Only visible differences between objects are horizontal white ",
             "spaces. You can re-run diff with `white.space=TRUE` to show them."
           )
@@ -268,8 +268,10 @@ color_words <- function(chrs, diffs, color) {
     grps <- cumsum(c(0, abs(diff(diffs))))
     chrs.grp <- tapply(chrs, grps, paste0, collapse=" ")
     diff.grp <- tapply(diffs, grps, head, 1L)
-    cc(diff_color(chrs.grp, diff.grp, seq_along(chrs.grp), color), c=" ")
-  } else cc(chrs)
+    paste0(
+      diff_color(chrs.grp, diff.grp, seq_along(chrs.grp), color), collapse=" "
+    )
+  } else paste0(chrs, collapse="")
 }
 # Try to use fancier word matching with vectors and matrices
 
@@ -633,7 +635,7 @@ diff_obj_internal <- function(
 # to NULL
 
 check_context <- function(context) {
-  err.msg <- cc(
+  err.msg <- paste0(
     "must be integer(2L), positive, non-NA, with first value greater than ",
     "second"
   )
@@ -694,18 +696,28 @@ Rdiff_obj <- function(from, to, ...) {
   unlink(files)
   invisible(res)
 }
+# Capture output of print/show/str; unfortuantely doesn't have superb handling
+# of errors during print/show call, though hopefully these are rare
+
 obj_capt <- function(
   obj, width=getOption("width"), frame=parent.frame(), mode="print",
   max.level=0L, default=FALSE
 ) {
   if(!is.numeric(width) || length(width) != 1L)
     stop("Argument `width` must be a one long numeric/integer.")
-  if(!is.chr1(mode) || !mode %in% c("print", "str"))
+  if(
+    !is.character(mode) || length(mode) != 1L || is.na(mode) ||
+    !mode %in% c("print", "str")
+  )
     stop("Argument `mode` must be one of \"print\" or \"str\"")
   # note this forces eval, which is needed
   if(!is.environment(frame))
     stop("Argument `frame` must be an environment")
-  if(!is.na(max.level) && (!is.int.1L(max.level) ||  max.level < 0))
+  if(
+    !is.na(max.level) && (
+      !is.integer(max.level) || length(max.level) != 1L ||  max.level < 0
+    )
+  )
     stop("Argument `max.level` must be integer(1L) and positive")
 
   width.old <- getOption("width")
@@ -713,47 +725,27 @@ obj_capt <- function(
   width <- max(width, 10L)
   options(width=width)
 
-  if(identical(mode, "print")) {
-    obj.out <- capture.output(
-      invisible(print.res <- user_exp_display(obj, frame, quote(obj), default))
-    )
-  } else if(identical(mode, "str")) {
-    obj.out <- capture.output(
-      invisible(
-        print.res <-
-          user_exp_str(obj, frame, quote(obj), max.level)
-    ) )
-  } else stop("Logic Error: unexpected mode; contact maintainer.")
+  res <- try({
+    extra <- NULL
+    fun <- if(identical(mode, "print")) {
+      if(isS4(obj)) quote(show) else quote(print)
+    } else if(identical(mode, "str")) {
+      extra <- list(max.level=max.level)
+      quote(str)
+    } else stop("Logic Error: unexpected mode; contact maintainer.")
+    call <- as.call(c(list(fun, obj), extra))
+  })
+  res <- try(obj.out <- capture.output(eval(call, frame)))
+  if(inherits(res, "try-error"))
+    stop("Failed attempting to get text representation of object")
 
   options(width=width.old)
   on.exit(NULL)
+
   # remove trailing spaces; shouldn't have to do it but doing it since legacy
   # tests remove them and PITA to update those
 
   obj.out <- sub("\\s*$", "", obj.out)
-
-  if(print.res$aborted) {  # If failed during eval retrieve conditions
-    err.cond <-
-      which(vapply(print.res$conditions, inherits, logical(1L), "error"))
-    err.type <- if(identical(mode, "str")) "str"
-      else if(identical(mode, "print"))
-        if(isS4(obj)) "show" else "print"
-      else stop("Logic Error: cannot figure out print mode; contact maintainer.")
-    err.cond.msg <- if(length(err.cond)) {
-      c(
-        paste0(
-          "<Error in ", err.type,
-          if(is.object(obj))
-            paste0(" method for object of class \"", class(obj)[[1L]], "\""),
-          ">"
-        ),
-        paste0(
-          conditionMessage(print.res$conditions[[err.cond[[1L]]]]), collapse=""
-      ) )
-    } else ""
-    obj.out <- c(obj.out, err.cond.msg)
-  }
-
   obj.out
 }
 # constructs the full diff message with additional meta information
@@ -772,7 +764,7 @@ obj_screen_chr <- function(
     pad.all <- character(len.obj)
     pad.chars <- nchar(pad)
     if(!any(diffs)) {
-      pad.all <- replicate(len.obj, cc(rep(" ", pad.chars)))
+      pad.all <- replicate(len.obj, paste0(rep(" ", pad.chars)), collapse="")
     } else {
       pad.all[diffs] <- pad
       pad.all <- format(pad.all)
@@ -794,7 +786,7 @@ obj_screen_chr <- function(
     if(omit.last) {
       post <- paste0(
         "~~ omitted ", omit.last, " line", if(omit.last != 1L) "s",
-        if(diffs.last) cc(" w/ ", diffs.last, " diff") else " w/o diff",
+        if(diffs.last) paste0(" w/ ", diffs.last, " diff") else " w/o diff",
         if(diffs.last != 1L) "s"
     ) }
     if(!is.null(post)) {

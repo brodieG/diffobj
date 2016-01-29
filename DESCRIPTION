@@ -24,6 +24,7 @@ Collate:
     's4.R'
     'core.R'
     'diff.R'
+    'misc.R'
     'system.R'
 Imports:
     ansistyle
