@@ -640,9 +640,9 @@ check_context <- function(context) {
     "second"
   )
   if(is.null(context)) {
-    context <- getOption("diffobj.test.fail.context.lines")
+    context <- getOption("diffobj.test.context")
     if(!is.context.out.vec(context))
-      stop("`getOption(\"diffobj.test.fail.context.lines\")`", err.msg)
+      stop("`getOption(\"diffobj.test.context\")`", err.msg)
   }
   if(!is.context.out.vec(context)) stop("Argument `context` ", err.msg)
   as.integer(context)
@@ -792,19 +792,12 @@ obj_screen_chr <- function(
     ) }
     if(!is.null(post)) {
       post <- ansi_style(
-        paste0(
-          pad.pre.post,
-          word_wrap(paste0(post, extra, " ~~"), width - pad.chars)
-        ),
+        paste0(pad.pre.post, paste0(post, extra, " ~~")),
         "silver", use.style=getOption("diffobj.use.ansi")
     ) }
     if (!is.null(pre)) {
       pre <- ansi_style(
-        paste0(
-          pad.pre.post,
-          word_wrap(
-            paste0(pre, if(is.null(post)) extra, " ~~"), width - pad.chars
-        ) ),
+        paste0(pad.pre.post, paste0(pre, if(is.null(post)) extra, " ~~")),
         "silver", use.style=getOption("diffobj.use.ansi")
     ) }
   }
