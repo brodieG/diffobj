@@ -235,7 +235,7 @@ char_diff <- function(x, y, white.space=FALSE) {
       "maintainer."
     )
   do.call(
-    "new", c(list("unitizerDiffDiffs", white.space=white.space), diffs.int)
+    "new", c(list("diffObjDiffDiffs", white.space=white.space), diffs.int)
   )
 }
 # Helper function encodes matches within mismatches so that we can later word
@@ -401,7 +401,7 @@ char_diff_myers_simple_int <- function(A, B) {
   stop("Logic Error, should not get here")
 }
 # Translates a diff path produced by the simple Myers Algorithm into the
-# standard format we use in the rest of unitizer
+# standard format we use in the rest of the package
 
 diff_path_to_diff <- function(path, target, current) {
   stopifnot(

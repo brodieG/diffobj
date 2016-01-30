@@ -241,10 +241,10 @@ diff_line <- function(
   cur.line.diff <- setdiff(which(curDiff(x)[cur.range]), cur.ids.mismatch)
 
   tar.txt[tar.line.diff] <- ansi_style(
-    tar.txt[tar.line.diff], color="red", use.style=getOption("diffobj.use.ansi")
+    tar.txt[tar.line.diff], style="red", use.style=getOption("diffobj.use.ansi")
   )
   cur.txt[cur.line.diff] <- ansi_style(
-    cur.txt[cur.line.diff], color="green",
+    cur.txt[cur.line.diff], style="green",
     use.style=getOption("diffobj.use.ansi")
   )
   # Re-sub back into the entire character vector
@@ -703,7 +703,7 @@ obj_capt <- function(
   obj, width=getOption("width"), frame=parent.frame(), mode="print",
   max.level=0L, default=FALSE
 ) {
-  if(!is.numeric(width) || length(width) != 1L)
+  if(!is.numeric(width) || length(width) != 1L || is.na(width))
     stop("Argument `width` must be a one long numeric/integer.")
   if(
     !is.character(mode) || length(mode) != 1L || is.na(mode) ||
@@ -715,11 +715,12 @@ obj_capt <- function(
     stop("Argument `frame` must be an environment")
   if(
     !is.na(max.level) && (
-      !is.integer(max.level) || length(max.level) != 1L ||  max.level < 0
+      !is.numeric(max.level) || length(max.level) != 1L ||  max.level < 0
     )
   )
     stop("Argument `max.level` must be integer(1L) and positive")
 
+  max.level <- as.integer(max.level)
   width.old <- getOption("width")
   on.exit(options(width=width.old))
   width <- max(width, 10L)
@@ -770,7 +771,7 @@ obj_screen_chr <- function(
       pad.all <- format(pad.all)
     }
     pad.all[diffs] <- ansi_style(
-      pad.all[diffs], color=color, use.style=getOption("diffobj.use.ansi")
+      pad.all[diffs], style=color, use.style=getOption("diffobj.use.ansi")
     )
     pad.pre.post <- paste0(rep(" ", pad.chars), collapse="")
 
