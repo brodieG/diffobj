@@ -2,7 +2,7 @@
 
 NULL
 
-#' R Object Comparison Using \code{diff}
+#' Compare R Objects with a Text Diff
 #'
 #' Compare R objects by computing a \code{diff} on their text representations
 #' (e.g. the \code{print}ed console output).  This is similar to
