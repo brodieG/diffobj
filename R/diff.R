@@ -57,6 +57,8 @@ setMethod("as.character", "diffObjDiff",
           msg, "silver",
           use.style=getOption("diffobj.use.ansi")
     ) ) }
+    chunks <- as.hunks(x)
+
     show.range <- diff_range(x, context)
     show.range.tar <- intersect(show.range, seq_along(x@tar.capt))
     show.range.cur <- intersect(show.range, seq_along(x@cur.capt))
@@ -154,43 +156,6 @@ diff_rdiff <- function(target, current) {
   b <- tempfile("diffObjRdiffb")
   writeLines(current, b)
   diff <- capture.output(system(paste("diff -bw", shQuote(a), shQuote(b))))
-}
-# If there is an error, we want to show as much of the objects as we can
-# centered on the error.  If we can show the entire objects without centering
-# then we do that.
-#
-# Returns the range of values that should be shown on both objects.  Note that
-# this can include out of range indices if one object is larger than the other
-
-diff_range <- function(x, context) {
-  stopifnot(is(x, "diffObjDiff"))
-  context <- check_context(context)
-  len.max <- max(length(x@tar.capt), length(x@cur.capt))
-  first.diff <- if(!any(x)) 1L else min(which(tarDiff(x)), which(curDiff(x)))
-
-  show.range <- if(len.max <= 2 * context[[1L]] + 1) {
-    1:len.max
-  } else {
-    rng.trim <- 2 * context[[2L]] + 1
-    if(first.diff <= rng.trim) {
-      # if can show first diff starting from beginning, do that
-      1:rng.trim
-    } else if (len.max - first.diff + 1 <= rng.trim) {
-      # if first diff is close to end, then show through end
-      tail(1:len.max, rng.trim)
-    } else {
-      # if first diff is too close to beginning or end, use extra context on
-      # other side of error
-
-      end.extra <- max(0, context[[2L]] - first.diff)
-      start.extra <- max(0, context[[2L]] - (len.max - first.diff))
-      seq(
-        max(first.diff - context[[2L]] - start.extra, 1),
-        min(first.diff + context[[2L]] + end.extra, len.max)
-      )
-    }
-  }
-  show.range
 }
 
 # Matches up mismatched lines and word diffs them line by line, lines that

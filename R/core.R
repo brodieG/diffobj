@@ -71,64 +71,6 @@ setMethod("as.data.frame", "diffObjMyersMbaSes",
     dat$last.b <- cumsum(ifelse(dat$type != "Delete", dat$len, 0L))
     dat
 } )
-# Used to generate data in format closer to existing `diffobj` functions.
-# Not super efficient, but should be good enough for our purposes.
-
-setGeneric("diffObjCompact", function(x, ...) standardGeneric("diffObjCompact"))
-setMethod("diffObjCompact", "diffObjMyersMbaSes",
-  function(x, ...) {
-    # Split our data into sections that have either deletes/inserts or matches
-
-    dat <- as.data.frame(x)
-    d.s <- split(dat, dat$section)
-    j <- 0L
-
-    # For each section, figure out how to represent target and current where
-    # 0 means match, 1:n is a matched mismatch (change in edit script parlance),
-    # and NA is a full mismatch (d or i).
-
-    res.l <- lapply(
-      seq_along(d.s),
-      function(i) {
-        d <- d.s[[i]]
-        un.type <- length(unique(d$type))
-        if(un.type == 2L) { # must have delete/insert
-          if(!all(d$type %in% c("Delete", "Insert")))
-            stop("Logic Error: unexpected edit types; contact maintainer.")
-          # Idea here is to number all the insert/deletes so that we can then
-          # line them up later; we use `j` to ensure we produce unique indices
-
-          ins.len <- d$len[[which(d$type == "Insert")]]
-          del.len <- d$len[[which(d$type == "Delete")]]
-          min.len <- min(ins.len, del.len)
-          match.seq <- seq_len(min.len) + j
-          j <<- j + min.len
-
-          tar <- c(match.seq, rep(NA_integer_, del.len - min.len))
-          cur <- c(match.seq, rep(NA_integer_, ins.len - min.len))
-        } else if (un.type == 1L) {
-          if(d$type == "Match") {
-            tar <- cur <- rep(0L, d$len)
-          } else if (d$type == "Insert") {
-            tar <- integer()
-            cur <- rep(NA_integer_, d$len)
-          } else if (d$type == "Delete") {
-            cur <- integer()
-            tar <- rep(NA_integer_, d$len)
-          } else
-            stop("Logic Error: unexpected edit types 2; contact maintainer.")
-        }
-        list(target=tar, current=cur)
-    } )
-    tars <- unlist(lapply(res.l, "[[", "target"))
-    curs <- unlist(lapply(res.l, "[[", "current"))
-    if(length(tars) != length(x@a) || length(curs) != length(x@b))
-      stop(
-        "Logic Error: mismatch ids don't match original string lengths; ",
-        "contact maintainer"
-      )
-    list(target=tars, current=curs)
-} )
 #' Produce Shortest Edit Script
 #'
 #' Intended primarily for debugging or for other applications that understand
@@ -145,7 +87,8 @@ diff_ses <- function(a, b) as.character(diff_myers_mba(a, b))
 #' Diff two character vectors
 #'
 #' Implementation of Myer's with linear space refinement originally implemented
-#' by Mike B. Allen as part of \href{libmba}{http://www.ioplex.com/~miallen/libmba/}
+#' by Mike B. Allen as part of
+#' \href{libmba}{http://www.ioplex.com/~miallen/libmba/}
 #' version 0.9.1.  This implementation uses the exact same algorithm, except
 #' that the C code is simplified by using fixed size arrays instead of variable
 #' ones for tracking the longest reaching paths and for recording the shortest

@@ -16,7 +16,8 @@ list
 }
 \description{
 Implementation of Myer's with linear space refinement originally implemented
-by Mike B. Allen as part of \href{libmba}{http://www.ioplex.com/~miallen/libmba/}
+by Mike B. Allen as part of
+\href{libmba}{http://www.ioplex.com/~miallen/libmba/}
 version 0.9.1.  This implementation uses the exact same algorithm, except
 that the C code is simplified by using fixed size arrays instead of variable
 ones for tracking the longest reaching paths and for recording the shortest
