@@ -26,6 +26,7 @@ Collate:
     'diff.R'
     'hunks.R'
     'misc.R'
+    'rdiff.R'
     'system.R'
 Imports:
     ansistyle
