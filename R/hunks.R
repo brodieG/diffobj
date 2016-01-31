@@ -58,7 +58,7 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
         }
         list(
           target=tar, current=cur, tar.pos=d$last.a[[1L]],
-          cur.pos=d$last.b[[1L]], tar.len=del.len, cur.len=ins.len, type=type
+          cur.pos=d$last.b[[1L]], type=type
     ) } )
     # Restructure data in result list
 
@@ -73,7 +73,7 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
         "Logic Error: match and mismatch chunks not interspersed; contact ",
         "maintainer."
       )
-    int.scalars <- c("tar.pos", "cur.pos", "tar.len", "cur.len")
+    int.scalars <- c("tar.pos", "cur.pos")
     sclr.l <- Map(function(z) vapply(res.l, "[[", integer(1L), z), int.scalars)
 
     hunks <- lapply(res.l, "[", c("target", "current"))
