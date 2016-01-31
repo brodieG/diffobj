@@ -54,7 +54,7 @@ setMethod("as.character", "diffObjDiff",
       }
       return(
         ansi_style(
-          word_wrap(msg, width=width), "silver",
+          msg, "silver",
           use.style=getOption("diffobj.use.ansi")
     ) ) }
     show.range <- diff_range(x, context)
