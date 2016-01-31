@@ -191,6 +191,7 @@ local({
       unitizer:::diff_word(a, b, across.lines=TRUE, white.space=FALSE),
       cat, sep="\n"
     )
+    stop("test diff word with quotes, including quotes in names, etc")
   })
   options(old.opt)
   test_that("char_diff", {

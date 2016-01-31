@@ -28,6 +28,8 @@ setClass(
 setClass(
   "diffObjDiff",
   slots=c(
+    tar.obj="ANY",
+    cur.obj="ANY",
     tar.capt="character",
     cur.capt="character",
     tar.exp="ANY",

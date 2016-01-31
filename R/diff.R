@@ -93,7 +93,8 @@ setMethod("as.character", "diffObjDiff",
         body.diff <- diff_word(
           regmatches(x@tar.capt[tar.head], tar.body),
           regmatches(x@cur.capt[cur.head], cur.body),
-          across.lines=TRUE, white.space=white.space
+          across.lines=TRUE, white.space=white.space,
+          match.quotes=is.chr.vec(x@tar.obj) && is.chr.vec(x@cur.obj)
         )
         regmatches(x@tar.capt[tar.head], tar.body) <- body.diff$target
         regmatches(x@cur.capt[cur.head], cur.body) <- body.diff$current
@@ -308,19 +309,31 @@ find_brackets <- function(x) {
 # For `across.lines=TRUE`, merges all lines into one and does the word diff on
 # a single line to allow for the diff to look for matches across lines, though
 # the result is then unwrapped back to the original lines.
+#
+# `match.quotes` will make "words" starting and ending with quotes; it should
+# only be used if the objects are known to be attribute-less character vectors
+# that are printed (as that is the only way we can know for sure how to match
+# the quoted bits)
 
-diff_word <- function(target, current, across.lines=FALSE, white.space) {
+diff_word <- function(
+  target, current, across.lines=FALSE, white.space, match.quotes=FALSE
+) {
   stopifnot(
     is.character(target), is.character(current),
     all(!is.na(target)), all(!is.na(current)),
     is.TF(across.lines),
+    is.TF(match.quotes),
     across.lines || length(target) == length(current)
   )
   # Compute the char by char diffs for each line
 
-  reg <- "-?\\d+(\\.\\d+)?(e-?\\d{1,3})?|\\w+|\\d+|[^[:alnum:]_[:blank:]]+"
-  tar.reg <- gregexpr(reg, target)
-  cur.reg <- gregexpr(reg, current)
+  reg <- paste0(
+    if(match.quotes) "((?<= )|(?<=^))\"([^\"]|\\\")*?\"((?= )|(?=$))",
+    "|-?\\d+(\\.\\d+)?(e-?\\d{1,3})?",
+    "|\\w+|\\d+|[^[:alnum:]_[:blank:]]+"
+  )
+  tar.reg <- gregexpr(reg, target, perl=TRUE)
+  cur.reg <- gregexpr(reg, current, perl=TRUE)
 
   tar.split <- regmatches(target, tar.reg)
   cur.split <- regmatches(current, cur.reg)
@@ -517,9 +530,9 @@ diff_print_internal <- function(
   diffs <- char_diff(tar.capt, cur.capt, white.space=white.space)
 
   new(
-    "diffObjDiff", tar.capt=tar.capt, cur.capt=cur.capt,
-    tar.exp=tar.exp, cur.exp=cur.exp, diffs=diffs, mode="print",
-    tar.capt.def=tar.capt.def, cur.capt.def=cur.capt.def
+    "diffObjDiff", tar.obj=target, cur.obj=target, tar.capt=tar.capt,
+    cur.capt=cur.capt, tar.exp=tar.exp, cur.exp=cur.exp, diffs=diffs,
+    mode="print", tar.capt.def=tar.capt.def, cur.capt.def=cur.capt.def
   )
 }
 diff_str_internal <- function(
@@ -583,8 +596,9 @@ diff_str_internal <- function(
   tar.exp <- call("str", tar.exp, max.level=lvl)
   cur.exp <- call("str", cur.exp, max.level=lvl)
   new(
-    "diffObjDiff", tar.capt=obj.rem.capt.str, cur.capt=obj.add.capt.str,
-    tar.exp=tar.exp, cur.exp=cur.exp, diffs=diffs, mode="str"
+    "diffObjDiff", tar.obj=target, cur.obj=target, tar.capt=obj.rem.capt.str,
+    cur.capt=obj.add.capt.str, tar.exp=tar.exp, cur.exp=cur.exp, diffs=diffs,
+    mode="str"
   )
 }
 # Unlike diff_print_internal and diff_str_internal, this one prints to screen

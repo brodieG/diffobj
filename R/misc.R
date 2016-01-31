@@ -1,4 +1,6 @@
 
+is.chr.vec <- function(x) is.character(x) && is.null(attributes(x))
+
 is.chr1 <- function(x) is.character(x) && length(x) == 1L && !is.na(x)
 
 is.TF <- function(x) isTRUE(x) || identical(x, FALSE)
