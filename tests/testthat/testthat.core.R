@@ -77,6 +77,13 @@ local({
     # This used to cause errors due to under-allocated buffer vector
     expect_identical(diff_ses(letters[1:10], LETTERS[1:2]), "1,10c1,2")
 
+    # A little more complex with changes, this was a problem at some point
+
+    A2 <- c("A", "B", "C")
+    B2 <- c("X", "A", "Y", "C")
+    diff_ses(A2, B2)
+    Rdiff_chr(A2, B2)
+
     # More complicated strings; intended for use with contexts for hunks,
     # but making sure the diffs are correct
 

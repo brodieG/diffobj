@@ -31,11 +31,11 @@ setMethod("as.character", "diffObjMyersMbaSes",
         del <- sum(d$len[d$type == "Delete"])
         ins <- sum(d$len[d$type == "Insert"])
         if(del) {
-          del.first <- which.min(d$type == "Delete")
+          del.first <- which(d$type == "Delete")[[1L]]
           del.off <- d$off[del.first]
         }
         if(ins) {
-          ins.first <- which.min(d$type == "Insert")
+          ins.first <- which(d$type == "Insert")[[1L]]
           ins.off <- d$off[ins.first]
         }
         if(del && ins) {
