@@ -1,10 +1,3 @@
-# nocov start
-# these functions may rely on using the system diff utility, which may not be
-# available on some systems, particularly basic windows installations without
-# the development tools.  This tools are also not part of the core functionality
-# of this package.  For these reasons, these functions do have unit tests and
-# are excluded from coverage computations.
-
 #' Run \code{tools::Rdiff} Directly on R Objects
 #'
 #' These functions are here for reference and testing purposes.  You should be
@@ -21,24 +14,22 @@
 #' are 1 length character vectors referencing an RDS file, and will use the
 #' contents of that RDS file as the object to compare.
 #'
-#' @note \code{Rdiff_chr} will try to use the system \code{diff} utility, and
-#'   \code{Rdiff_obj} might try as well.  This will fail in systems that do
-#'   not have that utility available (e.g. windows installation without Rtools).
+#' @note These functions will try to use the system \code{diff} utility. This
+#'   will fail in systems that do not have that utility available (e.g. windows
+#'   installation without Rtools).
 #' @importFrom tools Rdiff
 #' @export
-#' @aliases Rdiff_obj
 #' @seealso \code{\link{diff_ses}}, \code{\link{diff_obj}}
-#' @param from character or object coercible to character
-#' @param to character or object coercible to character
-#' @param ... additional arguments to pass on to \code{tools::Rdiff}
-#' @param silent TRUE or FALSE, whether to display output to screen, only for
-#'   \code{Rdiff_chr}
+#' @param from character or object coercible to character for \code{Rdiff_chr},
+#'   any R object with \code{Rdiff_obj}
+#' @param to character same as \code{from}
+#' @param nullPointers passed to \code{tools::Rdiff}
+#' @param silent TRUE or FALSE, whether to display output to screen
 #' @param minimal TRUE or FALSE, whether to exclude the lines that show the
-#'   actual differences, only for \code{Rdiff_chr}
-#' @return for \code{Rdiff_chr} character vector, invisibly, the diff script,
-#'   for \code{Rdiff_obj} the return value of \code{tools::Rdiff}
+#'   actual differences or only the actual edit script commands
+#' @return the Rdiff output, invisibly if \code{silent} is FALSE
 
-Rdiff_chr <- function(from, to, silent=FALSE, minimal=TRUE) {
+Rdiff_chr <- function(from, to, silent=TRUE, minimal=TRUE, nullPointers=TRUE) {
   A <- try(as.character(from))
   if(inherits(A, "try-error")) stop("Unable to coerce `target` to character.")
   B <- try(as.character(to))
@@ -48,19 +39,16 @@ Rdiff_chr <- function(from, to, silent=FALSE, minimal=TRUE) {
   bf <- tempfile()
   writeLines(A, af)
   writeLines(B, bf)
+  on.exit(unlink(c(af, bf)))
 
-  try(res <- Rdiff(af, bf, useDiff=TRUE, Log=TRUE)$out)
-  unlink(c(af, bf))
-  if(!is.null(res)) {
-    res <- if(minimal) res[!grepl("^[<>-]", res)] else res
-    cat(res, sep="\n")
-  }
-  invisible(res)
+  Rdiff_run(
+    silent=silent, minimal=minimal, from=af, to=bf, nullPointers=nullPointers
+  )
 }
 #' @export
 #' @rdname Rdiff_chr
 
-Rdiff_obj <- function(from, to, ...) {
+Rdiff_obj <- function(from, to, silent=FALSE, minimal=FALSE, nullPointers=TRUE) {
   dummy.env <- new.env()  # used b/c unique object
   files <- try(
     vapply(
@@ -73,16 +61,34 @@ Rdiff_obj <- function(from, to, ...) {
           if(!identical(rdstry, dummy.env)) x <- rdstry
         }
         f <- tempfile()
+        on.exit(unlink(f))
         capture.output(if(isS4(x)) show(x) else print(x), file=f)
+        on.exit()
         f
       },
       character(1L)
   ) )
   if(inherits(files, "try-error"))
     stop("Unable to store text representation of objects")
-  res <- Rdiff(files[[1L]], files[[2L]], ...)
-  unlink(files)
-  invisible(res)
+  on.exit(unlink(files))
+  Rdiff_run(
+    from=files[[1L]], to=files[[2L]], silent=silent, minimal=minimal,
+    nullPointers=nullPointers
+  )
+}
+# Internal use only: BEWARE, will unlink from, to
+
+Rdiff_run <- function(from, to, nullPointers, silent, minimal) {
+  res <- Rdiff(
+    from=from, to=to, useDiff=TRUE, Log=TRUE, nullPointers=nullPointers
+  )$out
+  if(!is.character(res)) stop("Unexpected tools::Rdiff output")
+
+  res <- if(minimal) res[!grepl("^[<>-]", res)] else res
+  if(silent) res else {
+    cat(res, sep="\n")
+    invisible(res)
+  }
 }
 
 # nocov end
