@@ -29,7 +29,7 @@
 #'   actual differences or only the actual edit script commands
 #' @return the Rdiff output, invisibly if \code{silent} is FALSE
 
-Rdiff_chr <- function(from, to, silent=TRUE, minimal=TRUE, nullPointers=TRUE) {
+Rdiff_chr <- function(from, to, silent=FALSE, minimal=FALSE, nullPointers=TRUE) {
   A <- try(as.character(from))
   if(inherits(A, "try-error")) stop("Unable to coerce `target` to character.")
   B <- try(as.character(to))
@@ -79,6 +79,10 @@ Rdiff_obj <- function(from, to, silent=FALSE, minimal=FALSE, nullPointers=TRUE) 
 # Internal use only: BEWARE, will unlink from, to
 
 Rdiff_run <- function(from, to, nullPointers, silent, minimal) {
+  stopifnot(
+    isTRUE(silent) || identical(silent, FALSE),
+    isTRUE(minimal) || identical(minimal, FALSE)
+  )
   res <- Rdiff(
     from=from, to=to, useDiff=TRUE, Log=TRUE, nullPointers=nullPointers
   )$out
@@ -90,5 +94,3 @@ Rdiff_run <- function(from, to, nullPointers, silent, minimal) {
     invisible(res)
   }
 }
-
-# nocov end

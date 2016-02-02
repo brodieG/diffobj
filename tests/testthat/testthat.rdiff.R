@@ -11,18 +11,19 @@ if(identical(.Platform$OS.type, "unix")) {
     ref.res <- c("0a1", "2c3")
     ref.res.1 <- c("0a1", "> X", "2c3", "< B", "---", "> Y")
 
-    expect_identical(Rdiff_chr(A2, B2), ref.res)
-    capt <- capture.output(res <- Rdiff_chr(A2, B2, silent=FALSE))
+    expect_identical(Rdiff_chr(A2, B2, silent=TRUE, minimal=TRUE), ref.res)
+    capt <- capture.output(res <- Rdiff_chr(A2, B2, silent=FALSE, minimal=TRUE))
     expect_identical(res, ref.res)
     expect_identical(capt, res)
-    capt.1 <- capture.output(res.1 <- Rdiff_chr(A2, B2, silent=FALSE, minimal=FALSE))
+    capt.1 <- capture.output(
+      res.1 <- Rdiff_chr(A2, B2, silent=FALSE, minimal=FALSE)
+    )
     expect_identical(capt.1, ref.res.1)
     expect_identical(res.1, ref.res.1)
 
     # test coersion
     expect_identical(Rdiff_chr(A3, B3), ref.res)
   })
-
   test_that("Rdiff_obj", {
     ref.res2 <- c("1c1", "< [1] \"A\" \"B\" \"C\"", "---", "> [1] \"X\" \"A\" \"Y\" \"C\"" )
     ref.res3 <- c("1c1")
