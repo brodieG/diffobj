@@ -122,7 +122,8 @@ hunk_sub <- function(hunk, op, n) {
 # Figure Out Context for Each Chunk
 #
 # If a hunk bleeds into another due to context then it becomes part of the
-# other hunk.
+# other hunk.  Note that the input `x` is not hunks yet since it has the
+# additional meta information in x$types that we eventually strip off
 
 process_hunks <- function(x, context) {
   stopifnot(
@@ -180,3 +181,39 @@ process_hunks <- function(x, context) {
   length(res.l) <- j - 1L
   res.l
 }
+# Reduce hunks so the total number of text;
+
+setGeneric("trimHunks", function(x, ...) standardGeneric("trimHunks"))
+setMethod("trimHunks", "diffObjDiff",
+  function(x, limit, width, mode, ...) {
+    # Different modes have different per hunk # of lines calculations
+    mode %in% c("context", "unified", "sidebyside")
+
+    if(width < 20 || (mode == "sidebyside" && width < 40)) {
+      width <- if(mode == "sidebyside") 40L else 20L
+      warning("Setting width minimum to ", width, " for diff display")
+    }
+    # Subtract required margin from width
+
+    if(mode == "sidebyside") {
+      width <- floor(width / 2) - 3
+    } else {
+      width <- width - 2
+    }
+    # Given width, compute number of screen lines taken by each hunk; we need
+    # to go through each hunk, find the strings corresponding to each element,
+    # match up target/current, and then figure out number of screen lines.
+
+    count_lines <- function(vec, matches, pos) {
+      vec.sub <- vec[seq_along(matches) + pos]
+      lines <- ceiling(nchar(vec.sub) / width)
+      types <- ifelse(is.na(matches), 2, ifelse(matches, 1, 0))
+      list(lines=lines, type=types)
+    }
+    res <- lapply(
+      x@hunks, function(y) Map(
+        count_lines, list(x@tar.capt, x@cur.capt),
+        y[c("target", "current")], y[c("tar.pos", "cur.pos")]
+    ) )
+    NULL
+} )
