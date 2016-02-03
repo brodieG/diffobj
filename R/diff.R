@@ -525,7 +525,7 @@ diff_print_internal <- function(
   diffs <- char_diff(tar.capt, cur.capt, white.space=white.space)
 
   new(
-    "diffObjDiff", tar.obj=target, cur.obj=target, tar.capt=tar.capt,
+    "diffObjDiff", tar.obj=target, cur.obj=current, tar.capt=tar.capt,
     cur.capt=cur.capt, tar.exp=tar.exp, cur.exp=cur.exp, diffs=diffs,
     mode="print", tar.capt.def=tar.capt.def, cur.capt.def=cur.capt.def
   )
@@ -591,7 +591,7 @@ diff_str_internal <- function(
   tar.exp <- call("str", tar.exp, max.level=lvl)
   cur.exp <- call("str", cur.exp, max.level=lvl)
   new(
-    "diffObjDiff", tar.obj=target, cur.obj=target, tar.capt=obj.rem.capt.str,
+    "diffObjDiff", tar.obj=target, cur.obj=current, tar.capt=obj.rem.capt.str,
     cur.capt=obj.add.capt.str, tar.exp=tar.exp, cur.exp=cur.exp, diffs=diffs,
     mode="str"
   )
