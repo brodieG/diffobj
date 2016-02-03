@@ -18,10 +18,20 @@ NULL
 
 setClass(
   "diffObjDiffDiffs",
-  slots=c(target="integer", current="integer", white.space="logical"),
+  slots=c(hunks="list", white.space="logical"),
   validity=function(object) {
     if(!is.TF(object@white.space))
       return("slot `white.space` must be TRUE or FALSE")
+    hunk.check <- vapply(
+      object@hunks,
+      function(x)
+        identical(names(x), c("target", "current", "tar.pos", "cur.pos")) &&
+        is.integer(x.u <- unlist(x)) && all(is.na(x.u) | x.u >= 0L) &&
+        length(x$tar.pos) == length(x$cur.pos) == 1L,
+      logical(1L)
+    )
+    if(!all(hunk.check))
+      return("slot `hunks` contains invalid hunks")
     TRUE
   }
 )

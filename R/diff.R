@@ -143,12 +143,18 @@ setGeneric("tarDiff", function(x, ...) standardGeneric("tarDiff"))
 setMethod("tarDiff", "diffObjDiff", function(x, ...) tarDiff(x@diffs))
 setGeneric("curDiff", function(x, ...) standardGeneric("curDiff"))
 setMethod("curDiff", "diffObjDiff", function(x, ...) curDiff(x@diffs))
+get_diffs <- function(hunks, type) unlist(apply(hunks, "[[", type))
 setMethod("tarDiff", "diffObjDiffDiffs", function(x, ...) {
-  is.na(x@target) | !!x@target
+  vec <- get_diffs(x@hunks, "target")
+  is.na(vec) | !!vec
 } )
 setMethod("curDiff", "diffObjDiffDiffs", function(x, ...) {
-  is.na(x@current) | !!x@current
+  vec <- get_diffs(x@hunks, "current")
+  is.na(vec) | !!vec
 } )
+# Mostly replaced by Rdiff_x funs; tbd whether we get rid of this or update the
+# Rdiff functions to use diff directly
+
 diff_rdiff <- function(target, current) {
   stopifnot(is.character(target), is.character(current))
   a <- tempfile("diffObjRdiffa")
@@ -157,7 +163,6 @@ diff_rdiff <- function(target, current) {
   writeLines(current, b)
   diff <- capture.output(system(paste("diff -bw", shQuote(a), shQuote(b))))
 }
-
 # Matches up mismatched lines and word diffs them line by line, lines that
 # cannot be matched up are fully diffed
 #
