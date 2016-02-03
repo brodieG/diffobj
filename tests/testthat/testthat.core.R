@@ -55,8 +55,6 @@ local({
       diffobj:::char_diff_myers_simple(A, B),
       list(target = c(NA, NA, 0L, 0L, 0L, NA, 0L), current = c(0L,  NA, 0L, 0L, 0L, NA))
     )
-
-
   } )
   test_that("diff myers mba", {
     expect_identical(diff_ses(character(), character()), character())
@@ -81,8 +79,7 @@ local({
 
     A2 <- c("A", "B", "C")
     B2 <- c("X", "A", "Y", "C")
-    diff_ses(A2, B2)
-    Rdiff_chr(A2, B2)
+    expect_identical(diff_ses(A2, B2), c("0a1", "2c3"))
 
     # More complicated strings; intended for use with contexts for hunks,
     # but making sure the diffs are correct
@@ -90,7 +87,14 @@ local({
     A1 <- c("A", "AA", "B", "C", "D", "E", "F", "G", "H")
     B1 <- c("A", "B", "X", "W", "D", "DD", "E", "Y", "Z")
     C1 <- c("X", "D", "E", "Y", "Z", "H")
-    diff_ses(A1, B1)
+
+    expect_identical(diff_ses(A1, B1), c("2d1", "4c3,4", "5a6", "7,9c8,9"))
+    expect_identical(diff_ses(A1, C1), c("1,4c1", "7,8c4,5"))
+
+    A5 <- c("A", "AA", "B", "C", "D", "E", "F", "G", "H")
+    B5 <- c("A", "B",  "X", "W", "D", "E", "F", "W", "G")
+    expect_identical(diff_ses(A5, B5), c("2d1", "4c3,4", "7a8", "9d9"))
+
   } )
   test_that("print/summary", {
     expect_identical(

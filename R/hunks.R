@@ -26,16 +26,19 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
       seq_along(d.s),
       function(i) {
         d <- d.s[[i]]
-        un.type <- length(unique(d$type))
+
+        del.len <- sum(d$len[which(d$type == "Delete")])
+        ins.len <- sum(d$len[which(d$type == "Insert")])
+        mtc.len <- sum(d$len[which(d$type == "Match")])
+
         type <- NA_integer_
-        if(un.type == 2L) { # must have delete/insert
+
+        if(del.len && ins.len) { # must have delete/insert
           if(!all(d$type %in% c("Delete", "Insert")))
             stop("Logic Error: unexpected edit types; contact maintainer.")
           # Idea here is to number all the insert/deletes so that we can then
           # line them up later; we use `j` to ensure we produce unique indices
 
-          ins.len <- d$len[[which(d$type == "Insert")]]
-          del.len <- d$len[[which(d$type == "Delete")]]
           min.len <- min(ins.len, del.len)
           match.seq <- seq_len(min.len) + j
           type <- "Change"
@@ -43,22 +46,28 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
 
           tar <- c(match.seq, rep(NA_integer_, del.len - min.len))
           cur <- c(match.seq, rep(NA_integer_, ins.len - min.len))
-        } else if (un.type == 1L) {
+        } else {
+          # can only have one type
+
+          if(sum(as.logical(c(del.len, ins.len, mtc.len))) != 1L)
+            stop("Logic Error: unexpected edit types 2; contact maintainer.")
+
           type <- as.character(d$type[[1L]])
-          if(d$type == "Match") {
+          if(mtc.len) {
             tar <- cur <- rep(0L, d$len)
-          } else if (d$type == "Insert") {
+          } else if (ins.len) {
             tar <- integer()
             cur <- rep(NA_integer_, d$len)
           } else if (d$type == "Delete") {
             cur <- integer()
             tar <- rep(NA_integer_, d$len)
-          } else
-            stop("Logic Error: unexpected edit types 2; contact maintainer.")
+          }
         }
         list(
-          target=tar, current=cur, tar.pos=d$last.a[[1L]],
-          cur.pos=d$last.b[[1L]], type=type
+          target=tar, current=cur,
+          tar.pos=d$last.a[[1L]] - del.len - mtc.len,
+          cur.pos=d$last.b[[1L]] - ins.len - mtc.len,
+          type=type
     ) } )
     # Restructure data in result list
 
@@ -73,23 +82,41 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
         "Logic Error: match and mismatch chunks not interspersed; contact ",
         "maintainer."
       )
-    int.scalars <- c("tar.pos", "cur.pos")
-    sclr.l <- Map(function(z) vapply(res.l, "[[", integer(1L), z), int.scalars)
-
-    hunks <- lapply(res.l, "[", c("target", "current"))
-
-    c(list(hunks=hunks, types=types), sclr.l)
+    hunks <- lapply(res.l, function(z) z[names(z) != "type"])
+    list(hunks=hunks, types=types)
 } )
-# subset hunks; would be better as S4, but again trying to be at least
-# partially efficient; also not usoing S3 b/c we don't want to export these
-# methods
-
-
 # Combine two hunks together
 
 merge_hunks <- function(a, b) {
-  nm <- names(a)
-  setNames(lapply(nm, function(x) c(a[[x]], b[[x]])), nm)
+  nm <- c("target", "current")
+  res <- setNames(lapply(nm, function(x) c(a[[x]], b[[x]])), nm)
+  # always inherit left hunk position
+  res$tar.pos <- a$tar.pos
+  res$cur.pos <- a$cur.pos
+  res
+}
+# Subset hunks
+
+hunk_sub <- function(hunk, op, n) {
+  stopifnot(op %in% c("head", "tail"))
+  nm <- c("target", "current")
+  hunk.dat <- setNames(lapply(hunk[nm], op, n), nm)
+
+  # Need to reset the start position if we partially subset when merging left
+  # 'tail' must mean a left merge
+
+  if(op == "tail") {
+    hunk.lens <- vapply(hunk[nm], length, integer(1L))
+    hunk.lens.trim <- vapply(hunk.dat, length, integer(1L))
+
+    pos.delt <- hunk.lens - hunk.lens.trim
+    hunk.dat$tar.pos <- hunk$tar.pos + pos.delt[[1L]]
+    hunk.dat$cur.pos <- hunk$cur.pos + pos.delt[[2L]]
+  } else {
+    hunk.dat$tar.pos <- hunk$tar.pos
+    hunk.dat$cur.pos <- hunk$cur.pos
+  }
+  hunk.dat
 }
 # Figure Out Context for Each Chunk
 #
@@ -99,12 +126,15 @@ merge_hunks <- function(a, b) {
 process_hunks <- function(x, context) {
   stopifnot(
     is.integer(context), length(context) == 1L, !is.na(context), context >= 0L,
-    is.list(x)  # assuming hunk list in correct format...
+    # assuming hunk list is more or less in correct format, checks not
+    # comprehensive here
+    is.list(x), is.list(x$hunks),
+    is.factor(x$types), length(x$types) == length(x$hunks)
   )
-  hunk.len <- length(x)
+  hunk.len <- length(x$hunks)
   if(hunk.len < 2L) return(x)
 
-  res.l <- vector("list", length(x))
+  res.l <- vector("list", hunk.len)
 
   # Jump through every second value as those are the mismatch hunks, though
   # first figure out if first hunk is mismatching
@@ -115,15 +145,15 @@ process_hunks <- function(x, context) {
     # Merge left
 
     res.l[[j]] <- if(i - 1L) merge_hunks(
-      lapply(x$hunks[[i - 1L]], tail, context), x$hunks[[i]]
+      hunk_sub(x$hunks[[i - 1L]], "tail", context), x$hunks[[i]]
     ) else x$hunks[[i]]
 
     # Merge right
 
-    res.l[[j]] <- if(i < hunk.len) {
+    if(i < hunk.len) {
       # Hunks bleed into next hunk due to context
 
-      while(length(x$hunks[[i + 1L]]$target <= context * 2)) {
+      while(i < hunk.len && length(x$hunks[[i + 1L]]$target) <= context * 2) {
         res.l[[j]] <- merge_hunks(res.l[[j]], x$hunks[[i + 1L]])
         if(i < hunk.len - 1L)
           res.l[[j]] <- merge_hunks(res.l[[j]], x$hunks[[i + 2L]])
@@ -133,11 +163,11 @@ process_hunks <- function(x, context) {
 
       if(i < hunk.len) {
         res.l[[j]] <- merge_hunks(
-          res.l[[j]], lapply(x$hunks[[i - 1L]], head, context)
+          res.l[[j]], hunk_sub(x$hunks[[i - 1L]], "head", context)
     ) } }
     j <- j + 1L
     i <- i + 2L
   }
   length(res.l) <- j - 1L
-  res.ls
+  res.l
 }
