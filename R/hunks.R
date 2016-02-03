@@ -7,7 +7,8 @@
 #   match status encoded as 0, a number, or NA (match, mismach aligned with
 #   a mismatch in the other vector, or delete/add respectively).  This should
 #   probably be done with S4 objects, but given potential large number of these
-#   we are using plain lists instead.
+#   we are using plain lists instead.  In addition to the match encoding, the
+#   position to insert the vector after is provided.
 
 setGeneric("as.hunks", function(x, ...) standardGeneric("as.hunks"))
 setMethod("as.hunks", "diffObjMyersMbaSes",
@@ -125,14 +126,22 @@ hunk_sub <- function(hunk, op, n) {
 
 process_hunks <- function(x, context) {
   stopifnot(
-    is.integer(context), length(context) == 1L, !is.na(context), context >= 0L,
+    is.integer(context), length(context) == 1L, !is.na(context),
     # assuming hunk list is more or less in correct format, checks not
     # comprehensive here
     is.list(x), is.list(x$hunks),
     is.factor(x$types), length(x$types) == length(x$hunks)
   )
   hunk.len <- length(x$hunks)
+
+  # Special cases, including only one hunk or forcing only one hunk
+
+  if(context < 0L) {
+    return(list(Reduce(merge_hunks, x$hunks)))
+  }
   if(hunk.len < 2L) return(x)
+
+  # Normal cases
 
   res.l <- vector("list", hunk.len)
 
