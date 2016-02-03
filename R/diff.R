@@ -469,6 +469,31 @@ diff_str <- function(
   cat(res, sep="\n")
   invisible(res)
 }
+diff_chr <- function(
+  target, current, context=getOption("diffobj.context"),
+  white.space=getOption("diffobj.white.space"),
+  line.limit=getOption("diffobj.line.limit")
+) {
+  tar.exp <- substitute(target)
+  cur.exp <- substitute(current)
+
+  white.space <- check_whitespace(white.space)
+  context <- check_context(context)
+  width <- getOption("width")
+
+  if(!is.character(target)) target <- as.character(target)
+  if(!is.character(current)) current <- as.character(current)
+  diffs <- char_diff(target, current, context=context, white.space=white.space)
+
+  diffObj <- new(
+    "diffObjDiff", tar.obj=target, cur.obj=current, tar.capt=target,
+    cur.capt=current, tar.exp=tar.exp, cur.exp=cur.exp, diffs=diffs,
+    mode="print", tar.capt.def=tar.capt.def, cur.capt.def=cur.capt.def
+  )
+  res <- as.character(diffObj, width=width)
+  cat(res, sep="\n")
+  invisible(res)
+}
 # Implements the diff_* functions
 #
 # @keywords internal
