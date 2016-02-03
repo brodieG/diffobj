@@ -27,7 +27,7 @@ setClass(
       function(x)
         identical(names(x), c("target", "current", "tar.pos", "cur.pos")) &&
         is.integer(x.u <- unlist(x)) && all(is.na(x.u) | x.u >= 0L) &&
-        length(x$tar.pos) == length(x$cur.pos) == 1L,
+        (length(x$tar.pos) == length(x$cur.pos)) == 1L,
       logical(1L)
     )
     if(!all(hunk.check))
