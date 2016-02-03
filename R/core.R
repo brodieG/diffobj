@@ -164,22 +164,15 @@ setMethod("summary", "diffObjMyersMbaSes",
 # Carries out the comparison between two character vectors and returns the
 # elements that match and those that don't as a unitizerDiffDiffs object
 
-char_diff <- function(x, y, white.space=FALSE) {
+char_diff <- function(x, y, context=-1L, white.space=FALSE) {
   if(!white.space) {
     pat.1 <- "^[\\t ]*|[\\t ]*$"
     pat.2 <- "[\\t ]+"
     x <- gsub(pat.2, " ", gsub(pat.1, "", x))
     y <- gsub(pat.2, " ", gsub(pat.1, "", y))
   }
-  diffs.int <- diffObjCompact(diff_myers_mba(x, y))
-  if(sum(!diffs.int[[1L]], na.rm=TRUE) != sum(!diffs.int[[2L]], na.rm=TRUE))
-    stop(
-      "Logic Error: diff produced unequal number of matching lines; contact ",
-      "maintainer."
-    )
-  do.call(
-    "new", c(list("diffObjDiffDiffs", white.space=white.space), diffs.int)
-  )
+  hunks <- as.hunks(diff_myers_mba(x, y))
+  new("diffObjDiffDiffs", white.space=white.space, hunks=hunks)
 }
 # Helper function encodes matches within mismatches so that we can later word
 # diff the mismatches
