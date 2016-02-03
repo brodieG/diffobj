@@ -12,7 +12,7 @@
 
 setGeneric("as.hunks", function(x, ...) standardGeneric("as.hunks"))
 setMethod("as.hunks", "diffObjMyersMbaSes",
-  function(x, ...) {
+  function(x, context, ...) {
     # Split our data into sections that have either deletes/inserts or matches
 
     dat <- as.data.frame(x)
@@ -84,7 +84,7 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
         "maintainer."
       )
     hunks <- lapply(res.l, function(z) z[names(z) != "type"])
-    list(hunks=hunks, types=types)
+    process_hunks(list(hunks=hunks, types=types), context)
 } )
 # Combine two hunks together
 
