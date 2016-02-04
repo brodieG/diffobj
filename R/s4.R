@@ -53,10 +53,6 @@ setClass(
   validity=function(object) {
     if(!is.chr1(object@mode) || ! object@mode %in% c("print", "str"))
       return("slot `mode` must be either \"print\" or \"str\"")
-    if(length(object@tar.capt) != length(object@diffs@target))
-      return("slot `tar.capt` must be same length as slot `diffs@target`")
-    if(length(object@cur.capt) != length(object@diffs@current))
-      return("slot `cur.capt` must be same length as slot `diffs@current`")
     TRUE
 } )
 setClass(
