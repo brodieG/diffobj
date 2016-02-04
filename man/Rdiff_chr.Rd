@@ -5,7 +5,7 @@
 \alias{Rdiff_obj}
 \title{Run \code{tools::Rdiff} Directly on R Objects}
 \usage{
-Rdiff_chr(from, to, silent = TRUE, minimal = TRUE, nullPointers = TRUE)
+Rdiff_chr(from, to, silent = FALSE, minimal = FALSE, nullPointers = TRUE)
 
 Rdiff_obj(from, to, silent = FALSE, minimal = FALSE, nullPointers = TRUE)
 }

@@ -398,6 +398,7 @@ diff_color <- function(txt, diffs, range, color) {
 #'   for comparisons with \code{max.level} since differences inside unexpanded
 #'   recursive levels will not be shown at all.
 #' @export
+#' @aliases diff_str, diff_print, diff_chr
 #' @param target the reference object
 #' @param current the object being compared to \code{target}
 #' @param context 2 length integer vector representing how many lines of context
@@ -429,7 +430,6 @@ diff_obj <- function(target, current, context=NULL, white.space=FALSE) {
     context=context, frame=frame, width=width, white.space=white.space
   )
 }
-#' @rdname diff_obj
 #' @export
 
 diff_print <- function(target, current, context=NULL, white.space=FALSE) {
@@ -448,7 +448,6 @@ diff_print <- function(target, current, context=NULL, white.space=FALSE) {
   cat(res, sep="\n")
   invisible(res)
 }
-#' @rdname diff_obj
 #' @export
 
 diff_str <- function(
@@ -469,6 +468,8 @@ diff_str <- function(
   cat(res, sep="\n")
   invisible(res)
 }
+#' @export
+
 diff_chr <- function(
   target, current, context=getOption("diffobj.context"),
   white.space=getOption("diffobj.white.space"),

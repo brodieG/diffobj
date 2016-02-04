@@ -2,6 +2,7 @@
 
 export(Rdiff_chr)
 export(Rdiff_obj)
+export(diff_chr)
 export(diff_obj)
 export(diff_print)
 export(diff_ses)
