@@ -640,32 +640,7 @@ diff_obj_internal <- function(
   invisible(res.chr)
 }
 
-# Function to check arguments that can also be specified as options when set
-# to NULL
 
-check_context <- function(context) {
-  err.msg <- paste0(
-    "must be integer(2L), positive, non-NA, with first value greater than ",
-    "second"
-  )
-  if(is.null(context)) {
-    context <- getOption("diffobj.test.context")
-    if(!is.context.out.vec(context))
-      stop("`getOption(\"diffobj.test.context\")`", err.msg)
-  }
-  if(!is.context.out.vec(context)) stop("Argument `context` ", err.msg)
-  as.integer(context)
-}
-check_width <- function(width) {
-  err.msg <- "must be integer(1L) and strictly positive"
-  if(is.null(width)) {
-    width <- getOption("width")
-    if(!is.int.pos.1L(width))
-      stop("`getOption(\"width\")` ", err.msg)
-  }
-  if(!is.int.pos.1L(width)) stop("Argument `width` ", err.msg)
-  width
-}
 # Capture output of print/show/str; unfortuantely doesn't have superb handling
 # of errors during print/show call, though hopefully these are rare
 
