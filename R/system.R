@@ -4,7 +4,8 @@
   default.opts <- list(
     diffobj.context=c(2L),
     diffobj.white.space=FALSE,
-    diffobj.line.limit=c(50L, 20L)
+    diffobj.line.limit=-1L,
+    diffobj.hunk.limit=-1L
   )
   existing.opts <- options()
   options(default.opts[setdiff(names(default.opts), names(existing.opts))])
