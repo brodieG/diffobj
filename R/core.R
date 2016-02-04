@@ -171,7 +171,7 @@ char_diff <- function(x, y, context=-1L, white.space=FALSE) {
     x <- gsub(pat.2, " ", gsub(pat.1, "", x))
     y <- gsub(pat.2, " ", gsub(pat.1, "", y))
   }
-  hunks <- as.hunks(diff_myers_mba(x, y))
+  hunks <- as.hunks(diff_myers_mba(x, y), context)
   new("diffObjDiffDiffs", white.space=white.space, hunks=hunks)
 }
 # Helper function encodes matches within mismatches so that we can later word
