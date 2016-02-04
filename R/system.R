@@ -1,7 +1,13 @@
 #' Remove DLLs when package is unloaded
 
 .onLoad <- function(libname, pkgname) {
-  options(diffobj.test.context=c(10L, 5L))
+  default.opts <- list(
+    diffobj.context=c(2L),
+    diffobj.white.space=FALSE,
+    diffobj.line.limit=c(50L, 20L)
+  )
+  existing.opts <- options()
+  options(default.opts[setdiff(names(default.opts), names(existing.opts))])
 }
 .onUnload <- function(libpath) {
   library.dynam.unload("diffobj", libpath)
