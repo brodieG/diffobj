@@ -185,9 +185,10 @@ process_hunks <- function(x, context) {
 
 setGeneric("trimHunks", function(x, ...) standardGeneric("trimHunks"))
 setMethod("trimHunks", "diffObjDiff",
-  function(x, limit, width, mode, ...) {
+  function(x, width, mode="context", ...) {
     # Different modes have different per hunk # of lines calculations
-    mode %in% c("context", "unified", "sidebyside")
+    browser()
+    stopifnot(mode %in% c("context", "unified", "sidebyside"))
 
     if(width < 20 || (mode == "sidebyside" && width < 40)) {
       width <- if(mode == "sidebyside") 40L else 20L
@@ -208,12 +209,59 @@ setMethod("trimHunks", "diffObjDiff",
       vec.sub <- vec[seq_along(matches) + pos]
       lines <- ceiling(nchar(vec.sub) / width)
       types <- ifelse(is.na(matches), 2, ifelse(matches, 1, 0))
-      list(lines=lines, type=types)
+      cbind(lines=lines, type=types)
     }
+    hunks <- x@diffs@hunks
     res <- lapply(
-      x@hunks, function(y) Map(
-        count_lines, list(x@tar.capt, x@cur.capt),
-        y[c("target", "current")], y[c("tar.pos", "cur.pos")]
+      hunks,
+      function(y)
+        Map(
+          count_lines, list(target=x@tar.capt, current=x@cur.capt),
+          y[c("target", "current")], y[c("tar.pos", "cur.pos")]
     ) )
+    res.i <- seq_along(res)
+    get_lines <- function(i, hunk.dat, type)
+      cbind(hunk=i, hunk.dat[[i]][[type]])
+    tar.lines <- do.call(rbind, lapply(res.i, get_lines, res,  "target"))
+    cur.lines <- do.call(rbind, lapply(res.i, get_lines, res,  "current"))
+
+    # Different computations for each type of diff to figure out # of lines,
+    # we want to get the cumulative count by hunk; challenging for side by
+    # side b/c we must track the final line number for each element in tar
+    # and cur
+
+    # Let's think about this: we should process chunks sequentially, recording
+    # the character vectors that will eventually be displayed, without color.
+    # we need A and B vectors for all but "unified" format, so for unified use
+    # a dummy B vector.  We also need some way of tracking what strings will
+    # need to be word-diffed; we could track this as an additional vector with
+    # the original 0, NA, 1-n format in each of A and B, using +- values to
+    # distinguish whether they are from tar or cur, and then writing logic to
+    # look in both A and B for matches?  Not ideal...
+
+    lines.cs <- if(mode == "context") {
+      # Every line must be shown
+      sum(tar.lines[, "lines"], cur.lines[, "lines"])
+    } else if(mode == "unified") {
+      sum(
+        tar.lines[, "lines"], # matches, and mismatches from tar
+        cur.lines[cur.lines[!!cur.lines[, "lines"]], "lines"], # cur mismatches
+      )
+    } else if(mode == "sidebyside") {
+      # a bit tricky here; we care which mismatches overlap; it should be the
+      # case that all type 1 mismatches should match in order, so retrieve those
+      # from each vector
+
+      tar.m.m <- tar.lines[tar.lines[, "type"] == 1L, "lines"]
+      cur.m.m <- cur.lines[cur.lines[, "type"] == 1L, "lines"]
+      if(!length(tar.m.m) == length(cur.m.m))
+        stop("Logic Error: malformed match data; contact maintainer.")
+      m.m.lines <- sum(pmax(tar.m.m, cur.m.m))
+
+      # Now add the
+
+
+
+    }
     NULL
 } )
