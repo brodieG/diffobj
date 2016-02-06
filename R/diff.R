@@ -22,7 +22,7 @@ setMethod("any", "diffObjDiff",
     dots <- list(...)
     if(length(dots))
       stop("`any` method for `diffObjDiff` supports only one argument")
-    any(tarDiff(x), curDiff(x))
+    any(x@diffs)
 } )
 #' @rdname diffobj_s4method_doc
 
@@ -31,7 +31,10 @@ setMethod("any", "diffObjDiffDiffs",
     dots <- list(...)
     if(length(dots))
       stop("`any` method for `diffObjDiff` supports only one argument")
-    any(tarDiff(x), curDiff(x))
+    any(
+      which(
+        !vapply(unlist(x@hunks, recursive=FALSE), "[[", logical(1L), "context")
+    ) )
 } )
 #' @rdname diffobj_s4method_doc
 
@@ -155,14 +158,11 @@ setGeneric("tarDiff", function(x, ...) standardGeneric("tarDiff"))
 setMethod("tarDiff", "diffObjDiff", function(x, ...) tarDiff(x@diffs))
 setGeneric("curDiff", function(x, ...) standardGeneric("curDiff"))
 setMethod("curDiff", "diffObjDiff", function(x, ...) curDiff(x@diffs))
-get_diffs <- function(hunks, type) unlist(lapply(hunks, "[[", type))
 setMethod("tarDiff", "diffObjDiffDiffs", function(x, ...) {
-  vec <- get_diffs(x@hunks, "target")
-  is.na(vec) | !!vec
+  stop("currently not implemented")
 } )
 setMethod("curDiff", "diffObjDiffDiffs", function(x, ...) {
-  vec <- get_diffs(x@hunks, "current")
-  is.na(vec) | !!vec
+  stop("currently not implemented")
 } )
 # Mostly replaced by Rdiff_x funs; tbd whether we get rid of this or update the
 # Rdiff functions to use diff directly
