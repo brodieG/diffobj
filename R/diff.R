@@ -36,8 +36,9 @@ setMethod("any", "diffObjDiffDiffs",
 #' @rdname diffobj_s4method_doc
 
 setMethod("as.character", "diffObjDiff",
-  function(x, context, width, ...) {
-    context <- check_context(context)
+  function(x, hunk.limit, line.limit, width, ...) {
+    # check necessary here?
+    context <- check_linelimit(line.limit)
     width <- check_width(width)
     white.space <- x@diffs@white.space
 
@@ -45,7 +46,9 @@ setMethod("as.character", "diffObjDiff",
     if(!any(x)) {
       msg <- "No visible differences between objects"
       if(!x@diffs@white.space) {
-        xa <- char_diff(x@tar.capt, x@cur.capt, white.space=TRUE)
+        xa <- char_diff(
+          x@tar.capt, x@cur.capt, white.space=TRUE, context=context
+        )
         if(any(xa))
           msg <- paste0(
             "Only visible differences between objects are horizontal white ",
@@ -57,11 +60,20 @@ setMethod("as.character", "diffObjDiff",
           msg, "silver",
           use.style=getOption("diffobj.use.ansi")
     ) ) }
-    chunks <- as.hunks(x)
+    # Trim hunks to the extent need to make sure we fit in lines; start by
+    # dropping hunks beyond hunk limit
 
-    show.range <- diff_range(x, context)
-    show.range.tar <- intersect(show.range, seq_along(x@tar.capt))
-    show.range.cur <- intersect(show.range, seq_along(x@cur.capt))
+    hunks <- x@diffs@hunks
+    hunk.count <- length(hunks)
+    if(hunk.limit < 0L) hunk.limit <- hunk.count
+    hunks.omitted <- max(0L, hunk.count - hunk.limit)
+    hunks.used <- min(hunk.count, hunk.limit)
+    x@diffs@hunks <- hunks[seq_len(hunks.used)]
+    # Now drop / trim hunks to comply with line limit
+
+    hunks.trim <- trimHunks(x, width=width)
+
+    show.range <- diff_range(x, hunks, lines)
 
     # Detect whether we should attempt to deal with wrapping objects, if so
     # overwrite cur/tar.body/rest variables with the color diffed wrap word
@@ -143,7 +155,7 @@ setGeneric("tarDiff", function(x, ...) standardGeneric("tarDiff"))
 setMethod("tarDiff", "diffObjDiff", function(x, ...) tarDiff(x@diffs))
 setGeneric("curDiff", function(x, ...) standardGeneric("curDiff"))
 setMethod("curDiff", "diffObjDiff", function(x, ...) curDiff(x@diffs))
-get_diffs <- function(hunks, type) unlist(apply(hunks, "[[", type))
+get_diffs <- function(hunks, type) unlist(lapply(hunks, "[[", type))
 setMethod("tarDiff", "diffObjDiffDiffs", function(x, ...) {
   vec <- get_diffs(x@hunks, "target")
   is.na(vec) | !!vec
@@ -473,13 +485,16 @@ diff_str <- function(
 diff_chr <- function(
   target, current, context=getOption("diffobj.context"),
   white.space=getOption("diffobj.white.space"),
+  hunk.limit=getOption("diffobj.hunk.limit"),
   line.limit=getOption("diffobj.line.limit")
 ) {
   tar.exp <- substitute(target)
   cur.exp <- substitute(current)
 
-  white.space <- check_whitespace(white.space)
+  if(!isTRUE(white.space) && !identical(white.space, FALSE))
+    stop("Argument `white.space` must be TRUE or FALSE")
   context <- check_context(context)
+  line.limit <- check_linelimit(line.limit)
   width <- getOption("width")
 
   if(!is.character(target)) target <- as.character(target)
@@ -489,9 +504,11 @@ diff_chr <- function(
   diffObj <- new(
     "diffObjDiff", tar.obj=target, cur.obj=current, tar.capt=target,
     cur.capt=current, tar.exp=tar.exp, cur.exp=cur.exp, diffs=diffs,
-    mode="print", tar.capt.def=tar.capt.def, cur.capt.def=cur.capt.def
+    mode="print", tar.capt.def=NULL, cur.capt.def=NULL
   )
-  res <- as.character(diffObj, width=width)
+  res <- as.character(
+    diffObj, line.limit=line.limit, hunk.limit=hunk.limit, width=width
+  )
   cat(res, sep="\n")
   invisible(res)
 }
