@@ -89,7 +89,6 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
     } )
     # group hunks together based on context
 
-    browser()
     process_hunks(res.l, context)
 } )
 # Subset hunks; should only ever be subsetting context hunks
@@ -101,20 +100,21 @@ hunk_sub <- function(hunk, op, n) {
     diff(hunk$tar.rng) == diff(hunk$tar.rng),
     length(hunk$tar.rng) == 2L
   )
-  nm <- c("A", "B")
-  hunk[nm] <- lapply(hunk[nm], op, n)
   hunk.len <- diff(hunk$tar.rng) + 1L
   len.diff <- hunk.len - n
-  stopifnot(len.diff < 0L)
+  if(len.diff >= 0) {
+    nm <- c("A", "B")
+    hunk[nm] <- lapply(hunk[nm], op, n)
 
-  # Need to recompute ranges
+    # Need to recompute ranges
 
-  if(op == "tail") {
-    hunk$tar.rng[[1L]] <- hunk$tar.rng[[1L]] + len.diff
-    hunk$cur.rng[[1L]] <- hunk$cur.rng[[1L]] + len.diff
-  } else {
-    hunk$tar.rng[[2L]] <- hunk$tar.rng[[2L]] - len.diff
-    hunk$cur.rng[[2L]] <- hunk$cur.rng[[2L]] - len.diff
+    if(op == "tail") {
+      hunk$tar.rng[[1L]] <- hunk$tar.rng[[1L]] + len.diff
+      hunk$cur.rng[[1L]] <- hunk$cur.rng[[1L]] + len.diff
+    } else {
+      hunk$tar.rng[[2L]] <- hunk$tar.rng[[2L]] - len.diff
+      hunk$cur.rng[[2L]] <- hunk$cur.rng[[2L]] - len.diff
+    }
   }
   hunk
 }
@@ -130,8 +130,7 @@ process_hunks <- function(x, context) {
     is.integer(context), length(context) == 1L, !is.na(context),
     # assuming hunk list is more or less in correct format, checks not
     # comprehensive here
-    is.list(x),
-    identical(names(x), c("A", "B", "context", "tar.rng", "cur.rng"))
+    is.list(x)
   )
   ctx.vec <- vapply(x, "[[", logical(1L), "context")
   if(!all(abs(diff(ctx.vec)) == 1L))
@@ -165,7 +164,7 @@ process_hunks <- function(x, context) {
     # Merge left
 
     res.l[[j]] <- if(i - 1L)
-      list(hunk_sub(x[[i - 1L]], "tail", context), x[[i]]) else x[[i]]
+      list(hunk_sub(x[[i - 1L]], "tail", context), x[[i]]) else x[i]
 
     # Merge right
 
@@ -173,16 +172,16 @@ process_hunks <- function(x, context) {
       # Hunks bleed into next hunk due to context
 
       while(i < hunk.len && length(x[[i + 1L]]$target) <= context * 2) {
-        res.l[[j]] <- append(res.l[[j]], x[[i + 1L]])
+        res.l[[j]] <- append(res.l[[j]], x[i + 1L])
         if(i < hunk.len - 1L)
-          res.l[[j]] <- append(res.l[[j]], x[[i + 2L]])
+          res.l[[j]] <- append(res.l[[j]], x[i + 2L])
         i <- i + 2L
       }
       # Context enough to cause a break
 
       if(i < hunk.len) {
         res.l[[j]] <- append(
-          res.l[[j]], hunk_sub(x[[i - 1L]], "head", context)
+          res.l[[j]], list(hunk_sub(x[[i - 1L]], "head", context))
     ) } }
     j <- j + 1L
     i <- i + 2L
