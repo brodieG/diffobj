@@ -22,15 +22,27 @@ setClass(
   validity=function(object) {
     if(!is.TF(object@white.space))
       return("slot `white.space` must be TRUE or FALSE")
-    hunk.check <- vapply(
+    hunk.check <- lapply(
       object@hunks,
-      function(x)
-        identical(names(x), c("target", "current", "tar.pos", "cur.pos")) &&
-        is.integer(x.u <- unlist(x)) && all(is.na(x.u) | x.u >= 0L) &&
-        (length(x$tar.pos) == length(x$cur.pos)) == 1L,
-      logical(1L)
+      function(x) {
+        vapply(x,
+          function(y) {
+            nm <- c("A", "B", "context", "tar.rng", "cur.rng")
+            identical(names(y), nm) &&
+            is.integer(ab <- unlist(y[nm[-3L]])) && !any(is.na(ab)) &&
+            (
+              !length(y$tar.rng) ||
+              (length(y$tar.rng) == 2L && diff(y$tar.rng) >= 0L)
+            ) &&
+            (
+              !length(y$cur.rng) ||
+              (length(y$cur.rng) == 2L && diff(y$cur.rng) >= 0L)
+            )
+          },
+          logical(1L)
+      ) }
     )
-    if(!all(hunk.check))
+    if(!all(unlist(hunk.check)))
       return("slot `hunks` contains invalid hunks")
     TRUE
   }
