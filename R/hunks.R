@@ -2,17 +2,34 @@
 # Convert ses data into raw hunks that include both match hunks as well as
 # actual hunks
 #
-# @return a list with the hunks, as well as several descriptive vectors the same
-#   length as the hunk list.  Hunks are just lists with the target and current
-#   match status encoded as 0, a number, or NA (match, mismach aligned with
-#   a mismatch in the other vector, or delete/add respectively).  This should
-#   probably be done with S4 objects, but given potential large number of these
-#   we are using plain lists instead.  In addition to the match encoding, the
-#   position to insert the vector after is provided.
+# @return a list containing lists of atomic hunks.  Each of these sub-lists
+#   of atomic hunks is treated as a "hunk", but is really a combination of
+#   context and hunks which we will refer to as "hunk group".  In each hunk
+#   group, There may be as little as one hunk with no context, or many hunks and
+#   context if the context between hunks is not sufficient to meet the requested
+#   context, in which case the hunks bleed together forming these hunk groups.
+#
+#   The hunks within the groups contain integer vectors A and B, as well as
+#   an indication of whether this is a context hunk or a diff hunk.  Vectors
+#   A and B are computed based on what type of diff mode we're in.  Positive
+#   values reference strings from the original target string, and negative ones
+#   from the current string.
+#
+#   Notes for rendering:
+#   1. determine if chunk is context or not
+#   2. if not, positive values are "target" strings, negative "current strings"
+#   3. the range of the hunks is also stored as tar.rng and cur.rng; mostly
+#      inferrable from the actual data in the hunks, except that in unified
+#      mode we no longer have the actual context strings from the current
+#      vector.
 
 setGeneric("as.hunks", function(x, ...) standardGeneric("as.hunks"))
 setMethod("as.hunks", "diffObjMyersMbaSes",
-  function(x, context, ...) {
+  function(x, mode, context, ...) {
+    stopifnot(
+      is.character(mode), length(mode) == 1L, !is.na(mode),
+      mode %in% c("context", "unified", "sidebyside")
+    )
     # Split our data into sections that have either deletes/inserts or matches
 
     dat <- as.data.frame(x)
@@ -27,153 +44,145 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
       seq_along(d.s),
       function(i) {
         d <- d.s[[i]]
+        d.del <- d[which(d$type == "Delete"), ]
+        d.ins <- d[which(d$type == "Insert"), ]
+        d.mtc <- d[which(d$type == "Match"), ]
+        del.len <- sum(d.del$len)
+        ins.len <- sum(d.ins$len)
+        mtc.len <- sum(d.mtc$len)
+        tar.len <- del.len + mtc.len
+        cur.len <- ins.len + mtc.len
 
-        del.len <- sum(d$len[which(d$type == "Delete")])
-        ins.len <- sum(d$len[which(d$type == "Insert")])
-        mtc.len <- sum(d$len[which(d$type == "Match")])
+        # atomic hunks may only be del/ins or match, not both
 
-        type <- NA_integer_
+        if((del.len || ins.len) && mtc.len || !(del.len + ins.len + mtc.len))
+          stop("Logic Error: unexpected edit types; contact maintainer.")
 
-        if(del.len && ins.len) { # must have delete/insert
-          if(!all(d$type %in% c("Delete", "Insert")))
-            stop("Logic Error: unexpected edit types; contact maintainer.")
-          # Idea here is to number all the insert/deletes so that we can then
-          # line them up later; we use `j` to ensure we produce unique indices
+        # Figure out where previous hunk left off
 
-          min.len <- min(ins.len, del.len)
-          match.seq <- seq_len(min.len) + j
-          type <- "Change"
-          j <<- j + min.len
+        del.last <- if(nrow(d.del)) d.del$last.a[[1L]] else d$last.a[[1L]]
+        ins.last <- if(nrow(d.ins)) d.ins$last.b[[1L]] else d$last.b[[1L]]
+        A.start <- del.last - del.len - mtc.len
+        B.start <- ins.last - ins.len - mtc.len
 
-          tar <- c(match.seq, rep(NA_integer_, del.len - min.len))
-          cur <- c(match.seq, rep(NA_integer_, ins.len - min.len))
-        } else {
-          # can only have one type
+        # record `cur` indices as negatives
 
-          if(sum(as.logical(c(del.len, ins.len, mtc.len))) != 1L)
-            stop("Logic Error: unexpected edit types 2; contact maintainer.")
+        tar <- seq_len(tar.len) + A.start
+        cur <- -(seq_len(cur.len) + B.start)
 
-          type <- as.character(d$type[[1L]])
-          if(mtc.len) {
-            tar <- cur <- rep(0L, d$len)
-          } else if (ins.len) {
-            tar <- integer()
-            cur <- rep(NA_integer_, d$len)
-          } else if (d$type == "Delete") {
-            cur <- integer()
-            tar <- rep(NA_integer_, d$len)
-          }
-        }
-        list(
-          target=tar, current=cur,
-          tar.pos=d$last.a[[1L]] - del.len - mtc.len,
-          cur.pos=d$last.b[[1L]] - ins.len - mtc.len,
-          type=type
-    ) } )
-    # Restructure data in result list
+        context <- !!mtc.len
 
-    types <- factor(
-      vapply(res.l, "[[", character(1L), "type"),
-      levels=c("Match", "Delete", "Insert", "Change")
-    )
-    if(any(is.na(types)))
-      stop("Logic Error: invalid hunks extracted; contact maintainer.")
-    if(length(types) > 1L && !all(abs(diff(types == "Match")) == 1L))
-      stop(
-        "Logic Error: match and mismatch chunks not interspersed; contact ",
-        "maintainer."
-      )
-    hunks <- lapply(res.l, function(z) z[names(z) != "type"])
-    process_hunks(list(hunks=hunks, types=types), context)
+        A <- switch(
+          mode, context=tar, unified=c(tar, cur), sidebyside=tar,
+          stop("Logic Error: unknown mode; contact maintainer.")
+        )
+        B <- switch(
+          mode, context=cur, unified=integer(), sidebyside=cur,
+          stop("Logic Error: unknown mode; contact maintainer.")
+        )
+        # compute ranges
+
+        tar.rng <- if(tar.len) c(A.start + 1L, A.start + tar.len) else integer()
+        cur.rng <- if(cur.len) c(B.start + 1L, B.start + cur.len) else integer()
+
+        list(A=A, B=B, context=context, tar.rng=tar.rng, cur.rng=cur.rng)
+    } )
+    # group hunks together based on context
+
+    browser()
+    process_hunks(res.l, context)
 } )
-# Combine two hunks together
-
-merge_hunks <- function(a, b) {
-  nm <- c("target", "current")
-  res <- setNames(lapply(nm, function(x) c(a[[x]], b[[x]])), nm)
-  # always inherit left hunk position
-  res$tar.pos <- a$tar.pos
-  res$cur.pos <- a$cur.pos
-  res
-}
-# Subset hunks
+# Subset hunks; should only ever be subsetting context hunks
 
 hunk_sub <- function(hunk, op, n) {
-  stopifnot(op %in% c("head", "tail"))
-  nm <- c("target", "current")
-  hunk.dat <- setNames(lapply(hunk[nm], op, n), nm)
+  stopifnot(
+    op %in% c("head", "tail"), hunk$context, !!length(hunk$tar.rng),
+    length(hunk$tar.rng) == length(hunk$cur.rng),
+    diff(hunk$tar.rng) == diff(hunk$tar.rng),
+    length(hunk$tar.rng) == 2L
+  )
+  nm <- c("A", "B")
+  hunk[nm] <- lapply(hunk[nm], op, n)
+  hunk.len <- diff(hunk$tar.rng) + 1L
+  len.diff <- hunk.len - n
+  stopifnot(len.diff < 0L)
 
-  # Need to reset the start position if we partially subset when merging left
-  # 'tail' must mean a left merge
+  # Need to recompute ranges
 
   if(op == "tail") {
-    hunk.lens <- vapply(hunk[nm], length, integer(1L))
-    hunk.lens.trim <- vapply(hunk.dat, length, integer(1L))
-
-    pos.delt <- hunk.lens - hunk.lens.trim
-    hunk.dat$tar.pos <- hunk$tar.pos + pos.delt[[1L]]
-    hunk.dat$cur.pos <- hunk$cur.pos + pos.delt[[2L]]
+    hunk$tar.rng[[1L]] <- hunk$tar.rng[[1L]] + len.diff
+    hunk$cur.rng[[1L]] <- hunk$cur.rng[[1L]] + len.diff
   } else {
-    hunk.dat$tar.pos <- hunk$tar.pos
-    hunk.dat$cur.pos <- hunk$cur.pos
+    hunk$tar.rng[[2L]] <- hunk$tar.rng[[2L]] - len.diff
+    hunk$cur.rng[[2L]] <- hunk$cur.rng[[2L]] - len.diff
   }
-  hunk.dat
+  hunk
 }
 # Figure Out Context for Each Chunk
 #
 # If a hunk bleeds into another due to context then it becomes part of the
-# other hunk.  Note that the input `x` is not hunks yet since it has the
-# additional meta information in x$types that we eventually strip off
+# other hunk.
+#
+# This will group atomic hunks into hunk groups
 
 process_hunks <- function(x, context) {
   stopifnot(
     is.integer(context), length(context) == 1L, !is.na(context),
     # assuming hunk list is more or less in correct format, checks not
     # comprehensive here
-    is.list(x), is.list(x$hunks),
-    is.factor(x$types), length(x$types) == length(x$hunks)
+    is.list(x),
+    identical(names(x), c("A", "B", "context", "tar.rng", "cur.rng"))
   )
-  hunk.len <- length(x$hunks)
+  ctx.vec <- vapply(x, "[[", logical(1L), "context")
+  if(!all(abs(diff(ctx.vec)) == 1L))
+    stop(
+      "Logic Error: atomic hunks not interspersing context; contact maintainer."
+    )
 
-  # Special cases, including only one hunk or forcing only one hunk
+  hunk.len <- length(x)
 
-  if(context < 0L) {
-    return(list(Reduce(merge_hunks, x$hunks)))
-  }
-  if(hunk.len < 2L) return(x)
+  # Special cases, including only one hunk or forcing only one hunk group, or
+  # no differences
 
-  # Normal cases
+  if(context < 0L || hunk.len < 2L) return(list(x))
+  if(!any(ctx.vec)) return(list())
 
-  res.l <- vector("list", hunk.len)
+  # Normal cases; allocate maximum possible number of elements, may need fewer
+  # if hunks bleed into each other
+
+  res.l <- vector("list", sum(!ctx.vec))
 
   # Jump through every second value as those are the mismatch hunks, though
-  # first figure out if first hunk is mismatching
+  # first figure out if first hunk is mismatching, and merge hunks.  This
+  # is likely not super efficient as we keep growing a list, though the only
+  # thing we are actually re-allocating is the list index really, at least if
+  # R is being smart about not copying the list contents (which as of 3.1 I
+  # think it is...)
 
-  i <- if(x$types[[1L]] == "Match") 2L else 1L
+  i <- if(ctx.vec[[1L]]) 2L else 1L
   j <- 1L
   while(i <= hunk.len) {
     # Merge left
 
-    res.l[[j]] <- if(i - 1L) merge_hunks(
-      hunk_sub(x$hunks[[i - 1L]], "tail", context), x$hunks[[i]]
-    ) else x$hunks[[i]]
+    res.l[[j]] <- if(i - 1L)
+      list(hunk_sub(x[[i - 1L]], "tail", context), x[[i]]) else x[[i]]
 
     # Merge right
 
     if(i < hunk.len) {
       # Hunks bleed into next hunk due to context
 
-      while(i < hunk.len && length(x$hunks[[i + 1L]]$target) <= context * 2) {
-        res.l[[j]] <- merge_hunks(res.l[[j]], x$hunks[[i + 1L]])
+      while(i < hunk.len && length(x[[i + 1L]]$target) <= context * 2) {
+        res.l[[j]] <- append(res.l[[j]], x[[i + 1L]])
         if(i < hunk.len - 1L)
-          res.l[[j]] <- merge_hunks(res.l[[j]], x$hunks[[i + 2L]])
+          res.l[[j]] <- append(res.l[[j]], x[[i + 2L]])
         i <- i + 2L
       }
       # Context enough to cause a break
 
       if(i < hunk.len) {
-        res.l[[j]] <- merge_hunks(
-          res.l[[j]], hunk_sub(x$hunks[[i - 1L]], "head", context)
+        res.l[[j]] <- append(
+          res.l[[j]], hunk_sub(x[[i - 1L]], "head", context)
     ) } }
     j <- j + 1L
     i <- i + 2L
@@ -181,87 +190,3 @@ process_hunks <- function(x, context) {
   length(res.l) <- j - 1L
   res.l
 }
-# Reduce hunks so the total number of text;
-
-setGeneric("trimHunks", function(x, ...) standardGeneric("trimHunks"))
-setMethod("trimHunks", "diffObjDiff",
-  function(x, width, mode="context", ...) {
-    # Different modes have different per hunk # of lines calculations
-    browser()
-    stopifnot(mode %in% c("context", "unified", "sidebyside"))
-
-    if(width < 20 || (mode == "sidebyside" && width < 40)) {
-      width <- if(mode == "sidebyside") 40L else 20L
-      warning("Setting width minimum to ", width, " for diff display")
-    }
-    # Subtract required margin from width
-
-    if(mode == "sidebyside") {
-      width <- floor(width / 2) - 3
-    } else {
-      width <- width - 2
-    }
-    # Given width, compute number of screen lines taken by each hunk; we need
-    # to go through each hunk, find the strings corresponding to each element,
-    # match up target/current, and then figure out number of screen lines.
-
-    count_lines <- function(vec, matches, pos) {
-      vec.sub <- vec[seq_along(matches) + pos]
-      lines <- ceiling(nchar(vec.sub) / width)
-      types <- ifelse(is.na(matches), 2, ifelse(matches, 1, 0))
-      cbind(lines=lines, type=types)
-    }
-    hunks <- x@diffs@hunks
-    res <- lapply(
-      hunks,
-      function(y)
-        Map(
-          count_lines, list(target=x@tar.capt, current=x@cur.capt),
-          y[c("target", "current")], y[c("tar.pos", "cur.pos")]
-    ) )
-    res.i <- seq_along(res)
-    get_lines <- function(i, hunk.dat, type)
-      cbind(hunk=i, hunk.dat[[i]][[type]])
-    tar.lines <- do.call(rbind, lapply(res.i, get_lines, res,  "target"))
-    cur.lines <- do.call(rbind, lapply(res.i, get_lines, res,  "current"))
-
-    # Different computations for each type of diff to figure out # of lines,
-    # we want to get the cumulative count by hunk; challenging for side by
-    # side b/c we must track the final line number for each element in tar
-    # and cur
-
-    # Let's think about this: we should process chunks sequentially, recording
-    # the character vectors that will eventually be displayed, without color.
-    # we need A and B vectors for all but "unified" format, so for unified use
-    # a dummy B vector.  We also need some way of tracking what strings will
-    # need to be word-diffed; we could track this as an additional vector with
-    # the original 0, NA, 1-n format in each of A and B, using +- values to
-    # distinguish whether they are from tar or cur, and then writing logic to
-    # look in both A and B for matches?  Not ideal...
-
-    lines.cs <- if(mode == "context") {
-      # Every line must be shown
-      sum(tar.lines[, "lines"], cur.lines[, "lines"])
-    } else if(mode == "unified") {
-      sum(
-        tar.lines[, "lines"], # matches, and mismatches from tar
-        cur.lines[cur.lines[!!cur.lines[, "lines"]], "lines"], # cur mismatches
-      )
-    } else if(mode == "sidebyside") {
-      # a bit tricky here; we care which mismatches overlap; it should be the
-      # case that all type 1 mismatches should match in order, so retrieve those
-      # from each vector
-
-      tar.m.m <- tar.lines[tar.lines[, "type"] == 1L, "lines"]
-      cur.m.m <- cur.lines[cur.lines[, "type"] == 1L, "lines"]
-      if(!length(tar.m.m) == length(cur.m.m))
-        stop("Logic Error: malformed match data; contact maintainer.")
-      m.m.lines <- sum(pmax(tar.m.m, cur.m.m))
-
-      # Now add the
-
-
-
-    }
-    NULL
-} )
