@@ -80,12 +80,27 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
           mode, context=cur, unified=integer(), sidebyside=cur,
           stop("Logic Error: unknown mode; contact maintainer.")
         )
+        # Retrieve the character values
+
+        get_chr <- function(ids) {
+          chr <- character(length(ids))
+          chr[ids > 0L] <- x@a[ids[ids > 0]]
+          chr[ids < 0L] <- x@b[ids[ids < 0]]
+          chr[ids == 0L] <- ""
+          chr
+        }
+        A.chr <- get_chr(A)
+        B.chr <- get_chr(B)
+
         # compute ranges
 
         tar.rng <- if(tar.len) c(A.start + 1L, A.start + tar.len) else integer()
         cur.rng <- if(cur.len) c(B.start + 1L, B.start + cur.len) else integer()
 
-        list(A=A, B=B, context=context, tar.rng=tar.rng, cur.rng=cur.rng)
+        list(
+          A=A, B=B, A.chr=A.chr, B.chr=B.chr, context=context, tar.rng=tar.rng,
+          cur.rng=cur.rng
+        )
     } )
     # group hunks together based on context
 
@@ -103,7 +118,7 @@ hunk_sub <- function(hunk, op, n) {
   hunk.len <- diff(hunk$tar.rng) + 1L
   len.diff <- hunk.len - n
   if(len.diff >= 0) {
-    nm <- c("A", "B")
+    nm <- c("A", "B", "A.chr", "B.chr")
     hunk[nm] <- lapply(hunk[nm], op, n)
 
     # Need to recompute ranges
