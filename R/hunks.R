@@ -204,3 +204,35 @@ process_hunks <- function(x, context) {
   length(res.l) <- j - 1L
   res.l
 }
+# Compute how many lines the display version of the diff will take
+# NOTE: need to account for multi-space characters and escape sequences
+
+get_hunk_chr_lens <- function(hunk.grps, mode, width) {
+  hunk_len <- function(hunk.id, hunks) {
+    hunk <- hunks[[hunk.id]]
+    A.lines <- ceiling(nchar(hunk$A.chr) / width)
+    B.lines <- ceiling(nchar(hunk$B.chr) / width)
+
+    # Depending on each mode, figure out how to set up the lines;
+    # straightforward except for side by side. Note that in side-by-side
+    # mode expectation is that A.chr and B.chr will be same length
+
+    lines.out <- switch(
+      mode,
+      context=c(1L, A.lines, 1L, B.lines),
+      unified=c(1L, A.lines),
+      sidebyside=c(1L, pmax(A.lines, B.lines)),
+      stop("Logic Error: unknown mode '", mode, "' contact maintainer")
+    )
+    cbind(id=hunk.id, len=lines.out)
+  }
+  hunk_grp_len <- function(hunk.grp.id) {
+    hunks <- hunk.grps[[hunk.grp.id]]
+    hunks.proc <- lapply(seq_along(hunks), hunk_len, hunks=hunks)
+    cbind(grp.id=hunk.grp.id, do.call(rbind, hunks.proc))
+  }
+  # Generate a matrix with hunk group id, hunk id, and wrapped length of each
+  # line that we can use to figure out what to show
+
+  do.call(rbind, lapply(seq_along(hunk.grps), hunk_grp_len))
+}
