@@ -94,12 +94,14 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
 
         # compute ranges
 
-        tar.rng <- if(tar.len) c(A.start + 1L, A.start + tar.len) else integer()
-        cur.rng <- if(cur.len) c(B.start + 1L, B.start + cur.len) else integer()
+        tar.rng <- cur.rng <- integer(2L)
+        if(tar.len) tar.rng <- c(A.start + 1L, A.start + tar.len)
+        if(cur.len) cur.rng <- c(A.start + 1L, A.start + tar.len)
 
         list(
-          A=A, B=B, A.chr=A.chr, B.chr=B.chr, context=context, tar.rng=tar.rng,
-          cur.rng=cur.rng, tar.rng.trim=tar.rng, cur.rng.trim=cur.rng
+          id=i, A=A, B=B, A.chr=A.chr, B.chr=B.chr, context=context,
+          tar.rng=tar.rng, cur.rng=cur.rng, tar.rng.trim=tar.rng,
+          cur.rng.trim=cur.rng
         )
     } )
     # group hunks together based on context
@@ -110,9 +112,9 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
 
 hunk_sub <- function(hunk, op, n) {
   stopifnot(
-    op %in% c("head", "tail"), hunk$context, !!length(hunk$tar.rng),
+    op %in% c("head", "tail"), hunk$context, all(hunk$tar.rng),
     length(hunk$tar.rng) == length(hunk$cur.rng),
-    diff(hunk$tar.rng) == diff(hunk$tar.rng),
+    diff(hunk$tar.rng) == diff(hunk$cur.rng),
     length(hunk$tar.rng) == 2L
   )
   hunk.len <- diff(hunk$tar.rng) + 1L
@@ -271,11 +273,11 @@ trim_hunk <- function(hunk, type, line.id) {
   stopifnot(type %in% c("tar", "cur"))
   rng.idx <- sprintf("%s.rng.trim", type)
   dat.idx <- sprintf(c("%s", "%s.chr"), if(type == "tar") "A" else "B")
-  hunk[[rng.idx]] <- if(!line.id) integer() else {
-    if(length(hunk[[rng.idx]])) {
+  hunk[[rng.idx]] <- if(!line.id) integer(2L) else {
+    if(all(hunk[[rng.idx]])) {
       hunk[[rng.idx]][[2L]] <-
         min(hunk[[rng.idx]][[1L]] + line.id - 1L, hunk[[rng.idx]][[2L]])
-    } else integer()
+    } else integer(2L)
   }
   hunk[dat.idx] <- lapply(hunk.atom[dat.idx], head, n=line.id)
   hunk
