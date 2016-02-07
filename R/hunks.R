@@ -99,7 +99,7 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
 
         list(
           A=A, B=B, A.chr=A.chr, B.chr=B.chr, context=context, tar.rng=tar.rng,
-          cur.rng=cur.rng
+          cur.rng=cur.rng, tar.rng.trim=tar.rng, cur.rng.trim=cur.rng
         )
     } )
     # group hunks together based on context
@@ -204,7 +204,13 @@ process_hunks <- function(x, context) {
   length(res.l) <- j - 1L
   res.l
 }
-# Compute how many lines the display version of the diff will take
+# Compute how many lines the display version of the diff will take, meta
+# lines (used for hunk headers) are denoted by negatives
+#
+# count lines for each remaining hunk and figure out if we need to cut some
+# hunks off; note that "negative" lengths indicate the lines being counted
+# originated from the B hunk in context mode
+#
 # NOTE: need to account for multi-space characters and escape sequences
 
 get_hunk_chr_lens <- function(hunk.grps, mode, width) {
@@ -214,25 +220,123 @@ get_hunk_chr_lens <- function(hunk.grps, mode, width) {
     B.lines <- ceiling(nchar(hunk$B.chr) / width)
 
     # Depending on each mode, figure out how to set up the lines;
-    # straightforward except for side by side. Note that in side-by-side
-    # mode expectation is that A.chr and B.chr will be same length
+    # straightforward except for context where we need to account for the
+    # fact that all the A of a hunk group are shown first, and then all
+    # the B are shown
 
     lines.out <- switch(
       mode,
-      context=c(1L, A.lines, 1L, B.lines),
-      unified=c(1L, A.lines),
-      sidebyside=c(1L, pmax(A.lines, B.lines)),
+      context=c(A.lines, -B.lines),
+      unified=c(A.lines),
+      sidebyside=c(pmax(A.lines, B.lines)),
       stop("Logic Error: unknown mode '", mode, "' contact maintainer")
     )
-    cbind(id=hunk.id, len=lines.out)
+    # Make sure that line.id refers to the position of the line in either
+    # original A or B vector
+
+    line.id <- unlist(lapply(split(lines.out, lines.out > 0L), seq_along))
+    cbind(hunk.id=hunk.id, line.id=line.id, len=lines.out)
   }
   hunk_grp_len <- function(hunk.grp.id) {
     hunks <- hunk.grps[[hunk.grp.id]]
     hunks.proc <- lapply(seq_along(hunks), hunk_len, hunks=hunks)
-    cbind(grp.id=hunk.grp.id, do.call(rbind, hunks.proc))
+    res <- cbind(grp.id=hunk.grp.id, do.call(rbind, hunks.proc))
+    # Need to make sure all positives are first, and all negatives second, if
+    # there are negatives (context mode); we also add 1 to the first line in
+    # each section to account for the group hunkheader info
+
+    if(
+      identical(mode, "context") &&
+      length(negs <- which(res[, "lines.out"] < 0L)) &&
+      length(poss <- which(res[, "lines.out"] > 0L))
+    ) {
+      res <- res[order(res[, "lines.out"] < 0L),]
+      if(length(poss)) res[1L, "lines.out"] <- res[1L, "lines.out"] + 1L
+      res[negs[[1L]], "lines.out"] <- res[negs[[1L]], "lines.out"] - 1L
+    } else {
+      res[1L, "lines.out"] <- res[1L, "lines.out"] + 1L
+    }
   }
   # Generate a matrix with hunk group id, hunk id, and wrapped length of each
   # line that we can use to figure out what to show
 
   do.call(rbind, lapply(seq_along(hunk.grps), hunk_grp_len))
+}
+# Remove hunk groups and atomic hunks that exceed the line limit
+#
+# Return value is a hunk group list, with an attribute indicating how many
+# hunks and lines were  trimmed
+
+trim_hunk <- function(hunk, type, line.id) {
+  stopifnot(type %in% c("tar", "cur"))
+  rng.idx <- sprintf("%s.rng.trim", type)
+  dat.idx <- sprintf(c("%s", "%s.chr"), if(type == "tar") "A" else "B")
+  hunk[[rng.idx]] <- if(!line.id) integer() else {
+    if(length(hunk[[rng.idx]])) {
+      hunk[[rng.idx]][[2L]] <-
+        min(hunk[[rng.idx]][[1L]] + line.id - 1L, hunk[[rng.idx]][[2L]])
+    } else integer()
+  }
+  hunk[dat.idx] <- lapply(hunk.atom[dat.idx], head, n=line.id)
+  hunk
+}
+trim_hunks <- function(hunk.grps, mode, width, line.limit) {
+  hunk.grps.count <- length(hunk.grps)
+  if(hunk.limit < 0L) hunk.limit <- hunk.grps.count
+  hunk.grps.omitted <- max(0L, hunk.grps.count - hunk.limit)
+  hunk.grps.used <- min(hunk.grps.count, hunk.limit)
+  hunk.grps <- hunk.grps[seq_len(hunk.grps.used)]
+
+  lines <- get_hunk_chr_lens(hunk.grps, mode, width)
+  cum.len <- cumsum(abs(lines[, "lens"]))
+  cut.off <- -1L
+  lines.omitted <- 0L
+  if(any(cum.len > limit[[1L]])) {
+    cut.off <- max(0L, cum.len < line.limit[[2L]])
+  }
+  if(cut.off > 0) {
+    lines.omitted <- tail(cum.len, 1L) - cut.off
+    cut.dat <- lines[cut.off, ]
+    grp.cut <- cut.dat[["grp.id"]]
+    hunk.cut <- cut.dat[["hunk.id"]]
+    line.cut <- cut.dat[["line.id"]]
+    line.neg <- cut.dat[["len"]] < 0
+
+    hunk.grps <- hunk.grps[seq_len(grp.cut)]
+    hunk.grps.used <- grp.cut
+    hunk.grps.omitted <- max(0L, hunk.grps.count - grp.cut)
+
+    # Remove excess lines from the atomic hunks based on the limits; we don't
+    # update the ranges as those should still indicate what the original
+    # untrimmed range was
+
+    if(mode == "context") {
+      # Context tricky because every atomic hunk B data is displayed after all
+      # the A data
+
+      for(i in seq_along(hunk.grps[[grp.cut]])) {
+        hunk.atom <- hunk.grps[[grp.cut]][[i]]
+        if(!line.neg) {  # means all B blocks must be dropped
+          hunk.atom <- trim_hunk(hunk_atom, "cur", 0L)
+          if(i > hunk.cut) {
+            hunk.atom <- trim_hunk(hunk_atom, "tar", 0L)
+          } else if (i == hunk.cut) {
+            hunk.atom <- trim_hunk(hunk_atom, "tar", line.id)
+          }
+        } else {
+          hunk.atom <- trim_hunk(hunk_atom, "cur", line.id)
+        }
+        hunks.grp[[grp.cut]][[i]] <- hunk.atom
+      }
+    } else {
+      hunk.atom <- hunk.grps[[grp.cut]][[hunk.cut]]
+      hunk.atom <- trim_hunk(hunk.atom, "tar", line.id)
+      hunk.atom <- trim_hunk(hunk.atom, "cur", line.id)
+      hunk.grps[[grp.cut]][[hunk.cut]] <- hunk.atom
+    }
+  } else if (!cut.off) {
+    hunk.grps <- list()
+  }
+  attr(hunk.grps, "omitted") <- c(lines=lines.omitted, hunks=hunk.grps.omitted)
+  hunk.grps
 }
