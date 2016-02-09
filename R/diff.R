@@ -39,7 +39,7 @@ setMethod("any", "diffObjDiffDiffs",
 #' @rdname diffobj_s4method_doc
 
 setMethod("as.character", "diffObjDiff",
-  function(x, hunk.limit, line.limit, width, ...) {
+  function(x, hunk.limit, line.limit, width, use.ansi, ...) {
     # check necessary here?
     context <- check_linelimit(line.limit)
     width <- check_width(width)
@@ -63,20 +63,26 @@ setMethod("as.character", "diffObjDiff",
           msg, "silver",
           use.style=getOption("diffobj.use.ansi")
     ) ) }
+    # Figure out which hunks we're going to try to render subject to the
+    # line and hunk limits.  Remember
+
     # Trim hunks to the extent need to make sure we fit in lines; start by
     # dropping hunks beyond hunk limit
 
-    hunks <- x@diffs@hunks
-    hunk.count <- length(hunks)
-    if(hunk.limit < 0L) hunk.limit <- hunk.count
-    hunks.omitted <- max(0L, hunk.count - hunk.limit)
-    hunks.used <- min(hunk.count, hunk.limit)
-    x@diffs@hunks <- hunks[seq_len(hunks.used)]
-    # Now drop / trim hunks to comply with line limit
+    hunk.grps <- trim_hunks(
+      x@diffs@hunks, mode=mode, width=width, line.limit=line.limit
+    )
+    # Post trim, figure out max lines we could possibly be showing from capture
+    # strings
 
-    hunks.trim <- trimHunks(x, width=width)
-
-    show.range <- diff_range(x, hunks, lines)
+    hunks.flat <- unlist(hunk.grps, recursive=FALSE)
+    ranges <- vapply(
+      hunks.flat, function(h.a)
+        c(h.a$tar.rng.trim, h.a$cur.rng.trim),
+      integer(4L)
+    )
+    tar.max <- max(ranges[, 2L])
+    cur.max <- max(ranges[, 4L])
 
     # Detect whether we should attempt to deal with wrapping objects, if so
     # overwrite cur/tar.body/rest variables with the color diffed wrap word
@@ -84,20 +90,21 @@ setMethod("as.character", "diffObjDiff",
     # being compared must be atomic vectors
 
     cur.body <- tar.body <- character(0L)
-    cur.rest <- show.range.cur
-    tar.rest <- show.range.tar
+    cur.rest <- show.range.cur <- seq_len(cur.max)
+    tar.rest <- show.range.tar <- seq_len(tar.max)
 
     if(
       identical(x@mode, "print") && identical(x@tar.capt, x@tar.capt.def) &&
       identical(x@cur.capt, x@cur.capt.def)
     ) {
-      # Separate out the stuff that can wrap (starts with index headers vs. not)
+      # Separate out the stuff that can wrap (starts with index headers vs. not),
+      # and for that stuff only, apply the color word diff
 
       cur.head.raw <- find_brackets(x@cur.capt)
       tar.head.raw <- find_brackets(x@tar.capt)
 
-      cur.head <- cur.head.raw[cur.head.raw %in% show.range]
-      tar.head <- tar.head.raw[tar.head.raw %in% show.range]
+      cur.head <- cur.head.raw[cur.head.raw %in% show.range.cur]
+      tar.head <- tar.head.raw[tar.head.raw %in% show.range.tar]
 
       if(length(cur.head) && length(tar.head)) {
         # note we modify `x` here so that subsequent steps can re-use `x` with
@@ -138,21 +145,127 @@ setMethod("as.character", "diffObjDiff",
         tar.rest <- show.range.tar[!show.range.tar %in% tar.head]
       }
     }
-    # Do the line diffs
+    # Figure out which hunks are still eligible to be word diffed
 
-    diff.fin <- diff_line(x, tar.rest, cur.rest)
+    tar.to.wd <- min(which(ranges[1L,] %in% tar.rest), 0L)
+    cur.to.wd <- min(which(ranges[3L,] %in% cur.rest), 0L)
 
-    # Add all the display stuff
+    if(tar.to.wd && cur.to.wd) {
+      wd.max <- max(tar.to.wd, cur.to.wd)
 
-    c(
-      obj_screen_chr(
-        diff.fin$target,  x@tar.exp, diffs=tarDiff(x), range=show.range,
-        width=width, pad= "-  ", color="red"
-      ),
-      obj_screen_chr(
-        diff.fin$current,  x@cur.exp, diffs=curDiff(x), range=show.range,
-        width=width, pad= "+  ", color="green"
-    ) )
+      for(i in seq_along(hunk.grps)) {
+        for(j in seq_along(hunk.grps[[i]])) {
+          h.a <- hunk.grps[[i]][[j]]
+          if(h.a$id < wd.max || h.a$context) next
+          # Do word diff on each non-context hunk
+
+          h.a[c("A.chr", "B.chr")] <- diff_word(
+            h.a$A.chr, h.a$B.chr, across.lines=TRUE, white.space=white.space
+          )
+          hunk.grps[[i]][[j]] <- h.a
+    } } }
+    # Make the object banner
+
+    banner.A <- paste0("--- ", deparse(x@tar.exp)[[1L]])
+    banner.B <- paste0("+++ ", deparse(x@cur.exp)[[1L]])
+
+    if(mode == "sidebyside") {
+      max.w <- max(floor(width / 2), 20L)
+      comb.fun <- paste0
+      t.fun <- rpadt
+    } else {
+      max.w <- max(width, 20L)
+      comb.fun <- c
+      t.fun <- chr_trim
+    }
+    banner <- comb.fun(
+      ansi_style(t.fun(banner.A, max.w), "red", use.style),
+      ansi_style(t.fun(banner.B, max.w), "green", use.style)
+    )
+    # Display hunks
+
+    rng_as_chr <- function(range) paste0(range[[1L]], ",", diff(range))
+
+    out <- lapply(
+      hunk.grps, function(h.g) {
+        # Get ranges DEVNOTE: NEED TO CHECK ATOMIC HUNK RANGES CONTIGUOUS
+
+        tar.rng <- c(min(ranges[1L,]), max(ranges[2L,]))
+        cur.rng <- c(min(ranges[3L,]), max(ranges[4L,]))
+
+        hh.a <- paste0("-", rng_as_chr(tar.rng))
+        hh.b <- paste0("+", rng_as_chr(cur.rng))
+
+        hunk.head <- ansi_style(
+          if(mode == "sidebyside") {
+            paste0(rpadt(sprintf("@@ %s @@", c(hh.a, hh.b)), max.w), collapse="")
+          } else {
+            sprintf("@@ %s %s @@", hh.a, hh.b)
+          },
+          "cyan", use.style
+        )
+        # Output varies by mode
+
+        if(mode == "context") {
+          # Need to get all the A data and the B data
+          ctx <- vapply(h.g, "[[", logical(1L), "context")
+          A <- wrap(unlist(lapply(h.g, "[[", "A.chr")), width, use.ansi)
+          B <- wrap(unlist(lapply(h.g, "[[", "B.chr")), width, use.ansi)
+          A[!ctx] <- sign_pad(A[!ctx], "- ", use.ansi)
+          B[!ctx] <- sign_pad(B[!ctx], "+ ", use.ansi)
+          A[ctx] <- sign_pad(A[ctx], "  ", use.ansi)
+          B[ctx] <- sign_pad(B[ctx], "  ", use.ansi)
+          unlist(A, ansi_style("----", "silver"), B)
+        } else if(mode == "unified") {
+          unlist(
+            lapply(h.g,
+              function(h.a) {
+                pos <- h.a$A > 0L
+                A.out <- wrap(h.a$A.chr, width, use.ansi)
+                if(!h.a$context) {
+                  A.out[pos] <- sign_pad(A.out[pos], "- ", use.ansi)
+                  A.out[!pos] <- sign_pad(A.out[!pos], "+ ", use.ansi)
+                } else {
+                  A.out <- sign_pad(A.out, "  ", use.ansi)
+                }
+                A.out
+          } ) )
+        } else if(mode == "sidebyside") {
+          unlist(
+            lapply(h.g,
+              function(h.a) {
+                # Ensure same number of elements in A and B
+
+                A.out <- h.a$A.chr
+                B.out <- h.a$B.chr
+                len.diff <- length(A.out) - length(B.out)
+                if(len.diff < 0L) {
+                  A.out <- c(A.out, character(abs(len.diff)))
+                } else if(len.diff) {
+                  B.out <- c(B.out, character(len.diff))
+                }
+                A.w <- wrap(A.out, width, use.ansi, pad=TRUE)
+                B.w <- wrap(B.out, width, use.ansi, pad=TRUE)
+
+                # Same number of els post wrap
+
+                A.lens <- vapply(A.out, length, integer(1L))
+                B.lens <- vapply(B.out, length, integer(1L))
+                blanks <- paste0(rep(" ", width), collapse="")
+
+                for(i in seq_along(len.max)) {
+                  if(A.lens < B.lens)
+                    A.w[[i]] <- c(A.w[[i]], rep(blanks, B.lens - A.lens))
+                  if(A.lens > B.lens)
+                    B.w[[i]] <- c(B.w[[i]], rep(blanks, A.lens - B.lens))
+                }
+                paste0(
+                  unlist(sign_pad(A.w, "- ", use.ansi, rev=TRUE)),
+                  unlist(sign_pad(B.w, "+ ", use.ansi))
+                )
+        } ) ) }
+    } )
+    unlist(out)
 } )
 setGeneric("tarDiff", function(x, ...) standardGeneric("tarDiff"))
 setMethod("tarDiff", "diffObjDiff", function(x, ...) tarDiff(x@diffs))
@@ -252,10 +365,7 @@ color_words <- function(chrs, diffs, color) {
     chrs.grp <- tapply(chrs, grps, paste0, collapse=" ")
     diff.grp <- tapply(diffs, grps, head, 1L)
     paste0(
-      diff_color(chrs.grp, diff.grp, seq_along(chrs.grp), color), collapse=" "
-    )
-  } else paste0(chrs, collapse="")
-}
+      diff_color(chrs.grp, diff.grp, seq_along(chrs.grp), color), collapse=" ") } else paste0(chrs, collapse="") }
 # Try to use fancier word matching with vectors and matrices
 
 .brack.pat <- "^ *\\[\\d+\\]"
@@ -331,26 +441,19 @@ diff_word <- function(
     cur.split <- list(unlist(cur.split))
   }
   diffs <- mapply(
-    char_diff, tar.split, cur.split, MoreArgs=list(white.space=white.space),
+    char_diff, tar.split, cur.split, MoreArgs=list(
+      white.space=white.space, context=-1L, mode="context"
+    ),
     SIMPLIFY=FALSE
   )
   # Color
 
-  tar.colored <- lapply(
-    seq_along(tar.split),
-    function(i)
-      diff_color(
-        tar.split[[i]], tarDiff(diffs[[i]]), seq_along(tar.split[[i]]), "red"
-      )
-  )
-  cur.colored <- lapply(
-    seq_along(cur.split),
-    function(i)
-      diff_color(
-        cur.split[[i]], curDiff(diffs[[i]]), seq_along(cur.split[[i]]), "green"
-      )
-  )
-  # Reconstitute lines if needed
+  diff.colored <- lapply(diffs, diffColor, use.ansi=use.ansi)
+  tar.colored <- lapply(diff.colored, "[[", "A")
+  cur.colored <- lapply(diff.colored, "[[", "B")
+
+  # Reconstitute lines if needed; using across lines there should only be one
+  # value
 
   if(across.lines) {
     tar.colored <- split(
@@ -367,9 +470,33 @@ diff_word <- function(
 
   list(target=target, current=current)
 }
-# Apply line colors
+# Apply line colors; returns a list with the A and B vectors colored,
+# note that all hunks will be collapsed.
+#
+# Really only intended to be used for stuff that produces a single hunk
 
-diff_color <- function(txt, diffs, range, color) {
+setGeneric("diffColor", function(x, ...) standardGeneric("diffColor"))
+setMethod("diffColor", "diffObjDiffDiffs",
+ function(x, use.ansi, ...) {
+   res.l <- lapply(x@hunks,
+     function(y) {
+       lapply(y,
+         function(z) {
+           A <- z$A.chr
+           B <- z$B.chr
+           if(!z$context) {
+             A[z$A < 0L] <- ansi_style(A[z$A < 0L], "green", use.style=use.ansi)
+             A[z$A > 0L] <- ansi_style(A[z$A < 0L], "red", use.style=use.ansi)
+           }
+           list(A=A, B=B)
+  } ) } )
+  res.l <- unlist(res.l, recursive=FALSE)
+  A <- unlist(lapply(res.l, "[[", "A"))
+  B <- unlist(lapply(res.l, "[[", "B"))
+  list(A=A, B=B)
+} )
+
+diff_color <- function(txt, diffs, range, color, use.ansi) {
   stopifnot(
     is.character(txt), is.logical(diffs), !any(is.na(diffs)),
     length(txt) == length(diffs), is.integer(range), !any(is.na(range)),
@@ -377,7 +504,7 @@ diff_color <- function(txt, diffs, range, color) {
   )
   to.color <- diffs & seq_along(diffs) %in% range
   txt[to.color] <- ansi_style(
-    txt[to.color], color, use.style=getOption("diffobj.use.ansi")
+    txt[to.color], color, use.style=use.ansi
   )
   txt
 }
