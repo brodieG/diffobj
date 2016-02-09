@@ -27,17 +27,16 @@ setClass(
       function(x) {
         vapply(x,
           function(y) {
-            nm <- c("A", "B", "context", "tar.rng", "cur.rng")
-            identical(names(y), nm) &&
-            is.integer(ab <- unlist(y[nm[-3L]])) && !any(is.na(ab)) &&
-            (
-              !length(y$tar.rng) ||
-              (length(y$tar.rng) == 2L && diff(y$tar.rng) >= 0L)
-            ) &&
-            (
-              !length(y$cur.rng) ||
-              (length(y$cur.rng) == 2L && diff(y$cur.rng) >= 0L)
+            nm <- c(
+              "id", "A", "B", "A.chr", "B.chr", "context", "tar.rng", "cur.rng",
+              "tar.rng.trim", "cur.rng.trim"
             )
+            identical(names(y), nm) &&
+            is.integer(ab <- unlist(y[nm[-(3:5)]])) && !any(is.na(ab)) &&
+            length(y$tar.rng) == 2L && diff(y$tar.rng) >= 0L &&
+            length(y$cur.rng) == 2L && diff(y$cur.rng) >= 0L &&
+            length(y$tar.rng.trim) == 2L && diff(y$tar.rng.trim) >= 0L &&
+            length(y$cur.rng.trim) == 2L && diff(y$cur.rng.trim) >= 0L
           },
           logical(1L)
       ) }
