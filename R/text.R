@@ -8,9 +8,10 @@ chr_trim <- function(text, width) {
     text
   )
 }
-rpad <- function(text, width, pad.chr=" ") {
+rpad <- function(text, width, pad.chr=" ", use.ansi=TRUE) {
   stopifnot(is.character(pad.chr), length(pad.chr) == 1L, nchar(pad.chr) == 1L)
-  pad.count <- width - nchar(text)
+  nchar_fun <- if(use.ansi) ansi_style_nchar else nchar
+  pad.count <- width - nchar_fun(text)
   pad.count[pad.count < 0L] <- L
   pad.chrs <- vapply(
     pad.count, function(x) paste0(rep(pad.chr, x), collapse=""), character(1L)
@@ -24,9 +25,11 @@ rpadt <- function(text, width, pad.chr=" ")
 
 # Breaks long character vectors into vectors of length width
 #
+# Right pads them to full length if requested
+#
 # Returns a list of split vectors
 
-wrap <- function(txt, width, ansi_escape) {
+wrap <- function(txt, width, use.ansi, pad=FALSE) {
   # Get rid of newlines
 
   txt <- unlist(strsplit(txt, "\n"))
