@@ -215,15 +215,15 @@ process_hunks <- function(x, context) {
 #
 # NOTE: need to account for multi-space characters and escape sequences
 
-get_hunk_chr_lens <- function(hunk.grps, mode, width) {
+get_hunk_chr_lens <- function(hunk.grps, mode, width, ansi) {
   # Account for overhead / side by sideness in width calculations
   if(mode == "sidebyside")
     width <- max(floor(width - 3L / 2L), 20L) else width <- width - 2L
   # Internal funs
   hunk_len <- function(hunk.id, hunks) {
     hunk <- hunks[[hunk.id]]
-    A.lines <- ceiling(nchar(hunk$A.chr) / width)
-    B.lines <- ceiling(nchar(hunk$B.chr) / width)
+    A.lines <- ceiling(ansi_style_nchar(hunk$A.chr, ansi) / width)
+    B.lines <- ceiling(ansi_style_nchar(hunk$B.chr, ansi) / width)
 
     # Depending on each mode, figure out how to set up the lines;
     # straightforward except for context where we need to account for the
