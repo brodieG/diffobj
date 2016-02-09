@@ -408,7 +408,8 @@ find_brackets <- function(x) {
 # the quoted bits)
 
 diff_word <- function(
-  target, current, across.lines=FALSE, white.space, match.quotes=FALSE
+  target, current, across.lines=FALSE, white.space, match.quotes=FALSE,
+  use.ansi
 ) {
   stopifnot(
     is.character(target), is.character(current),
@@ -486,7 +487,7 @@ setMethod("diffColor", "diffObjDiffDiffs",
            B <- z$B.chr
            if(!z$context) {
              A[z$A < 0L] <- ansi_style(A[z$A < 0L], "green", use.style=use.ansi)
-             A[z$A > 0L] <- ansi_style(A[z$A < 0L], "red", use.style=use.ansi)
+             A[z$A > 0L] <- ansi_style(A[z$A > 0L], "red", use.style=use.ansi)
            }
            list(A=A, B=B)
   } ) } )
