@@ -52,3 +52,19 @@ test_that("wrap with escape sequences", {
     list(c(10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 4), c(10, 10, 10, 10))
   )
 })
+test_that("pad sign", {
+  txt1 <- list(c("hello", "there"), c("how", "are you"), "sir!")
+  expect_identical(
+    diffobj:::sign_pad(txt1, "  ", FALSE, TRUE),
+    list(c("  hello", "  there"), c("  how", "  are you"), "  sir!")
+  )
+  expect_identical(
+    diffobj:::sign_pad(txt1, "+ ", FALSE, TRUE),
+    list(c("\033[32m+ \033[39mhello", "\033[32m: \033[39mthere"), c("\033[32m+ \033[39mhow", "\033[32m: \033[39mare you"), "\033[32m+ \033[39msir!")
+  )
+  expect_identical(
+    diffobj:::sign_pad(txt1, "- ", FALSE, TRUE),
+    list(c("\033[31m- \033[39mhello", "\033[31m: \033[39mthere"), c("\033[31m- \033[39mhow", "\033[31m: \033[39mare you"), "\033[31m- \033[39msir!")
+  )
+  expect_error(diffobj:::sign_pad(txt1, "* ", FALSE, TRUE), "pad %in%")
+} )
