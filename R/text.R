@@ -79,9 +79,44 @@ wrap <- function(txt, width, use.ansi, pad=FALSE) {
         length(cum.len) - c(na.omit(match(split.chr.pos, rev(cum.len)))) + 1L
       split.locs <- split.locs[which(split.locs < nchars)]
 
-      substr(
+      res <- substr(
         rep(txt[[i]], length(split.locs) + 1L),
         c(1L, split.locs + 1L), c(split.locs, nchars)
-    ) }
+      )
+      if(pad) rpad(res, width, use.ansi=use.ansi)
+    }
   )
+}
+# Add the +/- in front of a text line and color accordingly
+#
+# Input is expected to be a list with character vectors of length one or more,
+# more when a vector is wrapped.  We use the `:` symbol to indicate the wrapping
+#
+# returns a list containing padded char vectors
+
+sign_pad <- function(txt, pad, rev, use.ansi) {
+  stopifnot(
+    is.list(txt), all(vapply(txt, is.character, logical(1L))),
+    !any(is.na(unlist(txt))),
+    is.character(pad), length(pad) == 1L, pad %in% c("+ ", "- ", "  "),
+    isTRUE(use.ansi) || identical(use.ansi, FALSE)
+  )
+  neut <- pad == "  "
+  pad.extra <- "  "
+  if(rev && !neut) {
+    pad.chr <- paste0(rev(strsplit(pad, "")[[1L]]), collapse="")
+    pad.extra <- " :"
+  } else {
+    pad.chr <- pad
+    pad.extra <- ": "
+  }
+  lines <- vapply(txt, length, integer(1L))
+  pad.out <- lapply(lines, function(x) c(pad.chr, rep(pad.extra, x - 1L)))
+  if(use.ansi && !neut) {
+    pad.out <- lapply(
+      pad.out, ansi_style,
+      if(pad == "- ") "red" else "green", use.style=use.ansi
+    )
+  }
+  Map(paste0, if(rev) txt else pad.out, if(!rev) txt else pad.out)
 }
