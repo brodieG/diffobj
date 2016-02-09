@@ -28,5 +28,6 @@ Collate:
     'misc.R'
     'rdiff.R'
     'system.R'
+    'text.R'
 Imports:
     ansistyle
