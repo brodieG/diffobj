@@ -39,7 +39,7 @@ wrap <- function(txt, width, ansi_escape) {
     gregexpr(.ansistyle_ansi_regex, txt)
   } else {
     # Equivalent to no-match
-    replicate(length(txt), structure(-1L, match.length=-1L))
+    replicate(length(txt), structure(-1L, match.length=-1L), simplify=FALSE)
   }
   # Map each character to a length of 1 or zero depending on whether it is
   # part of an ANSI escape sequence or not
@@ -53,7 +53,7 @@ wrap <- function(txt, width, ansi_escape) {
       esi <- esc.loc[[i]]
       zero.len <- unlist(
         Map(
-          function(x, y) if(x > 0L) seq_along(x) + y - 1L else 0L,
+          function(x, y) if(x > 0L) seq_len(y) + x - 1L else 0L,
           esi, attr(esi, "match.length")
       ) )
       char.len[zero.len] <- 0L
@@ -74,10 +74,11 @@ wrap <- function(txt, width, ansi_escape) {
 
       split.locs <-
         length(cum.len) - c(na.omit(match(split.chr.pos, rev(cum.len)))) + 1L
+      split.locs <- split.locs[which(split.locs < nchars)]
 
       substr(
         rep(txt[[i]], length(split.locs) + 1L),
-        c(1L, split.locs), c(split.locs - 1L, nchar(txt[[i]]))
+        c(1L, split.locs + 1L), c(split.locs, nchars)
     ) }
   )
 }
