@@ -73,7 +73,7 @@ wrap <- function(txt, width, ansi_escape) {
       # last instance of a length
 
       split.locs <-
-        c(na.omit(match(split.chr.pos, rev(cum.len)))) - length(cum.len) + 1L
+        length(cum.len) - c(na.omit(match(split.chr.pos, rev(cum.len)))) + 1L
 
       substr(
         rep(txt[[i]], length(split.locs) + 1L),
