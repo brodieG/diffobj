@@ -352,20 +352,6 @@ diff_line <- function(
 
   list(target=x@tar.capt, current=x@cur.capt)
 }
-
-# groups characters based on whether they are different or not and colors
-# them; assumes that the chrs vector values are words that were previously
-# separated by spaces, and collapses the strings back with the spaces at the
-# end
-
-color_words <- function(chrs, diffs, color) {
-  stopifnot(length(chrs) == length(diffs))
-  if(length(chrs)) {
-    grps <- cumsum(c(0, abs(diff(diffs))))
-    chrs.grp <- tapply(chrs, grps, paste0, collapse=" ")
-    diff.grp <- tapply(diffs, grps, head, 1L)
-    paste0(
-      diff_color(chrs.grp, diff.grp, seq_along(chrs.grp), color), collapse=" ") } else paste0(chrs, collapse="") }
 # Try to use fancier word matching with vectors and matrices
 
 .brack.pat <- "^ *\\[\\d+\\]"
