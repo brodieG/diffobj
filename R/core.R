@@ -166,8 +166,9 @@ setMethod("summary", "diffObjMyersMbaSes",
 
 char_diff <- function(x, y, context=-1L, white.space=FALSE, mode="context") {
   if(!white.space) {
-    pat.1 <- "^[\\t ]*|[\\t ]*$"
-    pat.2 <- "[\\t ]+"
+    sub.pat <- "(\t| )"
+    pat.1 <- sprintf("^%s*|%s*$", sub.pat, sub.pat)
+    pat.2 <- sprintf("%s+", sub.pat)
     x <- gsub(pat.2, " ", gsub(pat.1, "", x))
     y <- gsub(pat.2, " ", gsub(pat.1, "", y))
   }
