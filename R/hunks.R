@@ -96,7 +96,7 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
 
         tar.rng <- cur.rng <- integer(2L)
         if(tar.len) tar.rng <- c(A.start + 1L, A.start + tar.len)
-        if(cur.len) cur.rng <- c(A.start + 1L, A.start + tar.len)
+        if(cur.len) cur.rng <- c(B.start + 1L, B.start + cur.len)
 
         list(
           id=i, A=A, B=B, A.chr=A.chr, B.chr=B.chr, context=context,
