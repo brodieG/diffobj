@@ -416,13 +416,14 @@ diff_word <- function(
     all(!is.na(target)), all(!is.na(current)),
     is.TF(across.lines),
     is.TF(match.quotes),
-    across.lines || length(target) == length(current)
+    across.lines || length(target) == length(current),
+    isTRUE(use.ansi) || identical(use.ansi, FALSE)
   )
   # Compute the char by char diffs for each line
 
   reg <- paste0(
-    if(match.quotes) "((?<= )|(?<=^))\"([^\"]|\\\")*?\"((?= )|(?=$))",
-    "|-?\\d+(\\.\\d+)?(e-?\\d{1,3})?",
+    if(match.quotes) "((?<= )|(?<=^))\"([^\"]|\\\")*?\"((?= )|(?=$))|",
+    "-?\\d+(\\.\\d+)?(e-?\\d{1,3})?",
     "|\\w+|\\d+|[^[:alnum:]_[:blank:]]+"
   )
   tar.reg <- gregexpr(reg, target, perl=TRUE)
@@ -488,6 +489,8 @@ setMethod("diffColor", "diffObjDiffDiffs",
            if(!z$context) {
              A[z$A < 0L] <- ansi_style(A[z$A < 0L], "green", use.style=use.ansi)
              A[z$A > 0L] <- ansi_style(A[z$A > 0L], "red", use.style=use.ansi)
+             B[z$B < 0L] <- ansi_style(B[z$B < 0L], "green", use.style=use.ansi)
+             B[z$B > 0L] <- ansi_style(B[z$B > 0L], "red", use.style=use.ansi)
            }
            list(A=A, B=B)
   } ) } )
