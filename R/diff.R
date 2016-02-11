@@ -561,7 +561,9 @@ diff_chr <- function(
 
   if(!is.character(target)) target <- as.character(target)
   if(!is.character(current)) current <- as.character(current)
-  diffs <- char_diff(target, current, context=context, white.space=white.space)
+  diffs <- char_diff(
+    target, current, context=context, white.space=white.space, mode=mode
+  )
   diffObj <- new(
     "diffObjDiff", tar.obj=target, cur.obj=current, tar.capt=target,
     cur.capt=current, tar.exp=tar.exp, cur.exp=cur.exp, diffs=diffs,

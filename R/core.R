@@ -164,7 +164,9 @@ setMethod("summary", "diffObjMyersMbaSes",
 # Carries out the comparison between two character vectors and returns the
 # elements that match and those that don't as a unitizerDiffDiffs object
 
-char_diff <- function(x, y, context=-1L, white.space=FALSE, mode="context") {
+char_diff <- function(
+  x, y, context=context, white.space=white.space, mode=mode
+) {
   if(!white.space) {
     sub.pat <- "(\t| )"
     pat.1 <- sprintf("^%s*|%s*$", sub.pat, sub.pat)
