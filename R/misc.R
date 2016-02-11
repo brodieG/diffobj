@@ -1,5 +1,5 @@
-# Function to check arguments that can also be specified as options when set
-# to NULL
+# Common argument check functions; note that the `stop` message reports as the
+# parent system call
 
 check_linelimit <- function(line.limit) {
   if(
@@ -7,12 +7,14 @@ check_linelimit <- function(line.limit) {
     !length(line.limit) %in% 1:2 || any(line.limit) < 1L ||
     round(line.limit) != line.limit ||
     (length(line.limit) == 2L && diff(line.limit) > 0)
-  )
-    stop(
+  ) {
+    msg <- paste0(
       "Argument `line.limit` must be an integer vector of length 1 or 2 ",
-      "with only strictly positive values and the first value larger than ",
-      "or equal to the second."
+      "with only strictly positive values and if length 2, with the first ",
+      "value larger than or equal to the second."
     )
+    stop(simpleError(msg, call=sys.call(-1L)))
+  }
   line.limit <- as.integer(line.limit)
   if(length(line.limit) == 1L) line.limit <- rep(line.limit, 2L)
   line.limit
@@ -22,7 +24,11 @@ check_context <- function(context) {
     !is.numeric(context) || length(context) != 1L || is.na(context) ||
     round(context) != context
   )
-    stop("Argument `context` must be integer(1L) and not NA.")
+    stop(
+      simpleError(
+        "Argument `context` must be integer(1L) and not NA.",
+        call=sys.call(-1L)
+    ) )
   as.integer(context)
 }
 check_width <- function(width) {
@@ -35,6 +41,19 @@ check_width <- function(width) {
   if(!is.int.pos.1L(width)) stop("Argument `width` ", err.msg)
   width
 }
+check_hunklimit <- function(hunk.limit) {
+  if(
+    !is.numeric(hunk.limit) || length(hunk.limit) != 1L || is.na(hunk.limit) ||
+    round(hunk.limit) != hunk.limit
+  )
+    stop(
+      simpleError(
+        "Argument `hunk.limit` must be integer(1L) and not NA.",
+        call=sys.call(-1L)
+    ) )
+  as.integer(hunk.limit)
+}
+
 # Functions copied over from `unitizer`, will be deleted for the most
 # part
 
