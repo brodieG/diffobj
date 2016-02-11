@@ -215,15 +215,15 @@ process_hunks <- function(x, context) {
 #
 # NOTE: need to account for multi-space characters and escape sequences
 
-get_hunk_chr_lens <- function(hunk.grps, mode, width, ansi) {
+get_hunk_chr_lens <- function(hunk.grps, mode, width, use.ansi) {
   # Account for overhead / side by sideness in width calculations
   if(mode == "sidebyside")
     width <- max(floor(width - 3L / 2L), 20L) else width <- width - 2L
   # Internal funs
   hunk_len <- function(hunk.id, hunks) {
     hunk <- hunks[[hunk.id]]
-    A.lines <- ceiling(ansi_style_nchar(hunk$A.chr, ansi) / width)
-    B.lines <- ceiling(ansi_style_nchar(hunk$B.chr, ansi) / width)
+    A.lines <- ceiling(ansi_style_nchar(hunk$A.chr, use.ansi) / width)
+    B.lines <- ceiling(ansi_style_nchar(hunk$B.chr, use.ansi) / width)
 
     # Depending on each mode, figure out how to set up the lines;
     # straightforward except for context where we need to account for the
@@ -286,14 +286,16 @@ trim_hunk <- function(hunk, type, line.id) {
   hunk[dat.idx] <- lapply(hunk.atom[dat.idx], head, n=line.id)
   hunk
 }
-trim_hunks <- function(hunk.grps, mode, width, hunk.limit, line.limit) {
+trim_hunks <- function(
+  hunk.grps, mode, width, hunk.limit, line.limit, use.ansi
+) {
   hunk.grps.count <- length(hunk.grps)
   if(hunk.limit < 0L) hunk.limit <- hunk.grps.count
   hunk.grps.omitted <- max(0L, hunk.grps.count - hunk.limit)
   hunk.grps.used <- min(hunk.grps.count, hunk.limit)
   hunk.grps <- hunk.grps[seq_len(hunk.grps.used)]
 
-  lines <- get_hunk_chr_lens(hunk.grps, mode, width)
+  lines <- get_hunk_chr_lens(hunk.grps, mode, width, use.ansi)
   cum.len <- cumsum(abs(lines[, "lens"]))
   cut.off <- -1L
   lines.omitted <- 0L

@@ -65,7 +65,7 @@ setMethod("as.character", "diffObjDiff",
       return(
         ansi_style(
           msg, "silver",
-          use.style=getOption("diffobj.use.ansi")
+          use.style=use.ansi
     ) ) }
     # Figure out which hunks we're going to try to render subject to the
     # line and hunk limits.  Remember
@@ -75,7 +75,7 @@ setMethod("as.character", "diffObjDiff",
 
     hunk.grps <- trim_hunks(
       x@diffs@hunks, mode=mode, width=width, line.limit=line.limit,
-      hunk.limit=hunk.limit
+      hunk.limit=hunk.limit, use.ansi=use.ansi
     )
     # Post trim, figure out max lines we could possibly be showing from capture
     # strings
@@ -545,7 +545,8 @@ diff_chr <- function(
   white.space=getOption("diffobj.white.space"),
   hunk.limit=getOption("diffobj.hunk.limit"),
   line.limit=getOption("diffobj.line.limit"),
-  mode=getOption("diffobj.mode")
+  mode=getOption("diffobj.mode"),
+  use.ansi=getOption("diffobj.use.ansi")
 ) {
   tar.exp <- substitute(target)
   cur.exp <- substitute(current)
@@ -568,7 +569,7 @@ diff_chr <- function(
   )
   res <- as.character(
     diffObj, line.limit=line.limit, hunk.limit=hunk.limit, width=width,
-    mode=mode
+    mode=mode, use.ansi=use.ansi
   )
   cat(res, sep="\n")
   invisible(res)

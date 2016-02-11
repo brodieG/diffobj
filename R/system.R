@@ -6,6 +6,7 @@
     diffobj.white.space=FALSE,
     diffobj.line.limit=-1L,
     diffobj.hunk.limit=-1L,
+    diffobj.use.ansi=ansistyle::ansi_available(),
     diffobj.mode="unified"
   )
   existing.opts <- options()
