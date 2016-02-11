@@ -135,11 +135,11 @@ setMethod("as.character", "diffObjDiff",
           "diffObjDiff", tar.capt=tar.r.h.txt, cur.capt=cur.r.h.txt,
           diffs=char_diff(tar.r.h.txt, cur.r.h.txt, white.space=white.space)
         )
-        r.h.diff <- diff_line(x.r.h)
-        regmatches(x@tar.capt[tar.head], tar.r.h) <- r.h.diff$target
-        regmatches(x@cur.capt[cur.head], cur.r.h) <- r.h.diff$current
+        x.r.h.color <- diffColor(x.r.h, use.ansi=use.ansi)
+        regmatches(x@tar.capt[tar.head], tar.r.h) <- x.r.h.color$A
+        regmatches(x@cur.capt[cur.head], cur.r.h) <- x.r.h.color$B
 
-        # Everything else gets a normal line diff
+        # Everything else gets a normal hunk by hunk word diff
 
         cur.rest <- show.range.cur[!show.range.cur %in% cur.head]
         tar.rest <- show.range.tar[!show.range.tar %in% tar.head]
@@ -287,70 +287,6 @@ diff_rdiff <- function(target, current) {
   b <- tempfile("diffObjRdiffb")
   writeLines(current, b)
   diff <- capture.output(system(paste("diff -bw", shQuote(a), shQuote(b))))
-}
-# Matches up mismatched lines and word diffs them line by line, lines that
-# cannot be matched up are fully diffed
-#
-# Designed to operate on subsets of an original diff, hence tar.range and
-# cur.range
-
-diff_line <- function(
-  x, tar.range=seq_along(tarDiff(x)), cur.range=seq_along(curDiff(x))
-) {
-  # Run line diffs on the remaining lines
-  # Match up the diffs; first step is to do word diffs on the matched
-  # mismatches. Start by getting the match ids that are not NA and
-  # greater than zero
-
-  white.space <- x@diffs@white.space
-  tar.diff <- x@diffs@target[tar.range]
-  cur.diff <- x@diffs@current[cur.range]
-
-  match.ids <- Filter(identity, tar.diff)
-
-  # Now find the indeces of these ids that are in display range
-
-  tar.ids.mismatch <- match(match.ids, x@diffs@target[tar.range])
-  cur.ids.mismatch <- match(match.ids, x@diffs@current[cur.range])
-  if( any(is.na(c(tar.ids.mismatch, cur.ids.mismatch))))
-    stop("Logic Error: mismatched mismatches; contact maintainer.")
-
-  # Add word colors
-
-  tar.txt <- x@tar.capt[tar.range]
-  cur.txt <- x@cur.capt[cur.range]
-
-  word.color <-
-    diff_word(
-      tar.txt[tar.ids.mismatch], cur.txt[cur.ids.mismatch],
-      white.space=white.space
-    )
-
-  tar.txt[tar.ids.mismatch] <- word.color$target
-  cur.txt[cur.ids.mismatch] <- word.color$current
-
-  # Color lines that were not word colored
-
-  tar.seq <- seq_along(tar.txt)
-  cur.seq <- seq_along(cur.txt)
-  tar.line.diff <- setdiff(which(tarDiff(x)[tar.range]), tar.ids.mismatch)
-  cur.line.diff <- setdiff(which(curDiff(x)[cur.range]), cur.ids.mismatch)
-
-  tar.txt[tar.line.diff] <- ansi_style(
-    tar.txt[tar.line.diff], style="red", use.style=getOption("diffobj.use.ansi")
-  )
-  cur.txt[cur.line.diff] <- ansi_style(
-    cur.txt[cur.line.diff], style="green",
-    use.style=getOption("diffobj.use.ansi")
-  )
-  # Re-sub back into the entire character vector
-
-  x@tar.capt[tar.range] <- tar.txt
-  x@cur.capt[cur.range] <- cur.txt
-
-  # return
-
-  list(target=x@tar.capt, current=x@cur.capt)
 }
 # Try to use fancier word matching with vectors and matrices
 
@@ -612,12 +548,12 @@ diff_chr <- function(
     stop("Argument `white.space` must be TRUE or FALSE")
   context <- check_context(context)
   line.limit <- check_linelimit(line.limit)
+  hunk.limit <- check_hunklimit(hunk.limit)
   width <- getOption("width")
 
   if(!is.character(target)) target <- as.character(target)
   if(!is.character(current)) current <- as.character(current)
   diffs <- char_diff(target, current, context=context, white.space=white.space)
-
   diffObj <- new(
     "diffObjDiff", tar.obj=target, cur.obj=current, tar.capt=target,
     cur.capt=current, tar.exp=tar.exp, cur.exp=cur.exp, diffs=diffs,
