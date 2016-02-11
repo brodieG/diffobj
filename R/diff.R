@@ -70,7 +70,8 @@ setMethod("as.character", "diffObjDiff",
     # dropping hunks beyond hunk limit
 
     hunk.grps <- trim_hunks(
-      x@diffs@hunks, mode=mode, width=width, line.limit=line.limit
+      x@diffs@hunks, mode=mode, width=width, line.limit=line.limit,
+      hunk.limit=hunk.limit
     )
     # Post trim, figure out max lines we could possibly be showing from capture
     # strings

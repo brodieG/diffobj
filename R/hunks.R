@@ -286,7 +286,7 @@ trim_hunk <- function(hunk, type, line.id) {
   hunk[dat.idx] <- lapply(hunk.atom[dat.idx], head, n=line.id)
   hunk
 }
-trim_hunks <- function(hunk.grps, mode, width, line.limit) {
+trim_hunks <- function(hunk.grps, mode, width, hunk.limit, line.limit) {
   hunk.grps.count <- length(hunk.grps)
   if(hunk.limit < 0L) hunk.limit <- hunk.grps.count
   hunk.grps.omitted <- max(0L, hunk.grps.count - hunk.limit)
