@@ -53,6 +53,19 @@ check_hunklimit <- function(hunk.limit) {
     ) )
   as.integer(hunk.limit)
 }
+check_mode <- function(mode) {
+  val.modes <- c("context", "unified", "sidebyside")
+  if(
+    !is.character(mode) || length(mode) != 1L || is.na(mode) ||
+    !mode %in% val.modes
+  ) {
+    msg <- paste0(
+      "Argument `mode` must be character(1L) and in `", deparse(val.modes), "`."
+    )
+    stop(simpleError(msg, call=sys.call(-1L)))
+  }
+  mode
+}
 
 # Functions copied over from `unitizer`, will be deleted for the most
 # part

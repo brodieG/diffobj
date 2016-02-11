@@ -39,10 +39,14 @@ setMethod("any", "diffObjDiffDiffs",
 #' @rdname diffobj_s4method_doc
 
 setMethod("as.character", "diffObjDiff",
-  function(x, hunk.limit, line.limit, width, use.ansi, ...) {
-    # check necessary here?
+  function(x, hunk.limit, line.limit, width, use.ansi, mode, ...) {
+    # These checks should never fail since presumably the inputs have been
+    # checked earlier; here just in case we mess something up in devel or
+    # testing
+
     context <- check_linelimit(line.limit)
     width <- check_width(width)
+    mode <- check_mode(mode)
     white.space <- x@diffs@white.space
 
     len.max <- max(length(x@tar.capt), length(x@cur.capt))
@@ -540,7 +544,8 @@ diff_chr <- function(
   target, current, context=getOption("diffobj.context"),
   white.space=getOption("diffobj.white.space"),
   hunk.limit=getOption("diffobj.hunk.limit"),
-  line.limit=getOption("diffobj.line.limit")
+  line.limit=getOption("diffobj.line.limit"),
+  mode=getOption("diffobj.mode")
 ) {
   tar.exp <- substitute(target)
   cur.exp <- substitute(current)
@@ -550,6 +555,7 @@ diff_chr <- function(
   context <- check_context(context)
   line.limit <- check_linelimit(line.limit)
   hunk.limit <- check_hunklimit(hunk.limit)
+  mode <- check_mode(mode)
   width <- getOption("width")
 
   if(!is.character(target)) target <- as.character(target)
@@ -561,7 +567,8 @@ diff_chr <- function(
     mode="print", tar.capt.def=NULL, cur.capt.def=NULL
   )
   res <- as.character(
-    diffObj, line.limit=line.limit, hunk.limit=hunk.limit, width=width
+    diffObj, line.limit=line.limit, hunk.limit=hunk.limit, width=width,
+    mode=mode
   )
   cat(res, sep="\n")
   invisible(res)

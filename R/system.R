@@ -5,7 +5,8 @@
     diffobj.context=c(2L),
     diffobj.white.space=FALSE,
     diffobj.line.limit=-1L,
-    diffobj.hunk.limit=-1L
+    diffobj.hunk.limit=-1L,
+    diffobj.mode="unified"
   )
   existing.opts <- options()
   options(default.opts[setdiff(names(default.opts), names(existing.opts))])
