@@ -268,16 +268,6 @@ setMethod("as.character", "diffObjDiff",
     } )
     unlist(out)
 } )
-setGeneric("tarDiff", function(x, ...) standardGeneric("tarDiff"))
-setMethod("tarDiff", "diffObjDiff", function(x, ...) tarDiff(x@diffs))
-setGeneric("curDiff", function(x, ...) standardGeneric("curDiff"))
-setMethod("curDiff", "diffObjDiff", function(x, ...) curDiff(x@diffs))
-setMethod("tarDiff", "diffObjDiffDiffs", function(x, ...) {
-  stop("currently not implemented")
-} )
-setMethod("curDiff", "diffObjDiffDiffs", function(x, ...) {
-  stop("currently not implemented")
-} )
 # Mostly replaced by Rdiff_x funs; tbd whether we get rid of this or update the
 # Rdiff functions to use diff directly
 
