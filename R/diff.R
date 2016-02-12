@@ -185,14 +185,15 @@ setMethod("as.character", "diffObjDiff",
     )
     # Display hunks
 
-    rng_as_chr <- function(range) paste0(range[[1L]], ",", diff(range))
+    rng_as_chr <- function(range) paste0(range[[1L]], ",", diff(range) + 1L)
+    min_rng <- function(x) if(!any(x) > 0L) 0L else min(x[x > 0L])
 
     out <- lapply(
       hunk.grps, function(h.g) {
-        # Get ranges DEVNOTE: NEED TO CHECK ATOMIC HUNK RANGES CONTIGUOUS
+        # Only time 0 is legitimate as a value is when it is in the first hunk
 
-        tar.rng <- c(min(ranges[1L,]), max(ranges[2L,]))
-        cur.rng <- c(min(ranges[3L,]), max(ranges[4L,]))
+        tar.rng <- c(min_rng(ranges[1L,]), max(ranges[2L,]))
+        cur.rng <- c(min_rng(ranges[3L,]), max(ranges[4L,]))
 
         hh.a <- paste0("-", rng_as_chr(tar.rng))
         hh.b <- paste0("+", rng_as_chr(cur.rng))
