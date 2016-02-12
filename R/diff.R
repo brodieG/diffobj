@@ -214,24 +214,24 @@ setMethod("as.character", "diffObjDiff",
         if(mode == "context") {
           # Need to get all the A data and the B data
           ctx <- vapply(h.g, "[[", logical(1L), "context")
-          A <- wrap(unlist(lapply(h.g, "[[", "A.chr")), width, use.ansi)
-          B <- wrap(unlist(lapply(h.g, "[[", "B.chr")), width, use.ansi)
-          A[!ctx] <- sign_pad(A[!ctx], "- ", use.ansi)
-          B[!ctx] <- sign_pad(B[!ctx], "+ ", use.ansi)
-          A[ctx] <- sign_pad(A[ctx], "  ", use.ansi)
-          B[ctx] <- sign_pad(B[ctx], "  ", use.ansi)
-          unlist(A, ansi_style("----", "silver", use.ansi), B)
+          A <- wrap(unlist(lapply(h.g, "[[", "A.chr")), width, use.ansi=use.ansi)
+          B <- wrap(unlist(lapply(h.g, "[[", "B.chr")), width, use.ansi=use.ansi)
+          A[!ctx] <- sign_pad(A[!ctx], "- ", use.ansi=use.ansi)
+          B[!ctx] <- sign_pad(B[!ctx], "+ ", use.ansi=use.ansi)
+          A[ctx] <- sign_pad(A[ctx], "  ", use.ansi=use.ansi)
+          B[ctx] <- sign_pad(B[ctx], "  ", use.ansi=use.ansi)
+          unlist(A, ansi_style("----", "silver", use.ansi=use.ansi), B)
         } else if(mode == "unified") {
           unlist(
             lapply(h.g,
               function(h.a) {
                 pos <- h.a$A > 0L
-                A.out <- wrap(h.a$A.chr, width, use.ansi)
+                A.out <- wrap(h.a$A.chr, width, use.ansi=use.ansi)
                 if(!h.a$context) {
-                  A.out[pos] <- sign_pad(A.out[pos], "- ", use.ansi)
-                  A.out[!pos] <- sign_pad(A.out[!pos], "+ ", use.ansi)
+                  A.out[pos] <- sign_pad(A.out[pos], "- ", use.ansi=use.ansi)
+                  A.out[!pos] <- sign_pad(A.out[!pos], "+ ", use.ansi=use.ansi)
                 } else {
-                  A.out <- sign_pad(A.out, "  ", use.ansi)
+                  A.out <- sign_pad(A.out, "  ", use.ansi=use.ansi)
                 }
                 A.out
           } ) )
@@ -249,8 +249,8 @@ setMethod("as.character", "diffObjDiff",
                 } else if(len.diff) {
                   B.out <- c(B.out, character(len.diff))
                 }
-                A.w <- wrap(A.out, width, use.ansi, pad=TRUE)
-                B.w <- wrap(B.out, width, use.ansi, pad=TRUE)
+                A.w <- wrap(A.out, width, use.ansi=use.ansi, pad=TRUE)
+                B.w <- wrap(B.out, width, use.ansi=use.ansi, pad=TRUE)
 
                 # Same number of els post wrap
 
@@ -265,8 +265,8 @@ setMethod("as.character", "diffObjDiff",
                     B.w[[i]] <- c(B.w[[i]], rep(blanks, A.lens - B.lens))
                 }
                 paste0(
-                  unlist(sign_pad(A.w, "- ", use.ansi, rev=TRUE)),
-                  unlist(sign_pad(B.w, "+ ", use.ansi))
+                  unlist(sign_pad(A.w, "- ", use.ansi=use.ansi, rev=TRUE)),
+                  unlist(sign_pad(B.w, "+ ", use.ansi=use.ansi))
                 )
         } ) ) }
     } )
