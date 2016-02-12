@@ -51,16 +51,12 @@ setMethod("as.character", "diffObjDiff",
 
     len.max <- max(length(x@tar.capt), length(x@cur.capt))
     if(!any(x)) {
-      msg <- "No visible differences between objects"
-      if(!x@diffs@white.space) {
-        xa <- char_diff(
-          x@tar.capt, x@cur.capt, white.space=TRUE, context=context
+      msg <- "No visible differences between objects."
+      if(!x@diffs@white.space && !identical(x@tar.capt, x@cur.capt) {
+        msg <- paste0(
+          "Only visible differences between objects are horizontal white ",
+          "spaces. You can re-run diff with `white.space=TRUE` to show them."
         )
-        if(any(xa))
-          msg <- paste0(
-            "Only visible differences between objects are horizontal white ",
-            "spaces. You can re-run diff with `white.space=TRUE` to show them."
-          )
       }
       return(
         ansi_style(
