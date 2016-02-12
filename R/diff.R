@@ -148,21 +148,41 @@ setMethod("as.character", "diffObjDiff",
     }
     # Figure out which hunks are still eligible to be word diffed
 
-    tar.to.wd <- min(which(ranges[1L,] %in% tar.rest), 0L)
-    cur.to.wd <- min(which(ranges[3L,] %in% cur.rest), 0L)
+    tar.to.wd <- which(ranges[1L,] %in% tar.rest)
+    cur.to.wd <- which(ranges[3L,] %in% cur.rest)
 
-    if(tar.to.wd && cur.to.wd) {
-      wd.max <- max(tar.to.wd, cur.to.wd)
+    if(length(tar.to.wd) && length(cur.to.wd)) {
+      wd.max <- max(tar.to.wd[[1L]], cur.to.wd[[1L]])
+
+      # We need to compare the +s to the -s, and then reconstruct back into
+      # the original A and B vectors
 
       for(i in seq_along(hunk.grps)) {
         for(j in seq_along(hunk.grps[[i]])) {
           h.a <- hunk.grps[[i]][[j]]
           if(h.a$id < wd.max || h.a$context) next
-          # Do word diff on each non-context hunk
+          # Do word diff on each non-context hunk; real messy because the
+          # stuff from `tar` and `cur` are mixed in in A and B (well, really
+          # only in unified mode) so we have to separate it back out before
+          # we do the diff
 
-          h.a[c("A.chr", "B.chr")] <- diff_word(
-            h.a$A.chr, h.a$B.chr, across.lines=TRUE, white.space=white.space
+          A.pos <- which(h.a$A > 0L)
+          B.pos <- which(h.a$B > 0L)
+          A.neg <- which(h.a$A < 0L)
+          B.neg <- which(h.a$B < 0L)
+
+          A.new <- c(h.a$A.chr[A.pos], h.a$B.chr[B.pos])
+          B.new  <- c(h.a$A.chr[A.neg], h.a$B.chr[B.neg])
+
+          new.diff <- diff_word(
+            A.new, B.new, across.lines=TRUE, white.space=white.space,
+            use.ansi=use.ansi
           )
+          h.a$A.chr[A.pos] <- new.diff$target[seq_along(A.pos)]
+          h.a$A.chr[A.neg] <- new.diff$current[seq_along(A.neg)]
+          h.a$B.chr[B.pos] <- new.diff$target[seq_along(B.pos) + length(A.pos)]
+          h.a$B.chr[B.neg] <- new.diff$current[seq_along(B.neg) + length(A.neg)]
+
           hunk.grps[[i]][[j]] <- h.a
     } } }
     # Make the object banner
