@@ -81,6 +81,7 @@ setMethod("as.character", "diffObjDiff",
     # strings
 
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
+    browser()
     ranges <- vapply(
       hunks.flat, function(h.a)
         c(h.a$tar.rng.trim, h.a$cur.rng.trim),

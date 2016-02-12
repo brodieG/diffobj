@@ -284,7 +284,7 @@ trim_hunk <- function(hunk, type, line.id) {
         min(hunk[[rng.idx]][[1L]] + line.id - 1L, hunk[[rng.idx]][[2L]])
     } else integer(2L)
   }
-  hunk[dat.idx] <- lapply(hunk.atom[dat.idx], head, n=line.id)
+  hunk[dat.idx] <- lapply(hunk[dat.idx], head, n=line.id)
   hunk
 }
 trim_hunks <- function(
@@ -303,11 +303,11 @@ trim_hunks <- function(
   if(line.limit[[1L]] < 0L) {
     cut.off <- max(0L, cum.len)
   } else if(any(cum.len > line.limit[[1L]])) {
-    cut.off <- max(0L, cum.len[cum.len  < line.limit[[2L]]])
+    cut.off <- max(0L, cum.len[cum.len < line.limit[[2L]]])
   }
   if(cut.off > 0) {
     lines.omitted <- tail(cum.len, 1L) - cut.off
-    cut.dat <- lines[cut.off, ]
+    cut.dat <- lines[max(which(cum.len <= cut.off)), ]
     grp.cut <- cut.dat[["grp.id"]]
     hunk.cut <- cut.dat[["hunk.id"]]
     line.cut <- cut.dat[["line.id"]]
@@ -328,21 +328,21 @@ trim_hunks <- function(
       for(i in seq_along(hunk.grps[[grp.cut]])) {
         hunk.atom <- hunk.grps[[grp.cut]][[i]]
         if(!line.neg) {  # means all B blocks must be dropped
-          hunk.atom <- trim_hunk(hunk_atom, "cur", 0L)
+          hunk.atom <- trim_hunk(hunk.atom, "cur", 0L)
           if(i > hunk.cut) {
-            hunk.atom <- trim_hunk(hunk_atom, "tar", 0L)
+            hunk.atom <- trim_hunk(hunk.atom, "tar", 0L)
           } else if (i == hunk.cut) {
-            hunk.atom <- trim_hunk(hunk_atom, "tar", line.id)
+            hunk.atom <- trim_hunk(hunk.atom, "tar", line.cut)
           }
         } else {
-          hunk.atom <- trim_hunk(hunk_atom, "cur", line.id)
+          hunk.atom <- trim_hunk(hunk.atom, "cur", line.cut)
         }
         hunks.grp[[grp.cut]][[i]] <- hunk.atom
       }
     } else {
       hunk.atom <- hunk.grps[[grp.cut]][[hunk.cut]]
-      hunk.atom <- trim_hunk(hunk.atom, "tar", line.id)
-      hunk.atom <- trim_hunk(hunk.atom, "cur", line.id)
+      hunk.atom <- trim_hunk(hunk.atom, "tar", line.cut)
+      hunk.atom <- trim_hunk(hunk.atom, "cur", line.cut)
       hunk.grps[[grp.cut]][[hunk.cut]] <- hunk.atom
     }
   } else if (!cut.off) {
