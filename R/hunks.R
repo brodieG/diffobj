@@ -253,15 +253,16 @@ get_hunk_chr_lens <- function(hunk.grps, mode, width, use.ansi) {
 
     if(
       identical(mode, "context") &&
-      length(negs <- which(res[, "lines.out"] < 0L)) &&
-      length(poss <- which(res[, "lines.out"] > 0L))
+      length(negs <- which(res[, "len"] < 0L)) &&
+      length(poss <- which(res[, "len"] > 0L))
     ) {
-      res <- res[order(res[, "lines.out"] < 0L),]
-      if(length(poss)) res[1L, "lines.out"] <- res[1L, "lines.out"] + 1L
-      res[negs[[1L]], "lines.out"] <- res[negs[[1L]], "lines.out"] - 1L
+      res <- res[order(res[, "len"] < 0L),]
+      if(length(poss)) res[1L, "len"] <- res[1L, "len"] + 1L
+      res[negs[[1L]], "len"] <- res[negs[[1L]], "len"] - 1L
     } else {
-      res[1L, "lines.out"] <- res[1L, "lines.out"] + 1L
+      res[1L, "len"] <- res[1L, "len"] + 1L
     }
+    res
   }
   # Generate a matrix with hunk group id, hunk id, and wrapped length of each
   # line that we can use to figure out what to show
@@ -296,10 +297,10 @@ trim_hunks <- function(
   hunk.grps <- hunk.grps[seq_len(hunk.grps.used)]
 
   lines <- get_hunk_chr_lens(hunk.grps, mode, width, use.ansi)
-  cum.len <- cumsum(abs(lines[, "lens"]))
+  cum.len <- cumsum(abs(lines[, "len"]))
   cut.off <- -1L
   lines.omitted <- 0L
-  if(any(cum.len > limit[[1L]])) {
+  if(any(cum.len > line.limit[[1L]])) {
     cut.off <- max(0L, cum.len < line.limit[[2L]])
   }
   if(cut.off > 0) {
