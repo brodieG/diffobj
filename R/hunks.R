@@ -300,8 +300,10 @@ trim_hunks <- function(
   cum.len <- cumsum(abs(lines[, "len"]))
   cut.off <- -1L
   lines.omitted <- 0L
-  if(any(cum.len > line.limit[[1L]])) {
-    cut.off <- max(0L, cum.len < line.limit[[2L]])
+  if(line.limit[[1L]] < 0L) {
+    cut.off <- max(0L, cum.len)
+  } else if(any(cum.len > line.limit[[1L]])) {
+    cut.off <- max(0L, cum.len[cum.len  < line.limit[[2L]]])
   }
   if(cut.off > 0) {
     lines.omitted <- tail(cum.len, 1L) - cut.off
