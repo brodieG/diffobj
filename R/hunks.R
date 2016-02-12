@@ -241,7 +241,7 @@ get_hunk_chr_lens <- function(hunk.grps, mode, width, use.ansi) {
     # original A or B vector
 
     line.id <- unlist(lapply(split(lines.out, lines.out > 0L), seq_along))
-    cbind(hunk.id=hunk.id, line.id=line.id, len=lines.out)
+    cbind(hunk.id=hunk.id, line.id=unname(line.id), len=lines.out)
   }
   hunk_grp_len <- function(hunk.grp.id) {
     hunks <- hunk.grps[[hunk.grp.id]]
