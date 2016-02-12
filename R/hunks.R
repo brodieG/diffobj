@@ -283,7 +283,6 @@ trim_hunk <- function(hunk, type, line.id) {
   dat.idx <- sprintf(c("%s", "%s.chr"), if(type == "tar") "A" else "B")
   hunk[[rng.idx]] <- if(!line.id) integer(2L) else {
     if(all(hunk[[rng.idx]])) {
-      browser()
       c(
         hunk[[rng.idx]][[1L]],
         min(hunk[[rng.idx]][[1L]] + line.id - 1L, hunk[[rng.idx]][[2L]])
