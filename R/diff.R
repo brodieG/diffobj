@@ -86,8 +86,8 @@ setMethod("as.character", "diffObjDiff",
         c(h.a$tar.rng.trim, h.a$cur.rng.trim),
       integer(4L)
     )
-    tar.max <- max(ranges[, 2L])
-    cur.max <- max(ranges[, 4L])
+    tar.max <- max(ranges[2L, ])
+    cur.max <- max(ranges[4L, ])
 
     # Detect whether we should attempt to deal with wrapping objects, if so
     # overwrite cur/tar.body/rest variables with the color diffed wrap word
