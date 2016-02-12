@@ -73,7 +73,7 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
         context <- !!mtc.len
 
         A <- switch(
-          mode, context=tar, unified=c(tar, cur), sidebyside=tar,
+          mode, context=tar, unified=c(tar, if(!context) cur), sidebyside=tar,
           stop("Logic Error: unknown mode; contact maintainer.")
         )
         B <- switch(
