@@ -207,7 +207,7 @@ setMethod("as.character", "diffObjDiff",
         )
         # Output varies by mode
 
-        if(mode == "context") {
+        diff.txt <- if(mode == "context") {
           # Need to get all the A data and the B data
           ctx <- vapply(h.g, "[[", logical(1L), "context")
           A <- wrap(unlist(lapply(h.g, "[[", "A.chr")), width, use.ansi=use.ansi)
@@ -265,8 +265,9 @@ setMethod("as.character", "diffObjDiff",
                   unlist(sign_pad(B.w, "+ ", use.ansi=use.ansi))
                 )
         } ) ) }
+        c(hunk.head, diff.txt)
     } )
-    unlist(out)
+    c(banner, unlist(out))
 } )
 # Mostly replaced by Rdiff_x funs; tbd whether we get rid of this or update the
 # Rdiff functions to use diff directly
