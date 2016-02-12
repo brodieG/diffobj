@@ -125,12 +125,19 @@ hunk_sub <- function(hunk, op, n) {
 
     # Need to recompute ranges
 
-    if(op == "tail") {
-      hunk$tar.rng[[1L]] <- hunk$tar.rng[[1L]] + len.diff
-      hunk$cur.rng[[1L]] <- hunk$cur.rng[[1L]] + len.diff
+    if(!n) {
+      hunk$tar.rng <- hunk$cur.rng <-
+        hunk$tar.rng.trim <- hunk$cur.rng.trim <- integer(2L)
+    } else if(op == "tail") {
+      hunk$tar.rng[[1L]] <- hunk$tar.rng.trim[[1L]] <-
+        hunk$tar.rng[[1L]] + len.diff
+      hunk$cur.rng[[1L]] <- hunk$cur.rng.trim[[1L]] <-
+        hunk$cur.rng[[1L]] + len.diff
     } else {
-      hunk$tar.rng[[2L]] <- hunk$tar.rng[[2L]] - len.diff
-      hunk$cur.rng[[2L]] <- hunk$cur.rng[[2L]] - len.diff
+      hunk$tar.rng[[2L]] <- hunk$tar.rng.trim[[2L]] <-
+        hunk$tar.rng[[2L]] - len.diff
+      hunk$cur.rng[[2L]] <- hunk$cur.rng.trim[[2L]] <-
+        hunk$cur.rng[[2L]] - len.diff
     }
   }
   hunk
@@ -186,9 +193,10 @@ process_hunks <- function(x, context) {
     # Merge right
 
     if(i < hunk.len) {
-      # Hunks bleed into next hunk due to context
+      # Hunks bleed into next hunk due to context; note that i + 1L will always
+      # be a context hunk, so $A is fully representative
 
-      while(i < hunk.len && length(x[[i + 1L]]$target) <= context * 2) {
+      while(i < hunk.len && length(x[[i + 1L]]$A) <= context * 2) {
         res.l[[j]] <- append(res.l[[j]], x[i + 1L])
         if(i < hunk.len - 1L)
           res.l[[j]] <- append(res.l[[j]], x[i + 2L])
@@ -244,12 +252,16 @@ get_hunk_chr_lens <- function(hunk.grps, mode, width, use.ansi) {
     # original A or B vector
 
     line.id <- unlist(lapply(split(lines.out, lines.out > 0L), seq_along))
-    cbind(hunk.id=hunk.id, line.id=unname(line.id), len=lines.out)
+    cbind(
+      hunk.id=if(length(lines.out)) hunk.id else integer(),
+      line.id=unname(line.id), len=lines.out
+    )
   }
   hunk_grp_len <- function(hunk.grp.id) {
     hunks <- hunk.grps[[hunk.grp.id]]
     hunks.proc <- lapply(seq_along(hunks), hunk_len, hunks=hunks)
-    res <- cbind(grp.id=hunk.grp.id, do.call(rbind, hunks.proc))
+    res.tmp <- do.call(rbind, hunks.proc)
+    res <- cbind(grp.id=if(nrow(res.tmp)) hunk.grp.id else integer(0L), res.tmp)
     # Need to make sure all positives are first, and all negatives second, if
     # there are negatives (context mode); we also add 1 to the first line in
     # each section to account for the group hunkheader info
