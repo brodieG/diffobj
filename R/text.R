@@ -95,6 +95,7 @@ wrap <- function(txt, width, use.ansi, pad=FALSE) {
 # returns a list containing padded char vectors
 
 sign_pad <- function(txt, pad, rev=FALSE, use.ansi) {
+  if(!length(txt)) return(txt)
   stopifnot(
     is.list(txt), all(vapply(txt, is.character, logical(1L))),
     !any(is.na(unlist(txt))),
