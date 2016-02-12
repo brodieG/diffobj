@@ -81,7 +81,6 @@ setMethod("as.character", "diffObjDiff",
     # strings
 
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
-    browser()
     ranges <- vapply(
       hunks.flat, function(h.a)
         c(h.a$tar.rng.trim, h.a$cur.rng.trim),
@@ -185,8 +184,8 @@ setMethod("as.character", "diffObjDiff",
       t.fun <- chr_trim
     }
     banner <- comb.fun(
-      ansi_style(t.fun(banner.A, max.w), "red", use.style),
-      ansi_style(t.fun(banner.B, max.w), "green", use.style)
+      ansi_style(t.fun(banner.A, max.w), "red", use.ansi),
+      ansi_style(t.fun(banner.B, max.w), "green", use.ansi)
     )
     # Display hunks
 
@@ -208,7 +207,7 @@ setMethod("as.character", "diffObjDiff",
           } else {
             sprintf("@@ %s %s @@", hh.a, hh.b)
           },
-          "cyan", use.style
+          "cyan", use.ansi
         )
         # Output varies by mode
 
@@ -221,7 +220,7 @@ setMethod("as.character", "diffObjDiff",
           B[!ctx] <- sign_pad(B[!ctx], "+ ", use.ansi)
           A[ctx] <- sign_pad(A[ctx], "  ", use.ansi)
           B[ctx] <- sign_pad(B[ctx], "  ", use.ansi)
-          unlist(A, ansi_style("----", "silver"), B)
+          unlist(A, ansi_style("----", "silver", use.ansi), B)
         } else if(mode == "unified") {
           unlist(
             lapply(h.g,
