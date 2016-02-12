@@ -222,9 +222,12 @@ get_hunk_chr_lens <- function(hunk.grps, mode, width, use.ansi) {
   # Internal funs
   hunk_len <- function(hunk.id, hunks) {
     hunk <- hunks[[hunk.id]]
-    A.lines <- ceiling(ansi_style_nchar(hunk$A.chr, use.ansi) / width)
-    B.lines <- ceiling(ansi_style_nchar(hunk$B.chr, use.ansi) / width)
-
+    A.lines <- as.integer(
+      ceiling(ansi_style_nchar(hunk$A.chr, use.ansi) / width)
+    )
+    B.lines <- as.integer(
+      ceiling(ansi_style_nchar(hunk$B.chr, use.ansi) / width)
+    )
     # Depending on each mode, figure out how to set up the lines;
     # straightforward except for context where we need to account for the
     # fact that all the A of a hunk group are shown first, and then all
@@ -280,8 +283,11 @@ trim_hunk <- function(hunk, type, line.id) {
   dat.idx <- sprintf(c("%s", "%s.chr"), if(type == "tar") "A" else "B")
   hunk[[rng.idx]] <- if(!line.id) integer(2L) else {
     if(all(hunk[[rng.idx]])) {
-      hunk[[rng.idx]][[2L]] <-
+      browser()
+      c(
+        hunk[[rng.idx]][[1L]],
         min(hunk[[rng.idx]][[1L]] + line.id - 1L, hunk[[rng.idx]][[2L]])
+      )
     } else integer(2L)
   }
   hunk[dat.idx] <- lapply(hunk[dat.idx], head, n=line.id)
