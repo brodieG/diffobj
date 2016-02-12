@@ -38,7 +38,7 @@ wrap <- function(txt, width, use.ansi, pad=FALSE) {
   # a vector of character positions after which we should split our character
   # vector
 
-  esc.loc <- if(ansi_escape) {
+  esc.loc <- if(use.ansi) {
     gregexpr(.ansistyle_ansi_regex, txt)
   } else {
     # Equivalent to no-match
