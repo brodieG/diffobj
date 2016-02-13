@@ -32,7 +32,7 @@ rpadt <- function(text, width, pad.chr=" ")
 wrap <- function(txt, width, use.ansi, pad=FALSE) {
   # Get rid of newlines
 
-  txt <- unlist(strsplit(txt, "\n"))
+  txt[!!nchar(txt)] <- unlist(strsplit(txt[!!nchar(txt)], "\n"))
 
   # If there are ansi escape sequences, account for them; either way, create
   # a vector of character positions after which we should split our character
