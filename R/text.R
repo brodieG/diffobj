@@ -32,6 +32,7 @@ rpadt <- function(text, width, pad.chr=" ")
 wrap <- function(txt, width, use.ansi, pad=FALSE) {
   # Get rid of newlines
 
+  if(!length(txt)) return(list(txt))
   txt <- unlist(strsplit(txt, "\n"))
 
   # If there are ansi escape sequences, account for them; either way, create
@@ -83,7 +84,7 @@ wrap <- function(txt, width, use.ansi, pad=FALSE) {
         rep(txt[[i]], length(split.locs) + 1L),
         c(1L, split.locs + 1L), c(split.locs, nchars)
       )
-      if(pad) rpad(res, width, use.ansi=use.ansi)
+      if(pad) rpad(res, width, use.ansi=use.ansi) else res
     }
   )
 }
@@ -112,7 +113,10 @@ sign_pad <- function(txt, pad, rev=FALSE, use.ansi) {
     pad.extra <- ": "
   }
   lines <- vapply(txt, length, integer(1L))
-  pad.out <- lapply(lines, function(x) c(pad.chr, rep(pad.extra, x - 1L)))
+  pad.out <- lapply(
+    lines,
+    function(x) if(x) c(pad.chr, rep(pad.extra, x - 1L)) else character(0L)
+  )
   if(use.ansi && !neut) {
     pad.out <- lapply(
       pad.out, ansi_style,

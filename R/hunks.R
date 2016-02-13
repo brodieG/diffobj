@@ -371,7 +371,7 @@ trim_hunks <- function(
         } else {
           hunk.atom <- trim_hunk(hunk.atom, "cur", line.cut)
         }
-        hunks.grp[[grp.cut]][[i]] <- hunk.atom
+        hunk.grps[[grp.cut]][[i]] <- hunk.atom
       }
     } else {
       hunk.atom <- hunk.grps[[grp.cut]][[hunk.cut]]

@@ -257,14 +257,18 @@ setMethod("as.character", "diffObjDiff",
 
         diff.txt <- if(mode == "context") {
           # Need to get all the A data and the B data
+          get_chr_vals <- function(h.a, ind)
+            unlist(wrap(h.a[[ind]], width, use.ansi))
+
           ctx <- vapply(h.g, "[[", logical(1L), "context")
-          A <- wrap(unlist(lapply(h.g, "[[", "A.chr")), width, use.ansi=use.ansi)
-          B <- wrap(unlist(lapply(h.g, "[[", "B.chr")), width, use.ansi=use.ansi)
+          A <- lapply(h.g, get_chr_vals, "A.chr")
+          B <- lapply(h.g, get_chr_vals, "B.chr")
+
           A[!ctx] <- sign_pad(A[!ctx], "- ", use.ansi=use.ansi)
           B[!ctx] <- sign_pad(B[!ctx], "+ ", use.ansi=use.ansi)
           A[ctx] <- sign_pad(A[ctx], "  ", use.ansi=use.ansi)
           B[ctx] <- sign_pad(B[ctx], "  ", use.ansi=use.ansi)
-          unlist(A, ansi_style("----", "silver", use.ansi=use.ansi), B)
+          unlist(A, ansi_style("----", "silver", use.style=use.ansi), B)
         } else if(mode == "unified") {
           unlist(
             lapply(h.g,
