@@ -196,10 +196,12 @@ setMethod("as.character", "diffObjDiff",
 
     if(mode == "sidebyside") {
       max.w <- max(floor(width / 2), 20L)
+      max.ww <- max.w - 2L
       comb.fun <- paste0
       t.fun <- rpadt
     } else {
       max.w <- max(width, 20L)
+      max.ww <- max.w - 2L
       comb.fun <- c
       t.fun <- chr_trim
     }
@@ -257,7 +259,7 @@ setMethod("as.character", "diffObjDiff",
 
         diff.txt <- if(mode == "context") {
           # Need to get all the A data and the B data
-          get_chr_vals <- function(h.a, ind) wrap(h.a[[ind]], width, use.ansi)
+          get_chr_vals <- function(h.a, ind) wrap(h.a[[ind]], max.ww, use.ansi)
 
           A.ctx <- unlist(
             lapply(h.g, function(h.a) rep(h.a$context, length(h.a$A.chr)))
@@ -278,7 +280,7 @@ setMethod("as.character", "diffObjDiff",
             lapply(h.g,
               function(h.a) {
                 pos <- h.a$A > 0L
-                A.out <- wrap(h.a$A.chr, width, use.ansi=use.ansi)
+                A.out <- wrap(h.a$A.chr, max.ww, use.ansi=use.ansi)
                 if(!h.a$context) {
                   A.out[pos] <- sign_pad(A.out[pos], "- ", use.ansi=use.ansi)
                   A.out[!pos] <- sign_pad(A.out[!pos], "+ ", use.ansi=use.ansi)
@@ -301,14 +303,14 @@ setMethod("as.character", "diffObjDiff",
                 } else if(len.diff) {
                   B.out <- c(B.out, character(len.diff))
                 }
-                A.w <- wrap(A.out, width, use.ansi=use.ansi, pad=TRUE)
-                B.w <- wrap(B.out, width, use.ansi=use.ansi, pad=TRUE)
+                A.w <- wrap(A.out, max.ww, use.ansi=use.ansi, pad=TRUE)
+                B.w <- wrap(B.out, max.ww, use.ansi=use.ansi, pad=TRUE)
 
                 # Same number of els post wrap
 
                 A.lens <- vapply(A.out, length, integer(1L))
                 B.lens <- vapply(B.out, length, integer(1L))
-                blanks <- paste0(rep(" ", width), collapse="")
+                blanks <- paste0(rep(" ", max.ww), collapse="")
 
                 for(i in seq_along(len.max)) {
                   if(A.lens < B.lens)
@@ -317,8 +319,14 @@ setMethod("as.character", "diffObjDiff",
                     B.w[[i]] <- c(B.w[[i]], rep(blanks, A.lens - B.lens))
                 }
                 paste0(
-                  unlist(sign_pad(A.w, "- ", use.ansi=use.ansi, rev=TRUE)),
-                  unlist(sign_pad(B.w, "+ ", use.ansi=use.ansi))
+                  unlist(
+                    sign_pad(
+                      A.w, if(h.a$context) "  " else "- ", use.ansi=use.ansi,
+                      rev=TRUE
+                  ) ),
+                  unlist(
+                    sign_pad(
+                      B.w, if(h.a$context) "  " else "+ ", use.ansi=use.ansi))
                 )
         } ) ) }
         c(hunk.head, diff.txt)

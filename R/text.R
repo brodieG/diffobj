@@ -12,7 +12,7 @@ rpad <- function(text, width, pad.chr=" ", use.ansi=TRUE) {
   stopifnot(is.character(pad.chr), length(pad.chr) == 1L, nchar(pad.chr) == 1L)
   nchar_fun <- if(use.ansi) ansi_style_nchar else nchar
   pad.count <- width - nchar_fun(text)
-  pad.count[pad.count < 0L] <- L
+  pad.count[pad.count < 0L] <- 0L
   pad.chrs <- vapply(
     pad.count, function(x) paste0(rep(pad.chr, x), collapse=""), character(1L)
   )
@@ -32,7 +32,6 @@ rpadt <- function(text, width, pad.chr=" ")
 wrap <- function(txt, width, use.ansi, pad=FALSE) {
   # Get rid of newlines
 
-  if(!length(txt)) return(list(txt))
   txt <- unlist(strsplit(txt, "\n"))
 
   # If there are ansi escape sequences, account for them; either way, create
@@ -48,7 +47,7 @@ wrap <- function(txt, width, use.ansi, pad=FALSE) {
   # Map each character to a length of 1 or zero depending on whether it is
   # part of an ANSI escape sequence or not
 
-  lapply(
+  res.l <- lapply(
     seq_along(txt),
     function(i) {
       nchars <- nchar(txt[[i]])
@@ -84,9 +83,11 @@ wrap <- function(txt, width, use.ansi, pad=FALSE) {
         rep(txt[[i]], length(split.locs) + 1L),
         c(1L, split.locs + 1L), c(split.locs, nchars)
       )
-      if(pad) rpad(res, width, use.ansi=use.ansi) else res
+      res
     }
   )
+  if(!length(res.l)) res.l <- list(txt)
+  if(pad) lapply(res.l, rpad, width=width, use.ansi=use.ansi) else res.l
 }
 # Add the +/- in front of a text line and color accordingly
 #
