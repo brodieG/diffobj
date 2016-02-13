@@ -74,13 +74,16 @@ setMethod("as.character", "diffObjDiff",
       hunk.limit=hunk.limit, use.ansi=use.ansi
     )
     # Post trim, figure out max lines we could possibly be showing from capture
-    # strings
+    # strings; careful with ranges,
 
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
     ranges <- vapply(
       hunks.flat, function(h.a)
         c(h.a$tar.rng.trim, h.a$cur.rng.trim),
       integer(4L)
+    )
+    ranges.orig <- vapply(
+      hunks.flat, function(h.a) c(h.a$tar.rng, h.a$cur.rng), integer(4L)
     )
     tar.max <- max(ranges[2L, ])
     cur.max <- max(ranges[4L, ])
@@ -206,15 +209,38 @@ setMethod("as.character", "diffObjDiff",
     )
     # Display hunks
 
-    rng_as_chr <- function(range) paste0(range[[1L]], ",", diff(range) + 1L)
-    min_rng <- function(x) if(!any(x) > 0L) 0L else min(x[x > 0L])
+    find_rng <- function(off, ids) {
+      stopifnot(off %in% c(0L, 2L))
+      rng <- ranges[1:2 + off, ]
+      rng.orig <- ranges.orig[1:2 + off, ]
 
+      with.rng <- ids[which(rng[1L, ids] > 0L)]
+      if(!length(with.rng)) {
+        # Find previous earliest originally existing item we want to insert
+        # after; note we need to look at the non-trimmed ranges, and we include
+        # the first context atomic hunk in the group as a potential match
+        prev <- rng.orig[
+          2L, seq_len(ncol(rng.orig)) <= max(ids[[1L]], 0L) &
+            rng.orig[1L, ] > 0L
+        ]
+        if(!length(prev)) integer(2L) else c(max(prev), 0L)
+      } else {
+        c(min(rng[1L, intersect(ids, with.rng)]), max(rng[2L, ids]))
+      }
+    }
+    rng_as_chr <- function(range) {
+      a <- range[[1L]]
+      b <- if(diff(range))
+        paste0(",", if(range[[2L]]) diff(range) + 1L else 0)
+      paste0(a, b)
+    }
     out <- lapply(
       hunk.grps, function(h.g) {
         # Only time 0 is legitimate as a value is when it is in the first hunk
 
-        tar.rng <- c(min_rng(ranges[1L,]), max(ranges[2L,]))
-        cur.rng <- c(min_rng(ranges[3L,]), max(ranges[4L,]))
+        h.ids <- vapply(h.g, "[[", integer(1L), "id")
+        tar.rng <- find_rng(0L, h.ids)
+        cur.rng <- find_rng(2L, h.ids)
 
         hh.a <- paste0("-", rng_as_chr(tar.rng))
         hh.b <- paste0("+", rng_as_chr(cur.rng))

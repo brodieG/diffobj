@@ -43,6 +43,13 @@ setClass(
     )
     if(!all(unlist(hunk.check)))
       return("slot `hunks` contains invalid hunks")
+    hunks.flat <- unlist(object@hunks, recursive=FALSE)
+    if(
+      !identical(
+        vapply(hunks.flat, "[[", integer(1L), "id"), seq_along(hunks.flat)
+    ) ) {
+      return("atomic hunk ids invalid")
+    }
     TRUE
   }
 )

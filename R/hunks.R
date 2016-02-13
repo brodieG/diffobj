@@ -15,6 +15,9 @@
 #   values reference strings from the original target string, and negative ones
 #   from the current string.
 #
+#   Important: context atomic hunks are duplicated anytime there is enough
+#   context that we only show part of the context hunk.
+#
 #   Notes for rendering:
 #   1. determine if chunk is context or not
 #   2. if not, positive values are "target" strings, negative "current strings"
@@ -126,18 +129,22 @@ hunk_sub <- function(hunk, op, n) {
     # Need to recompute ranges
 
     if(!n) {
-      hunk$tar.rng <- hunk$cur.rng <-
-        hunk$tar.rng.trim <- hunk$cur.rng.trim <- integer(2L)
+      # hunk$tar.rng <- hunk$cur.rng <-
+      hunk$tar.rng.trim <- hunk$cur.rng.trim <- integer(2L)
     } else if(op == "tail") {
-      hunk$tar.rng[[1L]] <- hunk$tar.rng.trim[[1L]] <-
-        hunk$tar.rng[[1L]] + len.diff
-      hunk$cur.rng[[1L]] <- hunk$cur.rng.trim[[1L]] <-
-        hunk$cur.rng[[1L]] + len.diff
+      # hunk$tar.rng[[1L]] <-
+      hunk$tar.rng.trim[[1L]] <-
+        hunk$tar.rng.trim[[1L]] + len.diff
+      # hunk$cur.rng[[1L]] <-
+      hunk$cur.rng.trim[[1L]] <-
+        hunk$cur.rng.trim[[1L]] + len.diff
     } else {
-      hunk$tar.rng[[2L]] <- hunk$tar.rng.trim[[2L]] <-
-        hunk$tar.rng[[2L]] - len.diff
-      hunk$cur.rng[[2L]] <- hunk$cur.rng.trim[[2L]] <-
-        hunk$cur.rng[[2L]] - len.diff
+      # hunk$tar.rng[[2L]] <-
+      hunk$tar.rng.trim[[2L]] <-
+        hunk$tar.rng.trim[[2L]] - len.diff
+      # hunk$cur.rng[[2L]] <-
+      hunk$cur.rng.trim[[2L]] <-
+        hunk$cur.rng.trim[[2L]] - len.diff
     }
   }
   hunk
@@ -206,12 +213,22 @@ process_hunks <- function(x, context) {
 
       if(i < hunk.len) {
         res.l[[j]] <- append(
-          res.l[[j]], list(hunk_sub(x[[i - 1L]], "head", context))
+          res.l[[j]], list(hunk_sub(x[[i + 1L]], "head", context))
     ) } }
     j <- j + 1L
     i <- i + 2L
   }
+  # Finalize, including sizing correctly, and setting the ids to the right
+  # values since we potentially duplicated some context hunks
+
   length(res.l) <- j - 1L
+  k <- 1L
+  for(i in seq_along(res.l)) {
+    for(j in seq_along(res.l[[i]])) {
+      res.l[[i]][[j]][["id"]] <- k
+      k <- k + 1L
+    }
+  }
   res.l
 }
 # Compute how many lines the display version of the diff will take, meta
