@@ -369,7 +369,11 @@ trim_hunks <- function(
             hunk.atom <- trim_hunk(hunk.atom, "tar", line.cut)
           }
         } else {
-          hunk.atom <- trim_hunk(hunk.atom, "cur", line.cut)
+          if(i > hunk.cut) {
+            hunk.atom <- trim_hunk(hunk.atom, "cur", 0L)
+          } else if (i == hunk.cut) {
+            hunk.atom <- trim_hunk(hunk.atom, "cur", line.cut)
+          }
         }
         hunk.grps[[grp.cut]][[i]] <- hunk.atom
       }
