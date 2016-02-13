@@ -196,18 +196,19 @@ setMethod("as.character", "diffObjDiff",
 
     if(mode == "sidebyside") {
       max.w <- max(floor(width / 2), 20L)
-      max.ww <- max.w - 2L
+      max.wl <- max.w + 2L
+      max.wr <- max.ww <- max.w - 2L
       comb.fun <- paste0
       t.fun <- rpadt
     } else {
-      max.w <- max(width, 20L)
+      max.w <- max.wl <- max.wr <- max(width, 20L)
       max.ww <- max.w - 2L
       comb.fun <- c
       t.fun <- chr_trim
     }
     banner <- comb.fun(
-      ansi_style(t.fun(banner.A, max.w), "red", use.ansi),
-      ansi_style(t.fun(banner.B, max.w), "green", use.ansi)
+      ansi_style(t.fun(banner.A, max.wl), "red", use.ansi),
+      ansi_style(t.fun(banner.B, max.wr), "green", use.ansi)
     )
     # Display hunks
 
@@ -249,7 +250,11 @@ setMethod("as.character", "diffObjDiff",
 
         hunk.head <- ansi_style(
           if(mode == "sidebyside") {
-            paste0(rpadt(sprintf("@@ %s @@", c(hh.a, hh.b)), max.w), collapse="")
+            paste0(
+              rpadt(sprintf("@@ %s @@", hh.a), max.wl),
+              rpadt(sprintf("@@ %s @@", hh.b), max.wr),
+              collapse=""
+            )
           } else {
             sprintf("@@ %s %s @@", hh.a, hh.b)
           },
