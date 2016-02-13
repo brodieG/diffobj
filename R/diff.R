@@ -152,7 +152,7 @@ setMethod("as.character", "diffObjDiff",
     cur.to.wd <- which(ranges[3L,] %in% cur.rest)
 
     if(length(tar.to.wd) && length(cur.to.wd)) {
-      wd.max <- max(tar.to.wd[[1L]], cur.to.wd[[1L]])
+      wd.max <- min(tar.to.wd[[1L]], cur.to.wd[[1L]])
 
       # We need to compare the +s to the -s, and then reconstruct back into
       # the original A and B vectors
@@ -160,6 +160,7 @@ setMethod("as.character", "diffObjDiff",
       for(i in seq_along(hunk.grps)) {
         for(j in seq_along(hunk.grps[[i]])) {
           h.a <- hunk.grps[[i]][[j]]
+          # Skip context or those that have been wrap diffed
           if(h.a$id < wd.max || h.a$context) next
           # Do word diff on each non-context hunk; real messy because the
           # stuff from `tar` and `cur` are mixed in in A and B (well, really
