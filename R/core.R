@@ -165,7 +165,7 @@ setMethod("summary", "diffObjMyersMbaSes",
 # elements that match and those that don't as a unitizerDiffDiffs object
 
 char_diff <- function(
-  x, y, context=context, white.space=white.space, mode=mode
+  x, y, context=-1L, white.space=white.space, mode=mode
 ) {
   if(!white.space) {
     sub.pat <- "(\t| )"
