@@ -195,20 +195,18 @@ setMethod("as.character", "diffObjDiff",
     banner.B <- paste0("+++ ", deparse(x@cur.exp)[[1L]])
 
     if(mode == "sidebyside") {
-      max.w <- max(floor(width / 2), 20L)
-      max.wl <- max.w + 2L
-      max.wr <- max.ww <- max.w - 2L
+      max.w <- max(floor(width / 2), 20L) - 2L
       comb.fun <- paste0
       t.fun <- rpadt
     } else {
-      max.w <- max.wl <- max.wr <- max(width, 20L)
-      max.ww <- max.w - 2L
+      max.w <- max(width, 20L)
       comb.fun <- c
       t.fun <- chr_trim
     }
     banner <- comb.fun(
-      ansi_style(t.fun(banner.A, max.wl), "red", use.ansi),
-      ansi_style(t.fun(banner.B, max.wr), "green", use.ansi)
+      ansi_style(t.fun(banner.A, max.w), "red", use.ansi),
+      if(mode == "sidebyside") "    ",
+      ansi_style(t.fun(banner.B, max.w), "green", use.ansi)
     )
     # Display hunks
 
@@ -251,8 +249,9 @@ setMethod("as.character", "diffObjDiff",
         hunk.head <- ansi_style(
           if(mode == "sidebyside") {
             paste0(
-              rpadt(sprintf("@@ %s @@", hh.a), max.wl),
-              rpadt(sprintf("@@ %s @@", hh.b), max.wr),
+              rpadt(sprintf("@@ %s @@", hh.a), max.w),
+              "    ",
+              rpadt(sprintf("@@ %s @@", hh.b), max.w),
               collapse=""
             )
           } else {
@@ -264,7 +263,7 @@ setMethod("as.character", "diffObjDiff",
 
         diff.txt <- if(mode == "context") {
           # Need to get all the A data and the B data
-          get_chr_vals <- function(h.a, ind) wrap(h.a[[ind]], max.ww, use.ansi)
+          get_chr_vals <- function(h.a, ind) wrap(h.a[[ind]], max.w, use.ansi)
 
           A.ctx <- unlist(
             lapply(h.g, function(h.a) rep(h.a$context, length(h.a$A.chr)))
@@ -285,7 +284,7 @@ setMethod("as.character", "diffObjDiff",
             lapply(h.g,
               function(h.a) {
                 pos <- h.a$A > 0L
-                A.out <- wrap(h.a$A.chr, max.ww, use.ansi=use.ansi)
+                A.out <- wrap(h.a$A.chr, max.w, use.ansi=use.ansi)
                 if(!h.a$context) {
                   A.out[pos] <- sign_pad(A.out[pos], "- ", use.ansi=use.ansi)
                   A.out[!pos] <- sign_pad(A.out[!pos], "+ ", use.ansi=use.ansi)
@@ -308,14 +307,14 @@ setMethod("as.character", "diffObjDiff",
                 } else if(len.diff) {
                   B.out <- c(B.out, character(len.diff))
                 }
-                A.w <- wrap(A.out, max.ww, use.ansi=use.ansi, pad=TRUE)
-                B.w <- wrap(B.out, max.ww, use.ansi=use.ansi, pad=TRUE)
+                A.w <- wrap(A.out, max.w, use.ansi=use.ansi, pad=TRUE)
+                B.w <- wrap(B.out, max.w, use.ansi=use.ansi, pad=TRUE)
 
                 # Same number of els post wrap
 
-                A.lens <- vapply(A.out, length, integer(1L))
-                B.lens <- vapply(B.out, length, integer(1L))
-                blanks <- paste0(rep(" ", max.ww), collapse="")
+                A.lens <- sum(vapply(A.w, length, integer(1L)))
+                B.lens <- sum(vapply(B.w, length, integer(1L)))
+                blanks <- paste0(rep(" ", max.w), collapse="")
 
                 for(i in seq_along(len.max)) {
                   if(A.lens < B.lens)
