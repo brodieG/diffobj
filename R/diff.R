@@ -274,10 +274,10 @@ setMethod("as.character", "diffObjDiff",
           A <- as.list(unlist(lapply(h.g, get_chr_vals, "A.chr")))
           B <- as.list(unlist(lapply(h.g, get_chr_vals, "B.chr")))
 
-          A[!A.ctx] <- sign_pad(A[!A.ctx], "- ", use.ansi=use.ansi)
-          B[!B.ctx] <- sign_pad(B[!B.ctx], "+ ", use.ansi=use.ansi)
-          A[A.ctx] <- sign_pad(A[A.ctx], "  ", use.ansi=use.ansi)
-          B[B.ctx] <- sign_pad(B[B.ctx], "  ", use.ansi=use.ansi)
+          A[!A.ctx] <- sign_pad(A[!A.ctx], 3L, use.ansi=use.ansi)
+          B[!B.ctx] <- sign_pad(B[!B.ctx], 2L, use.ansi=use.ansi)
+          A[A.ctx] <- sign_pad(A[A.ctx], 1L, use.ansi=use.ansi)
+          B[B.ctx] <- sign_pad(B[B.ctx], 1L, use.ansi=use.ansi)
           unlist(c(A, ansi_style("----", "silver", use.style=use.ansi), B))
         } else if(mode == "unified") {
           unlist(
@@ -286,10 +286,10 @@ setMethod("as.character", "diffObjDiff",
                 pos <- h.a$A > 0L
                 A.out <- wrap(h.a$A.chr, max.w, use.ansi=use.ansi)
                 if(!h.a$context) {
-                  A.out[pos] <- sign_pad(A.out[pos], "- ", use.ansi=use.ansi)
-                  A.out[!pos] <- sign_pad(A.out[!pos], "+ ", use.ansi=use.ansi)
+                  A.out[pos] <- sign_pad(A.out[pos], 3L, use.ansi=use.ansi)
+                  A.out[!pos] <- sign_pad(A.out[!pos], 2L, use.ansi=use.ansi)
                 } else {
-                  A.out <- sign_pad(A.out, "  ", use.ansi=use.ansi)
+                  A.out <- sign_pad(A.out, 1L, use.ansi=use.ansi)
                 }
                 A.out
           } ) )
@@ -301,11 +301,16 @@ setMethod("as.character", "diffObjDiff",
 
                 A.out <- h.a$A.chr
                 B.out <- h.a$B.chr
+                A.present <- rep(TRUE, length(A.out))
+                B.present <- rep(TRUE, length(B.out))
                 len.diff <- length(A.out) - length(B.out)
+
                 if(len.diff < 0L) {
                   A.out <- c(A.out, character(abs(len.diff)))
+                  A.present <- c(A.present, rep(FALSE, abs(len.diff)))
                 } else if(len.diff) {
                   B.out <- c(B.out, character(len.diff))
+                  B.present <- c(B.present, rep(FALSE, len.diff))
                 }
                 A.w <- wrap(A.out, max.w, use.ansi=use.ansi, pad=TRUE)
                 B.w <- wrap(B.out, max.w, use.ansi=use.ansi, pad=TRUE)
@@ -325,12 +330,14 @@ setMethod("as.character", "diffObjDiff",
                 paste0(
                   unlist(
                     sign_pad(
-                      A.w, if(h.a$context) "  " else "- ", use.ansi=use.ansi,
-                      rev=TRUE
+                      A.w, ifelse(!h.a$context & A.present, 3L, 1L),
+                      use.ansi=use.ansi, rev=TRUE
                   ) ),
                   unlist(
                     sign_pad(
-                      B.w, if(h.a$context) "  " else "+ ", use.ansi=use.ansi))
+                      B.w, ifelse(!h.a$context & B.present, 2L, 1L),
+                      use.ansi=use.ansi
+                  ) )
                 )
         } ) ) }
         c(hunk.head, diff.txt)

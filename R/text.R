@@ -101,28 +101,29 @@ sign_pad <- function(txt, pad, rev=FALSE, use.ansi) {
   stopifnot(
     is.list(txt), all(vapply(txt, is.character, logical(1L))),
     !any(is.na(unlist(txt))),
-    is.character(pad), length(pad) == 1L, pad %in% c("+ ", "- ", "  "),
-    isTRUE(use.ansi) || identical(use.ansi, FALSE)
+    is.integer(pad), length(pad) == 1L || length(pad) == length(txt),
+    all(pad %in% 1:3),  isTRUE(use.ansi) || identical(use.ansi, FALSE)
   )
-  neut <- pad == "  "
-  pad.extra <- "  "
-  if(rev && !neut) {
-    pad.chr <- paste0(rev(strsplit(pad, "")[[1L]]), collapse="")
-    pad.extra <- " :"
-  } else {
-    pad.chr <- pad
-    pad.extra <- ": "
-  }
+  pads <- if(!rev) c("  ", "+ ", "- ") else c("  ", " +", " -")
+  pad.ex <- if(!rev) ": " else " :"
+  if(length(pad) == 1L) pad <- rep(pad, length(txt))
+
   lines <- vapply(txt, length, integer(1L))
   pad.out <- lapply(
-    lines,
-    function(x) if(x) c(pad.chr, rep(pad.extra, x - 1L)) else character(0L)
+    seq_along(txt),
+    function(x) {
+      len <- length(txt[[x]])
+      color <- pad[[x]] > 1L
+      extras <- if(len)
+        rep(if(color) pad.ex else "  ", len - 1L) else character(0L)
+      res <- c(pads[pad[[x]]], extras)
+      if(use.ansi && color) {
+        ansi_style(
+          res, if(pad[[x]] == 2L) "green" else "red",
+          use.style=use.ansi
+        )
+      } else res
+    }
   )
-  if(use.ansi && !neut) {
-    pad.out <- lapply(
-      pad.out, ansi_style,
-      if(pad == "- ") "red" else "green", use.style=use.ansi
-    )
-  }
   Map(paste0, if(rev) txt else pad.out, if(!rev) txt else pad.out)
 }
