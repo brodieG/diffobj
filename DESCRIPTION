@@ -29,5 +29,6 @@ Collate:
     'rdiff.R'
     'system.R'
     'text.R'
+    'tochar.R'
 Imports:
     ansistyle
