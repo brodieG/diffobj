@@ -46,7 +46,6 @@ hunk_as_char <- function(
     if(mode == "sidebyside") {
       paste0(
         rpadt(sprintf("@@ %s @@", hh.a), width),
-        "    ",
         rpadt(sprintf("@@ %s @@", hh.b), width),
         collapse=""
       )
@@ -59,7 +58,7 @@ hunk_as_char <- function(
 
   diff.txt <- if(mode == "context") {
     # Need to get all the A data and the B data
-    get_chr_vals <- function(h.a, ind) wrap(h.a[[ind]], width, use.ansi)
+    get_chr_vals <- function(h.a, ind) wrap(h.a[[ind]], width - 2L, use.ansi)
 
     A.ctx <- unlist(
       lapply(h.g, function(h.a) rep(h.a$context, length(h.a$A.chr)))
@@ -80,7 +79,7 @@ hunk_as_char <- function(
       lapply(h.g,
         function(h.a) {
           pos <- h.a$A > 0L
-          A.out <- wrap(h.a$A.chr, width, use.ansi=use.ansi)
+          A.out <- wrap(h.a$A.chr, width - 2L, use.ansi=use.ansi)
           if(!h.a$context) {
             A.out[pos] <- sign_pad(A.out[pos], 3L, use.ansi=use.ansi)
             A.out[!pos] <- sign_pad(A.out[!pos], 2L, use.ansi=use.ansi)
@@ -108,8 +107,8 @@ hunk_as_char <- function(
             B.out <- c(B.out, character(len.diff))
             B.present <- c(B.present, rep(FALSE, len.diff))
           }
-          A.w <- wrap(A.out, width, use.ansi=use.ansi, pad=TRUE)
-          B.w <- wrap(B.out, width, use.ansi=use.ansi, pad=TRUE)
+          A.w <- wrap(A.out, width - 2L, use.ansi=use.ansi, pad=TRUE)
+          B.w <- wrap(B.out, width - 2L, use.ansi=use.ansi, pad=TRUE)
 
           # Same number of els post wrap
 
@@ -128,7 +127,7 @@ hunk_as_char <- function(
               unlist(
                 sign_pad(
                   A.w, ifelse(!h.a$context & A.present, 3L, 1L),
-                  use.ansi=use.ansi, rev=TRUE
+                  use.ansi=use.ansi
               ) ),
               unlist(
                 sign_pad(
@@ -297,7 +296,7 @@ setMethod("as.character", "diffObjDiff",
     banner.B <- paste0("+++ ", deparse(x@cur.exp)[[1L]])
 
     if(mode == "sidebyside") {
-      max.w <- max(floor(width / 2), 20L) - 2L
+      max.w <- max(floor(width / 2), 20L)
       comb.fun <- paste0
       t.fun <- rpadt
     } else {
@@ -307,7 +306,6 @@ setMethod("as.character", "diffObjDiff",
     }
     banner <- comb.fun(
       ansi_style(t.fun(banner.A, max.w), "red", use.ansi),
-      if(mode == "sidebyside") "    ",
       ansi_style(t.fun(banner.B, max.w), "green", use.ansi)
     )
     # Process the actual hunks into character
