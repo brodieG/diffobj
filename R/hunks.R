@@ -262,7 +262,11 @@ get_hunk_chr_lens <- function(hunk.grps, mode, width, use.ansi) {
       mode,
       context=c(A.lines, -B.lines),
       unified=c(A.lines),
-      sidebyside=c(pmax(A.lines, B.lines)),
+      sidebyside={
+        max.len <- max(length(A.lines), length(B.lines))
+        length(A.lines) <- length(B.lines) <- max.len
+        c(pmax(A.lines, B.lines, na.rm=TRUE))
+      },
       stop("Logic Error: unknown mode '", mode, "' contact maintainer")
     )
     # Make sure that line.id refers to the position of the line in either

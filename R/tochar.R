@@ -123,18 +123,18 @@ hunk_as_char <- function(
             if(A.lens > B.lens)
               B.w[[i]] <- c(B.w[[i]], rep(blanks, A.lens - B.lens))
           }
-          paste0(
-            unlist(
-              sign_pad(
-                A.w, ifelse(!h.a$context & A.present, 3L, 1L),
-                use.ansi=use.ansi, rev=TRUE
-            ) ),
-            unlist(
-              sign_pad(
-                B.w, ifelse(!h.a$context & B.present, 2L, 1L),
-                use.ansi=use.ansi
-            ) )
-          )
+          if(A.lens || B.lens) {
+            paste0(
+              unlist(
+                sign_pad(
+                  A.w, ifelse(!h.a$context & A.present, 3L, 1L),
+                  use.ansi=use.ansi, rev=TRUE
+              ) ),
+              unlist(
+                sign_pad(
+                  B.w, ifelse(!h.a$context & B.present, 2L, 1L),
+                  use.ansi=use.ansi
+          ) ) ) }
   } ) ) }
   c(hunk.head, diff.txt)
 }
