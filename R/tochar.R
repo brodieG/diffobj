@@ -36,8 +36,8 @@ hunk_as_char <- function(
   h.g, ranges, ranges.orig, mode, use.ansi, width, len.max
 ) {
   h.ids <- vapply(h.g, "[[", integer(1L), "id")
-  tar.rng <- find_rng(h.ids, ranges, ranges.orig[1:2, ])
-  cur.rng <- find_rng(h.ids, ranges, ranges.orig[3:4, ])
+  tar.rng <- find_rng(h.ids, ranges[1:2, ], ranges.orig[1:2, ])
+  cur.rng <- find_rng(h.ids, ranges[3:4, ], ranges.orig[3:4, ])
 
   hh.a <- paste0("-", rng_as_chr(tar.rng))
   hh.b <- paste0("+", rng_as_chr(cur.rng))
