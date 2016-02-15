@@ -310,6 +310,8 @@ setMethod("as.character", "diffObjDiff",
       if(mode == "sidebyside") "    ",
       ansi_style(t.fun(banner.B, max.w), "green", use.ansi)
     )
+    # Process the actual hunks into character
+
     out <- lapply(
       hunk.grps, hunk_as_char, ranges=ranges, ranges.orig=ranges.orig,
       mode=mode, use.ansi=use.ansi, width=max.w, len.max=len.max

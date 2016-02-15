@@ -113,17 +113,16 @@ sign_pad <- function(txt, pad, rev=FALSE, use.ansi) {
     seq_along(txt),
     function(x) {
       len <- length(txt[[x]])
-      color <- pad[[x]] > 1L
-      extras <- if(len)
-        rep(if(color) pad.ex else "  ", len - 1L) else character(0L)
-      res <- c(pads[pad[[x]]], extras)
-      if(use.ansi && color) {
-        ansi_style(
-          res, if(pad[[x]] == 2L) "green" else "red",
-          use.style=use.ansi
-        )
-      } else res
-    }
-  )
+      if(!len) character(0L) else {
+        color <- pad[[x]] > 1L
+        extras <- rep(if(color) pad.ex else "  ", len - 1L)
+        res <- c(pads[pad[[x]]], extras)
+        if(use.ansi && color) {
+          ansi_style(
+            res, if(pad[[x]] == 2L) "green" else "red",
+            use.style=use.ansi
+          )
+        } else res
+  } } )
   Map(paste0, if(rev) txt else pad.out, if(!rev) txt else pad.out)
 }
