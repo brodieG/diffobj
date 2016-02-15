@@ -32,9 +32,7 @@ rng_as_chr <- function(range) {
 }
 # Convert a hunk group into text representation
 
-hunk_as_char <- function(
-  h.g, ranges, ranges.orig, mode, use.ansi, width, len.max
-) {
+hunk_as_char <- function(h.g, ranges, ranges.orig, mode, use.ansi, width) {
   h.ids <- vapply(h.g, "[[", integer(1L), "id")
   tar.rng <- find_rng(h.ids, ranges[1:2, ], ranges.orig[1:2, ])
   cur.rng <- find_rng(h.ids, ranges[3:4, ], ranges.orig[3:4, ])
@@ -114,6 +112,7 @@ hunk_as_char <- function(
 
           A.lens <- sum(vapply(A.w, length, integer(1L)))
           B.lens <- sum(vapply(B.w, length, integer(1L)))
+          len.max <- max(A.lens, B.lens)
           blanks <- paste0(rep(" ", width), collapse="")
 
           for(i in seq_along(len.max)) {
@@ -290,13 +289,18 @@ setMethod("as.character", "diffObjDiff",
 
           hunk.grps[[i]][[j]] <- h.a
     } } }
-    # Make the object banner
+    # Make the object banner and compute widths
 
     banner.A <- paste0("--- ", deparse(x@tar.exp)[[1L]])
     banner.B <- paste0("+++ ", deparse(x@cur.exp)[[1L]])
 
     if(mode == "sidebyside") {
-      max.w <- max(floor(width / 2), 20L)
+      # If side by side we want stuff close together if reasonable
+      max.col.w <- max(
+        unlist(lapply(hunks.flat, function(x) nchar(c(x$A.chr, x$B.chr))))
+      )
+      max.w <- if(max.col.w < floor(width / 2))
+        max(15L, max.col.w) else max(floor(width / 2), 20L)
       comb.fun <- paste0
       t.fun <- rpadt
     } else {
@@ -312,7 +316,7 @@ setMethod("as.character", "diffObjDiff",
 
     out <- lapply(
       hunk.grps, hunk_as_char, ranges=ranges, ranges.orig=ranges.orig,
-      mode=mode, use.ansi=use.ansi, width=max.w, len.max=len.max
+      mode=mode, use.ansi=use.ansi, width=max.w
     )
     c(banner, unlist(out))
 } )
