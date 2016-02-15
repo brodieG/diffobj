@@ -160,10 +160,10 @@ local({
     # Make sure not fooled by repeats of same tokens in same string
 
     expect_identical(
-      unitizer:::diff_word(
+      diffobj:::diff_word(
         "[1] \"`1:3` should be length 5 (is 3)\"",
         "[1] \"should be length 5 (is 3)\"",
-        white.space=FALSE
+        white.space=FALSE, use.ansi=TRUE
       ),
       structure(list(target = "[1] \033[31m\"`\033[39m\033[31m1\033[39m\033[31m:\033[39m\033[31m3\033[39m\033[31m`\033[39m should be length 5 (is 3)\"", current = "[1] \033[32m\"\033[39mshould be length 5 (is 3)\""), .Names = c("target", "current"))
     )
@@ -172,25 +172,25 @@ local({
     a <- c("a b", "c d")
     b <- c("b c", "d e")
     expect_identical(
-      unitizer:::diff_word(a, b, across.lines=TRUE, white.space=FALSE),
+      diffobj:::diff_word(a, b, across.lines=TRUE, white.space=FALSE, use.ansi=TRUE),
       structure(list(target = c("\033[31ma\033[39m b", "c d"), current = c("b c", "d \033[32me\033[39m")), .Names = c("target", "current"))
     )
     a <- c("x a b", "c d z")
     b <- c("x b c", "d e z")
     expect_identical(
-      unitizer:::diff_word(a, b, across.lines=TRUE, white.space=FALSE),
+      diffobj:::diff_word(a, b, across.lines=TRUE, white.space=FALSE, use.ansi=TRUE),
       structure(list(target = c("x \033[31ma\033[39m b", "c d z"), current = c("x b c", "d \033[32me\033[39m z")), .Names = c("target", "current"))
     )
     a <- c("x a b", "c d z")
     b <- c("z b c", "d e x")
     expect_identical(
-      unitizer:::diff_word(a, b, across.lines=TRUE, white.space=FALSE),
-      structure(list(target = c("x \033[31ma\033[39m \033[31mb\033[39m", "\033[31mc\033[39m \033[31md\033[39m \033[31mz\033[39m"), current = c("\033[32mz\033[39m \033[32mb\033[39m \033[32mc\033[39m", "\033[32md\033[39m \033[32me\033[39m x")), .Names = c("target", "current"))
+      diffobj:::diff_word(a, b, across.lines=TRUE, white.space=FALSE, use.ansi=TRUE),
+      list(target = c("\033[31mx\033[39m \033[31ma\033[39m b", "c d \033[31mz\033[39m"), current = c("\033[32mz\033[39m b c", "d \033[32me\033[39m \033[32mx\033[39m"))
     )
-    lapply(
-      unitizer:::diff_word(a, b, across.lines=TRUE, white.space=FALSE),
-      cat, sep="\n"
-    )
+    # lapply(
+    #   diffobj:::diff_word(a, b, across.lines=TRUE, white.space=FALSE, use.ansi=TRUE),
+    #   cat, sep="\n"
+    # )
     stop("test diff word with quotes, including quotes in names, etc")
   })
   options(old.opt)

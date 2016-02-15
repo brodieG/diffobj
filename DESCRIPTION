@@ -24,7 +24,11 @@ Collate:
     's4.R'
     'core.R'
     'diff.R'
+    'hunks.R'
     'misc.R'
+    'rdiff.R'
     'system.R'
+    'text.R'
+    'tochar.R'
 Imports:
     ansistyle

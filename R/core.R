@@ -31,11 +31,11 @@ setMethod("as.character", "diffObjMyersMbaSes",
         del <- sum(d$len[d$type == "Delete"])
         ins <- sum(d$len[d$type == "Insert"])
         if(del) {
-          del.first <- which.min(d$type == "Delete")
+          del.first <- which(d$type == "Delete")[[1L]]
           del.off <- d$off[del.first]
         }
         if(ins) {
-          ins.first <- which.min(d$type == "Insert")
+          ins.first <- which(d$type == "Insert")[[1L]]
           ins.off <- d$off[ins.first]
         }
         if(del && ins) {
@@ -71,64 +71,6 @@ setMethod("as.data.frame", "diffObjMyersMbaSes",
     dat$last.b <- cumsum(ifelse(dat$type != "Delete", dat$len, 0L))
     dat
 } )
-# Used to generate data in format closer to existing `diffobj` functions.
-# Not super efficient, but should be good enough for our purposes.
-
-setGeneric("diffObjCompact", function(x, ...) standardGeneric("diffObjCompact"))
-setMethod("diffObjCompact", "diffObjMyersMbaSes",
-  function(x, ...) {
-    # Split our data into sections that have either deletes/inserts or matches
-
-    dat <- as.data.frame(x)
-    d.s <- split(dat, dat$section)
-    j <- 0L
-
-    # For each section, figure out how to represent target and current where
-    # 0 means match, 1:n is a matched mismatch (change in edit script parlance),
-    # and NA is a full mismatch (d or i).
-
-    res.l <- lapply(
-      seq_along(d.s),
-      function(i) {
-        d <- d.s[[i]]
-        un.type <- length(unique(d$type))
-        if(un.type == 2L) { # must have delete/insert
-          if(!all(d$type %in% c("Delete", "Insert")))
-            stop("Logic Error: unexpected edit types; contact maintainer.")
-          # Idea here is to number all the insert/deletes so that we can then
-          # line them up later; we use `j` to ensure we produce unique indices
-
-          ins.len <- d$len[[which(d$type == "Insert")]]
-          del.len <- d$len[[which(d$type == "Delete")]]
-          min.len <- min(ins.len, del.len)
-          match.seq <- seq_len(min.len) + j
-          j <<- j + min.len
-
-          tar <- c(match.seq, rep(NA_integer_, del.len - min.len))
-          cur <- c(match.seq, rep(NA_integer_, ins.len - min.len))
-        } else if (un.type == 1L) {
-          if(d$type == "Match") {
-            tar <- cur <- rep(0L, d$len)
-          } else if (d$type == "Insert") {
-            tar <- integer()
-            cur <- rep(NA_integer_, d$len)
-          } else if (d$type == "Delete") {
-            cur <- integer()
-            tar <- rep(NA_integer_, d$len)
-          } else
-            stop("Logic Error: unexpected edit types 2; contact maintainer.")
-        }
-        list(target=tar, current=cur)
-    } )
-    tars <- unlist(lapply(res.l, "[[", "target"))
-    curs <- unlist(lapply(res.l, "[[", "current"))
-    if(length(tars) != length(x@a) || length(curs) != length(x@b))
-      stop(
-        "Logic Error: mismatch ids don't match original string lengths; ",
-        "contact maintainer"
-      )
-    list(target=tars, current=curs)
-} )
 #' Produce Shortest Edit Script
 #'
 #' Intended primarily for debugging or for other applications that understand
@@ -145,7 +87,8 @@ diff_ses <- function(a, b) as.character(diff_myers_mba(a, b))
 #' Diff two character vectors
 #'
 #' Implementation of Myer's with linear space refinement originally implemented
-#' by Mike B. Allen as part of \href{libmba}{http://www.ioplex.com/~miallen/libmba/}
+#' by Mike B. Allen as part of
+#' \href{libmba}{http://www.ioplex.com/~miallen/libmba/}
 #' version 0.9.1.  This implementation uses the exact same algorithm, except
 #' that the C code is simplified by using fixed size arrays instead of variable
 #' ones for tracking the longest reaching paths and for recording the shortest
@@ -221,22 +164,18 @@ setMethod("summary", "diffObjMyersMbaSes",
 # Carries out the comparison between two character vectors and returns the
 # elements that match and those that don't as a unitizerDiffDiffs object
 
-char_diff <- function(x, y, white.space=FALSE) {
+char_diff <- function(
+  x, y, context=-1L, white.space=white.space, mode=mode
+) {
   if(!white.space) {
-    pat.1 <- "^[\\t ]*|[\\t ]*$"
-    pat.2 <- "[\\t ]+"
+    sub.pat <- "(\t| )"
+    pat.1 <- sprintf("^%s*|%s*$", sub.pat, sub.pat)
+    pat.2 <- sprintf("%s+", sub.pat)
     x <- gsub(pat.2, " ", gsub(pat.1, "", x))
     y <- gsub(pat.2, " ", gsub(pat.1, "", y))
   }
-  diffs.int <- diffObjCompact(diff_myers_mba(x, y))
-  if(sum(!diffs.int[[1L]], na.rm=TRUE) != sum(!diffs.int[[2L]], na.rm=TRUE))
-    stop(
-      "Logic Error: diff produced unequal number of matching lines; contact ",
-      "maintainer."
-    )
-  do.call(
-    "new", c(list("diffObjDiffDiffs", white.space=white.space), diffs.int)
-  )
+  hunks <- as.hunks(diff_myers_mba(x, y), context=context, mode=mode)
+  new("diffObjDiffDiffs", white.space=white.space, hunks=hunks)
 }
 # Helper function encodes matches within mismatches so that we can later word
 # diff the mismatches

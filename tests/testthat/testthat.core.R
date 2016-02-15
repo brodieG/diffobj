@@ -52,10 +52,7 @@ local({
     )
     # Actual Myers sample string
     expect_identical(
-      diffobj:::char_diff_myers_simple(
-        c("a", "b", "c", "a", "b", "b", "a"),
-        c("c", "b", "a", "b", "a", "c")
-      ),
+      diffobj:::char_diff_myers_simple(A, B),
       list(target = c(NA, NA, 0L, 0L, 0L, NA, 0L), current = c(0L,  NA, 0L, 0L, 0L, NA))
     )
   } )
@@ -77,6 +74,27 @@ local({
     expect_identical(diff_ses(A, B), c("1,2d0", "4d1", "5a3", "7a6"))
     # This used to cause errors due to under-allocated buffer vector
     expect_identical(diff_ses(letters[1:10], LETTERS[1:2]), "1,10c1,2")
+
+    # A little more complex with changes, this was a problem at some point
+
+    A2 <- c("A", "B", "C")
+    B2 <- c("X", "A", "Y", "C")
+    expect_identical(diff_ses(A2, B2), c("0a1", "2c3"))
+
+    # More complicated strings; intended for use with contexts for hunks,
+    # but making sure the diffs are correct
+
+    A1 <- c("A", "AA", "B", "C", "D", "E", "F", "G", "H")
+    B1 <- c("A", "B", "X", "W", "D", "DD", "E", "Y", "Z")
+    C1 <- c("X", "D", "E", "Y", "Z", "H")
+
+    expect_identical(diff_ses(A1, B1), c("2d1", "4c3,4", "5a6", "7,9c8,9"))
+    expect_identical(diff_ses(A1, C1), c("1,4c1", "7,8c4,5"))
+
+    A5 <- c("A", "AA", "B", "C", "D", "E", "F", "G", "H")
+    B5 <- c("A", "B",  "X", "W", "D", "E", "F", "W", "G")
+    expect_identical(diff_ses(A5, B5), c("2d1", "4c3,4", "7a8", "9d9"))
+
   } )
   test_that("print/summary", {
     expect_identical(
@@ -91,17 +109,17 @@ local({
       capture.output(print(diffobj:::diff_myers_mba(A, B))), diff_ses(A, B)
     )
   })
-  test_that("translate", {
-    aa <- c("a", "b", "b", "c", "e")
-    bb <- c("x", "y", "c", "f", "e")
-    expect_identical(
-      diffobj:::diffObjCompact(diffobj:::diff_myers_mba(A, B)),
-      list(target = c(NA, NA, 0L, NA, 0L, 0L, 0L), current = c(0L, 0L, NA, 0L, 0L, NA))
-    )
-    expect_identical(
-      diffobj:::diffObjCompact(diffobj:::diff_myers_mba(aa, bb)),
-      list(target = c(1L, 2L, NA, 0L, 0L), current = c(1L, 2L, 0L, NA, 0L))
-    )
-
-  } )
+  #  test_that("translate", {
+  #    aa <- c("a", "b", "b", "c", "e")
+  #    bb <- c("x", "y", "c", "f", "e")
+  #    expect_identical(
+  #      diffobj:::diffObjCompact(diffobj:::diff_myers_mba(A, B)),
+  #      list(target = c(NA, NA, 0L, NA, 0L, 0L, 0L), current = c(0L, 0L, NA, 0L, 0L, NA))
+  #    )
+  #    expect_identical(
+  #      diffobj:::diffObjCompact(diffobj:::diff_myers_mba(aa, bb)),
+  #      list(target = c(1L, 2L, NA, 0L, 0L), current = c(1L, 2L, 0L, NA, 0L))
+  #    )
+  #
+  #  } )
 })

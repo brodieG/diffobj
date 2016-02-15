@@ -18,10 +18,38 @@ NULL
 
 setClass(
   "diffObjDiffDiffs",
-  slots=c(target="integer", current="integer", white.space="logical"),
+  slots=c(hunks="list", white.space="logical"),
   validity=function(object) {
     if(!is.TF(object@white.space))
       return("slot `white.space` must be TRUE or FALSE")
+    hunk.check <- lapply(
+      object@hunks,
+      function(x) {
+        vapply(x,
+          function(y) {
+            nm <- c(
+              "id", "A", "B", "A.chr", "B.chr", "context", "tar.rng", "cur.rng",
+              "tar.rng.trim", "cur.rng.trim"
+            )
+            identical(names(y), nm) &&
+            is.integer(ab <- unlist(y[nm[-(3:5)]])) && !any(is.na(ab)) &&
+            length(y$tar.rng) == 2L && diff(y$tar.rng) >= 0L &&
+            length(y$cur.rng) == 2L && diff(y$cur.rng) >= 0L &&
+            length(y$tar.rng.trim) == 2L && diff(y$tar.rng.trim) >= 0L &&
+            length(y$cur.rng.trim) == 2L && diff(y$cur.rng.trim) >= 0L
+          },
+          logical(1L)
+      ) }
+    )
+    if(!all(unlist(hunk.check)))
+      return("slot `hunks` contains invalid hunks")
+    hunks.flat <- unlist(object@hunks, recursive=FALSE)
+    if(
+      !identical(
+        vapply(hunks.flat, "[[", integer(1L), "id"), seq_along(hunks.flat)
+    ) ) {
+      return("atomic hunk ids invalid")
+    }
     TRUE
   }
 )
@@ -43,10 +71,6 @@ setClass(
   validity=function(object) {
     if(!is.chr1(object@mode) || ! object@mode %in% c("print", "str"))
       return("slot `mode` must be either \"print\" or \"str\"")
-    if(length(object@tar.capt) != length(object@diffs@target))
-      return("slot `tar.capt` must be same length as slot `diffs@target`")
-    if(length(object@cur.capt) != length(object@diffs@current))
-      return("slot `cur.capt` must be same length as slot `diffs@current`")
     TRUE
 } )
 setClass(
