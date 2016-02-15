@@ -176,6 +176,24 @@ setMethod("as.character", "diffObjDiff",
     # Post trim, figure out max lines we could possibly be showing from capture
     # strings; careful with ranges,
 
+    trim.meta <- attr(hunk.grps, "meta")
+    lim.line <- trim.meta$lines
+    lim.hunk <- trim.meta$hunks
+    ll <- !!lim.line[[1L]]
+    lh <- !!lim.hunk[[1L]]
+
+    limit.out <- if(ll || lh)
+      ansi_style(
+        paste0(
+          "... omitted ",
+          if(ll) sprintf("%d/%d lines", lim.line[[1L]], lim.line[[2L]]),
+          if(ll && lh) ", ",
+          if(lh) sprintf("%d/%d hunks", lim.hunk[[1L]], lim.hunk[[2L]]),
+          ", see `line.limit` arg."
+        ),
+        "silver",
+        use.style=use.ansi
+      )
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
     ranges <- vapply(
       hunks.flat, function(h.a)
@@ -318,5 +336,7 @@ setMethod("as.character", "diffObjDiff",
       hunk.grps, hunk_as_char, ranges=ranges, ranges.orig=ranges.orig,
       mode=mode, use.ansi=use.ansi, width=max.w
     )
-    c(banner, unlist(out))
+    # Finalize
+
+    c(banner, unlist(out), limit.out)
 } )

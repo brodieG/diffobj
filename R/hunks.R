@@ -338,13 +338,14 @@ trim_hunks <- function(
   cum.len <- cumsum(abs(lines[, "len"]))
   cut.off <- -1L
   lines.omitted <- 0L
+  lines.total <- max(0L, tail(cum.len, 1L))
   if(line.limit[[1L]] < 0L) {
     cut.off <- max(0L, cum.len)
   } else if(any(cum.len > line.limit[[1L]])) {
     cut.off <- max(0L, cum.len[cum.len < line.limit[[2L]]])
   }
   if(cut.off > 0) {
-    lines.omitted <- tail(cum.len, 1L) - cut.off
+    lines.omitted <- lines.total - cut.off
     cut.dat <- lines[max(which(cum.len <= cut.off)), ]
     grp.cut <- cut.dat[["grp.id"]]
     hunk.cut <- cut.dat[["hunk.id"]]
@@ -390,6 +391,9 @@ trim_hunks <- function(
   } else if (!cut.off) {
     hunk.grps <- list()
   }
-  attr(hunk.grps, "omitted") <- c(lines=lines.omitted, hunks=hunk.grps.omitted)
+  attr(hunk.grps, "meta") <- list(
+    lines=c(lines.omitted, lines.total),
+    hunks=c(hunk.grps.omitted, hunk.grps.count)
+  )
   hunk.grps
 }
