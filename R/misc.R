@@ -4,7 +4,7 @@
 check_linelimit <- function(line.limit) {
   if(
     !is.numeric(line.limit) || any(is.na(line.limit)) ||
-    !length(line.limit) %in% 1:2 || any(line.limit) < 1L ||
+    !length(line.limit) %in% 1:2 || any(line.limit < 1L) ||
     round(line.limit) != line.limit ||
     (length(line.limit) == 2L && diff(line.limit) > 0)
   ) {
