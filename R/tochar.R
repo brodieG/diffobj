@@ -4,11 +4,11 @@ NULL
 
 # Compute the ranges of a hunk group based on atomic hunk ids
 #
-# rng and rng.o are matrices where each column represents `c(tar.rng, cur.rng)`
+# rng.o is a matrix where each column represents `c(tar.rng, cur.rng)`
 # and rng.o has the original untrimmed values
 
-find_rng <- function(ids, rng, rng.o) {
-  with.rng <- ids[which(rng[1L, ids] > 0L)]
+find_rng <- function(ids, rng.o) {
+  with.rng <- ids[which(rng.o[1L, ids] > 0L)]
   if(!length(with.rng)) {
     # Find previous earliest originally existing item we want to insert
     # after; note we need to look at the non-trimmed ranges, and we include
@@ -19,7 +19,7 @@ find_rng <- function(ids, rng, rng.o) {
     ]
     if(!length(prev)) integer(2L) else c(max(prev), 0L)
   } else {
-    c(min(rng[1L, intersect(ids, with.rng)]), max(rng[2L, ids]))
+    c(min(rng.o[1L, intersect(ids, with.rng)]), max(rng.o[2L, ids]))
   }
 }
 # Create a text representation of a file line range
@@ -34,8 +34,8 @@ rng_as_chr <- function(range) {
 
 hunk_as_char <- function(h.g, ranges, ranges.orig, mode, use.ansi, width) {
   h.ids <- vapply(h.g, "[[", integer(1L), "id")
-  tar.rng <- find_rng(h.ids, ranges[1:2, ], ranges.orig[1:2, ])
-  cur.rng <- find_rng(h.ids, ranges[3:4, ], ranges.orig[3:4, ])
+  tar.rng <- find_rng(h.ids, ranges.orig[1:2, ])
+  cur.rng <- find_rng(h.ids, ranges.orig[3:4, ])
 
   hh.a <- paste0("-", rng_as_chr(tar.rng))
   hh.b <- paste0("+", rng_as_chr(cur.rng))
@@ -193,8 +193,7 @@ setMethod("as.character", "diffObjDiff",
           "... omitted ",
           if(ll) sprintf("%d/%d lines", lim.line[[1L]], lim.line[[2L]]),
           if(ll && lh) ", ",
-          if(lh) sprintf("%d/%d hunks", lim.hunk[[1L]], lim.hunk[[2L]]),
-          ", see `line.limit` arg."
+          if(lh) sprintf("%d/%d hunks", lim.hunk[[1L]], lim.hunk[[2L]])
         ),
         "silver",
         use.style=use.ansi
