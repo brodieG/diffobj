@@ -71,7 +71,12 @@ hunk_as_char <- function(h.g, ranges, ranges.orig, mode, use.ansi, width) {
     B[!B.ctx] <- sign_pad(B[!B.ctx], 2L, use.ansi=use.ansi)
     A[A.ctx] <- sign_pad(A[A.ctx], 1L, use.ansi=use.ansi)
     B[B.ctx] <- sign_pad(B[B.ctx], 1L, use.ansi=use.ansi)
-    unlist(c(A, ansi_style("----", "silver", use.style=use.ansi), B))
+    unlist(
+      c(
+        A,
+        if(length(B)) ansi_style("~~~~", "silver", use.style=use.ansi),
+        B
+    ) )
   } else if(mode == "unified") {
     unlist(
       lapply(h.g,
