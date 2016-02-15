@@ -43,70 +43,84 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
     # 0 means match, 1:n is a matched mismatch (change in edit script parlance),
     # and NA is a full mismatch (d or i).
 
-    res.l <- lapply(
-      seq_along(d.s),
-      function(i) {
-        d <- d.s[[i]]
-        d.del <- d[which(d$type == "Delete"), ]
-        d.ins <- d[which(d$type == "Insert"), ]
-        d.mtc <- d[which(d$type == "Match"), ]
-        del.len <- sum(d.del$len)
-        ins.len <- sum(d.ins$len)
-        mtc.len <- sum(d.mtc$len)
-        tar.len <- del.len + mtc.len
-        cur.len <- ins.len + mtc.len
+    res.l <- if(!length(d.s)) {
+      # Minimum one empty hunk if nothing; arbitrarily chose to make it a
+      # non context hunk; ideally would figure out a way to integrate this
+      # code in the lapply...
 
-        # atomic hunks may only be del/ins or match, not both
-
-        if((del.len || ins.len) && mtc.len || !(del.len + ins.len + mtc.len))
-          stop("Logic Error: unexpected edit types; contact maintainer.")
-
-        # Figure out where previous hunk left off
-
-        del.last <- if(nrow(d.del)) d.del$last.a[[1L]] else d$last.a[[1L]]
-        ins.last <- if(nrow(d.ins)) d.ins$last.b[[1L]] else d$last.b[[1L]]
-        A.start <- del.last - del.len - mtc.len
-        B.start <- ins.last - ins.len - mtc.len
-
-        # record `cur` indices as negatives
-
-        tar <- seq_len(tar.len) + A.start
-        cur <- -(seq_len(cur.len) + B.start)
-
-        context <- !!mtc.len
-
-        A <- switch(
-          mode, context=tar, unified=c(tar, if(!context) cur), sidebyside=tar,
-          stop("Logic Error: unknown mode; contact maintainer.")
-        )
-        B <- switch(
-          mode, context=cur, unified=integer(), sidebyside=cur,
-          stop("Logic Error: unknown mode; contact maintainer.")
-        )
-        # Retrieve the character values
-
-        get_chr <- function(ids) {
-          chr <- character(length(ids))
-          chr[ids > 0L] <- x@a[ids[ids > 0]]
-          chr[ids < 0L] <- x@b[abs(ids[ids < 0])]
-          chr[ids == 0L] <- ""
-          chr
-        }
-        A.chr <- get_chr(A)
-        B.chr <- get_chr(B)
-
-        # compute ranges
-
-        tar.rng <- cur.rng <- integer(2L)
-        if(tar.len) tar.rng <- c(A.start + 1L, A.start + tar.len)
-        if(cur.len) cur.rng <- c(B.start + 1L, B.start + cur.len)
-
+      list(
         list(
-          id=i, A=A, B=B, A.chr=A.chr, B.chr=B.chr, context=context,
-          tar.rng=tar.rng, cur.rng=cur.rng, tar.rng.trim=tar.rng,
-          cur.rng.trim=cur.rng
+          id=1L, A=integer(0L), B=integer(0L), A.chr=character(0L),
+          B.chr=character(0L), context=FALSE,
+          tar.rng=integer(2L), cur.rng=integer(2L),
+          tar.rng.trim=integer(2L), cur.rng.trim=integer(2L)
         )
-    } )
+      )
+    } else {
+      lapply(
+        seq_along(d.s),
+        function(i) {
+          d <- d.s[[i]]
+          d.del <- d[which(d$type == "Delete"), ]
+          d.ins <- d[which(d$type == "Insert"), ]
+          d.mtc <- d[which(d$type == "Match"), ]
+          del.len <- sum(d.del$len)
+          ins.len <- sum(d.ins$len)
+          mtc.len <- sum(d.mtc$len)
+          tar.len <- del.len + mtc.len
+          cur.len <- ins.len + mtc.len
+
+          # atomic hunks may only be del/ins or match, not both
+
+          if((del.len || ins.len) && mtc.len || !(del.len + ins.len + mtc.len))
+            stop("Logic Error: unexpected edit types; contact maintainer.")
+
+          # Figure out where previous hunk left off
+
+          del.last <- if(nrow(d.del)) d.del$last.a[[1L]] else d$last.a[[1L]]
+          ins.last <- if(nrow(d.ins)) d.ins$last.b[[1L]] else d$last.b[[1L]]
+          A.start <- del.last - del.len - mtc.len
+          B.start <- ins.last - ins.len - mtc.len
+
+          # record `cur` indices as negatives
+
+          tar <- seq_len(tar.len) + A.start
+          cur <- -(seq_len(cur.len) + B.start)
+
+          context <- !!mtc.len
+
+          A <- switch(
+            mode, context=tar, unified=c(tar, if(!context) cur), sidebyside=tar,
+            stop("Logic Error: unknown mode; contact maintainer.")
+          )
+          B <- switch(
+            mode, context=cur, unified=integer(), sidebyside=cur,
+            stop("Logic Error: unknown mode; contact maintainer.")
+          )
+          # Retrieve the character values
+
+          get_chr <- function(ids) {
+            chr <- character(length(ids))
+            chr[ids > 0L] <- x@a[ids[ids > 0]]
+            chr[ids < 0L] <- x@b[abs(ids[ids < 0])]
+            chr[ids == 0L] <- ""
+            chr
+          }
+          A.chr <- get_chr(A)
+          B.chr <- get_chr(B)
+
+          # compute ranges
+
+          tar.rng <- cur.rng <- integer(2L)
+          if(tar.len) tar.rng <- c(A.start + 1L, A.start + tar.len)
+          if(cur.len) cur.rng <- c(B.start + 1L, B.start + cur.len)
+
+          list(
+            id=i, A=A, B=B, A.chr=A.chr, B.chr=B.chr, context=context,
+            tar.rng=tar.rng, cur.rng=cur.rng, tar.rng.trim=tar.rng,
+            cur.rng.trim=cur.rng
+          )
+    } ) }
     # group hunks together based on context
 
     process_hunks(res.l, context)

@@ -272,13 +272,15 @@ setMethod("as.character", "diffObjDiff",
         tar.rest <- show.range.tar[!show.range.tar %in% tar.head]
       }
     }
-    # Figure out which hunks are still eligible to be word diffed
+    # Figure out which hunks are still eligible to be word diffed; note we
+    # will word-diff even if other hunk is completely missing (most commonly
+    # in context mode where we line.limit and the B portion is lost)
 
     tar.to.wd <- which(ranges[1L,] %in% tar.rest)
     cur.to.wd <- which(ranges[3L,] %in% cur.rest)
 
-    if(length(tar.to.wd) && length(cur.to.wd)) {
-      wd.max <- min(tar.to.wd[[1L]], cur.to.wd[[1L]])
+    if(length(tar.to.wd) || length(cur.to.wd)) {
+      wd.max <- min(head(tar.to.wd, 1L), head(cur.to.wd, 1L), 0L)
 
       # We need to compare the +s to the -s, and then reconstruct back into
       # the original A and B vectors
