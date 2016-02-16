@@ -401,7 +401,14 @@ trim_hunks <- function(
       hunk.atom <- trim_hunk(hunk.atom, "tar", line.cut)
       hunk.atom <- trim_hunk(hunk.atom, "cur", line.cut)
       hunk.grps[[grp.cut]][[hunk.cut]] <- hunk.atom
-    }
+      null.hunks <- seq_len(length(hunk.grps[[grp.cut]]) - hunk.cut) + hunk.cut
+      hunk.grps[[grp.cut]][null.hunks] <- lapply(
+        hunk.grps[[grp.cut]][null.hunks],
+        function(h.a) {
+          h.a <- trim_hunk(h.a, "cur", 0L)
+          h.a <- trim_hunk(h.a, "tar", 0L)
+          h.a
+    } ) }
   } else if (!cut.off) {
     hunk.grps <- list()
   }
