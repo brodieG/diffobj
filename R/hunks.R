@@ -410,6 +410,8 @@ trim_hunks <- function(
           h.a
     } ) }
   } else if (!cut.off) {
+    lines.omitted <- lines.total
+    hunk.grps.omitted <- hunk.grps.count
     hunk.grps <- list()
   }
   attr(hunk.grps, "meta") <- list(
