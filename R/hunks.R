@@ -356,7 +356,7 @@ trim_hunks <- function(
   if(line.limit[[1L]] < 0L) {
     cut.off <- max(0L, cum.len)
   } else if(any(cum.len > line.limit[[1L]])) {
-    cut.off <- max(0L, cum.len[cum.len < line.limit[[2L]]])
+    cut.off <- max(0L, cum.len[cum.len <= line.limit[[2L]]])
   }
   if(cut.off > 0) {
     lines.omitted <- lines.total - cut.off
