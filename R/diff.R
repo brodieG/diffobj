@@ -635,7 +635,7 @@ diff_chr <- function(
     diffObj, line.limit=line.limit, hunk.limit=hunk.limit, width=width,
     mode=mode, use.ansi=use.ansi
   )
-  cat(res, sep="\n")
+  if(length(res)) cat(res, sep="\n")
   invisible(res)
 }
 # Implements the diff_* functions
