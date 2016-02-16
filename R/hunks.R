@@ -301,12 +301,12 @@ get_hunk_chr_lens <- function(hunk.grps, mode, width, use.ansi) {
     # there are negatives (context mode); we also add 1 to the first line in
     # each section to account for the group hunkheader info
 
+    if(identical(mode, "context")) res <- res[order(res[, "len"] < 0L),]
     if(
       identical(mode, "context") &&
       length(negs <- which(res[, "len"] < 0L)) &&
       length(poss <- which(res[, "len"] > 0L))
     ) {
-      res <- res[order(res[, "len"] < 0L),]
       if(length(poss)) res[1L, "len"] <- res[1L, "len"] + 1L
       res[negs[[1L]], "len"] <- res[negs[[1L]], "len"] - 1L
     } else {
