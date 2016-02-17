@@ -168,33 +168,15 @@ setMethod("as.character", "diffObjDiff",
           msg, "silver",
           use.style=use.ansi
     ) ) }
-    # Make the object banner and compute widths
-
-    banner.A <- paste0("--- ", deparse(x@tar.exp)[[1L]])
-    banner.B <- paste0("+++ ", deparse(x@cur.exp)[[1L]])
+    # Basic width computation and banner size
 
     if(mode == "sidebyside") {
-      # If side by side we want stuff close together if reasonable
-      max.col.w <- max(
-        unlist(lapply(hunks.flat, function(x) nchar(c(x$A.chr, x$B.chr))))
-      )
-      max.w <- if(max.col.w < floor(width / 2))
-        max(15L, max.col.w) else max(floor(width / 2), 20L)
-      comb.fun <- paste0
-      t.fun <- rpadt
+      banner.len <- 1L
+      max.w <-  max(floor(width / 2), 20L)
     } else {
+      banner.len <- 2L
       max.w <- max(width, 20L)
-      comb.fun <- c
-      t.fun <- chr_trim
     }
-    banner <- comb.fun(
-      ansi_style(t.fun(banner.A, max.w), "red", use.ansi),
-      ansi_style(t.fun(banner.B, max.w), "green", use.ansi)
-    )
-    # Trim banner if exceeds line limit, and adjust line limit for banner size
-
-    banner.len <- length(banner)
-    if(line.limit[[1L]] < banner.len) length(banner) <- line.limit[[2L]]
     line.limit <- pmax(integer(2L), line.limit - banner.len)
 
     # Trim hunks to the extent need to make sure we fit in lines; start by
@@ -204,6 +186,33 @@ setMethod("as.character", "diffObjDiff",
       x@diffs@hunks, mode=mode, width=max.w, line.limit=line.limit,
       hunk.limit=hunk.limit, use.ansi=use.ansi
     )
+    hunks.flat <- unlist(hunk.grps, recursive=FALSE)
+
+    # Make the object banner and compute more detailed widths post trim
+
+    banner.A <- paste0("--- ", deparse(x@tar.exp)[[1L]])
+    banner.B <- paste0("+++ ", deparse(x@cur.exp)[[1L]])
+
+    if(mode == "sidebyside") {
+      # If side by side we want stuff close together if reasonable
+      max.col.w <- max(
+        unlist(lapply(hunks.flat, function(x) nchar(c(x$A.chr, x$B.chr))))
+      )
+      max.w <- if(max.col.w < max.w) max(15L, max.col.w) else max.w
+      comb.fun <- paste0
+      t.fun <- rpadt
+    } else {
+      comb.fun <- c
+      t.fun <- chr_trim
+    }
+    banner <- comb.fun(
+      ansi_style(t.fun(banner.A, max.w), "red", use.ansi),
+      ansi_style(t.fun(banner.B, max.w), "green", use.ansi)
+    )
+    # Trim banner if exceeds line limit, and adjust line limit for banner size
+
+    if(line.limit[[1L]] < banner.len) length(banner) <- line.limit[[2L]]
+
     # Post trim, figure out max lines we could possibly be showing from capture
     # strings; careful with ranges,
 
@@ -224,7 +233,6 @@ setMethod("as.character", "diffObjDiff",
         "silver",
         use.style=use.ansi
       )
-    hunks.flat <- unlist(hunk.grps, recursive=FALSE)
     ranges <- vapply(
       hunks.flat, function(h.a)
         c(h.a$tar.rng.trim, h.a$cur.rng.trim),
