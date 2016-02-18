@@ -4,11 +4,11 @@ NULL
 
 # Compute the ranges of a hunk group based on atomic hunk ids
 #
-# rng and rng.o are matrices where each column represents `c(tar.rng, cur.rng)`
+# rng.o is a matrix where each column represents `c(tar.rng, cur.rng)`
 # and rng.o has the original untrimmed values
 
-find_rng <- function(ids, rng, rng.o) {
-  with.rng <- ids[which(rng[1L, ids] > 0L)]
+find_rng <- function(ids, rng.o) {
+  with.rng <- ids[which(rng.o[1L, ids] > 0L)]
   if(!length(with.rng)) {
     # Find previous earliest originally existing item we want to insert
     # after; note we need to look at the non-trimmed ranges, and we include
@@ -19,7 +19,7 @@ find_rng <- function(ids, rng, rng.o) {
     ]
     if(!length(prev)) integer(2L) else c(max(prev), 0L)
   } else {
-    c(min(rng[1L, intersect(ids, with.rng)]), max(rng[2L, ids]))
+    c(min(rng.o[1L, intersect(ids, with.rng)]), max(rng.o[2L, ids]))
   }
 }
 # Create a text representation of a file line range
@@ -34,8 +34,8 @@ rng_as_chr <- function(range) {
 
 hunk_as_char <- function(h.g, ranges, ranges.orig, mode, use.ansi, width) {
   h.ids <- vapply(h.g, "[[", integer(1L), "id")
-  tar.rng <- find_rng(h.ids, ranges[1:2, ], ranges.orig[1:2, ])
-  cur.rng <- find_rng(h.ids, ranges[3:4, ], ranges.orig[3:4, ])
+  tar.rng <- find_rng(h.ids, ranges.orig[1:2, ])
+  cur.rng <- find_rng(h.ids, ranges.orig[3:4, ])
 
   hh.a <- paste0("-", rng_as_chr(tar.rng))
   hh.b <- paste0("+", rng_as_chr(cur.rng))
@@ -71,7 +71,12 @@ hunk_as_char <- function(h.g, ranges, ranges.orig, mode, use.ansi, width) {
     B[!B.ctx] <- sign_pad(B[!B.ctx], 2L, use.ansi=use.ansi)
     A[A.ctx] <- sign_pad(A[A.ctx], 1L, use.ansi=use.ansi)
     B[B.ctx] <- sign_pad(B[B.ctx], 1L, use.ansi=use.ansi)
-    unlist(c(A, ansi_style("----", "silver", use.style=use.ansi), B))
+    unlist(
+      c(
+        A,
+        if(length(B)) ansi_style("~~~~", "silver", use.style=use.ansi),
+        B
+    ) )
   } else if(mode == "unified") {
     unlist(
       lapply(h.g,
@@ -163,20 +168,71 @@ setMethod("as.character", "diffObjDiff",
           msg, "silver",
           use.style=use.ansi
     ) ) }
-    # Figure out which hunks we're going to try to render subject to the
-    # line and hunk limits.  Remember
+    # Basic width computation and banner size
+
+    if(mode == "sidebyside") {
+      banner.len <- 1L
+      max.w <-  max(floor(width / 2), 20L)
+    } else {
+      banner.len <- 2L
+      max.w <- max(width, 20L)
+    }
+    line.limit <- pmax(integer(2L), line.limit - banner.len)
 
     # Trim hunks to the extent need to make sure we fit in lines; start by
     # dropping hunks beyond hunk limit
 
     hunk.grps <- trim_hunks(
-      x@diffs@hunks, mode=mode, width=width, line.limit=line.limit,
+      x@diffs@hunks, mode=mode, width=max.w, line.limit=line.limit,
       hunk.limit=hunk.limit, use.ansi=use.ansi
     )
+    hunks.flat <- unlist(hunk.grps, recursive=FALSE)
+
+    # Make the object banner and compute more detailed widths post trim
+
+    banner.A <- paste0("--- ", deparse(x@tar.exp)[[1L]])
+    banner.B <- paste0("+++ ", deparse(x@cur.exp)[[1L]])
+
+    if(mode == "sidebyside") {
+      # If side by side we want stuff close together if reasonable
+      max.col.w <- max(
+        unlist(lapply(hunks.flat, function(x) nchar(c(x$A.chr, x$B.chr))))
+      )
+      max.w <- if(max.col.w < max.w) max(15L, max.col.w) else max.w
+      comb.fun <- paste0
+      t.fun <- rpadt
+    } else {
+      comb.fun <- c
+      t.fun <- chr_trim
+    }
+    banner <- comb.fun(
+      ansi_style(t.fun(banner.A, max.w), "red", use.ansi),
+      ansi_style(t.fun(banner.B, max.w), "green", use.ansi)
+    )
+    # Trim banner if exceeds line limit, and adjust line limit for banner size
+
+    if(line.limit[[1L]] < banner.len) length(banner) <- line.limit[[2L]]
+
     # Post trim, figure out max lines we could possibly be showing from capture
     # strings; careful with ranges,
 
-    hunks.flat <- unlist(hunk.grps, recursive=FALSE)
+    trim.meta <- attr(hunk.grps, "meta")
+    lim.line <- trim.meta$lines
+    lim.hunk <- trim.meta$hunks
+    ll <- !!lim.line[[1L]]
+    lh <- !!lim.hunk[[1L]]
+
+    limit.out <- if(ll || lh)
+      ansi_style(
+        paste0(
+          "... omitted ",
+          if(ll) sprintf("%d/%d lines", lim.line[[1L]], lim.line[[2L]]),
+          if(ll && lh) ", ",
+          if(lh) sprintf("%d/%d hunks", lim.hunk[[1L]], lim.hunk[[2L]])
+        ),
+        "silver",
+        use.style=use.ansi
+      )
     ranges <- vapply(
       hunks.flat, function(h.a)
         c(h.a$tar.rng.trim, h.a$cur.rng.trim),
@@ -185,8 +241,8 @@ setMethod("as.character", "diffObjDiff",
     ranges.orig <- vapply(
       hunks.flat, function(h.a) c(h.a$tar.rng, h.a$cur.rng), integer(4L)
     )
-    tar.max <- max(ranges[2L, ])
-    cur.max <- max(ranges[4L, ])
+    tar.max <- max(ranges[2L, ], 0L)
+    cur.max <- max(ranges[4L, ], 0L)
 
     # Detect whether we should attempt to deal with wrapping objects, if so
     # overwrite cur/tar.body/rest variables with the color diffed wrap word
@@ -249,13 +305,15 @@ setMethod("as.character", "diffObjDiff",
         tar.rest <- show.range.tar[!show.range.tar %in% tar.head]
       }
     }
-    # Figure out which hunks are still eligible to be word diffed
+    # Figure out which hunks are still eligible to be word diffed; note we
+    # will word-diff even if other hunk is completely missing (most commonly
+    # in context mode where we line.limit and the B portion is lost)
 
     tar.to.wd <- which(ranges[1L,] %in% tar.rest)
     cur.to.wd <- which(ranges[3L,] %in% cur.rest)
 
-    if(length(tar.to.wd) && length(cur.to.wd)) {
-      wd.max <- min(tar.to.wd[[1L]], cur.to.wd[[1L]])
+    if(length(tar.to.wd) || length(cur.to.wd)) {
+      wd.max <- min(head(tar.to.wd, 1L), head(cur.to.wd, 1L), 0L)
 
       # We need to compare the +s to the -s, and then reconstruct back into
       # the original A and B vectors
@@ -289,34 +347,13 @@ setMethod("as.character", "diffObjDiff",
 
           hunk.grps[[i]][[j]] <- h.a
     } } }
-    # Make the object banner and compute widths
-
-    banner.A <- paste0("--- ", deparse(x@tar.exp)[[1L]])
-    banner.B <- paste0("+++ ", deparse(x@cur.exp)[[1L]])
-
-    if(mode == "sidebyside") {
-      # If side by side we want stuff close together if reasonable
-      max.col.w <- max(
-        unlist(lapply(hunks.flat, function(x) nchar(c(x$A.chr, x$B.chr))))
-      )
-      max.w <- if(max.col.w < floor(width / 2))
-        max(15L, max.col.w) else max(floor(width / 2), 20L)
-      comb.fun <- paste0
-      t.fun <- rpadt
-    } else {
-      max.w <- max(width, 20L)
-      comb.fun <- c
-      t.fun <- chr_trim
-    }
-    banner <- comb.fun(
-      ansi_style(t.fun(banner.A, max.w), "red", use.ansi),
-      ansi_style(t.fun(banner.B, max.w), "green", use.ansi)
-    )
     # Process the actual hunks into character
 
     out <- lapply(
       hunk.grps, hunk_as_char, ranges=ranges, ranges.orig=ranges.orig,
       mode=mode, use.ansi=use.ansi, width=max.w
     )
-    c(banner, unlist(out))
+    # Finalize
+
+    c(banner, unlist(out), limit.out)
 } )

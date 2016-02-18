@@ -43,70 +43,84 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
     # 0 means match, 1:n is a matched mismatch (change in edit script parlance),
     # and NA is a full mismatch (d or i).
 
-    res.l <- lapply(
-      seq_along(d.s),
-      function(i) {
-        d <- d.s[[i]]
-        d.del <- d[which(d$type == "Delete"), ]
-        d.ins <- d[which(d$type == "Insert"), ]
-        d.mtc <- d[which(d$type == "Match"), ]
-        del.len <- sum(d.del$len)
-        ins.len <- sum(d.ins$len)
-        mtc.len <- sum(d.mtc$len)
-        tar.len <- del.len + mtc.len
-        cur.len <- ins.len + mtc.len
+    res.l <- if(!length(d.s)) {
+      # Minimum one empty hunk if nothing; arbitrarily chose to make it a
+      # non context hunk; ideally would figure out a way to integrate this
+      # code in the lapply...
 
-        # atomic hunks may only be del/ins or match, not both
-
-        if((del.len || ins.len) && mtc.len || !(del.len + ins.len + mtc.len))
-          stop("Logic Error: unexpected edit types; contact maintainer.")
-
-        # Figure out where previous hunk left off
-
-        del.last <- if(nrow(d.del)) d.del$last.a[[1L]] else d$last.a[[1L]]
-        ins.last <- if(nrow(d.ins)) d.ins$last.b[[1L]] else d$last.b[[1L]]
-        A.start <- del.last - del.len - mtc.len
-        B.start <- ins.last - ins.len - mtc.len
-
-        # record `cur` indices as negatives
-
-        tar <- seq_len(tar.len) + A.start
-        cur <- -(seq_len(cur.len) + B.start)
-
-        context <- !!mtc.len
-
-        A <- switch(
-          mode, context=tar, unified=c(tar, if(!context) cur), sidebyside=tar,
-          stop("Logic Error: unknown mode; contact maintainer.")
-        )
-        B <- switch(
-          mode, context=cur, unified=integer(), sidebyside=cur,
-          stop("Logic Error: unknown mode; contact maintainer.")
-        )
-        # Retrieve the character values
-
-        get_chr <- function(ids) {
-          chr <- character(length(ids))
-          chr[ids > 0L] <- x@a[ids[ids > 0]]
-          chr[ids < 0L] <- x@b[abs(ids[ids < 0])]
-          chr[ids == 0L] <- ""
-          chr
-        }
-        A.chr <- get_chr(A)
-        B.chr <- get_chr(B)
-
-        # compute ranges
-
-        tar.rng <- cur.rng <- integer(2L)
-        if(tar.len) tar.rng <- c(A.start + 1L, A.start + tar.len)
-        if(cur.len) cur.rng <- c(B.start + 1L, B.start + cur.len)
-
+      list(
         list(
-          id=i, A=A, B=B, A.chr=A.chr, B.chr=B.chr, context=context,
-          tar.rng=tar.rng, cur.rng=cur.rng, tar.rng.trim=tar.rng,
-          cur.rng.trim=cur.rng
+          id=1L, A=integer(0L), B=integer(0L), A.chr=character(0L),
+          B.chr=character(0L), context=FALSE,
+          tar.rng=integer(2L), cur.rng=integer(2L),
+          tar.rng.trim=integer(2L), cur.rng.trim=integer(2L)
         )
-    } )
+      )
+    } else {
+      lapply(
+        seq_along(d.s),
+        function(i) {
+          d <- d.s[[i]]
+          d.del <- d[which(d$type == "Delete"), ]
+          d.ins <- d[which(d$type == "Insert"), ]
+          d.mtc <- d[which(d$type == "Match"), ]
+          del.len <- sum(d.del$len)
+          ins.len <- sum(d.ins$len)
+          mtc.len <- sum(d.mtc$len)
+          tar.len <- del.len + mtc.len
+          cur.len <- ins.len + mtc.len
+
+          # atomic hunks may only be del/ins or match, not both
+
+          if((del.len || ins.len) && mtc.len || !(del.len + ins.len + mtc.len))
+            stop("Logic Error: unexpected edit types; contact maintainer.")
+
+          # Figure out where previous hunk left off
+
+          del.last <- if(nrow(d.del)) d.del$last.a[[1L]] else d$last.a[[1L]]
+          ins.last <- if(nrow(d.ins)) d.ins$last.b[[1L]] else d$last.b[[1L]]
+          A.start <- del.last - del.len - mtc.len
+          B.start <- ins.last - ins.len - mtc.len
+
+          # record `cur` indices as negatives
+
+          tar <- seq_len(tar.len) + A.start
+          cur <- -(seq_len(cur.len) + B.start)
+
+          context <- !!mtc.len
+
+          A <- switch(
+            mode, context=tar, unified=c(tar, if(!context) cur), sidebyside=tar,
+            stop("Logic Error: unknown mode; contact maintainer.")
+          )
+          B <- switch(
+            mode, context=cur, unified=integer(), sidebyside=cur,
+            stop("Logic Error: unknown mode; contact maintainer.")
+          )
+          # Retrieve the character values
+
+          get_chr <- function(ids) {
+            chr <- character(length(ids))
+            chr[ids > 0L] <- x@a[ids[ids > 0]]
+            chr[ids < 0L] <- x@b[abs(ids[ids < 0])]
+            chr[ids == 0L] <- ""
+            chr
+          }
+          A.chr <- get_chr(A)
+          B.chr <- get_chr(B)
+
+          # compute ranges
+
+          tar.rng <- cur.rng <- integer(2L)
+          if(tar.len) tar.rng <- c(A.start + 1L, A.start + tar.len)
+          if(cur.len) cur.rng <- c(B.start + 1L, B.start + cur.len)
+
+          list(
+            id=i, A=A, B=B, A.chr=A.chr, B.chr=B.chr, context=context,
+            tar.rng=tar.rng, cur.rng=cur.rng, tar.rng.trim=tar.rng,
+            cur.rng.trim=cur.rng
+          )
+    } ) }
     # group hunks together based on context
 
     process_hunks(res.l, context)
@@ -287,12 +301,12 @@ get_hunk_chr_lens <- function(hunk.grps, mode, width, use.ansi) {
     # there are negatives (context mode); we also add 1 to the first line in
     # each section to account for the group hunkheader info
 
+    if(identical(mode, "context")) res <- res[order(res[, "len"] < 0L),]
     if(
       identical(mode, "context") &&
       length(negs <- which(res[, "len"] < 0L)) &&
       length(poss <- which(res[, "len"] > 0L))
     ) {
-      res <- res[order(res[, "len"] < 0L),]
       if(length(poss)) res[1L, "len"] <- res[1L, "len"] + 1L
       res[negs[[1L]], "len"] <- res[negs[[1L]], "len"] - 1L
     } else {
@@ -338,13 +352,14 @@ trim_hunks <- function(
   cum.len <- cumsum(abs(lines[, "len"]))
   cut.off <- -1L
   lines.omitted <- 0L
+  lines.total <- max(0L, tail(cum.len, 1L))
   if(line.limit[[1L]] < 0L) {
     cut.off <- max(0L, cum.len)
   } else if(any(cum.len > line.limit[[1L]])) {
-    cut.off <- max(0L, cum.len[cum.len < line.limit[[2L]]])
+    cut.off <- max(0L, cum.len[cum.len <= line.limit[[2L]]])
   }
   if(cut.off > 0) {
-    lines.omitted <- tail(cum.len, 1L) - cut.off
+    lines.omitted <- lines.total - cut.off
     cut.dat <- lines[max(which(cum.len <= cut.off)), ]
     grp.cut <- cut.dat[["grp.id"]]
     hunk.cut <- cut.dat[["hunk.id"]]
@@ -386,10 +401,22 @@ trim_hunks <- function(
       hunk.atom <- trim_hunk(hunk.atom, "tar", line.cut)
       hunk.atom <- trim_hunk(hunk.atom, "cur", line.cut)
       hunk.grps[[grp.cut]][[hunk.cut]] <- hunk.atom
-    }
+      null.hunks <- seq_len(length(hunk.grps[[grp.cut]]) - hunk.cut) + hunk.cut
+      hunk.grps[[grp.cut]][null.hunks] <- lapply(
+        hunk.grps[[grp.cut]][null.hunks],
+        function(h.a) {
+          h.a <- trim_hunk(h.a, "cur", 0L)
+          h.a <- trim_hunk(h.a, "tar", 0L)
+          h.a
+    } ) }
   } else if (!cut.off) {
+    lines.omitted <- lines.total
+    hunk.grps.omitted <- hunk.grps.count
     hunk.grps <- list()
   }
-  attr(hunk.grps, "omitted") <- c(lines=lines.omitted, hunks=hunk.grps.omitted)
+  attr(hunk.grps, "meta") <- list(
+    lines=c(lines.omitted, lines.total),
+    hunks=c(hunk.grps.omitted, hunk.grps.count)
+  )
   hunk.grps
 }

@@ -4,13 +4,13 @@
 check_linelimit <- function(line.limit) {
   if(
     !is.numeric(line.limit) || any(is.na(line.limit)) ||
-    !length(line.limit) %in% 1:2 || any(line.limit < 1L) ||
+    !length(line.limit) %in% 1:2 ||
     round(line.limit) != line.limit ||
     (length(line.limit) == 2L && diff(line.limit) > 0)
   ) {
     msg <- paste0(
       "Argument `line.limit` must be an integer vector of length 1 or 2 ",
-      "with only strictly positive values and if length 2, with the first ",
+      "and if length 2, with the first ",
       "value larger than or equal to the second."
     )
     stop(simpleError(msg, call=sys.call(-1L)))
