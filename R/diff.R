@@ -244,7 +244,9 @@ diff_color <- function(txt, diffs, range, color, use.ansi) {
 #'   performance cost; set to 0 to disable
 #' @return character, invisibly, the text representation of the diff
 
-diff_obj <- function(target, current, context=NULL, white.space=FALSE) {
+diff_obj <- function(
+  target, current, mode="unified", context=NULL, white.space=FALSE
+) {
   context <- check_context(context)
   frame <- parent.frame()
   width <- getOption("width")
@@ -256,18 +258,21 @@ diff_obj <- function(target, current, context=NULL, white.space=FALSE) {
 }
 #' @export
 
-diff_print <- function(target, current, context=NULL, white.space=FALSE) {
+diff_print <- function(
+  target, current, mode="unified", context=-1L, line.limit=-1L,
+  white.space=FALSE, hunk.limit=-1L, use.ansi=TRUE
+) {
   context <- check_context(context)
   width <- getOption("width")
   frame <- parent.frame()
+  diff <- diff_print_internal(
+    target, current, tar.exp=substitute(target), frame=frame,
+    cur.exp=substitute(current), context=context, width=width,
+    white.space=white.space, mode=mode, use.ansi=use.ansi
+  )
   res <- as.character(
-    diff_print_internal(
-      target, current, tar.exp=substitute(target), frame=frame,
-      cur.exp=substitute(current), context=context, width=width,
-      white.space=white.space
-    ),
-    context=context,
-    width=width
+    diff, context=context, width=width, line.limit=line.limit,
+    mode=mode, hunk.limit=hunk.limit, use.ansi=use.ansi
   )
   cat(res, sep="\n")
   invisible(res)
@@ -342,7 +347,13 @@ diff_chr <- function(
 #   method
 
 diff_print_internal <- function(
-  target, current, tar.exp, cur.exp, context, width, frame, white.space
+  target, current, tar.exp, cur.exp, frame, width,
+  context=getOption("diffobj.context"),
+  white.space=getOption("diffobj.white.space"),
+  hunk.limit=getOption("diffobj.hunk.limit"),
+  line.limit=getOption("diffobj.line.limit"),
+  mode=getOption("diffobj.mode"),
+  use.ansi=getOption("diffobj.use.ansi")
 ) {
   # capture normal prints, along with default prints to make sure that if we
   # do try to wrap an atomic vector print it is very likely to be in a format
@@ -351,15 +362,16 @@ diff_print_internal <- function(
     stop("Argument `white.space` must be TRUE or FALSE")
 
   both.at <- is.atomic(current) && is.atomic(target)
-  cur.capt <- obj_capt(current, width - 3L, frame)
-  cur.capt.def <- if(both.at) obj_capt(current, width - 3L, frame, default=TRUE)
-  tar.capt <- obj_capt(target, width - 3L, frame)
-  tar.capt.def <- if(both.at) obj_capt(target, width - 3L, frame, default=TRUE)
+  cur.capt <- obj_capt(current, width, frame)
+  cur.capt.def <- if(both.at) obj_capt(current, width, frame, default=TRUE)
+  tar.capt <- obj_capt(target, width, frame)
+  tar.capt.def <- if(both.at) obj_capt(target, width, frame, default=TRUE)
 
   # Run basic diff
 
-  diffs <- char_diff(tar.capt, cur.capt, white.space=white.space)
-
+  diffs <- char_diff(
+    cur.capt, tar.capt, context=context, white.space=white.space, mode=mode
+  )
   new(
     "diffObjDiff", tar.obj=target, cur.obj=current, tar.capt=tar.capt,
     cur.capt=cur.capt, tar.exp=tar.exp, cur.exp=cur.exp, diffs=diffs,

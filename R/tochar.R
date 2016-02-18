@@ -34,8 +34,8 @@ rng_as_chr <- function(range) {
 
 hunk_as_char <- function(h.g, ranges, ranges.orig, mode, use.ansi, width) {
   h.ids <- vapply(h.g, "[[", integer(1L), "id")
-  tar.rng <- find_rng(h.ids, ranges.orig[1:2, ])
-  cur.rng <- find_rng(h.ids, ranges.orig[3:4, ])
+  tar.rng <- find_rng(h.ids, ranges.orig[1:2, , drop=FALSE])
+  cur.rng <- find_rng(h.ids, ranges.orig[3:4, , drop=FALSE])
 
   hh.a <- paste0("-", rng_as_chr(tar.rng))
   hh.b <- paste0("+", rng_as_chr(cur.rng))
@@ -278,7 +278,8 @@ setMethod("as.character", "diffObjDiff",
           regmatches(x@tar.capt[tar.head], tar.body),
           regmatches(x@cur.capt[cur.head], cur.body),
           across.lines=TRUE, white.space=white.space,
-          match.quotes=is.chr.vec(x@tar.obj) && is.chr.vec(x@cur.obj)
+          match.quotes=is.chr.vec(x@tar.obj) && is.chr.vec(x@cur.obj),
+          use.ansi=use.ansi
         )
         regmatches(x@tar.capt[tar.head], tar.body) <- body.diff$target
         regmatches(x@cur.capt[cur.head], cur.body) <- body.diff$current
@@ -293,9 +294,12 @@ setMethod("as.character", "diffObjDiff",
 
         x.r.h <- new(
           "diffObjDiff", tar.capt=tar.r.h.txt, cur.capt=cur.r.h.txt,
-          diffs=char_diff(tar.r.h.txt, cur.r.h.txt, white.space=white.space)
+          diffs=char_diff(
+            tar.r.h.txt, cur.r.h.txt, white.space=white.space,
+            mode="context"
+          )
         )
-        x.r.h.color <- diffColor(x.r.h, use.ansi=use.ansi)
+        x.r.h.color <- diffColor(x.r.h@diffs, use.ansi=use.ansi)
         regmatches(x@tar.capt[tar.head], tar.r.h) <- x.r.h.color$A
         regmatches(x@cur.capt[cur.head], cur.r.h) <- x.r.h.color$B
 
