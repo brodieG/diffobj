@@ -171,10 +171,15 @@ char_diff <- function(
     sub.pat <- "(\t| )"
     pat.1 <- sprintf("^%s*|%s*$", sub.pat, sub.pat)
     pat.2 <- sprintf("%s+", sub.pat)
-    x <- gsub(pat.2, " ", gsub(pat.1, "", x))
-    y <- gsub(pat.2, " ", gsub(pat.1, "", y))
+    x.w <- gsub(pat.2, " ", gsub(pat.1, "", x))
+    y.w <- gsub(pat.2, " ", gsub(pat.1, "", y))
   }
-  hunks <- as.hunks(diff_myers_mba(x, y), context=context, mode=mode)
+  diff <- diff_myers_mba(x.w, y.w)
+  if(!white.space) {
+    diff@a <- x
+    diff@b <- y
+  }
+  hunks <- as.hunks(diff, context=context, mode=mode)
   new("diffObjDiffDiffs", white.space=white.space, hunks=hunks)
 }
 # Helper function encodes matches within mismatches so that we can later word
