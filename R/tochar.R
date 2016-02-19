@@ -303,6 +303,10 @@ setMethod("as.character", "diffObjDiff",
         regmatches(x@tar.capt[tar.head], tar.r.h) <- x.r.h.color$A
         regmatches(x@cur.capt[cur.head], cur.r.h) <- x.r.h.color$B
 
+        # Update the character values in the hunks proper
+
+        hunk.grps <- update_hunks(hunk.grps, x@tar.capt, x@cur.capt)
+
         # Everything else gets a normal hunk by hunk word diff
 
         cur.rest <- show.range.cur[!show.range.cur %in% cur.head]

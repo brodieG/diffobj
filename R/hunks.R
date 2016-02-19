@@ -15,6 +15,10 @@
 #   values reference strings from the original target string, and negative ones
 #   from the current string.
 #
+#   In addition to the indices referencing the original character vectors, the
+#   actual character values are also retained, though these may be modified
+#   over the course of processing by being wrapped, having colors added, etc.
+#
 #   Important: context atomic hunks are duplicated anytime there is enough
 #   context that we only show part of the context hunk.
 #
@@ -23,7 +27,7 @@
 #   2. if not, positive values are "target" strings, negative "current strings"
 #   3. the range of the hunks is also stored as tar.rng and cur.rng; mostly
 #      inferrable from the actual data in the hunks, except that in unified
-#      mode we no longer have the actual context strings from the current
+#      mode we no longer have the actual context strings from the `current`
 #      vector.
 
 setGeneric("as.hunks", function(x, ...) standardGeneric("as.hunks"))
@@ -419,4 +423,28 @@ trim_hunks <- function(
     hunks=c(hunk.grps.omitted, hunk.grps.count)
   )
   hunk.grps
+}
+# Modify Character Values of Hunks
+#
+# Used to highlight words in wrap diffs after the main diff has been done.  This
+# is quite a hack job and should probably be handled more elegantly, but at this
+# point it is the simplest way to get old functionality back up and running
+# under the hunk view of the world.
+
+update_hunks <- function(hunk.grps, A.chr, B.chr) {
+  lapply(
+    hunk.grps,
+    function(h.g)
+      lapply(
+        h.g,
+        function(h.a) {
+          a.neg <- h.a$A < 0
+          b.neg <- h.a$B < 0
+          h.a$A.chr[a.neg] <- B.chr[abs(h.a$A[a.neg])]
+          h.a$A.chr[!a.neg] <- A.chr[h.a$A[!a.neg]]
+          h.a$B.chr[b.neg] <- B.chr[abs(h.a$B[b.neg])]
+          h.a$B.chr[!b.neg] <- A.chr[h.a$B[!b.neg]]
+          h.a
+        }
+  ) )
 }
