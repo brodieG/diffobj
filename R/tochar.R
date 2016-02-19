@@ -149,7 +149,7 @@ setMethod("as.character", "diffObjDiff",
     # checked earlier; here just in case we mess something up in devel or
     # testing
 
-    context <- check_linelimit(line.limit)
+    line.limit <- check_linelimit(line.limit)
     width <- check_width(width)
     mode <- check_mode(mode)
     white.space <- x@diffs@white.space
@@ -177,7 +177,8 @@ setMethod("as.character", "diffObjDiff",
       banner.len <- 2L
       max.w <- max(width, 20L)
     }
-    line.limit <- pmax(integer(2L), line.limit - banner.len)
+    if(line.limit[[1L]] >= 0L)
+      line.limit <- pmax(integer(2L), line.limit - banner.len)
 
     # Trim hunks to the extent need to make sure we fit in lines; start by
     # dropping hunks beyond hunk limit
@@ -211,7 +212,8 @@ setMethod("as.character", "diffObjDiff",
     )
     # Trim banner if exceeds line limit, and adjust line limit for banner size
 
-    if(line.limit[[1L]] < banner.len) length(banner) <- line.limit[[2L]]
+    if(line.limit[[1L]] >= 0 && line.limit[[1L]] < banner.len)
+      length(banner) <- line.limit[[2L]]
 
     # Post trim, figure out max lines we could possibly be showing from capture
     # strings; careful with ranges,
