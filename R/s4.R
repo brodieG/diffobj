@@ -60,8 +60,8 @@ setClass(
     cur.obj="ANY",
     tar.capt="character",
     cur.capt="character",
-    tar.exp="ANY",
-    cur.exp="ANY",
+    tar.banner="character",
+    cur.banner="character",
     mode="character",
     diffs="diffObjDiffDiffs",
     tar.capt.def="charOrNULL",
@@ -71,6 +71,10 @@ setClass(
   validity=function(object) {
     if(!is.chr1(object@mode) || ! object@mode %in% c("print", "str"))
       return("slot `mode` must be either \"print\" or \"str\"")
+    if(!is.chr1(object@tar.banner))
+      return("slot `tar.banner` must be either character(1L) and not NA")
+    if(!is.chr1(object@cur.banner))
+      return("slot `cur.banner` must be either character(1L) and not NA")
     TRUE
 } )
 setClass(
@@ -94,8 +98,10 @@ setClass(
       return("Slots `type`, `length`,  or `offset` may not contain NA values")
     if(any(c(object@type, object@length, object@offset)) < 0)
       return(
-        "Slots `type`, `length`,  and `offset` must have values greater than zero"
-      )
+        paste0(
+          "Slots `type`, `length`,  and `offset` must have values greater ",
+          "than zero"
+      ) )
     TRUE
   }
 )
