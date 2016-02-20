@@ -195,53 +195,133 @@ diff_color <- function(txt, diffs, range, color, use.ansi) {
 }
 #' Show Diffs Between the Screen Display Versions of Two Objects
 #'
-#' Designed to highlight at a glance the \bold{display} differences between
-#' two objects.  Lack of visual differences is not guarantee that the objects
-#' are the same.  These functions are designed to help you quickly understand
-#' the nature of differences between objects when they are known to be different
-#' (e.g. not \code{identical} or \code{all.equal}).  The diff algorithms are far
-#' from perfect and in some cases will likely make seemingly odd choices on what
-#' to highlight as being different.
+#' Highlights at a glance the \bold{display} differences between
+#' two objects.  Lack of display differences is no guarantee that the objects
+#' are the same.  Use \code{identical} or \code{all.equal} to confirm objects
+#' are not different.
 #'
-#' These functions focus on the first display difference between two objects.
-#' If you want to see the full object diff try \code{\link{Rdiff_obj}}.
+#' @section Overview:
 #'
 #' \itemize{
-#'   \item \code{diff_print} shows the differences in the \code{print} or
-#'     \code{show} screen output of the two objects
-#'   \item \code{diff_str} shows the differences in the \code{str} screen output
-#'     of the two objects; will show as many recursive levels as possible so
-#'     long as context lines are not exceeded, and if they are, as few as
-#'     possible to show at least one error (see \code{max.level})
+#'   \item \code{diff_print} prints the objects, captures the output, and runs
+#'     the diff on the captured output
+#'   \item \code{diff_str} runs \code{str} on the objects, captures the output
+#'     and runs the diff on the captured output.  This will show as many
+#'     recursive levels as possible so long as the line limits are not exeeded,
+#'     and if they are, as few as possible to show at least one error (see
+#'     \code{max.level})
 #'   \item \code{diff_obj} picks between \code{diff_print} and \code{diff_str}
-#'     depending on which one it thinks will provide the most useful diff
+#'     depending on which one it thinks will provide the most useful diff.
+#'   \item \code{diff_chr} will run the diff directly on the actual character
+#'     values provided, or those values coerced to character if they are not
+#'     character.
+#'   \item \code{diff_dep} will run the diff on the deparsed input objects
 #' }
+#' @section Output:
+#'
+#' The result of the diff provides the information necessary to transform the
+#' \code{target} object into the \code{current} object.  This involves deletions
+#' from and additions to \code{target}.  The deletions and additions are done
+#' linewise.  Each deleted line will have \code{- } prepended to it, and each
+#' added line will have \code{+ } prepended to it.  If your terminal supports
+#' ANSI escape sequences the additions and deletions will be color coded.
+#'
+#' The first lines of output clarify the coding convention by showing the
+#' \code{target} object with the deletion symbology, and the \code{current}
+#' object with the addition symbology.  After these lines you will see the
+#' first and possibly only hunk header.  The format will be \code{@@ x,y z,w @@}
+#' where \code{x} and \code{z} indicate the starting line of the text in
+#' the \code{target} and \code{current} objects that is shown after the hunk
+#' header.  \code{y} and \code{w} indicate how many lines from each of those
+#' objects is being show in the hunk.
+#'
+#' In addition to the primary line diff, hunks are themselves word-diffed within
+#' each hunk to help quickly identify small differences.  Just keep in mind that
+#' the \code{+-} symbols always relate to the original line diff.  The
+#' word-diff is indicated only by the ANSI escape sequence styling and will not
+#' be visible if your terminal does not support them or if you diable them.
+#'
+#' The output format used here is loosely based on the \code{git diff} format.
+#'
+#' @section Display Modes:
+#'
+#' You can control the diff display mode via the \code{mode} argument.  We
+#' implement similar modes to those available in GNU diff:
+#'
+#' \itemize{
+#'   \item unified: this is the diff mode used by \code{gitdiff}
+#'   \item sidebyside: line up the differences side by side
+#'   \item context: show the target and current hunks in their entirety; this
+#'     mode takes up a lot of screen space but makes it easier to see what the
+#'     objects actually look like
+#' }
+#' @section Atomic Vectors:
+#'
+#' When using \code{diff_print} the function will recognize the wrapped printed
+#' output for normal atomic vectors, and will carry out the diff element by
+#' element rather than line by line.  The \code{+-} diff indicators in the
+#' gutters will still reference the line diffs, but additionally the element by
+#' element matches and differences will be highlighted with ANSI style escape
+#' sequences.
+#'
+#' @section Diff Algorithm:
+#'
+#' The diff algorithm is Myer's solution to the shortest edit script /
+#' longest common sequence problem with the Hirschberg linear space refinement
+#' as described in:
+#' \cite{
+#' E. Myers, \dQuote{An O(ND) Difference Algorithm and Its Variations},
+#' Algorithmica 1, 2 (1986), 251-266.
+#' \url{http://www.cs.arizona.edu/people/gene/PAPERS/diff.ps}
+#' }
+#' and should be the same algorithm used by GNU diff.  The implementation
+#' used here is an adaptation of Michael B. Allen's diff program from the
+#' \href{\code{libmba}}{
+#' http://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz} \code{C}
+#' library.
+#'
 #' @note: differences shown or reported by these functions may not be the
 #'   totality of the differences between objects since display methods may not
 #'   display all differences.  This is particularly true when using \code{str}
 #'   for comparisons with \code{max.level} since differences inside unexpanded
 #'   recursive levels will not be shown at all.
 #' @export
-#' @aliases diff_str, diff_print, diff_chr
+#' @aliases diff_str, diff_print, diff_chr, diff_deparse, diff_obj
 #' @param target the reference object
 #' @param current the object being compared to \code{target}
-#' @param context 2 length integer vector representing how many lines of context
-#'   are shown on either side of differences.  The first value is the maximum
-#'   before we start trimming output.  The second value is the maximum to be
-#'   shown before we start trimming.  We will always attempt to show as much as
-#'   \code{2 * context + 1} lines of output so context may not be centered if
-#'   objects display as less than \code{2 * context + 1} lines.
+#' @param context integer(1L) how many lines of context are shown on either side
+#'   of differences.
+#' @param hunk.limit integer(2L) how many sections of differences to show.
+#'   The first value is the maximum number of elements before we start trimming
+#'   output.  The second value is how many elements to trim to.  If only one
+#'   value is provided that value is used for the initial threshold as well as
+#'   the limit to trim to.  If both values are provided the second must be
+#'   smaller than the first.  Set to \code{-1L} or \code{c(-1L, -1L)} to run
+#'   without limits.
+#' @param line.limit integer(2L) how many lines of screen output to show.
+#'   behaves like \code{hunk.limit}
+#' @param use.ansi TRUE or FALSE, whether to use ANSI escape sequences to color
+#'   differences (TRUE by default if we detect that your terminal supports it)
 #' @param white.space TRUE or FALSE, whether to consider differences in
 #'   horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
 #'   FALSE)
-#' @param max.level integer(1L) up to how many levels to try running \code{str};
-#'   \code{str} is run repeatedly starting with \code{max.level=1} and then
-#'   increasing \code{max.level} until we fill the context or a difference
-#'   appears or the \code{max.level} specified here is reached.  If the value is
-#'   reached then will let \code{str} run with \code{max.level} unspecified.
-#'   This is designed to produce the most compact screen output possible that
-#'   shows the differences between objects, though obviously it comes at a
-#'   performance cost; set to 0 to disable
+#' @param disp.width integer(1L) number of display columns to take up; note that
+#'   in \dQuote{sidebyside} mode the effective display width is halved from this
+#'   number
+#' @param tar.banner character(1L) used to clarify the symbology of the diff
+#'   output (see the \dQuote{Output} section in the docs)
+#' @param cur.banner character(1L) like \code{tar.banner}
+#' @param frame environment the evaluation frame for the \code{print/show/str},
+#'   calls, allows user to ensure correct methods are used
+#' @param max.level i nteger(1L) (\code{diff_str} and \code{diff_obj} only), up
+#'   to how many levels to try running \code{str}; \code{str} is run repeatedly
+#'   starting with \code{max.level=1} and then increasing \code{max.level} until
+#'   we fill the context or a difference appears or the \code{max.level}
+#'   specified here is reached.  If the value is reached then will let
+#'   \code{str} run with \code{max.level} unspecified.  This is designed to
+#'   produce the most compact screen output possible that shows the differences
+#'   between objects, though obviously it comes at a performance cost; set to 0
+#'   to disable.
 #' @return character, invisibly, the text representation of the diff
 
 diff_obj <- function(
