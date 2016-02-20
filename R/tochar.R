@@ -44,6 +44,7 @@ hunk_as_char <- function(h.g, ranges, ranges.orig, mode, use.ansi, width) {
     if(mode == "sidebyside") {
       paste0(
         rpadt(sprintf("@@ %s @@", hh.a), width),
+        "  ",
         rpadt(sprintf("@@ %s @@", hh.b), width),
         collapse=""
       )
@@ -133,6 +134,7 @@ hunk_as_char <- function(h.g, ranges, ranges.orig, mode, use.ansi, width) {
                   A.w, ifelse(!h.a$context & A.present, 3L, 1L),
                   use.ansi=use.ansi
               ) ),
+              "  ",
               unlist(
                 sign_pad(
                   B.w, ifelse(!h.a$context & B.present, 2L, 1L),
@@ -204,6 +206,7 @@ setMethod("as.character", "diffObjDiff",
     }
     banner <- comb.fun(
       ansi_style(t.fun(banner.A, max.w), "red", use.ansi),
+      if(mode == "sidebyside") "  ",
       ansi_style(t.fun(banner.B, max.w), "green", use.ansi)
     )
     # Trim banner if exceeds line limit, and adjust line limit for banner size

@@ -9,7 +9,8 @@ calc_width <- function(width, mode) {
     is.character(mode), mode %in% c("context", "unified", "sidebyside")
   )
   width <- as.integer(width)
-  width.tmp <- if(mode == "sidebyside") as.integer(floor(width / 2)) else width
+  width.tmp <- if(mode == "sidebyside")
+    as.integer(floor((width - 2)/ 2)) else width
   as.integer(max(20L, width.tmp))
 }
 # Common argument check functions; note that the `stop` message reports as the
