@@ -362,10 +362,12 @@ diff_print_internal <- function(
     stop("Argument `white.space` must be TRUE or FALSE")
 
   both.at <- is.atomic(current) && is.atomic(target)
-  cur.capt <- obj_capt(current, width, frame)
-  cur.capt.def <- if(both.at) obj_capt(current, width, frame, default=TRUE)
-  tar.capt <- obj_capt(target, width, frame)
-  tar.capt.def <- if(both.at) obj_capt(target, width, frame, default=TRUE)
+  max.w <- calc_width(width, mode) - 2L
+
+  cur.capt <- obj_capt(current, max.w, frame)
+  cur.capt.def <- if(both.at) obj_capt(current, max.w, frame, default=TRUE)
+  tar.capt <- obj_capt(target, max.w, frame)
+  tar.capt.def <- if(both.at) obj_capt(target, max.w, frame, default=TRUE)
 
   # Run basic diff
 

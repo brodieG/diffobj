@@ -56,7 +56,7 @@ hunk_as_char <- function(h.g, ranges, ranges.orig, mode, use.ansi, width) {
 
   diff.txt <- if(mode == "context") {
     # Need to get all the A data and the B data
-    get_chr_vals <- function(h.a, ind) wrap(h.a[[ind]], width - 2L, use.ansi)
+    get_chr_vals <- function(h.a, ind) wrap(h.a[[ind]], width, use.ansi)
 
     A.ctx <- unlist(
       lapply(h.g, function(h.a) rep(h.a$context, length(h.a$A.chr)))
@@ -170,13 +170,9 @@ setMethod("as.character", "diffObjDiff",
     ) ) }
     # Basic width computation and banner size
 
-    if(mode == "sidebyside") {
-      banner.len <- 1L
-      max.w <-  max(floor(width / 2), 20L)
-    } else {
-      banner.len <- 2L
-      max.w <- max(width, 20L)
-    }
+    banner.len <- if(mode == "sidebyside") 1L else 2L
+    max.w <- calc_width(width, mode)
+
     if(line.limit[[1L]] >= 0L)
       line.limit <- pmax(integer(2L), line.limit - banner.len)
 
@@ -198,7 +194,7 @@ setMethod("as.character", "diffObjDiff",
       # If side by side we want stuff close together if reasonable
       max.col.w <- max(
         unlist(lapply(hunks.flat, function(x) nchar(c(x$A.chr, x$B.chr))))
-      )
+      ) + 2L
       max.w <- if(max.col.w < max.w) max(15L, max.col.w) else max.w
       comb.fun <- paste0
       t.fun <- rpadt

@@ -1,3 +1,17 @@
+# Compute display width in characters
+#
+# Note this does not account for the padding required
+
+calc_width <- function(width, mode) {
+  stopifnot(
+    is.numeric(width), length(width) == 1L, !is.na(width), is.finite(width),
+    width >= 0L,
+    is.character(mode), mode %in% c("context", "unified", "sidebyside")
+  )
+  width <- as.integer(width)
+  width.tmp <- if(mode == "sidebyside") as.integer(floor(width / 2)) else width
+  as.integer(max(20L, width.tmp))
+}
 # Common argument check functions; note that the `stop` message reports as the
 # parent system call
 
