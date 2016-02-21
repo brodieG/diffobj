@@ -84,9 +84,9 @@ check_mode <- function(mode) {
 # for checking the limits; for use exclusively within `check_args`
 #
 # run exclusively for side effects (throwing an error, or assigning value in
-# parent env of 'check_args'.
+# parent env of 'check_args').
 
-check_limit <- function(limit, type) {
+check_limit <- function(limit, type, frame) {
   if(
     !is.numeric(limit) || any(is.na(limit)) ||
     !length(limit) %in% 1:2 ||
@@ -103,7 +103,7 @@ check_limit <- function(limit, type) {
   } else {
     limit <- as.integer(limit)
     if(length(limit) == 1L) limit <- rep(limit, 2L)
-    assign(type, limit, pos=-2L, inherit=FALSE)
+    assign(type, limit, envir=frame, inherit=FALSE)
   }
   NULL
 }
@@ -113,12 +113,10 @@ check_limit <- function(limit, type) {
 # environment
 
 check_args <- function() {
-  args <- c(
-    "line.limit", "context", "width", "hunk.limit", "mode", "use.ansi",
-    "white.space"
-  )
+  args <- names(formals(diff_tpl))
   call <- sys.call(-1L)
-  vals <- try(mget(args, envir=as.environment(-1L), inherits=FALSE))
+  vals <- try(mget(args, envir=parent.frame(), inherits=FALSE))
+  par.frame <- parent.frame()
   if(inherits(vals, "try-error"))
     stop(
       simpleError(
@@ -129,8 +127,8 @@ check_args <- function() {
 
   val.modes <- c("context", "unified", "sidebyside")
   if(
-    !is.character(val$mode) || length(val$mode) != 1L || is.na(val$mode) ||
-    !val$mode %in% val.modes
+    !is.character(vals$mode) || length(vals$mode) != 1L || is.na(vals$mode) ||
+    !vals$mode %in% val.modes
   ) {
     msg <- paste0(
       "Argument `mode` must be character(1L) and in `", deparse(val.modes), "`."
@@ -140,21 +138,50 @@ check_args <- function() {
   # check limits (has side effects)
 
   limits <- c("line.limit", "hunk.limit")
-  Map(check_limit, vals[limits], limits)
-
+  Map(
+    check_limit, vals[limits], limits,
+    frame=replicate(length(limits), par.frame)
+  )
   # check integer 1L args
 
-  msg <- "Argument `%s` must be integer(1L) and not NA."
-
-  if(!is.int.1L(vals$context)) stop(sprintf(msg, "context"), call=call)
-  if(!is.int.1L(vals$width)) stop(sprintf(msg, "width"), call=call)
-
+  msg.base <- "Argument `%s` must be integer(1L) and not NA."
+  int1L.vars <- c(
+    "context", "disp.width", "max.diffs", "max.diffs.in.hunk",
+    "max.diffs.wrap"
+  )
+  lapply(
+    int1L.vars,
+    function(x)
+      if(!is.int.1L(vals[[x]]))
+        stop(simpleError(sprintf(msg.base, x), call=call))
+  )
   # check T F args
 
-  msg <- "Argument `%s` must be TRUE or FALSE"
+  msg.base <- "Argument `%s` must be TRUE or FALSE"
+  tf.vars <- c("use.ansi", "ignore.white.space", "silent")
 
-  if(!is.TF(vals$use.nsi)) stop(sprintf(msg, "use.ansi"), call=call)
-  if(!is.TF(vals$white.space)) stop(sprintf(msg, "white.space"), call=call)
+  lapply(
+    tf.vars,
+    function(x)
+      if(!is.TF(vals[[x]])) stop(simpleError(sprintf(msg.base, x), call=call))
+  )
+  # check char 1L
+
+  msg.base <- "Argument `%s` must be character(1L) and not NA"
+  chr1L.vars <- c("tar.banner", "cur.banner")
+
+  lapply(
+    chr1L.vars,
+    function(x)
+      if(!is.chr.1L(vals[[x]]))
+        stop(simpleError(sprintf(msg.base, x), call=call))
+  )
+  # frame
+
+  if(!is.environment(vals$frame))
+    stop(simpleError("Argument `frame` must be an environment.", call=call))
+
+  invisible(TRUE)
 }
 
 is.int.1L <- function(x)
@@ -163,50 +190,5 @@ is.int.1L <- function(x)
 
 is.TF <- function(x) isTRUE(x) || identical(x, FALSE)
 
-is.chr1 <- function(x) is.character(x) && length(x) == 1L && !is.na(x)
+is.chr.1L <- function(x) is.character(x) && length(x) == 1L && !is.na(x)
 
-is.valid_con <- function(x, file.name=NULL, readable=NA, writeable=NA) {
-  if(!is.null(file.name) && !is.chr1(file.name))
-      stop("Argument `file.name` must be NULL or a one length character vector.")
-  if(!is.lgl.1L(readable) || !is.lgl.1L(writeable))
-    stop("Arguments `readable` and `writeable` must be logical(1L)")
-
-  # Basic checks
-
-  if(!inherits(x, c("file", "connection")))
-    return("must inherit from \"file\" and \"connection\"")
-  if(!is.integer(x)) return("must be an integer")
-  if(inherits(try(x.chr <- as.character(x)), "try-error"))
-    return("cannot retrieve connection name to test")
-  cons <- showConnections(all=TRUE)
-  if(!isTRUE(x.chr %in% rownames(cons)))
-    return("connection does not exist in `showConnections`")
-
-  # Check r/w status
-
-  rw <- list(writeable=writeable, readable=readable)
-  rw.s <- list(writeable="write", readable="read")
-  for(i in names(rw))
-    if(!is.na(rw[[i]]))
-      if(
-        (cons[x.chr, sprintf("can %s", rw.s[[i]])] == "yes") != rw[[i]]
-      )
-        return(
-          cc(
-            "connection is ", if(rw[[i]]) "not ", i, " but should ",
-            if(!rw[[i]]) "not ", "be ", i
-        ) )
-
-  # Match file name
-
-  if(!is.null(file.name)) {
-    if(!identical(file.name, cons[x.chr, "description"]))
-      return("file name does not match connection description")
-  }
-  return(TRUE)
-}
-is.open_con <- function(x, file=NULL, readable=NA, writeable=NA) {
-  if(!isTRUE(msg <- is.valid_con(x, file, readable, writeable))) return(msg)
-  if(!isOpen(x)) return("must be an open connection")
-  return(TRUE)
-}
