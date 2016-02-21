@@ -395,14 +395,14 @@ diff_obj <- diff_tpl; body(diff_obj) <- quote({
 #' @rdname diff_obj
 #' @export
 
-diff_print <- diff_tpl; body(diff_print)[[3L]] <- quote({
+diff_print <- diff_tpl; body(diff_print)[[4L]] <- quote({
   local({
     # capture normal prints, along with default prints to make sure that if we
     # do try to wrap an atomic vector print it is very likely to be in a format
     # we are familiar with and not affected by a non-default print method
 
     both.at <- is.atomic(current) && is.atomic(target)
-    max.w <- calc_width(width, mode) - 2L
+    max.w <- calc_width(disp.width, mode) - 2L
     cur.capt <<- obj_capt(current, max.w, frame, ...)
     cur.capt.def <<- if(both.at)
       obj_capt(current, max.w, frame, default=TRUE, ...)
@@ -414,7 +414,7 @@ diff_print <- diff_tpl; body(diff_print)[[3L]] <- quote({
 #' @rdname diff_obj
 #' @export
 
-diff_str <- diff_tpl; body(diff_str)[[3L]] <- quote({
+diff_str <- diff_tpl; body(diff_str)[[4L]] <- quote({
   local({
     obj.add.capt.str <- obj.rem.capt.str <- obj.add.capt.str.prev <-
       obj.rem.capt.str.prev <- character()
@@ -463,14 +463,14 @@ diff_str <- diff_tpl; body(diff_str)[[3L]] <- quote({
 #' @rdname diff_obj
 #' @export
 
-diff_chr <- diff_tpl; body(diff_chr)[[3L]] <- quote({
+diff_chr <- diff_tpl; body(diff_chr)[[4L]] <- quote({
   tar.capt <- if(!is.character(target)) as.character(target) else target
   cur.capt <- if(!is.character(current)) as.character(current) else current
 })
 #' @rdname diff_obj
 #' @export
 
-diff_deparse <- diff_tpl; body(diff_deparse)[[3L]] <- quote({
+diff_deparse <- diff_tpl; body(diff_deparse)[[4L]] <- quote({
   tar.capt <- deparse(target, ...)
   cur.capt <- deparse(current, ...)
 })
