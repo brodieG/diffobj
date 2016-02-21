@@ -57,6 +57,7 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
           id=1L, A=integer(0L), B=integer(0L), A.chr=character(0L),
           B.chr=character(0L), context=FALSE,
           tar.rng=integer(2L), cur.rng=integer(2L),
+          tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
           tar.rng.trim=integer(2L), cur.rng.trim=integer(2L)
         )
       )
@@ -121,8 +122,9 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
 
           list(
             id=i, A=A, B=B, A.chr=A.chr, B.chr=B.chr, context=context,
-            tar.rng=tar.rng, cur.rng=cur.rng, tar.rng.trim=tar.rng,
-            cur.rng.trim=cur.rng
+            tar.rng=tar.rng, cur.rng=cur.rng,
+            tar.rng.sub=tar.rng, cur.rng.sub=cur.rng,
+            tar.rng.trim=tar.rng, cur.rng.trim=cur.rng
           )
     } ) }
     # group hunks together based on context
@@ -146,25 +148,18 @@ hunk_sub <- function(hunk, op, n) {
 
     # Need to recompute ranges
 
-    if(!n) {
-      # hunk$tar.rng <- hunk$cur.rng <-
-      hunk$tar.rng.trim <- hunk$cur.rng.trim <- integer(2L)
-    } else if(op == "tail") {
-      # hunk$tar.rng[[1L]] <-
-      hunk$tar.rng.trim[[1L]] <-
-        hunk$tar.rng.trim[[1L]] + len.diff
-      # hunk$cur.rng[[1L]] <-
-      hunk$cur.rng.trim[[1L]] <-
-        hunk$cur.rng.trim[[1L]] + len.diff
-    } else {
-      # hunk$tar.rng[[2L]] <-
-      hunk$tar.rng.trim[[2L]] <-
-        hunk$tar.rng.trim[[2L]] - len.diff
-      # hunk$cur.rng[[2L]] <-
-      hunk$cur.rng.trim[[2L]] <-
-        hunk$cur.rng.trim[[2L]] - len.diff
-    }
-  }
+    if(n) {
+      if(op == "tail") {
+        hunk$tar.rng.trim[[1L]] <- hunk$tar.rng.sub[[1L]] <-
+          hunk$tar.rng[[1L]] + len.diff
+        hunk$cur.rng.trim[[1L]] <- hunk$cur.rng.sub[[1L]] <-
+          hunk$cur.rng[[1L]] + len.diff
+      } else {
+        hunk$tar.rng.trim[[2L]] <- hunk$tar.rng.sub[[2L]] <-
+          hunk$tar.rng[[2L]] - len.diff
+        hunk$cur.rng.trim[[2L]] <- hunk$cur.rng.sub[[2L]] <-
+          hunk$cur.rng[[2L]] - len.diff
+  } } }
   hunk
 }
 # Figure Out Context for Each Chunk

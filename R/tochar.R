@@ -32,7 +32,7 @@ rng_as_chr <- function(range) {
 }
 # Convert a hunk group into text representation
 
-hunk_as_char <- function(h.g, ranges, ranges.orig, mode, use.ansi, disp.width) {
+hunk_as_char <- function(h.g, ranges.orig, mode, use.ansi, disp.width) {
   h.ids <- vapply(h.g, "[[", integer(1L), "id")
   tar.rng <- find_rng(h.ids, ranges.orig[1:2, , drop=FALSE])
   cur.rng <- find_rng(h.ids, ranges.orig[3:4, , drop=FALSE])
@@ -244,7 +244,7 @@ setMethod("as.character", "diffObjDiff",
       integer(4L)
     )
     ranges.orig <- vapply(
-      hunks.flat, function(h.a) c(h.a$tar.rng, h.a$cur.rng), integer(4L)
+      hunks.flat, function(h.a) c(h.a$tar.rng.sub, h.a$cur.rng.sub), integer(4L)
     )
     tar.max <- max(ranges[2L, ], 0L)
     cur.max <- max(ranges[4L, ], 0L)
@@ -363,7 +363,7 @@ setMethod("as.character", "diffObjDiff",
     # Process the actual hunks into character
 
     out <- lapply(
-      hunk.grps, hunk_as_char, ranges=ranges, ranges.orig=ranges.orig,
+      hunk.grps, hunk_as_char, ranges.orig=ranges.orig,
       mode=mode, use.ansi=use.ansi, disp.width=max.w
     )
     # Finalize

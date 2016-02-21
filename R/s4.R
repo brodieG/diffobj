@@ -25,16 +25,16 @@ setClass(
       function(x) {
         vapply(x,
           function(y) {
-            nm <- c(
-              "id", "A", "B", "A.chr", "B.chr", "context", "tar.rng", "cur.rng",
-              "tar.rng.trim", "cur.rng.trim"
+            rng.names <- paste0(
+              rep(c("tar.rng", "cur.rng"), 3L),
+              rep(c("", ".sub", ".trim"), each=2L)
             )
+            nm <- c("id", "A", "B", "A.chr", "B.chr", "context", rng.names)
+            valid_rng <- function(x) length(x) == 2L && diff(x) >= 0L
+
             identical(names(y), nm) &&
             is.integer(ab <- unlist(y[nm[-(3:5)]])) && !any(is.na(ab)) &&
-            length(y$tar.rng) == 2L && diff(y$tar.rng) >= 0L &&
-            length(y$cur.rng) == 2L && diff(y$cur.rng) >= 0L &&
-            length(y$tar.rng.trim) == 2L && diff(y$tar.rng.trim) >= 0L &&
-            length(y$cur.rng.trim) == 2L && diff(y$cur.rng.trim) >= 0L
+            all(vapply(y[rng.names], valid_rng, logical(1L)))
           },
           logical(1L)
       ) }
