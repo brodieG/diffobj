@@ -259,7 +259,8 @@ setMethod("as.character", "diffObjDiff",
     tar.rest <- show.range.tar <- seq_len(tar.max)
 
     if(
-      identical(x@mode, "print") && identical(x@tar.capt, x@tar.capt.def) &&
+      identical(x@capt.mode, "print") &&
+      identical(x@tar.capt, x@tar.capt.def) &&
       identical(x@cur.capt, x@cur.capt.def)
     ) {
       # Separate out the stuff that can wrap (starts with index headers vs. not),
@@ -283,7 +284,7 @@ setMethod("as.character", "diffObjDiff",
           regmatches(x@tar.capt[tar.head], tar.body),
           regmatches(x@cur.capt[cur.head], cur.body),
           ignore.white.space=ignore.white.space,
-          match.quotes=is.chr.vec(x@tar.obj) && is.chr.vec(x@cur.obj),
+          match.quotes=is.character(x@target) && is.character(x@current),
           use.ansi=use.ansi
         )
         regmatches(x@tar.capt[tar.head], tar.body) <- body.diff$target
