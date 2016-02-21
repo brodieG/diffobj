@@ -350,7 +350,11 @@ diff_tpl <- function(
   frame=parent.frame(),
   ...
 ) {
-  check_args() # has side effects
+  # Check arguments and update function environment with "fixed" args
+
+  list2env(
+    check_args(as.list(environment())), envir=environment()
+  )
   tar.capt <- tar.capt.def <- cur.capt <- cur.capt.def <- NULL
   NULL         # line where we will insert code
   diffs <- char_diff(

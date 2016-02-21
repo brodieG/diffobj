@@ -86,7 +86,7 @@ check_mode <- function(mode) {
 # run exclusively for side effects (throwing an error, or assigning value in
 # parent env of 'check_args').
 
-check_limit <- function(limit, type, frame) {
+check_limit <- function(limit, type) {
   if(
     !is.numeric(limit) || any(is.na(limit)) ||
     !length(limit) %in% 1:2 ||
@@ -100,29 +100,19 @@ check_limit <- function(limit, type, frame) {
       "value larger than or equal to the second."
     )
     stop(sprintf(msg, type), call=sys.call(-2L))
-  } else {
-    limit <- as.integer(limit)
-    if(length(limit) == 1L) limit <- rep(limit, 2L)
-    assign(type, limit, envir=frame, inherit=FALSE)
   }
-  NULL
+  limit <- as.integer(limit)
+  if(length(limit) == 1L) limit <- rep(limit, 2L)
+  limit
 }
 # Checks common arguments across functions
 #
 # Note: this will modify the value of some of the arguments in the parent
 # environment
 
-check_args <- function() {
-  args <- names(formals(diff_tpl))
+check_args <- function(vals) {
   call <- sys.call(-1L)
-  vals <- try(mget(args, envir=parent.frame(), inherits=FALSE))
-  par.frame <- parent.frame()
-  if(inherits(vals, "try-error"))
-    stop(
-      simpleError(
-        "Logic Error: unexpected missing argument; contact maintainer.",
-        call=call
-    ) )
+
   # check modes
 
   val.modes <- c("context", "unified", "sidebyside")
@@ -138,21 +128,20 @@ check_args <- function() {
   # check limits (has side effects)
 
   limits <- c("line.limit", "hunk.limit")
-  Map(
-    check_limit, vals[limits], limits,
-    frame=replicate(length(limits), par.frame)
-  )
+  vals[limits] <- Map(check_limit, vals[limits], limits)
+
   # check integer 1L args
 
+  int1L.vars <- c(
+    "context", "disp.width", "max.diffs", "max.diffs.in.hunk", "max.diffs.wrap"
+  )
   msg.base <- "Argument `%s` must be integer(1L) and not NA."
-  lapply(
-    c(
-      "context", "disp.width", "max.diffs", "max.diffs.in.hunk",
-      "max.diffs.wrap"
-    ),
+  vals[int1L.vars] <- lapply(
+    int1L.vars,
     function(x)
-      if(!is.int.1L(vals[[x]]))
+      if(!is.int.1L(vals[[x]])) {
         stop(simpleError(sprintf(msg.base, x), call=call))
+      } else as.integer(vals[[x]])
   )
   # check T F args
 
@@ -176,7 +165,9 @@ check_args <- function() {
   if(!is.environment(vals$frame))
     stop(simpleError("Argument `frame` must be an environment.", call=call))
 
-  invisible(TRUE)
+  # Return modified args
+
+  vals
 }
 
 is.int.1L <- function(x)
