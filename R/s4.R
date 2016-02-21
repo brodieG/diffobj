@@ -18,10 +18,8 @@ NULL
 
 setClass(
   "diffObjDiffDiffs",
-  slots=c(hunks="list", white.space="logical"),
+  slots=c(hunks="list"),
   validity=function(object) {
-    if(!is.TF(object@white.space))
-      return("slot `white.space` must be TRUE or FALSE")
     hunk.check <- lapply(
       object@hunks,
       function(x) {
@@ -69,6 +67,7 @@ setClass(
     hunk.limit="integer",
     line.limit="integer",
     disp.width="integer",
+    use.ansi="logical",
     max.diffs="integer",          # after how many differences should we give up
     max.diffs.in.hunk="integer",  # give up threshold for hunk-hunk comparison
     # give up threshold for word diff on wrapped atomic
@@ -79,14 +78,11 @@ setClass(
     silent="logical",
     diffs="diffObjDiffDiffs"      # line by line diffs
   ),
-  prototype=list(mode="print"),
+  prototype=list(capt.mode="print"),
   validity=function(object) {
-    if(!is.chr1(object@mode) || ! object@mode %in% c("print", "str"))
-      return("slot `mode` must be either \"print\" or \"str\"")
-    if(!is.chr1(object@tar.banner))
-      return("slot `tar.banner` must be either character(1L) and not NA")
-    if(!is.chr1(object@cur.banner))
-      return("slot `cur.banner` must be either character(1L) and not NA")
+    # Most of the validation is done by `check_args`
+    if(!is.chr.1L(object@capt.mode) || ! object@capt.mode %in% c("print", "str"))
+      return("slot `capt.mode` must be either \"print\" or \"str\"")
     TRUE
 } )
 setClass(

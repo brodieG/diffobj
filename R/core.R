@@ -180,7 +180,7 @@ char_diff <- function(
     diff@b <- y
   }
   hunks <- as.hunks(diff, context=context, mode=mode)
-  new("diffObjDiffDiffs", ignore.white.space=ignore.white.space, hunks=hunks)
+  new("diffObjDiffDiffs", hunks=hunks)
 }
 # Helper function encodes matches within mismatches so that we can later word
 # diff the mismatches

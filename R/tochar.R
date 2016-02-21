@@ -155,6 +155,8 @@ setMethod("as.character", "diffObjDiff",
     line.limit <- x@line.limit
     hunk.limit <- x@hunk.limit
     disp.width <- x@disp.width
+    mode <- x@mode
+    use.ansi <- x@use.ansi
     ignore.white.space <- x@ignore.white.space
 
     len.max <- max(length(x@tar.capt), length(x@cur.capt))
@@ -191,8 +193,8 @@ setMethod("as.character", "diffObjDiff",
 
     # Make the object banner and compute more detailed widths post trim
 
-    banner.A <- paste0("--- ", deparse(x@tar.exp)[[1L]])
-    banner.B <- paste0("+++ ", deparse(x@cur.exp)[[1L]])
+    banner.A <- paste0("--- ", x@tar.banner)
+    banner.B <- paste0("+++ ", x@cur.banner)
 
     if(mode == "sidebyside") {
       # If side by side we want stuff close together if reasonable
@@ -280,7 +282,7 @@ setMethod("as.character", "diffObjDiff",
         body.diff <- diff_word(
           regmatches(x@tar.capt[tar.head], tar.body),
           regmatches(x@cur.capt[cur.head], cur.body),
-          across.lines=TRUE, ignore.white.space=ignore.white.space,
+          ignore.white.space=ignore.white.space,
           match.quotes=is.chr.vec(x@tar.obj) && is.chr.vec(x@cur.obj),
           use.ansi=use.ansi
         )
@@ -345,11 +347,10 @@ setMethod("as.character", "diffObjDiff",
           B.neg <- which(h.a$B < 0L)
 
           A.new <- c(h.a$A.chr[A.pos], h.a$B.chr[B.pos])
-          B.new  <- c(h.a$A.chr[A.neg], h.a$B.chr[B.neg])
+          B.new <- c(h.a$A.chr[A.neg], h.a$B.chr[B.neg])
 
           new.diff <- diff_word(
-            A.new, B.new, across.lines=TRUE,
-            ignore.white.space=ignore.white.space,
+            A.new, B.new, ignore.white.space=ignore.white.space,
             use.ansi=use.ansi
           )
           h.a$A.chr[A.pos] <- new.diff$target[seq_along(A.pos)]
