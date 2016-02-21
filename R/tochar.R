@@ -163,7 +163,7 @@ setMethod("as.character", "diffObjDiff",
       if(!ignore.white.space && !identical(x@tar.capt, x@cur.capt)) {
         msg <- paste0(
           "Only visible differences between objects are horizontal white ",
-          "spaces. You can re-run diff with `ignore.white.space=TRUE` to show ",
+          "spaces. You can re-run diff with `ignore.white.space=FALSE` to show ",
           "them."
         )
       }

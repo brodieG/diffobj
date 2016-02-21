@@ -145,12 +145,11 @@ check_args <- function() {
   # check integer 1L args
 
   msg.base <- "Argument `%s` must be integer(1L) and not NA."
-  int1L.vars <- c(
-    "context", "disp.width", "max.diffs", "max.diffs.in.hunk",
-    "max.diffs.wrap"
-  )
   lapply(
-    int1L.vars,
+    c(
+      "context", "disp.width", "max.diffs", "max.diffs.in.hunk",
+      "max.diffs.wrap"
+    ),
     function(x)
       if(!is.int.1L(vals[[x]]))
         stop(simpleError(sprintf(msg.base, x), call=call))
@@ -158,20 +157,16 @@ check_args <- function() {
   # check T F args
 
   msg.base <- "Argument `%s` must be TRUE or FALSE"
-  tf.vars <- c("use.ansi", "ignore.white.space", "silent")
-
   lapply(
-    tf.vars,
+    c("use.ansi", "ignore.white.space", "silent"),
     function(x)
       if(!is.TF(vals[[x]])) stop(simpleError(sprintf(msg.base, x), call=call))
   )
   # check char 1L
 
   msg.base <- "Argument `%s` must be character(1L) and not NA"
-  chr1L.vars <- c("tar.banner", "cur.banner")
-
   lapply(
-    chr1L.vars,
+    c("tar.banner", "cur.banner"),
     function(x)
       if(!is.chr.1L(vals[[x]]))
         stop(simpleError(sprintf(msg.base, x), call=call))
