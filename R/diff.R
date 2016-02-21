@@ -1,4 +1,5 @@
 #' @include s4.R
+#' @include misc.R
 
 NULL
 
@@ -276,9 +277,9 @@ diff_color <- function(txt, diffs, range, color, use.ansi) {
 #' }
 #' and should be the same algorithm used by GNU diff.  The implementation
 #' used here is an adaptation of Michael B. Allen's diff program from the
-#' \href{\code{libmba}}{
-#' http://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz} \code{C}
-#' library.
+#' \href{
+#'    http://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz
+#' }{\code{libmba}} \code{C} library.
 #'
 #' @note: differences shown or reported by these functions may not be the
 #'   totality of the differences between objects since display methods may not
@@ -286,7 +287,8 @@ diff_color <- function(txt, diffs, range, color, use.ansi) {
 #'   for comparisons with \code{max.level} since differences inside unexpanded
 #'   recursive levels will not be shown at all.
 #' @export
-#' @aliases diff_str, diff_print, diff_chr, diff_deparse, diff_obj
+#' @name diff_obj
+#' @aliases diff_str, diff_print, diff_chr, diff_deparse
 #' @param target the reference object
 #' @param current the object being compared to \code{target}
 #' @param context integer(1L) how many lines of context are shown on either side
@@ -299,7 +301,7 @@ diff_color <- function(txt, diffs, range, color, use.ansi) {
 #'   smaller than the first.  Set to \code{-1L} or \code{c(-1L, -1L)} to run
 #'   without limits.
 #' @param line.limit integer(2L) how many lines of screen output to show.
-#'   behaves like \code{hunk.limit}
+#'   Behaves like \code{hunk.limit}
 #' @param use.ansi TRUE or FALSE, whether to use ANSI escape sequences to color
 #'   differences (TRUE by default if we detect that your terminal supports it)
 #' @param white.space TRUE or FALSE, whether to consider differences in
@@ -333,7 +335,7 @@ NULL
 
 # Because all these functions are so similar, we have constructed them in an
 # odd fashion:
-# - All the formals are defined in a separate dummy function `diff_tmp`
+# - All the formals are defined in a separate dummy function `diff_tpl`
 # - We copy this dummy function for each of our actual functions, and change
 #   the bodies
 # - Within the bodies, make sure that the environment itself only has variables
@@ -355,7 +357,7 @@ diff_tpl <- function(
   max.diff.in.hunk=getOption("diffobj.max.diff.in.hunk"),
   max.diff.wrap=getOption("diffobj.max.diff.wrap"),
   frame=parent.frame(),
-  ...=
+  ...
 ) {
   check_args() # has side effects
   tar.capt <- tar.capt.def <- cur.capt <- cur.capt.def <- NULL
@@ -369,9 +371,10 @@ diff_tpl <- function(
   invisible(res)
 }
 # Note this one overwrites the entire body
+#' @rdname diff_obj
 #' @export
 
-diff_obj <- diff_tmp; body(diff_obj) <- {
+diff_obj <- diff_tpl; body(diff_obj) <- quote({
   check_args()
   tar.capt <- tar.capt.def <- cur.capt <- cur.capt.def <- NULL
   vars <- as.list(environment())
@@ -393,11 +396,11 @@ diff_obj <- diff_tmp; body(diff_obj) <- {
 
   if(!silent) cat(as.character(res), sep="\n")
   invisible(res)
-}
-
+})
+#' @rdname diff_obj
 #' @export
 
-diff_print <- diff_tmp; body(diff_print)[[3L]] <- {
+diff_print <- diff_tpl; body(diff_print)[[3L]] <- quote({
   local({
     # capture normal prints, along with default prints to make sure that if we
     # do try to wrap an atomic vector print it is very likely to be in a format
@@ -412,10 +415,11 @@ diff_print <- diff_tmp; body(diff_print)[[3L]] <- {
     tar.capt.def <<- if(both.at)
       obj_capt(target, max.w, frame, default=TRUE, ...)
   })
-}
+})
+#' @rdname diff_obj
 #' @export
 
-diff_str <- diff_tmp; body(diff_str)[[3L]] <- {
+diff_str <- diff_tpl; body(diff_str)[[3L]] <- quote({
   local({
     obj.add.capt.str <- obj.rem.capt.str <- obj.add.capt.str.prev <-
       obj.rem.capt.str.prev <- character()
@@ -460,19 +464,21 @@ diff_str <- diff_tmp; body(diff_str)[[3L]] <- {
     tar.capt <<- obj.rem.capt.str
     cur.capt <<- obj.add.capt.str
   })
-}
+})
+#' @rdname diff_obj
 #' @export
 
-diff_chr <- diff_tmp; body(diff_chr)[[3L]] <- {
+diff_chr <- diff_tpl; body(diff_chr)[[3L]] <- quote({
   tar.capt <- if(!is.character(target)) as.character(target) else target
   cur.capt <- if(!is.character(current)) as.character(current) else current
-}
+})
+#' @rdname diff_obj
 #' @export
 
-diff_deparse <- diff_tmp; body(diff_deparse)[[3L]] <- {
+diff_deparse <- diff_tpl; body(diff_deparse)[[3L]] <- quote({
   tar.capt <- deparse(target, ...)
   cur.capt <- deparse(current, ...)
-}
+})
 # Capture output of print/show/str; unfortuantely doesn't have superb handling
 # of errors during print/show call, though hopefully these are rare
 

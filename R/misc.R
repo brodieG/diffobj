@@ -118,12 +118,13 @@ check_args <- function() {
     "white.space"
   )
   call <- sys.call(-1L)
-  vals <- try(mget(args, pos=-1L, inherits=FALSE))
+  vals <- try(mget(args, envir=as.environment(-1L), inherits=FALSE))
   if(inherits(vals, "try-error"))
     stop(
-      "Logic Error: unexpected missing argument; contact maintainer.",
-      call=call
-    )
+      simpleError(
+        "Logic Error: unexpected missing argument; contact maintainer.",
+        call=call
+    ) )
   # check modes
 
   val.modes <- c("context", "unified", "sidebyside")

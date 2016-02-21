@@ -12,11 +12,7 @@
 
 \S4method{any}{diffObjDiffDiffs}(x, ..., na.rm = FALSE)
 
-\S4method{as.character}{diffObjDiff}(x, hunk.limit, line.limit, width, use.ansi,
-  mode, ...)
-
-\S4method{as.character}{diffObjDiff}(x, hunk.limit, line.limit, width, use.ansi,
-  mode, ...)
+\S4method{as.character}{diffObjDiff}(x, ...)
 }
 \description{
 Dummy Doc File for S4 Methods with Existing Generics

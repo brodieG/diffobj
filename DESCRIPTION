@@ -23,9 +23,9 @@ RoxygenNote: 5.0.1
 Collate:
     's4.R'
     'core.R'
+    'misc.R'
     'diff.R'
     'hunks.R'
-    'misc.R'
     'rdiff.R'
     'system.R'
     'text.R'

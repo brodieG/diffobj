@@ -62,12 +62,13 @@ setClass(
     tar.banner="character",       # Banner to display
     current="ANY",
     cur.capt="character",
-    cur.capt.def="charOrNULL"
+    cur.capt.def="charOrNULL",
     cur.banner="character",
     mode="character",             # diff output mode
     context="integer",
     hunk.limit="integer",
     line.limit="integer",
+    disp.width="integer",
     max.diffs="integer",          # after how many differences should we give up
     max.diffs.in.hunk="integer",  # give up threshold for hunk-hunk comparison
     # give up threshold for word diff on wrapped atomic
@@ -76,8 +77,7 @@ setClass(
     capt.mode="character",        # whether in print or str mode
     frame="environment",
     silent="logical",
-
-    diffs="diffObjDiffDiffs",     # line by line diffs
+    diffs="diffObjDiffDiffs"      # line by line diffs
   ),
   prototype=list(mode="print"),
   validity=function(object) {
