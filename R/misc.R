@@ -81,28 +81,88 @@ check_mode <- function(mode) {
   }
   mode
 }
+# for checking the limits; for use exclusively within `check_args`
+#
+# run exclusively for side effects (throwing an error, or assigning value in
+# parent env of 'check_args'.
 
-# Functions copied over from `unitizer`, will be deleted for the most
-# part
+check_limit <- function(limit, type) {
+  if(
+    !is.numeric(limit) || any(is.na(limit)) ||
+    !length(limit) %in% 1:2 ||
+    !is.finite(limit) ||
+    round(limit) != limit ||
+    (length(limit) == 2L && diff(limit) > 0)
+  ) {
+    msg <- paste0(
+      "Argument `%s` must be an integer vector of length 1 or 2 ",
+      "and if length 2, with the first ",
+      "value larger than or equal to the second."
+    )
+    stop(sprintf(msg, type), call=sys.call(-2L))
+  } else {
+    limit <- as.integer(limit)
+    if(length(limit) == 1L) limit <- rep(limit, 2L)
+    assign(type, limit, pos=-2L, inherit=FALSE)
+  }
+  NULL
+}
+# Checks common arguments across functions
+#
+# Note: this will modify the value of some of the arguments in the parent
+# environment
 
-is.chr.vec <- function(x) is.character(x) && is.null(attributes(x))
+check_args <- function() {
+  args <- c(
+    "line.limit", "context", "width", "hunk.limit", "mode", "use.ansi",
+    "white.space"
+  )
+  call <- sys.call(-1L)
+  vals <- try(mget(args, pos=-1L, inherits=FALSE))
+  if(inherits(vals, "try-error"))
+    stop(
+      "Logic Error: unexpected missing argument; contact maintainer.",
+      call=call
+    )
+  # check modes
 
-is.chr1 <- function(x) is.character(x) && length(x) == 1L && !is.na(x)
+  val.modes <- c("context", "unified", "sidebyside")
+  if(
+    !is.character(val$mode) || length(val$mode) != 1L || is.na(val$mode) ||
+    !val$mode %in% val.modes
+  ) {
+    msg <- paste0(
+      "Argument `mode` must be character(1L) and in `", deparse(val.modes), "`."
+    )
+    stop(simpleError(msg, call=call))
+  }
+  # check limits (has side effects)
+
+  limits <- c("line.limit", "hunk.limit")
+  Map(check_limit, vals[limits], limits)
+
+  # check integer 1L args
+
+  msg <- "Argument `%s` must be integer(1L) and not NA."
+
+  if(!is.int.1L(vals$context)) stop(sprintf(msg, "context"), call=call)
+  if(!is.int.1L(vals$width)) stop(sprintf(msg, "width"), call=call)
+
+  # check T F args
+
+  msg <- "Argument `%s` must be TRUE or FALSE"
+
+  if(!is.TF(vals$use.nsi)) stop(sprintf(msg, "use.ansi"), call=call)
+  if(!is.TF(vals$white.space)) stop(sprintf(msg, "white.space"), call=call)
+}
+
+is.int.1L <- function(x)
+  is.numeric(x) && length(x) == 1L && !is.na(x) && x ==  round(x) &&
+  is.finite(x)
 
 is.TF <- function(x) isTRUE(x) || identical(x, FALSE)
 
-is.lgl.1L <- function(x) is.logical(x) && length(x) == 1L
-
-is.int.1L <- function(x)
-  is.numeric(x) && length(x) == 1L && !any(is.na(x)) && all.equal(x, round(x))
-
-is.context.out.vec <- function(x)
-  is.numeric(x) && length(x) == 2L && !any(is.na(x)) && all(x > 0) &&
-  x[1] >= x[2] && all.equal(round(x), x)
-
-is.int.pos.1L <- function(x)
-  is.numeric(x) && length(x) == 1L && !any(is.na(x)) &&
-  all.equal(x, round(x)) && all(x > 0L)
+is.chr1 <- function(x) is.character(x) && length(x) == 1L && !is.na(x)
 
 is.valid_con <- function(x, file.name=NULL, readable=NA, writeable=NA) {
   if(!is.null(file.name) && !is.chr1(file.name))
