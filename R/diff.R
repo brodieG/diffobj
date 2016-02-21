@@ -90,15 +90,13 @@ find_brackets <- function(x) {
 # the quoted bits)
 
 diff_word <- function(
-  target, current, across.lines=FALSE, white.space, match.quotes=FALSE,
+  target, current, ignore.white.space, match.quotes=FALSE,
   use.ansi
 ) {
   stopifnot(
     is.character(target), is.character(current),
     all(!is.na(target)), all(!is.na(current)),
-    is.TF(across.lines),
     is.TF(match.quotes),
-    across.lines || length(target) == length(current),
     isTRUE(use.ansi) || identical(use.ansi, FALSE)
   )
   # Compute the char by char diffs for each line
@@ -114,43 +112,36 @@ diff_word <- function(
   tar.split <- regmatches(target, tar.reg)
   cur.split <- regmatches(current, cur.reg)
 
-  # Collapse into one line if we want to do the diff across lines, but record
+  # Collapse into one line if to do the diff across lines, but record
   # item counts so we can reconstitute the lines at the end
 
-  if(across.lines) {
-    tar.lens <- vapply(tar.split, length, integer(1L))
-    cur.lens <- vapply(cur.split, length, integer(1L))
+  tar.lens <- vapply(tar.split, length, integer(1L))
+  cur.lens <- vapply(cur.split, length, integer(1L))
 
-    tar.split <- list(unlist(tar.split))
-    cur.split <- list(unlist(cur.split))
-  }
-  diffs <- mapply(
-    char_diff, tar.split, cur.split, MoreArgs=list(
-      white.space=white.space, context=-1L, mode="context"
-    ),
-    SIMPLIFY=FALSE
+  tar.split <- unlist(tar.split)
+  cur.split <- unlist(cur.split)
+  if(is.null(tar.split)) tar.split <- character(0L)
+  if(is.null(cur.split)) cur.split <- character(0L)
+
+  diffs <- char_diff(
+    tar.split, cur.split, ignore.white.space=ignore.white.space,
+    context=-1L, mode="context"
   )
   # Color
 
-  diff.colored <- lapply(diffs, diffColor, use.ansi=use.ansi)
-  tar.colored <- lapply(diff.colored, "[[", "A")
-  cur.colored <- lapply(diff.colored, "[[", "B")
+  diff.colored <- diffColor(diffs, use.ansi=use.ansi)
+  tar.colored <- diff.colored$A
+  cur.colored <- diff.colored$B
 
-  # Reconstitute lines if needed; using across lines there should only be one
-  # value
+  # Reconstitute lines if needed
 
-  if(across.lines) {
-    tar.colored <- split(
-      tar.colored[[1L]], rep(seq_along(tar.lens), tar.lens)
-    )
-    cur.colored <- split(
-      cur.colored[[1L]], rep(seq_along(cur.lens), cur.lens)
-    )
-  }
+  tar.colored <- split(tar.colored, rep(seq_along(tar.lens), tar.lens))
+  cur.colored <- split(cur.colored, rep(seq_along(cur.lens), cur.lens))
+
   # Merge back into original
 
-  regmatches(target, tar.reg) <- tar.colored
-  regmatches(current, cur.reg) <- cur.colored
+  if(length(tar.colored)) regmatches(target, tar.reg) <- tar.colored
+  if(length(cur.colored)) regmatches(current, cur.reg) <- cur.colored
 
   list(target=target, current=current)
 }
