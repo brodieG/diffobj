@@ -344,9 +344,9 @@ diff_tpl <- function(
   tar.banner=deparse(substitute(target))[[1L]],
   cur.banner=deparse(substitute(current))[[1L]],
   silent=getOption("diffobj.silent"),
-  max.diffs=getOption("diffobj.max.diff"),
-  max.diffs.in.hunk=getOption("diffobj.max.diff.in.hunk"),
-  max.diffs.wrap=getOption("diffobj.max.diff.wrap"),
+  max.diffs=getOption("diffobj.max.diffs"),
+  max.diffs.in.hunk=getOption("diffobj.max.diffs.in.hunk"),
+  max.diffs.wrap=getOption("diffobj.max.diffs.wrap"),
   frame=parent.frame(),
   ...
 ) {
