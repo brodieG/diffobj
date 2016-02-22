@@ -423,7 +423,7 @@ diff_str <- diff_tpl; body(diff_str)[[4L]] <- quote({
     lvl <- 1L
     max.w <- calc_width(disp.width, mode)
     repeat{
-      if(lvl > 100) lvl <- NA # safety valve
+      if(lvl > 100 || line.limit[[1L]] < 0) lvl <- NA # safety valve
       obj.add.capt.str <-
         obj_capt(current, max.w - 2L, frame, mode="str", max.level=lvl)
       obj.rem.capt.str <-
@@ -434,7 +434,7 @@ diff_str <- diff_tpl; body(diff_str)[[4L]] <- quote({
       # Overshot full displayable size; check to see if previous iteration had
       # differences
 
-      if(line.limit[[1L]] < 0) {
+      if(line.limit[[1L]] < 0 || is.na(lvl)) {
         break
       } else {
         max.lines <- line.limit[[2L]]
