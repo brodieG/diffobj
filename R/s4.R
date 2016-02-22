@@ -18,25 +18,23 @@ NULL
 
 setClass(
   "diffObjDiffDiffs",
-  slots=c(hunks="list", white.space="logical"),
+  slots=c(hunks="list"),
   validity=function(object) {
-    if(!is.TF(object@white.space))
-      return("slot `white.space` must be TRUE or FALSE")
     hunk.check <- lapply(
       object@hunks,
       function(x) {
         vapply(x,
           function(y) {
-            nm <- c(
-              "id", "A", "B", "A.chr", "B.chr", "context", "tar.rng", "cur.rng",
-              "tar.rng.trim", "cur.rng.trim"
+            rng.names <- paste0(
+              rep(c("tar.rng", "cur.rng"), 3L),
+              rep(c("", ".sub", ".trim"), each=2L)
             )
+            nm <- c("id", "A", "B", "A.chr", "B.chr", "context", rng.names)
+            valid_rng <- function(x) length(x) == 2L && diff(x) >= 0L
+
             identical(names(y), nm) &&
             is.integer(ab <- unlist(y[nm[-(3:5)]])) && !any(is.na(ab)) &&
-            length(y$tar.rng) == 2L && diff(y$tar.rng) >= 0L &&
-            length(y$cur.rng) == 2L && diff(y$cur.rng) >= 0L &&
-            length(y$tar.rng.trim) == 2L && diff(y$tar.rng.trim) >= 0L &&
-            length(y$cur.rng.trim) == 2L && diff(y$cur.rng.trim) >= 0L
+            all(vapply(y[rng.names], valid_rng, logical(1L)))
           },
           logical(1L)
       ) }
@@ -56,21 +54,35 @@ setClass(
 setClass(
   "diffObjDiff",
   slots=c(
-    tar.obj="ANY",
-    cur.obj="ANY",
-    tar.capt="character",
+    target="ANY",                 # Actual object
+    tar.capt="character",         # The captured representation
+    tar.capt.def="charOrNULL",    # ^^, but using default print method
+    tar.banner="character",       # Banner to display
+    current="ANY",
     cur.capt="character",
-    tar.exp="ANY",
-    cur.exp="ANY",
-    mode="character",
-    diffs="diffObjDiffDiffs",
-    tar.capt.def="charOrNULL",
-    cur.capt.def="charOrNULL"
+    cur.capt.def="charOrNULL",
+    cur.banner="character",
+    mode="character",             # diff output mode
+    context="integer",
+    hunk.limit="integer",
+    line.limit="integer",
+    disp.width="integer",
+    use.ansi="logical",
+    max.diffs="integer",          # after how many differences should we give up
+    max.diffs.in.hunk="integer",  # give up threshold for hunk-hunk comparison
+    # give up threshold for word diff on wrapped atomic
+    max.diffs.wrap="integer",
+    ignore.white.space="logical",
+    capt.mode="character",        # whether in print or str mode
+    frame="environment",
+    silent="logical",
+    diffs="diffObjDiffDiffs"      # line by line diffs
   ),
-  prototype=list(mode="print"),
+  prototype=list(capt.mode="print"),
   validity=function(object) {
-    if(!is.chr1(object@mode) || ! object@mode %in% c("print", "str"))
-      return("slot `mode` must be either \"print\" or \"str\"")
+    # Most of the validation is done by `check_args`
+    if(!is.chr.1L(object@capt.mode) || ! object@capt.mode %in% c("print", "str"))
+      return("slot `capt.mode` must be either \"print\" or \"str\"")
     TRUE
 } )
 setClass(
@@ -94,8 +106,10 @@ setClass(
       return("Slots `type`, `length`,  or `offset` may not contain NA values")
     if(any(c(object@type, object@length, object@offset)) < 0)
       return(
-        "Slots `type`, `length`,  and `offset` must have values greater than zero"
-      )
+        paste0(
+          "Slots `type`, `length`,  and `offset` must have values greater ",
+          "than zero"
+      ) )
     TRUE
   }
 )

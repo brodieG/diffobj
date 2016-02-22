@@ -165,17 +165,22 @@ setMethod("summary", "diffObjMyersMbaSes",
 # elements that match and those that don't as a unitizerDiffDiffs object
 
 char_diff <- function(
-  x, y, context=-1L, white.space=white.space, mode=mode
+  x, y, context=-1L, ignore.white.space=ignore.white.space, mode=mode
 ) {
-  if(!white.space) {
+  if(ignore.white.space) {
     sub.pat <- "(\t| )"
     pat.1 <- sprintf("^%s*|%s*$", sub.pat, sub.pat)
     pat.2 <- sprintf("%s+", sub.pat)
-    x <- gsub(pat.2, " ", gsub(pat.1, "", x))
-    y <- gsub(pat.2, " ", gsub(pat.1, "", y))
+    x.w <- gsub(pat.2, " ", gsub(pat.1, "", x))
+    y.w <- gsub(pat.2, " ", gsub(pat.1, "", y))
   }
-  hunks <- as.hunks(diff_myers_mba(x, y), context=context, mode=mode)
-  new("diffObjDiffDiffs", white.space=white.space, hunks=hunks)
+  diff <- diff_myers_mba(x.w, y.w)
+  if(ignore.white.space) {
+    diff@a <- x
+    diff@b <- y
+  }
+  hunks <- as.hunks(diff, context=context, mode=mode)
+  new("diffObjDiffDiffs", hunks=hunks)
 }
 # Helper function encodes matches within mismatches so that we can later word
 # diff the mismatches

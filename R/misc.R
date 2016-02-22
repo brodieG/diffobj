@@ -1,3 +1,18 @@
+# Compute display width in characters
+#
+# Note this does not account for the padding required
+
+calc_width <- function(width, mode) {
+  stopifnot(
+    is.numeric(width), length(width) == 1L, !is.na(width), is.finite(width),
+    width >= 0L,
+    is.character(mode), mode %in% c("context", "unified", "sidebyside")
+  )
+  width <- as.integer(width)
+  width.tmp <- if(mode == "sidebyside")
+    as.integer(floor((width - 2)/ 2)) else width
+  as.integer(max(20L, width.tmp))
+}
 # Common argument check functions; note that the `stop` message reports as the
 # parent system call
 
@@ -66,71 +81,100 @@ check_mode <- function(mode) {
   }
   mode
 }
+# for checking the limits; for use exclusively within `check_args`
+#
+# run exclusively for side effects (throwing an error, or assigning value in
+# parent env of 'check_args').
 
-# Functions copied over from `unitizer`, will be deleted for the most
-# part
+check_limit <- function(limit, type) {
+  if(
+    !is.numeric(limit) || any(is.na(limit)) ||
+    !length(limit) %in% 1:2 ||
+    !is.finite(limit) ||
+    round(limit) != limit ||
+    (length(limit) == 2L && diff(limit) > 0)
+  ) {
+    msg <- paste0(
+      "Argument `%s` must be an integer vector of length 1 or 2 ",
+      "and if length 2, with the first ",
+      "value larger than or equal to the second."
+    )
+    stop(sprintf(msg, type), call=sys.call(-2L))
+  }
+  limit <- as.integer(limit)
+  if(length(limit) == 1L) limit <- rep(limit, 2L)
+  limit
+}
+# Checks common arguments across functions
+#
+# Note: this will modify the value of some of the arguments in the parent
+# environment
 
-is.chr.vec <- function(x) is.character(x) && is.null(attributes(x))
+check_args <- function(vals) {
+  call <- sys.call(-2L)
 
-is.chr1 <- function(x) is.character(x) && length(x) == 1L && !is.na(x)
+  # check modes
+
+  val.modes <- c("context", "unified", "sidebyside")
+  if(
+    !is.character(vals$mode) || length(vals$mode) != 1L || is.na(vals$mode) ||
+    !vals$mode %in% val.modes
+  ) {
+    msg <- paste0(
+      "Argument `mode` must be character(1L) and in `", deparse(val.modes), "`."
+    )
+    stop(simpleError(msg, call=call))
+  }
+  # check limits (has side effects)
+
+  limits <- c("line.limit", "hunk.limit")
+  vals[limits] <- Map(check_limit, vals[limits], limits)
+
+  # check integer 1L args
+
+  int1L.vars <- c(
+    "context", "disp.width", "max.diffs", "max.diffs.in.hunk", "max.diffs.wrap"
+  )
+  msg.base <- "Argument `%s` must be integer(1L) and not NA."
+  vals[int1L.vars] <- lapply(
+    int1L.vars,
+    function(x)
+      if(!is.int.1L(vals[[x]])) {
+        stop(simpleError(sprintf(msg.base, x), call=call))
+      } else as.integer(vals[[x]])
+  )
+  # check T F args
+
+  msg.base <- "Argument `%s` must be TRUE or FALSE"
+  lapply(
+    c("use.ansi", "ignore.white.space", "silent"),
+    function(x)
+      if(!is.TF(vals[[x]])) stop(simpleError(sprintf(msg.base, x), call=call))
+  )
+  # check char 1L
+
+  msg.base <- "Argument `%s` must be character(1L) and not NA"
+  lapply(
+    c("tar.banner", "cur.banner"),
+    function(x)
+      if(!is.chr.1L(vals[[x]]))
+        stop(simpleError(sprintf(msg.base, x), call=call))
+  )
+  # frame
+
+  if(!is.environment(vals$frame))
+    stop(simpleError("Argument `frame` must be an environment.", call=call))
+
+  # Return modified args
+
+  vals
+}
+
+is.int.1L <- function(x)
+  is.numeric(x) && length(x) == 1L && !is.na(x) && x ==  round(x) &&
+  is.finite(x)
 
 is.TF <- function(x) isTRUE(x) || identical(x, FALSE)
 
-is.lgl.1L <- function(x) is.logical(x) && length(x) == 1L
+is.chr.1L <- function(x) is.character(x) && length(x) == 1L && !is.na(x)
 
-is.int.1L <- function(x)
-  is.numeric(x) && length(x) == 1L && !any(is.na(x)) && all.equal(x, round(x))
-
-is.context.out.vec <- function(x)
-  is.numeric(x) && length(x) == 2L && !any(is.na(x)) && all(x > 0) &&
-  x[1] >= x[2] && all.equal(round(x), x)
-
-is.int.pos.1L <- function(x)
-  is.numeric(x) && length(x) == 1L && !any(is.na(x)) &&
-  all.equal(x, round(x)) && all(x > 0L)
-
-is.valid_con <- function(x, file.name=NULL, readable=NA, writeable=NA) {
-  if(!is.null(file.name) && !is.chr1(file.name))
-      stop("Argument `file.name` must be NULL or a one length character vector.")
-  if(!is.lgl.1L(readable) || !is.lgl.1L(writeable))
-    stop("Arguments `readable` and `writeable` must be logical(1L)")
-
-  # Basic checks
-
-  if(!inherits(x, c("file", "connection")))
-    return("must inherit from \"file\" and \"connection\"")
-  if(!is.integer(x)) return("must be an integer")
-  if(inherits(try(x.chr <- as.character(x)), "try-error"))
-    return("cannot retrieve connection name to test")
-  cons <- showConnections(all=TRUE)
-  if(!isTRUE(x.chr %in% rownames(cons)))
-    return("connection does not exist in `showConnections`")
-
-  # Check r/w status
-
-  rw <- list(writeable=writeable, readable=readable)
-  rw.s <- list(writeable="write", readable="read")
-  for(i in names(rw))
-    if(!is.na(rw[[i]]))
-      if(
-        (cons[x.chr, sprintf("can %s", rw.s[[i]])] == "yes") != rw[[i]]
-      )
-        return(
-          cc(
-            "connection is ", if(rw[[i]]) "not ", i, " but should ",
-            if(!rw[[i]]) "not ", "be ", i
-        ) )
-
-  # Match file name
-
-  if(!is.null(file.name)) {
-    if(!identical(file.name, cons[x.chr, "description"]))
-      return("file name does not match connection description")
-  }
-  return(TRUE)
-}
-is.open_con <- function(x, file=NULL, readable=NA, writeable=NA) {
-  if(!isTRUE(msg <- is.valid_con(x, file, readable, writeable))) return(msg)
-  if(!isOpen(x)) return("must be an open connection")
-  return(TRUE)
-}

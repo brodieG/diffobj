@@ -32,10 +32,10 @@ rng_as_chr <- function(range) {
 }
 # Convert a hunk group into text representation
 
-hunk_as_char <- function(h.g, ranges, ranges.orig, mode, use.ansi, width) {
+hunk_as_char <- function(h.g, ranges.orig, mode, use.ansi, disp.width) {
   h.ids <- vapply(h.g, "[[", integer(1L), "id")
-  tar.rng <- find_rng(h.ids, ranges.orig[1:2, ])
-  cur.rng <- find_rng(h.ids, ranges.orig[3:4, ])
+  tar.rng <- find_rng(h.ids, ranges.orig[1:2, , drop=FALSE])
+  cur.rng <- find_rng(h.ids, ranges.orig[3:4, , drop=FALSE])
 
   hh.a <- paste0("-", rng_as_chr(tar.rng))
   hh.b <- paste0("+", rng_as_chr(cur.rng))
@@ -43,8 +43,9 @@ hunk_as_char <- function(h.g, ranges, ranges.orig, mode, use.ansi, width) {
   hunk.head <- ansi_style(
     if(mode == "sidebyside") {
       paste0(
-        rpadt(sprintf("@@ %s @@", hh.a), width),
-        rpadt(sprintf("@@ %s @@", hh.b), width),
+        rpadt(sprintf("@@ %s @@", hh.a), disp.width),
+        "  ",
+        rpadt(sprintf("@@ %s @@", hh.b), disp.width),
         collapse=""
       )
     } else {
@@ -56,7 +57,7 @@ hunk_as_char <- function(h.g, ranges, ranges.orig, mode, use.ansi, width) {
 
   diff.txt <- if(mode == "context") {
     # Need to get all the A data and the B data
-    get_chr_vals <- function(h.a, ind) wrap(h.a[[ind]], width - 2L, use.ansi)
+    get_chr_vals <- function(h.a, ind) wrap(h.a[[ind]], disp.width, use.ansi)
 
     A.ctx <- unlist(
       lapply(h.g, function(h.a) rep(h.a$context, length(h.a$A.chr)))
@@ -82,7 +83,7 @@ hunk_as_char <- function(h.g, ranges, ranges.orig, mode, use.ansi, width) {
       lapply(h.g,
         function(h.a) {
           pos <- h.a$A > 0L
-          A.out <- wrap(h.a$A.chr, width - 2L, use.ansi=use.ansi)
+          A.out <- wrap(h.a$A.chr, disp.width - 2L, use.ansi=use.ansi)
           if(!h.a$context) {
             A.out[pos] <- sign_pad(A.out[pos], 3L, use.ansi=use.ansi)
             A.out[!pos] <- sign_pad(A.out[!pos], 2L, use.ansi=use.ansi)
@@ -110,15 +111,15 @@ hunk_as_char <- function(h.g, ranges, ranges.orig, mode, use.ansi, width) {
             B.out <- c(B.out, character(len.diff))
             B.present <- c(B.present, rep(FALSE, len.diff))
           }
-          A.w <- wrap(A.out, width - 2L, use.ansi=use.ansi, pad=TRUE)
-          B.w <- wrap(B.out, width - 2L, use.ansi=use.ansi, pad=TRUE)
+          A.w <- wrap(A.out, disp.width - 2L, use.ansi=use.ansi, pad=TRUE)
+          B.w <- wrap(B.out, disp.width - 2L, use.ansi=use.ansi, pad=TRUE)
 
           # Same number of els post wrap
 
           A.lens <- sum(vapply(A.w, length, integer(1L)))
           B.lens <- sum(vapply(B.w, length, integer(1L)))
           len.max <- max(A.lens, B.lens)
-          blanks <- paste0(rep(" ", width), collapse="")
+          blanks <- paste0(rep(" ", disp.width), collapse="")
 
           for(i in seq_along(len.max)) {
             if(A.lens < B.lens)
@@ -133,6 +134,7 @@ hunk_as_char <- function(h.g, ranges, ranges.orig, mode, use.ansi, width) {
                   A.w, ifelse(!h.a$context & A.present, 3L, 1L),
                   use.ansi=use.ansi
               ) ),
+              "  ",
               unlist(
                 sign_pad(
                   B.w, ifelse(!h.a$context & B.present, 2L, 1L),
@@ -144,23 +146,27 @@ hunk_as_char <- function(h.g, ranges, ranges.orig, mode, use.ansi, width) {
 #' @rdname diffobj_s4method_doc
 
 setMethod("as.character", "diffObjDiff",
-  function(x, hunk.limit, line.limit, width, use.ansi, mode, ...) {
+  function(x, ...) {
     # These checks should never fail since presumably the inputs have been
     # checked earlier; here just in case we mess something up in devel or
     # testing
 
-    context <- check_linelimit(line.limit)
-    width <- check_width(width)
-    mode <- check_mode(mode)
-    white.space <- x@diffs@white.space
+    hunk.limit <- x@hunk.limit
+    line.limit <- x@line.limit
+    hunk.limit <- x@hunk.limit
+    disp.width <- x@disp.width
+    mode <- x@mode
+    use.ansi <- x@use.ansi
+    ignore.white.space <- x@ignore.white.space
 
     len.max <- max(length(x@tar.capt), length(x@cur.capt))
     if(!any(x)) {
       msg <- "No visible differences between objects."
-      if(!x@diffs@white.space && !identical(x@tar.capt, x@cur.capt)) {
+      if(!ignore.white.space && !identical(x@tar.capt, x@cur.capt)) {
         msg <- paste0(
           "Only visible differences between objects are horizontal white ",
-          "spaces. You can re-run diff with `white.space=TRUE` to show them."
+          "spaces. You can re-run diff with `ignore.white.space=FALSE` to show ",
+          "them."
         )
       }
       return(
@@ -170,34 +176,31 @@ setMethod("as.character", "diffObjDiff",
     ) ) }
     # Basic width computation and banner size
 
-    if(mode == "sidebyside") {
-      banner.len <- 1L
-      max.w <-  max(floor(width / 2), 20L)
-    } else {
-      banner.len <- 2L
-      max.w <- max(width, 20L)
-    }
-    line.limit <- pmax(integer(2L), line.limit - banner.len)
+    banner.len <- if(mode == "sidebyside") 1L else 2L
+    max.w <- calc_width(disp.width, mode)
+
+    if(line.limit[[1L]] >= 0L)
+      line.limit <- pmax(integer(2L), line.limit - banner.len)
 
     # Trim hunks to the extent need to make sure we fit in lines; start by
     # dropping hunks beyond hunk limit
 
     hunk.grps <- trim_hunks(
-      x@diffs@hunks, mode=mode, width=max.w, line.limit=line.limit,
+      x@diffs@hunks, mode=mode, disp.width=max.w, line.limit=line.limit,
       hunk.limit=hunk.limit, use.ansi=use.ansi
     )
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
 
     # Make the object banner and compute more detailed widths post trim
 
-    banner.A <- paste0("--- ", deparse(x@tar.exp)[[1L]])
-    banner.B <- paste0("+++ ", deparse(x@cur.exp)[[1L]])
+    banner.A <- paste0("--- ", x@tar.banner)
+    banner.B <- paste0("+++ ", x@cur.banner)
 
     if(mode == "sidebyside") {
       # If side by side we want stuff close together if reasonable
       max.col.w <- max(
         unlist(lapply(hunks.flat, function(x) nchar(c(x$A.chr, x$B.chr))))
-      )
+      ) + 2L
       max.w <- if(max.col.w < max.w) max(15L, max.col.w) else max.w
       comb.fun <- paste0
       t.fun <- rpadt
@@ -207,11 +210,13 @@ setMethod("as.character", "diffObjDiff",
     }
     banner <- comb.fun(
       ansi_style(t.fun(banner.A, max.w), "red", use.ansi),
+      if(mode == "sidebyside") "  ",
       ansi_style(t.fun(banner.B, max.w), "green", use.ansi)
     )
     # Trim banner if exceeds line limit, and adjust line limit for banner size
 
-    if(line.limit[[1L]] < banner.len) length(banner) <- line.limit[[2L]]
+    if(line.limit[[1L]] >= 0 && line.limit[[1L]] < banner.len)
+      length(banner) <- line.limit[[2L]]
 
     # Post trim, figure out max lines we could possibly be showing from capture
     # strings; careful with ranges,
@@ -239,7 +244,7 @@ setMethod("as.character", "diffObjDiff",
       integer(4L)
     )
     ranges.orig <- vapply(
-      hunks.flat, function(h.a) c(h.a$tar.rng, h.a$cur.rng), integer(4L)
+      hunks.flat, function(h.a) c(h.a$tar.rng.sub, h.a$cur.rng.sub), integer(4L)
     )
     tar.max <- max(ranges[2L, ], 0L)
     cur.max <- max(ranges[4L, ], 0L)
@@ -254,7 +259,8 @@ setMethod("as.character", "diffObjDiff",
     tar.rest <- show.range.tar <- seq_len(tar.max)
 
     if(
-      identical(x@mode, "print") && identical(x@tar.capt, x@tar.capt.def) &&
+      identical(x@capt.mode, "print") &&
+      identical(x@tar.capt, x@tar.capt.def) &&
       identical(x@cur.capt, x@cur.capt.def)
     ) {
       # Separate out the stuff that can wrap (starts with index headers vs. not),
@@ -277,8 +283,9 @@ setMethod("as.character", "diffObjDiff",
         body.diff <- diff_word(
           regmatches(x@tar.capt[tar.head], tar.body),
           regmatches(x@cur.capt[cur.head], cur.body),
-          across.lines=TRUE, white.space=white.space,
-          match.quotes=is.chr.vec(x@tar.obj) && is.chr.vec(x@cur.obj)
+          ignore.white.space=ignore.white.space,
+          match.quotes=is.character(x@target) && is.character(x@current),
+          use.ansi=use.ansi
         )
         regmatches(x@tar.capt[tar.head], tar.body) <- body.diff$target
         regmatches(x@cur.capt[cur.head], cur.body) <- body.diff$current
@@ -293,11 +300,18 @@ setMethod("as.character", "diffObjDiff",
 
         x.r.h <- new(
           "diffObjDiff", tar.capt=tar.r.h.txt, cur.capt=cur.r.h.txt,
-          diffs=char_diff(tar.r.h.txt, cur.r.h.txt, white.space=white.space)
+          diffs=char_diff(
+            tar.r.h.txt, cur.r.h.txt, ignore.white.space=ignore.white.space,
+            mode="context"
+          )
         )
-        x.r.h.color <- diffColor(x.r.h, use.ansi=use.ansi)
+        x.r.h.color <- diffColor(x.r.h@diffs, use.ansi=use.ansi)
         regmatches(x@tar.capt[tar.head], tar.r.h) <- x.r.h.color$A
         regmatches(x@cur.capt[cur.head], cur.r.h) <- x.r.h.color$B
+
+        # Update the character values in the hunks proper
+
+        hunk.grps <- update_hunks(hunk.grps, x@tar.capt, x@cur.capt)
 
         # Everything else gets a normal hunk by hunk word diff
 
@@ -334,10 +348,10 @@ setMethod("as.character", "diffObjDiff",
           B.neg <- which(h.a$B < 0L)
 
           A.new <- c(h.a$A.chr[A.pos], h.a$B.chr[B.pos])
-          B.new  <- c(h.a$A.chr[A.neg], h.a$B.chr[B.neg])
+          B.new <- c(h.a$A.chr[A.neg], h.a$B.chr[B.neg])
 
           new.diff <- diff_word(
-            A.new, B.new, across.lines=TRUE, white.space=white.space,
+            A.new, B.new, ignore.white.space=ignore.white.space,
             use.ansi=use.ansi
           )
           h.a$A.chr[A.pos] <- new.diff$target[seq_along(A.pos)]
@@ -350,8 +364,8 @@ setMethod("as.character", "diffObjDiff",
     # Process the actual hunks into character
 
     out <- lapply(
-      hunk.grps, hunk_as_char, ranges=ranges, ranges.orig=ranges.orig,
-      mode=mode, use.ansi=use.ansi, width=max.w
+      hunk.grps, hunk_as_char, ranges.orig=ranges.orig,
+      mode=mode, use.ansi=use.ansi, disp.width=max.w
     )
     # Finalize
 

@@ -15,6 +15,10 @@
 #   values reference strings from the original target string, and negative ones
 #   from the current string.
 #
+#   In addition to the indices referencing the original character vectors, the
+#   actual character values are also retained, though these may be modified
+#   over the course of processing by being wrapped, having colors added, etc.
+#
 #   Important: context atomic hunks are duplicated anytime there is enough
 #   context that we only show part of the context hunk.
 #
@@ -23,7 +27,7 @@
 #   2. if not, positive values are "target" strings, negative "current strings"
 #   3. the range of the hunks is also stored as tar.rng and cur.rng; mostly
 #      inferrable from the actual data in the hunks, except that in unified
-#      mode we no longer have the actual context strings from the current
+#      mode we no longer have the actual context strings from the `current`
 #      vector.
 
 setGeneric("as.hunks", function(x, ...) standardGeneric("as.hunks"))
@@ -53,6 +57,7 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
           id=1L, A=integer(0L), B=integer(0L), A.chr=character(0L),
           B.chr=character(0L), context=FALSE,
           tar.rng=integer(2L), cur.rng=integer(2L),
+          tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
           tar.rng.trim=integer(2L), cur.rng.trim=integer(2L)
         )
       )
@@ -117,8 +122,9 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
 
           list(
             id=i, A=A, B=B, A.chr=A.chr, B.chr=B.chr, context=context,
-            tar.rng=tar.rng, cur.rng=cur.rng, tar.rng.trim=tar.rng,
-            cur.rng.trim=cur.rng
+            tar.rng=tar.rng, cur.rng=cur.rng,
+            tar.rng.sub=tar.rng, cur.rng.sub=cur.rng,
+            tar.rng.trim=tar.rng, cur.rng.trim=cur.rng
           )
     } ) }
     # group hunks together based on context
@@ -142,25 +148,18 @@ hunk_sub <- function(hunk, op, n) {
 
     # Need to recompute ranges
 
-    if(!n) {
-      # hunk$tar.rng <- hunk$cur.rng <-
-      hunk$tar.rng.trim <- hunk$cur.rng.trim <- integer(2L)
-    } else if(op == "tail") {
-      # hunk$tar.rng[[1L]] <-
-      hunk$tar.rng.trim[[1L]] <-
-        hunk$tar.rng.trim[[1L]] + len.diff
-      # hunk$cur.rng[[1L]] <-
-      hunk$cur.rng.trim[[1L]] <-
-        hunk$cur.rng.trim[[1L]] + len.diff
-    } else {
-      # hunk$tar.rng[[2L]] <-
-      hunk$tar.rng.trim[[2L]] <-
-        hunk$tar.rng.trim[[2L]] - len.diff
-      # hunk$cur.rng[[2L]] <-
-      hunk$cur.rng.trim[[2L]] <-
-        hunk$cur.rng.trim[[2L]] - len.diff
-    }
-  }
+    if(n) {
+      if(op == "tail") {
+        hunk$tar.rng.trim[[1L]] <- hunk$tar.rng.sub[[1L]] <-
+          hunk$tar.rng[[1L]] + len.diff
+        hunk$cur.rng.trim[[1L]] <- hunk$cur.rng.sub[[1L]] <-
+          hunk$cur.rng[[1L]] + len.diff
+      } else {
+        hunk$tar.rng.trim[[2L]] <- hunk$tar.rng.sub[[2L]] <-
+          hunk$tar.rng[[2L]] - len.diff
+        hunk$cur.rng.trim[[2L]] <- hunk$cur.rng.sub[[2L]] <-
+          hunk$cur.rng[[2L]] - len.diff
+  } } }
   hunk
 }
 # Figure Out Context for Each Chunk
@@ -254,18 +253,17 @@ process_hunks <- function(x, context) {
 #
 # NOTE: need to account for multi-space characters and escape sequences
 
-get_hunk_chr_lens <- function(hunk.grps, mode, width, use.ansi) {
+get_hunk_chr_lens <- function(hunk.grps, mode, disp.width, use.ansi) {
   # Account for overhead / side by sideness in width calculations
-  if(mode == "sidebyside")
-    width <- max(floor(width - 3L / 2L), 20L) else width <- width - 2L
+  max.w <- calc_width(disp.width, mode) - 2L
   # Internal funs
   hunk_len <- function(hunk.id, hunks) {
     hunk <- hunks[[hunk.id]]
     A.lines <- as.integer(
-      ceiling(ansi_style_nchar(hunk$A.chr, use.ansi) / width)
+      ceiling(ansi_style_nchar(hunk$A.chr, use.ansi) / disp.width)
     )
     B.lines <- as.integer(
-      ceiling(ansi_style_nchar(hunk$B.chr, use.ansi) / width)
+      ceiling(ansi_style_nchar(hunk$B.chr, use.ansi) / disp.width)
     )
     # Depending on each mode, figure out how to set up the lines;
     # straightforward except for context where we need to account for the
@@ -340,15 +338,17 @@ trim_hunk <- function(hunk, type, line.id) {
   hunk
 }
 trim_hunks <- function(
-  hunk.grps, mode, width, hunk.limit, line.limit, use.ansi
+  hunk.grps, mode, disp.width, hunk.limit, line.limit, use.ansi
 ) {
   hunk.grps.count <- length(hunk.grps)
-  if(hunk.limit < 0L) hunk.limit <- hunk.grps.count
-  hunk.grps.omitted <- max(0L, hunk.grps.count - hunk.limit)
-  hunk.grps.used <- min(hunk.grps.count, hunk.limit)
+  if(hunk.limit[[1L]] < 0L) hunk.limit <- rep(hunk.grps.count, 2L)
+  hunk.limit.act <- if(hunk.grps.count > hunk.limit[[1L]]) hunk.limit[[2L]]
+
+  hunk.grps.omitted <- max(0L, hunk.grps.count - hunk.limit.act)
+  hunk.grps.used <- min(hunk.grps.count, hunk.limit.act)
   hunk.grps <- hunk.grps[seq_len(hunk.grps.used)]
 
-  lines <- get_hunk_chr_lens(hunk.grps, mode, width, use.ansi)
+  lines <- get_hunk_chr_lens(hunk.grps, mode, disp.width, use.ansi)
   cum.len <- cumsum(abs(lines[, "len"]))
   cut.off <- -1L
   lines.omitted <- 0L
@@ -419,4 +419,28 @@ trim_hunks <- function(
     hunks=c(hunk.grps.omitted, hunk.grps.count)
   )
   hunk.grps
+}
+# Modify Character Values of Hunks
+#
+# Used to highlight words in wrap diffs after the main diff has been done.  This
+# is quite a hack job and should probably be handled more elegantly, but at this
+# point it is the simplest way to get old functionality back up and running
+# under the hunk view of the world.
+
+update_hunks <- function(hunk.grps, A.chr, B.chr) {
+  lapply(
+    hunk.grps,
+    function(h.g)
+      lapply(
+        h.g,
+        function(h.a) {
+          a.neg <- h.a$A < 0
+          b.neg <- h.a$B < 0
+          h.a$A.chr[a.neg] <- B.chr[abs(h.a$A[a.neg])]
+          h.a$A.chr[!a.neg] <- A.chr[h.a$A[!a.neg]]
+          h.a$B.chr[b.neg] <- B.chr[abs(h.a$B[b.neg])]
+          h.a$B.chr[!b.neg] <- A.chr[h.a$B[!b.neg]]
+          h.a
+        }
+  ) )
 }
