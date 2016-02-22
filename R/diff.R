@@ -421,40 +421,46 @@ diff_str <- diff_tpl; body(diff_str)[[4L]] <- quote({
 
     prev.lvl <- 0L
     lvl <- 1L
+    max.w <- calc_width(disp.width, mode)
     repeat{
       if(lvl > 100) lvl <- NA # safety valve
       obj.add.capt.str <-
-        obj_capt(current, width - 3L, frame, mode="str", max.level=lvl)
+        obj_capt(current, max.w - 2L, frame, mode="str", max.level=lvl)
       obj.rem.capt.str <-
-        obj_capt(target, width - 3L, frame, mode="str", max.level=lvl)
+        obj_capt(target, max.w - 2L, frame, mode="str", max.level=lvl)
       str.len.min <- min(length(obj.add.capt.str), length(obj.rem.capt.str))
       str.len.max <- max(length(obj.add.capt.str), length(obj.rem.capt.str))
 
       # Overshot full displayable size; check to see if previous iteration had
       # differences
 
-      if(str.len.max > max.lines && lvl > 1L && any(diffs.str)) {
-        obj.add.capt.str <- obj.add.capt.str.prev
-        obj.rem.capt.str <- obj.rem.capt.str.prev
+      if(line.limit[[1L]] < 0) {
         break
-      }
-      # Other break conditions
+      } else {
+        max.lines <- line.limit[[2L]]
+        if(str.len.max > max.lines && lvl > 1L && any(diffs.str)) {
+          obj.add.capt.str <- obj.add.capt.str.prev
+          obj.rem.capt.str <- obj.rem.capt.str.prev
+          break
+        }
+        # Other break conditions
 
-      if(is.na(lvl) || lvl >= max.level) break
-      if(
-        identical(obj.add.capt.str.prev, obj.add.capt.str) &&
-        identical(obj.rem.capt.str.prev, obj.rem.capt.str)
-      ) {
-        lvl <- prev.lvl
-        break
-      }
-      # Run differences and iterate
+        if(is.na(lvl) || lvl >= max.level) break
+        if(
+          identical(obj.add.capt.str.prev, obj.add.capt.str) &&
+          identical(obj.rem.capt.str.prev, obj.rem.capt.str)
+        ) {
+          lvl <- prev.lvl
+          break
+        }
+        # Run differences and iterate
 
-      diffs.str <- char_diff(obj.rem.capt.str, obj.add.capt.str, white.space)
-      obj.add.capt.str.prev <- obj.add.capt.str
-      obj.rem.capt.str.prev <- obj.rem.capt.str
-      prev.lvl <- lvl
-      lvl <- lvl + 1
+        diffs.str <- char_diff(obj.rem.capt.str, obj.add.capt.str, white.space)
+        obj.add.capt.str.prev <- obj.add.capt.str
+        obj.rem.capt.str.prev <- obj.rem.capt.str
+        prev.lvl <- lvl
+        lvl <- lvl + 1
+      }
     }
     tar.capt <<- obj.rem.capt.str
     cur.capt <<- obj.add.capt.str
