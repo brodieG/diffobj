@@ -1,3 +1,22 @@
+# Compute list depth including attributes
+#
+# These should line up with the max.level param of `str`
+
+list_depth <- function(x, depth=0L) {
+  max.lvl <- max.lvl.l <- max.lvl.a <- depth
+  depth <- depth + 1L
+  if(is.list(x)) {
+    max.lvl.l <- max(
+      unlist(lapply(x, list_depth, depth=depth), recursive=TRUE), depth
+    )
+  }
+  if(length(attrs <- attributes(x))) {
+    max.lvl.a <- max(
+      unlist(lapply(attrs, list_depth, depth=depth), recursive=TRUE), depth
+    )
+  }
+  max(max.lvl.l, max.lvl.a)
+}
 # Compute display width in characters
 #
 # Note this does not account for the padding required
