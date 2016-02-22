@@ -111,7 +111,7 @@ check_limit <- function(limit, type) {
 # environment
 
 check_args <- function(vals) {
-  call <- sys.call(-1L)
+  call <- sys.call(-2L)
 
   # check modes
 
