@@ -1,3 +1,13 @@
+# Calculate how many lines of screen space are taken up by the diff hunks
+#
+# `disp.width` should be the available display width, this function computes
+# the net real estate account for mode, padding, etc.
+
+nlines <- function(txt, disp.width, mode, use.ansi) {
+  stopifnot(is.character(txt), all(!is.na(txt)))
+  net.width <- calc_width_pad(disp.width, mode)
+  as.integer(ceiling(ansi_style_nchar(txt, use.ansi) / net.width))
+}
 # Simple text manip functions
 
 chr_trim <- function(text, width) {

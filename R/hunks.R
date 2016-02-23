@@ -255,16 +255,12 @@ process_hunks <- function(x, context) {
 
 get_hunk_chr_lens <- function(hunk.grps, mode, disp.width, use.ansi) {
   # Account for overhead / side by sideness in width calculations
-  max.w <- calc_width(disp.width, mode) - 2L
   # Internal funs
   hunk_len <- function(hunk.id, hunks) {
     hunk <- hunks[[hunk.id]]
-    A.lines <- as.integer(
-      ceiling(ansi_style_nchar(hunk$A.chr, use.ansi) / disp.width)
-    )
-    B.lines <- as.integer(
-      ceiling(ansi_style_nchar(hunk$B.chr, use.ansi) / disp.width)
-    )
+    A.lines <- nlines(hunk$A.chr, disp.width, mode, use.ansi)
+    B.lines <- nlines(hunk$B.chr, disp.width, mode, use.ansi)
+
     # Depending on each mode, figure out how to set up the lines;
     # straightforward except for context where we need to account for the
     # fact that all the A of a hunk group are shown first, and then all
