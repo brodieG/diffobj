@@ -355,9 +355,9 @@ diff_tpl <- function(
   list2env(
     check_args(as.list(environment())), envir=environment()
   )
-  tar.capt <- tar.capt.def <- cur.capt <- cur.capt.def <- NULL
+  tar.capt <- tar.capt.def <- cur.capt <- cur.capt.def <- diffs <- NULL
   NULL         # line where we will insert code
-  diffs <- char_diff(
+  if(is.null(diffs)) diffs <- char_diff(
     cur.capt, tar.capt, context=context, ignore.white.space=ignore.white.space,
     mode=mode
   )
@@ -419,51 +419,84 @@ diff_str <- diff_tpl; body(diff_str)[[4L]] <- quote({
     obj.add.capt.str <- obj.rem.capt.str <- obj.add.capt.str.prev <-
       obj.rem.capt.str.prev <- character()
 
-    prev.lvl <- 0L
-    lvl <- 1L
-    max.w <- calc_width(disp.width, mode)
+    pad.width <- calc_width_pad(disp.width, mode)
+    lvl <- NA # run full display first
+    nlines_2 <- function(x) nlines(x, disp.width, mode, use.ansi)
+    has.diff <- has.diff.prev <- FALSE
+
+    tar.depth <- list_depth(target)
+    cur.depth <- list_depth(current)
+    prev.lvl.hi <- max.depth <- max(tar.depth, cur.depth)
+    prev.lvl.lo <- 0L
+    first.loop <- TRUE
+    safety <- 0L
+
     repeat{
-      if(lvl > 100 || line.limit[[1L]] < 0) lvl <- NA # safety valve
-      obj.add.capt.str <-
-        obj_capt(current, max.w - 2L, frame, mode="str", max.level=lvl)
-      obj.rem.capt.str <-
-        obj_capt(target, max.w - 2L, frame, mode="str", max.level=lvl)
-      str.len.min <- min(length(obj.add.capt.str), length(obj.rem.capt.str))
-      str.len.max <- max(length(obj.add.capt.str), length(obj.rem.capt.str))
+      if((safety <- safety + 1L) > max.depth)
+        stop(
+          "Logic Error: exceed list depth when comparing structures; contact ",
+          "maintainer."
+        )
+      tar.capt <- obj_capt(current, pad.width, frame, mode="str", max.level=lvl)
+      cur.capt <- obj_capt(target, pad.width, frame, mode="str", max.level=lvl)
 
-      # Overshot full displayable size; check to see if previous iteration had
-      # differences
+      diffs.str <- char_diff(
+        cur.capt, tar.capt, context=context,
+        ignore.white.space=ignore.white.space, mode=mode
+      )
+      has.diff <- any(
+        !vapply(
+          unlist(diffs.str@hunks, recursive=FALSE), "[[", logical(1L), "context"
+      ) )
+      if(first.loop) {
+        # If there are no differences reducing levels isn't going to help to
+        # find one
 
-      if(line.limit[[1L]] < 0 || is.na(lvl)) {
-        break
-      } else {
-        max.lines <- line.limit[[2L]]
-        if(str.len.max > max.lines && lvl > 1L && any(diffs.str)) {
-          obj.add.capt.str <- obj.add.capt.str.prev
-          obj.rem.capt.str <- obj.rem.capt.str.prev
-          break
-        }
-        # Other break conditions
-
-        if(is.na(lvl) || lvl >= max.level) break
-        if(
-          identical(obj.add.capt.str.prev, obj.add.capt.str) &&
-          identical(obj.rem.capt.str.prev, obj.rem.capt.str)
-        ) {
-          lvl <- prev.lvl
-          break
-        }
-        # Run differences and iterate
-
-        diffs.str <- char_diff(obj.rem.capt.str, obj.add.capt.str, white.space)
-        obj.add.capt.str.prev <- obj.add.capt.str
-        obj.rem.capt.str.prev <- obj.rem.capt.str
-        prev.lvl <- lvl
-        lvl <- lvl + 1
+        if(!has.diff) break
+        tar.capt.max <- tar.capt
+        cur.capt.max <- cur.capt
+        diffs.max <- diffs.str
+        first.loop <- FALSE
       }
+      if(line.limit[[1L]] < 1L) break
+
+      line.len <- max(nlines2(tar.capt), nlines2(cur.capt))
+
+      # We need a higher level if we don't have diffs
+
+      if(!has.diff && prev.lvl.hi - lvl > 1L) {
+        prev.lvl.lo <- lvl
+        lvl <- lvl + as.integer((prev.lvl.hi - lvl) / 2)
+        next
+      } else if(!has.diff) {
+        tar.capt <- tar.capt.max
+        tar.capt <- tar.capt.max
+        diffs.str <- diffs.max
+        break
+      }
+      # If we have diffs, need to check whether we should try to reduce lines
+      # to get under line limit
+
+      if(line.len <= line.limit[[1L]]) {
+        # We fit, nothing else to do
+        break
+      }
+      if(lvl - prev.lvl.lo > 1L) {
+        prev.lvl.hi <- lvl
+        lvl <- lvl - as.integer((lvl - prev.lvl.lo) / 2)
+        next
+      }
+      # Couldn't get under limit, so use first run results
+
+      tar.capt <- tar.capt.max
+      tar.capt <- tar.capt.max
+      diffs.str <- diffs.max
     }
-    tar.capt <<- obj.rem.capt.str
-    cur.capt <<- obj.add.capt.str
+    # Modify the actual capture variables defined in the template function
+
+    tar.capt <<- tar.capt
+    cur.capt <<- cur.capt
+    diffs <<- diffs.str
   })
 })
 #' @rdname diff_obj
