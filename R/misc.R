@@ -32,6 +32,13 @@ calc_width <- function(width, mode) {
     as.integer(floor((width - 2)/ 2)) else width
   as.integer(max(20L, width.tmp))
 }
+calc_width_pad <- function(width, mode) {
+  stopifnot(
+    is.character(mode), mode %in% c("context", "unified", "sidebyside")
+  )
+  width.tmp <- calc_width(width, mode)
+  width.tmp - if(mode == "sidebyside") 2L else 2L # happens to be same now
+}
 # Common argument check functions; note that the `stop` message reports as the
 # parent system call
 
