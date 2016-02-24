@@ -449,33 +449,32 @@ diff_str <- diff_tpl; body(diff_str)[[9L]] <- quote({
       call=as.call(c(list(quote(str), object=NULL), dots)), envir=frame
   ) )
   names(str.match)[[2L]] <- ""
-  max.level <- if(
+  auto.mode <- FALSE
+  max.level.supplied <- FALSE
+  if(
     max.level.pos <- match("max.level", names(str.match), nomatch=0L)
   ) {
-    tryCatch(
+    # max.level exited in call; check for special 'auto' case
+    res <- tryCatch(
       eval(str.match$max.level, envir=par.frame),
       error=function(e)
         err("Error evaluating `max.level` arg: ", conditionMessage(e))
     )
-    max.level.supplied <- TRUE
+    if(identical(res, "auto")) {
+      str.match[["max.level"]] <- NA
+      auto.mode <- TRUE
+    } else {
+      max.level.supplied <- TRUE
+    }
   } else {
-    max.level <- NA
-    str.match <- append(str.match, NA)
+    str.match[["max.level"]] <- NA
     max.level.pos <- length(str.match)
     max.level.supplied <- FALSE
-    names(str.match)[[max.level.pos]] <- "max.level"
   }
-  auto.mode <- identical(max.level, "auto")
-
-  tar.call <- cur.call <- str.match
-  tar.call[[2L]] <- tar.exp
-  cur.call[[2L]] <- cur.exp
-  if(is.null(tar.banner)) tar.banner <- deparse(tar.call)[[1L]]
-  if(is.null(cur.banner)) cur.banner <- deparse(cur.call)[[1L]]
-
   # don't want to evaluate target and current more than once, so can't eval
   # tar.exp/cur.exp
 
+  tar.call <- cur.call <- str.match
   tar.call[[2L]] <- target
   cur.call[[2L]] <- current
 
@@ -534,6 +533,8 @@ diff_str <- diff_tpl; body(diff_str)[[9L]] <- quote({
     if(!has.diff && prev.lvl.hi - lvl > 1L) {
       prev.lvl.lo <- lvl
       lvl <- lvl + as.integer((prev.lvl.hi - lvl) / 2)
+      tar.call[[max.level.pos]] <- lvl
+      cur.call[[max.level.pos]] <- lvl
       next
     } else if(!has.diff) {
       tar.capt <- tar.capt.max
@@ -551,6 +552,8 @@ diff_str <- diff_tpl; body(diff_str)[[9L]] <- quote({
     if(lvl - prev.lvl.lo > 1L) {
       prev.lvl.hi <- lvl
       lvl <- lvl - as.integer((lvl - prev.lvl.lo) / 2)
+      tar.call[[max.level.pos]] <- lvl
+      cur.call[[max.level.pos]] <- lvl
       next
     }
     # Couldn't get under limit, so use first run results
@@ -560,6 +563,17 @@ diff_str <- diff_tpl; body(diff_str)[[9L]] <- quote({
     diffs.str <- diffs.max
   }
   diffs <- diffs.str
+
+  if(auto.mode) {
+    str.match[[max.level.pos]] <- lvl
+  } else if (!max.level.supplied) {
+    str.match[[max.level.pos]] <- NULL
+  }
+  tar.call <- cur.call <- str.match
+  tar.call[[2L]] <- tar.exp
+  cur.call[[2L]] <- cur.exp
+  if(is.null(tar.banner)) tar.banner <- deparse(tar.call)[[1L]]
+  if(is.null(cur.banner)) cur.banner <- deparse(cur.call)[[1L]]
 } )
 #' @rdname diff_obj
 #' @export
