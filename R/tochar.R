@@ -176,7 +176,7 @@ setMethod("as.character", "diffObjDiff",
     ) ) }
     # Basic width computation and banner size
 
-    banner.len <- if(mode == "sidebyside") 1L else 2L
+    banner.len <- banner_len(mode)
     max.w <- calc_width(disp.width, mode)
 
     if(line.limit[[1L]] >= 0L)

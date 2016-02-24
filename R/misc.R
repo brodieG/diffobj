@@ -1,3 +1,5 @@
+banner_len <- function(mode) if(mode == "sidebyside") 1L else 2L
+
 # Compute list depth including attributes
 #
 # These should line up with the max.level param of `str`
