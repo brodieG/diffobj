@@ -330,9 +330,6 @@ NULL
 # - All the formals are defined in a separate dummy function `diff_tpl`
 # - We copy this dummy function for each of our actual functions, and change
 #   the bodies
-# - Within the bodies, make sure that the environment itself only has variables
-#   defined that will be re-used in our instantiation of our diff object
-#   (hence you'll see calls to `local` to avoid polluting the environment)
 
 diff_tpl <- function(
   target, current, mode=getOption("diffobj.mode"),
@@ -350,13 +347,24 @@ diff_tpl <- function(
   frame=parent.frame(),
   ...
 ) {
-  # Check arguments and update function environment with "fixed" args
+  # Sub expressions before we touch any of the variables
 
   tar.exp <- substitute(target)
   cur.exp <- substitute(current)
-  list2env(
-    check_args(as.list(environment())), envir=environment()
-  )
+
+  # Touch all the formals in case user passed an expression that evaluates
+  # to error; then check them
+
+  for(i in names(formals())) environment()[[i]]
+  check_args(environment())      # this potentially modifies environment()
+  this.call <- sys.call()
+  par.frame <- parent.frame()
+  err <- function(...)
+    stop(
+      simpleError(do.call(paste0, c(list(...), collapse="")), call=this.call)
+    )
+  # Variables to populate by inserted code
+
   tar.capt <- tar.capt.def <- cur.capt <- cur.capt.def <- diffs <- NULL
   NULL         # line where we will insert code
   if(is.null(diffs)) diffs <- char_diff(

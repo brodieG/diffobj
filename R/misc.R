@@ -145,64 +145,67 @@ check_limit <- function(limit, type) {
 # Note: this will modify the value of some of the arguments in the parent
 # environment
 
-check_args <- function(vals) {
-  call <- sys.call(-2L)
+check_args <- function(env.to.check, call) {
+
+  # Define variables to check
+
+  limit.vars <- c("line.limit", "hunk.limit")
+  int1L.vars <- c(
+    "context", "disp.width", "max.diffs", "max.diffs.in.hunk", "max.diffs.wrap"
+  )
+  TF.vars <- c("use.ansi", "ignore.white.space", "silent")
+  chr1LorNULL.vars <- c("tar.banner", "cur.banner")
 
   # check modes
 
-  val.modes <- c("context", "unified", "sidebyside")
+  val.modes <- c("unified", "context", "sidebyside")
   if(
-    !is.character(vals$mode) || length(vals$mode) != 1L || is.na(vals$mode) ||
-    !vals$mode %in% val.modes
+    !is.character(env.to.check$mode) || length(env.to.check$mode) != 1L ||
+    is.na(env.to.check$mode) || !env.to.check$mode %in% val.modes
   ) {
     msg <- paste0(
       "Argument `mode` must be character(1L) and in `", deparse(val.modes), "`."
     )
     stop(simpleError(msg, call=call))
   }
-  # check limits (has side effects)
+  # check limit.vars (has side effects)
 
-  limits <- c("line.limit", "hunk.limit")
-  vals[limits] <- Map(check_limit, vals[limits], limits)
+  for(i in limit.vars) env.to.check[[i]] <- check_limit(env.to.check[[i]], i)
 
   # check integer 1L args
 
-  int1L.vars <- c(
-    "context", "disp.width", "max.diffs", "max.diffs.in.hunk", "max.diffs.wrap"
-  )
   msg.base <- "Argument `%s` must be integer(1L) and not NA."
-  vals[int1L.vars] <- lapply(
-    int1L.vars,
-    function(x)
-      if(!is.int.1L(vals[[x]])) {
-        stop(simpleError(sprintf(msg.base, x), call=call))
-      } else as.integer(vals[[x]])
-  )
+  for(i in int1L.vars) env.to.check[[i]] <-
+    if(!is.int.1L(env.to.check[[i]])) {
+      stop(simpleError(sprintf(msg.base, i), call=call))
+    } else as.integer(env.to.check[[i]])
+
   # check T F args
 
-  msg.base <- "Argument `%s` must be TRUE or FALSE"
+  msg.base <- "Argument `%s` must be TRUE or FALSE."
   lapply(
-    c("use.ansi", "ignore.white.space", "silent"),
+    TF.vars,
     function(x)
-      if(!is.TF(vals[[x]])) stop(simpleError(sprintf(msg.base, x), call=call))
+      if(!is.TF(env.to.check[[x]]))
+        stop(simpleError(sprintf(msg.base, x), call=call))
   )
   # check char 1L
 
   msg.base <- "Argument `%s` must be character(1L) and not NA, or NULL"
   lapply(
-    c("tar.banner", "cur.banner"),
+    chr1LorNULL.vars,
     function(x)
-      if(!is.chr.1L(vals[[x]]) && !is.null(vals[[x]]))
+      if(!is.chr.1L(env.to.check[[x]]) && !is.null(env.to.check[[x]]))
         stop(simpleError(sprintf(msg.base, x), call=call))
   )
   # frame
 
-  if(!is.environment(vals$frame))
+  if(!is.environment(env.to.check$frame))
     stop(simpleError("Argument `frame` must be an environment.", call=call))
 
-  # Return modified args
+  # Function does not return as we modify env.to.check as needed
 
-  vals
+  NULL
 }
 
 is.int.1L <- function(x)
