@@ -20,9 +20,9 @@ diff_obj(target, current, mode = getOption("diffobj.mode"),
   tar.banner = deparse(substitute(target))[[1L]],
   cur.banner = deparse(substitute(current))[[1L]],
   silent = getOption("diffobj.silent"),
-  max.diff = getOption("diffobj.max.diff"),
-  max.diff.in.hunk = getOption("diffobj.max.diff.in.hunk"),
-  max.diff.wrap = getOption("diffobj.max.diff.wrap"),
+  max.diffs = getOption("diffobj.max.diffs"),
+  max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
+  max.diffs.wrap = getOption("diffobj.max.diffs.wrap"),
   frame = parent.frame(), ...)
 
 diff_print(target, current, mode = getOption("diffobj.mode"),
@@ -34,9 +34,9 @@ diff_print(target, current, mode = getOption("diffobj.mode"),
   tar.banner = deparse(substitute(target))[[1L]],
   cur.banner = deparse(substitute(current))[[1L]],
   silent = getOption("diffobj.silent"),
-  max.diff = getOption("diffobj.max.diff"),
-  max.diff.in.hunk = getOption("diffobj.max.diff.in.hunk"),
-  max.diff.wrap = getOption("diffobj.max.diff.wrap"),
+  max.diffs = getOption("diffobj.max.diffs"),
+  max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
+  max.diffs.wrap = getOption("diffobj.max.diffs.wrap"),
   frame = parent.frame(), ...)
 
 diff_str(target, current, mode = getOption("diffobj.mode"),
@@ -48,9 +48,9 @@ diff_str(target, current, mode = getOption("diffobj.mode"),
   tar.banner = deparse(substitute(target))[[1L]],
   cur.banner = deparse(substitute(current))[[1L]],
   silent = getOption("diffobj.silent"),
-  max.diff = getOption("diffobj.max.diff"),
-  max.diff.in.hunk = getOption("diffobj.max.diff.in.hunk"),
-  max.diff.wrap = getOption("diffobj.max.diff.wrap"),
+  max.diffs = getOption("diffobj.max.diffs"),
+  max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
+  max.diffs.wrap = getOption("diffobj.max.diffs.wrap"),
   frame = parent.frame(), ...)
 
 diff_chr(target, current, mode = getOption("diffobj.mode"),
@@ -62,9 +62,9 @@ diff_chr(target, current, mode = getOption("diffobj.mode"),
   tar.banner = deparse(substitute(target))[[1L]],
   cur.banner = deparse(substitute(current))[[1L]],
   silent = getOption("diffobj.silent"),
-  max.diff = getOption("diffobj.max.diff"),
-  max.diff.in.hunk = getOption("diffobj.max.diff.in.hunk"),
-  max.diff.wrap = getOption("diffobj.max.diff.wrap"),
+  max.diffs = getOption("diffobj.max.diffs"),
+  max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
+  max.diffs.wrap = getOption("diffobj.max.diffs.wrap"),
   frame = parent.frame(), ...)
 
 diff_deparse(target, current, mode = getOption("diffobj.mode"),
@@ -76,9 +76,9 @@ diff_deparse(target, current, mode = getOption("diffobj.mode"),
   tar.banner = deparse(substitute(target))[[1L]],
   cur.banner = deparse(substitute(current))[[1L]],
   silent = getOption("diffobj.silent"),
-  max.diff = getOption("diffobj.max.diff"),
-  max.diff.in.hunk = getOption("diffobj.max.diff.in.hunk"),
-  max.diff.wrap = getOption("diffobj.max.diff.wrap"),
+  max.diffs = getOption("diffobj.max.diffs"),
+  max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
+  max.diffs.wrap = getOption("diffobj.max.diffs.wrap"),
   frame = parent.frame(), ...)
 }
 \arguments{
@@ -98,7 +98,7 @@ smaller than the first.  Set to \code{-1L} or \code{c(-1L, -1L)} to run
 without limits.}
 
 \item{line.limit}{integer(2L) how many lines of screen output to show.
-behaves like \code{hunk.limit}}
+Behaves like \code{hunk.limit}}
 
 \item{use.ansi}{TRUE or FALSE, whether to use ANSI escape sequences to color
 differences (TRUE by default if we detect that your terminal supports it)}
