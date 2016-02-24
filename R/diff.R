@@ -366,11 +366,20 @@ diff_tpl <- function(
   # Variables to populate by inserted code
 
   tar.capt <- tar.capt.def <- cur.capt <- cur.capt.def <- diffs <- NULL
-  NULL         # line where we will insert code
+
+  # line where we will insert code; each of the different `diff_*` functions
+  # will have different logic here
+
+  NULL
+
+  # Finalize stuff
+
   if(is.null(diffs)) diffs <- char_diff(
     cur.capt, tar.capt, context=context, ignore.white.space=ignore.white.space,
     mode=mode
   )
+  # Create the output structures, and display if requested
+
   vars <- as.list(environment())
   slot.args <- vars[names(vars) %in% names(getSlots("diffObjDiff"))]
   res <- do.call("new", c(list("diffObjDiff"), slot.args))
@@ -407,7 +416,7 @@ diff_obj <- diff_tpl; body(diff_obj) <- quote({
 #' @rdname diff_obj
 #' @export
 
-diff_print <- diff_tpl; body(diff_print)[[6L]] <- quote({
+diff_print <- diff_tpl; body(diff_print)[[9L]] <- quote({
   local({
     # capture normal prints, along with default prints to make sure that if we
     # do try to wrap an atomic vector print it is very likely to be in a format
@@ -426,140 +435,143 @@ diff_print <- diff_tpl; body(diff_print)[[6L]] <- quote({
 #' @rdname diff_obj
 #' @export
 
-diff_str <- diff_tpl; body(diff_str)[[6L]] <- quote({
-  local({
-    # Construct deparsed labels
-    dots <- list(...)
-    if("object" %in% names(dots))
-      stop("You may not specify `object` as part of `...`")
-    str.match <- try(
-      match.call(
-        str_tpl,
-        call=as.call(c(list(quote(str), object=NULL), dots)), envir=frame
-      )
+diff_str <- diff_tpl; body(diff_str)[[9L]] <- quote({
+  # Match original call and managed dots, in particular wrt to the
+  # `max.level` arg
+
+  dots <- list(...)
+  if("object" %in% names(dots))
+    err("You may not specify `object` as part of `...`")
+
+  str.match <- try(
+    match.call(
+      str_tpl,
+      call=as.call(c(list(quote(str), object=NULL), dots)), envir=frame
+  ) )
+  names(str.match)[[2L]] <- ""
+  max.level <- if(
+    max.level.pos <- match("max.level", names(str.match), nomatch=0L)
+  ) {
+    tryCatch(
+      eval(str.match$max.level, envir=par.frame),
+      error=function(e)
+        err("Error evaluating `max.level` arg: ", conditionMessage(e))
     )
-    this.call <- sys.call()
-    names(str.match)[[2L]] <- ""
-    max.level <- if("max.level" %in% names(str.match)) {
-      tryCatch(
-        eval(str.match$max.level, envir=frame),
-        error=function(e) {
-          msg <- paste0(
-            "Error evaluating `max.level` arg: ", conditionMessage(e)
-          )
-          stop(simpleError(msg, call=this.call))
-      } )
-    } else max.level <- NA
+    max.level.supplied <- TRUE
+  } else {
+    max.level <- NA
+    str.match <- append(str.match, NA)
+    max.level.pos <- length(str.match)
+    max.level.supplied <- FALSE
+    names(str.match)[[max.level.pos]] <- "max.level"
+  }
+  auto.mode <- identical(max.level, "auto")
 
-    tar.call <- cur.call <- str.match
-    tar.call[[2L]] <- tar.exp
-    cur.call[[2L]] <- cur.exp
-    if(is.null(tar.banner)) tar.banner <<- deparse(tar.call)[[1L]]
-    if(is.null(cur.banner)) cur.banner <<- deparse(cur.call)[[1L]]
+  tar.call <- cur.call <- str.match
+  tar.call[[2L]] <- tar.exp
+  cur.call[[2L]] <- cur.exp
+  if(is.null(tar.banner)) tar.banner <- deparse(tar.call)[[1L]]
+  if(is.null(cur.banner)) cur.banner <- deparse(cur.call)[[1L]]
 
-    # don't want to evaluate target and current more than once, so can't eval
-    # tar.exp/cur.exp
+  # don't want to evaluate target and current more than once, so can't eval
+  # tar.exp/cur.exp
 
-    tar.call[[2L]] <- target
-    cur.call[[2L]] <- current
+  tar.call[[2L]] <- target
+  cur.call[[2L]] <- current
 
-    # Run str
+  # Run str
 
-    capt.width <- calc_width_pad(disp.width, mode)
-    has.diff <- has.diff.prev <- FALSE
+  capt.width <- calc_width_pad(disp.width, mode)
+  has.diff <- has.diff.prev <- FALSE
 
-    tar.depth <- list_depth(target)
-    cur.depth <- list_depth(current)
-    prev.lvl.hi <- lvl <- max.depth <- max(tar.depth, cur.depth)
-    prev.lvl.lo <- 0L
-    first.loop <- TRUE
-    safety <- 0L
+  tar.depth <- list_depth(target)
+  cur.depth <- list_depth(current)
+  prev.lvl.hi <- lvl <- max.depth <- max(tar.depth, cur.depth)
+  prev.lvl.lo <- 0L
+  first.loop <- TRUE
+  safety <- 0L
 
-    repeat{
-      if((safety <- safety + 1L) > max.depth)
-        stop(
-          "Logic Error: exceed list depth when comparing structures; contact ",
-          "maintainer."
-        )
-      tar.capt <- capt_call(tar.call, capt.width, frame)
-      cur.capt <- capt_call(cur.call, capt.width, frame)
-
-      diffs.str <- char_diff(
-        cur.capt, tar.capt, context=context,
-        ignore.white.space=ignore.white.space, mode=mode
+  repeat{
+    if((safety <- safety + 1L) > max.depth)
+      stop(
+        "Logic Error: exceed list depth when comparing structures; contact ",
+        "maintainer."
       )
-      has.diff <- any(
-        !vapply(
-          unlist(diffs.str@hunks, recursive=FALSE), "[[", logical(1L), "context"
-      ) )
-      if(first.loop) {
-        # If there are no differences reducing levels isn't going to help to
-        # find one
+    tar.capt <- capt_call(tar.call, capt.width, frame)
+    cur.capt <- capt_call(cur.call, capt.width, frame)
 
-        if(!has.diff) break
-        tar.capt.max <- tar.capt
-        cur.capt.max <- cur.capt
-        diffs.max <- diffs.str
-        first.loop <- FALSE
-      }
-      if(line.limit[[1L]] < 1L) break
+    diffs.str <- char_diff(
+      cur.capt, tar.capt, context=context,
+      ignore.white.space=ignore.white.space, mode=mode
+    )
+    if(!auto.mode) break  # Only optimized disp size if in auto mode
+    has.diff <- any(
+      !vapply(
+        unlist(diffs.str@hunks, recursive=FALSE), "[[", logical(1L), "context"
+    ) )
+    if(first.loop) {
+      # If there are no differences reducing levels isn't going to help to
+      # find one
 
-      line.len <- max(
-        0L,
-        cumsum(
-          get_hunk_chr_lens(
-            diffs.str@hunks, mode, disp.width, use.ansi
-          )[, "len"]
-      ) ) + banner_len(mode)
+      if(!has.diff) break
+      tar.capt.max <- tar.capt
+      cur.capt.max <- cur.capt
+      diffs.max <- diffs.str
+      first.loop <- FALSE
+    }
+    if(line.limit[[1L]] < 1L) break
 
-      # We need a higher level if we don't have diffs
+    line.len <- max(
+      0L,
+      cumsum(
+        get_hunk_chr_lens(
+          diffs.str@hunks, mode, disp.width, use.ansi
+        )[, "len"]
+    ) ) + banner_len(mode)
 
-      if(!has.diff && prev.lvl.hi - lvl > 1L) {
-        prev.lvl.lo <- lvl
-        lvl <- lvl + as.integer((prev.lvl.hi - lvl) / 2)
-        next
-      } else if(!has.diff) {
-        tar.capt <- tar.capt.max
-        tar.capt <- tar.capt.max
-        diffs.str <- diffs.max
-        break
-      }
-      # If we have diffs, need to check whether we should try to reduce lines
-      # to get under line limit
+    # We need a higher level if we don't have diffs
 
-      if(line.len <= line.limit[[1L]]) {
-        # We fit, nothing else to do
-        break
-      }
-      if(lvl - prev.lvl.lo > 1L) {
-        prev.lvl.hi <- lvl
-        lvl <- lvl - as.integer((lvl - prev.lvl.lo) / 2)
-        next
-      }
-      # Couldn't get under limit, so use first run results
-
+    if(!has.diff && prev.lvl.hi - lvl > 1L) {
+      prev.lvl.lo <- lvl
+      lvl <- lvl + as.integer((prev.lvl.hi - lvl) / 2)
+      next
+    } else if(!has.diff) {
       tar.capt <- tar.capt.max
       tar.capt <- tar.capt.max
       diffs.str <- diffs.max
+      break
     }
-    # Modify the actual capture variables defined in the template function
+    # If we have diffs, need to check whether we should try to reduce lines
+    # to get under line limit
 
-    tar.capt <<- tar.capt
-    cur.capt <<- cur.capt
-    diffs <<- diffs.str
-  })
-})
+    if(line.len <= line.limit[[1L]]) {
+      # We fit, nothing else to do
+      break
+    }
+    if(lvl - prev.lvl.lo > 1L) {
+      prev.lvl.hi <- lvl
+      lvl <- lvl - as.integer((lvl - prev.lvl.lo) / 2)
+      next
+    }
+    # Couldn't get under limit, so use first run results
+
+    tar.capt <- tar.capt.max
+    tar.capt <- tar.capt.max
+    diffs.str <- diffs.max
+  }
+  diffs <- diffs.str
+} )
 #' @rdname diff_obj
 #' @export
 
-diff_chr <- diff_tpl; body(diff_chr)[[6L]] <- quote({
+diff_chr <- diff_tpl; body(diff_chr)[[9L]] <- quote({
   tar.capt <- if(!is.character(target)) as.character(target) else target
   cur.capt <- if(!is.character(current)) as.character(current) else current
 })
 #' @rdname diff_obj
 #' @export
 
-diff_deparse <- diff_tpl; body(diff_deparse)[[6L]] <- quote({
+diff_deparse <- diff_tpl; body(diff_deparse)[[9L]] <- quote({
   tar.capt <- deparse(target, ...)
   cur.capt <- deparse(current, ...)
 })
