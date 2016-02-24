@@ -416,26 +416,48 @@ diff_obj <- diff_tpl; body(diff_obj) <- quote({
 #' @rdname diff_obj
 #' @export
 
-diff_print <- diff_tpl; body(diff_print)[[9L]] <- quote({
-  local({
-    # capture normal prints, along with default prints to make sure that if we
-    # do try to wrap an atomic vector print it is very likely to be in a format
-    # we are familiar with and not affected by a non-default print method
+diff_print <- diff_tpl; body(diff_print)[[10L]] <- quote({
+  # capture normal prints, along with default prints to make sure that if we
+  # do try to wrap an atomic vector print it is very likely to be in a format
+  # we are familiar with and not affected by a non-default print method
 
-    both.at <- is.atomic(current) && is.atomic(target)
-    max.w <- calc_width(disp.width, mode) - 2L
-    cur.capt <<- obj_capt(current, max.w, frame, ...)
-    cur.capt.def <<- if(both.at)
-      obj_capt(current, max.w, frame, default=TRUE, ...)
-    tar.capt <<- obj_capt(target, max.w, frame, ...)
-    tar.capt.def <<- if(both.at)
-      obj_capt(target, max.w, frame, default=TRUE, ...)
-  })
+  dots <- list(...)
+  print.match <- try(
+    match.call(
+      get("print", envir=frame),
+      as.call(c(list(quote(print), x=NULL), dots)),
+      envir=frame
+  ) )
+  names(print.match)[[2L]] <- ""
+  tar.call <- cur.call <- print.match
+
+  if(length(dots)) {
+    tar.call[[2L]] <- tar.exp
+    cur.call[[2L]] <- cur.exp
+    tar.banner <- deparse(tar.call)[[1L]]
+    cur.banner <- deparse(cur.call)[[1L]]
+  } else {
+    tar.banner <- deparse(tar.exp)[[1L]]
+    cur.banner <- deparse(cur.exp)[[1L]]
+  }
+  tar.call[[2L]] <- target
+  cur.call[[2L]] <- current
+
+  tar.call.def <- tar.call
+  cur.call.def <- cur.call
+  tar.call.def[[1L]] <- cur.call.def[[1L]] <- base::print.default
+
+  both.at <- is.atomic(current) && is.atomic(target)
+  capt.width <- calc_width(disp.width, mode) - 2L
+  cur.capt <- capt_call(cur.call, capt.width, frame)
+  cur.capt.def <- if(both.at) capt_call(cur.call.def, capt.width, frame)
+  tar.capt <- capt_call(tar.call, capt.width, frame)
+  tar.capt.def <- if(both.at) capt_call(tar.call.def, capt.width, frame)
 })
 #' @rdname diff_obj
 #' @export
 
-diff_str <- diff_tpl; body(diff_str)[[9L]] <- quote({
+diff_str <- diff_tpl; body(diff_str)[[10L]] <- quote({
   # Match original call and managed dots, in particular wrt to the
   # `max.level` arg
 
@@ -578,14 +600,14 @@ diff_str <- diff_tpl; body(diff_str)[[9L]] <- quote({
 #' @rdname diff_obj
 #' @export
 
-diff_chr <- diff_tpl; body(diff_chr)[[9L]] <- quote({
+diff_chr <- diff_tpl; body(diff_chr)[[10L]] <- quote({
   tar.capt <- if(!is.character(target)) as.character(target) else target
   cur.capt <- if(!is.character(current)) as.character(current) else current
 })
 #' @rdname diff_obj
 #' @export
 
-diff_deparse <- diff_tpl; body(diff_deparse)[[9L]] <- quote({
+diff_deparse <- diff_tpl; body(diff_deparse)[[10L]] <- quote({
   tar.capt <- deparse(target, ...)
   cur.capt <- deparse(current, ...)
 })
