@@ -369,5 +369,7 @@ setMethod("as.character", "diffObjDiff",
     )
     # Finalize
 
-    c(banner, unlist(out), limit.out)
+    fin <- c(banner, unlist(out), limit.out)
+    attr(fin, "meta") <- trim.meta
+    fin
 } )

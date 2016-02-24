@@ -383,7 +383,9 @@ diff_tpl <- function(
   vars <- as.list(environment())
   slot.args <- vars[names(vars) %in% names(getSlots("diffObjDiff"))]
   res <- do.call("new", c(list("diffObjDiff"), slot.args))
-  if(!silent) cat(as.character(res), sep="\n")
+  res.chr <- as.character(res)
+  if(!silent) cat(res.chr, sep="\n")
+  slot(res, "trim.dat") <- attr(res.chr, "meta")
   invisible(res)
 }
 # Note this one overwrites the entire body
@@ -391,25 +393,53 @@ diff_tpl <- function(
 #' @export
 
 diff_obj <- diff_tpl; body(diff_obj) <- quote({
-  check_args()
-  tar.capt <- tar.capt.def <- cur.capt <- cur.capt.def <- NULL
-  vars <- as.list(environment())
-  vars$silent <- TRUE
-  res.print <- do.call("diff_print", vars)
-  res.str <- do.call("diff_str", vars)
-  len.print <- max(length(res.print@tar.capt), length(res.print@cur.capt))
-  len.str <- max(length(res.str@tar.capt), length(res.str@cur.capt))
-  # Choose which display to use; only favor res.str if it really is
-  # substantially more compact and it does show an error and not possible to
-  # show full print diff in context
+  if(length(list(...))) {
+    stop("`...` argument not supported in `diff_obj`")
+  }
+  call.raw <- match.call()
+  call.raw[["silent"]] <- TRUE
+  call.str <- call.print <- call.raw
+  call.str[[1L]] <- quote(diff_str)
+  call.print[[1L]] <- quote(diff_print)
 
-  res <- if(
-    (len.print <= len.max && any(res.print)) ||
-    !any(res.str) ||
-    (len.print < len.str * 3 && len.str > len.max)
-  )
-    res.print else res.str
+  # Run both the print and str versions, and then decide which to use based
+  # on some weighting of various factors including how many lines needed to be
+  # omitted vs. how many differences were reported
 
+  res.print <- eval(call.print, parent.frame())
+  res.str <- eval(call.str, parent.frame())
+
+  diff.p <- count_diffs(res.str@diffs@hunks)
+  diff.s <- count_diffs(res.print@diffs@hunks)
+
+  # Only show the one with differences
+
+  res <- if(!diff.s && diff.p) {
+    res.print
+  } else if(!diff.p && diff.s) {
+    res.str
+
+  # If one fits in full and the other doesn't, show the one that fits in full
+  } else if(
+    !res.str@trim.dat$lines[[1L]] &&
+    res.print@trim.dat$lines[[1L]]
+  ) {
+    res.str
+  } else if(
+    res.str@trim.dat$lines[[1L]] &&
+    !res.print@trim.dat$lines[[1L]]
+  ) {
+    res.print
+  # Calculate the trade offs between the two options
+  } else {
+    s.score <- with(res.str@trim.dat, {
+      diff(lines) - lines[[1L]] + diff(diffs)
+    })
+    p.score <- with(res.print@trim.dat, {
+      diff(lines) - .5 * lines[[1L]] + diff(diffs)
+    })
+    if(p.score >= s.score) res.print else res.str
+  }
   if(!silent) cat(as.character(res), sep="\n")
   invisible(res)
 })

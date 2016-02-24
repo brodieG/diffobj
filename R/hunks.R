@@ -336,6 +336,7 @@ trim_hunk <- function(hunk, type, line.id) {
 trim_hunks <- function(
   hunk.grps, mode, disp.width, hunk.limit, line.limit, use.ansi
 ) {
+  diffs.orig <- count_diffs(hunk.grps)
   hunk.grps.count <- length(hunk.grps)
   if(hunk.limit[[1L]] < 0L) hunk.limit <- rep(hunk.grps.count, 2L)
   hunk.limit.act <- if(hunk.grps.count > hunk.limit[[1L]]) hunk.limit[[2L]]
@@ -410,9 +411,11 @@ trim_hunks <- function(
     hunk.grps.omitted <- hunk.grps.count
     hunk.grps <- list()
   }
+  diffs.trim <- count_diffs(hunk.grps)
   attr(hunk.grps, "meta") <- list(
     lines=c(lines.omitted, lines.total),
-    hunks=c(hunk.grps.omitted, hunk.grps.count)
+    hunks=c(hunk.grps.omitted, hunk.grps.count),
+    diffs=c(diffs.orig - diffs.trim, diffs.orig)
   )
   hunk.grps
 }
@@ -440,3 +443,22 @@ update_hunks <- function(hunk.grps, A.chr, B.chr) {
         }
   ) )
 }
+
+# Count how many "lines" of differences there are in the  hunks
+#
+# Note that the lines are not necessarily display lines, just literal lines
+# as they appear in the text elements being diffed
+#
+# param x should be a hunk group list
+
+count_diffs <- function(x) {
+  sum(
+    vapply(
+      unlist(x, recursive=FALSE),
+      function(y) {
+        if(y$context) 0L else {
+          if(y$tar.rng.trim[[1L]]) diff(y$tar.rng.trim) + 1L else 0L +
+          if(y$cur.rng.trim[[1L]]) diff(y$cur.rng.trim) + 1L else 0L
+      } },
+      integer(1L)
+) ) }

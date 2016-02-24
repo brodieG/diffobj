@@ -76,13 +76,24 @@ setClass(
     capt.mode="character",        # whether in print or str mode
     frame="environment",
     silent="logical",
-    diffs="diffObjDiffDiffs"      # line by line diffs
+    diffs="diffObjDiffDiffs",     # line by line diffs
+    trim.dat="list"               # result of trimming
   ),
-  prototype=list(capt.mode="print"),
+  prototype=list(
+    capt.mode="print",
+    trim.dat=list(lines=integer(2L), hunks=integer(2L), diffs=integer(2L))
+  ),
   validity=function(object) {
     # Most of the validation is done by `check_args`
     if(!is.chr.1L(object@capt.mode) || ! object@capt.mode %in% c("print", "str"))
       return("slot `capt.mode` must be either \"print\" or \"str\"")
+    if(
+      !is.list(object@trim.dat) || length(object@trim.dat) != 3L ||
+      !identical(names(object@trim.dat), c("lines", "hunks", "diffs")) ||
+      !all(vapply(object@trim.dat, is.integer, logical(1L))) ||
+      !all(vapply(object@trim.dat, length, integer(1L)) == 2L)
+    )
+      return("slot `trim.dat` in incorrect format")
     TRUE
 } )
 setClass(
