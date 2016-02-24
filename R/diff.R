@@ -420,23 +420,44 @@ diff_print <- diff_tpl; body(diff_print)[[6L]] <- quote({
 
 diff_str <- diff_tpl; body(diff_str)[[6L]] <- quote({
   local({
+    # Construct deparsed labels
     dots <- list(...)
     if("object" %in% names(dots))
       stop("You may not specify `object` as part of `...`")
     str.match <- try(
       match.call(
-        get("str", envir=frame, mode="function"),
+        str_tpl,
         call=as.call(c(list(quote(str), object=NULL), dots)), envir=frame
       )
     )
+    this.call <- sys.call()
     names(str.match)[[2L]] <- ""
+    max.level <- if("max.level" %in% names(str.match)) {
+      tryCatch(
+        eval(str.match$max.level, envir=frame),
+        error=function(e) {
+          msg <- paste0(
+            "Error evaluating `max.level` arg: ", conditionMessage(e)
+          )
+          stop(simpleError(msg, call=this.call))
+      } )
+    } else max.level <- NA
+
     tar.call <- cur.call <- str.match
     tar.call[[2L]] <- tar.exp
     cur.call[[2L]] <- cur.exp
     if(is.null(tar.banner)) tar.banner <<- deparse(tar.call)[[1L]]
     if(is.null(cur.banner)) cur.banner <<- deparse(cur.call)[[1L]]
 
-    pad.width <- calc_width_pad(disp.width, mode)
+    # don't want to evaluate target and current more than once, so can't eval
+    # tar.exp/cur.exp
+
+    tar.call[[2L]] <- target
+    cur.call[[2L]] <- current
+
+    # Run str
+
+    capt.width <- calc_width_pad(disp.width, mode)
     has.diff <- has.diff.prev <- FALSE
 
     tar.depth <- list_depth(target)
@@ -452,8 +473,8 @@ diff_str <- diff_tpl; body(diff_str)[[6L]] <- quote({
           "Logic Error: exceed list depth when comparing structures; contact ",
           "maintainer."
         )
-      tar.capt <- obj_capt(current, pad.width, frame, mode="str", max.level=lvl)
-      cur.capt <- obj_capt(target, pad.width, frame, mode="str", max.level=lvl)
+      tar.capt <- capt_call(tar.call, capt.width, frame)
+      cur.capt <- capt_call(cur.call, capt.width, frame)
 
       diffs.str <- char_diff(
         cur.capt, tar.capt, context=context,

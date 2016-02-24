@@ -1,3 +1,10 @@
+# Function used to match against `str` calls since the existing function
+# does not actually define `max.level`
+
+str_tpl <- function(object, max.level, ...) NULL
+
+# Calculate how many lines the banner will take up
+
 banner_len <- function(mode) if(mode == "sidebyside") 1L else 2L
 
 # Compute list depth including attributes

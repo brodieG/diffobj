@@ -1,6 +1,24 @@
-# Capture output of print/show/str; unfortuantely doesn't have superb handling
+# Capture output of print/show/str; unfortunately doesn't have superb handling
 # of errors during print/show call, though hopefully these are rare
 
+capt_call <- function(x, capt.width, frame) {
+  width.old <- getOption("width")
+  on.exit(options(width=width.old))
+  width <- max(capt.width, 20L)
+  options(width=width)
+
+  res <- try(obj.out <- capture.output(eval(x, frame)))
+  if(inherits(res, "try-error"))
+    stop(
+      simpleError(
+        paste0(
+          "Failed attempting to get text representation of object: ",
+          conditionMessage(attr(res, "condition"))
+        ),
+        call=sys.call(-1L)
+    ) )
+  res
+}
 obj_capt <- function(
   obj, width=getOption("width"), frame=parent.frame(), mode="print",
   max.level=0L, default=FALSE, ...
