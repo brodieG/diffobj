@@ -181,11 +181,11 @@ check_args <- function(vals) {
   )
   # check char 1L
 
-  msg.base <- "Argument `%s` must be character(1L) and not NA"
+  msg.base <- "Argument `%s` must be character(1L) and not NA, or NULL"
   lapply(
     c("tar.banner", "cur.banner"),
     function(x)
-      if(!is.chr.1L(vals[[x]]))
+      if(!is.chr.1L(vals[[x]]) && !is.null(vals[[x]]))
         stop(simpleError(sprintf(msg.base, x), call=call))
   )
   # frame

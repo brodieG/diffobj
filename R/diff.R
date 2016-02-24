@@ -301,8 +301,9 @@ diff_color <- function(txt, diffs, range, color, use.ansi) {
 #' @param disp.width integer(1L) number of display columns to take up; note that
 #'   in \dQuote{sidebyside} mode the effective display width is halved from this
 #'   number
-#' @param tar.banner character(1L) used to clarify the symbology of the diff
-#'   output (see the \dQuote{Output} section in the docs)
+#' @param tar.banner character(1L) or NULL, used to clarify the symbology of the
+#'   diff output (see the \dQuote{Output} section in the docs), if NULL will be
+#'   inferred from \code{target} and \code{current} expressions
 #' @param cur.banner character(1L) like \code{tar.banner}
 #' @param frame environment the evaluation frame for the \code{print/show/str},
 #'   calls, allows user to ensure correct methods are used, not used by
@@ -341,8 +342,7 @@ diff_tpl <- function(
   ignore.white.space=getOption("diffobj.ignore.white.space"),
   use.ansi=getOption("diffobj.use.ansi"),
   disp.width=getOption("width"),
-  tar.banner=deparse(substitute(target))[[1L]],
-  cur.banner=deparse(substitute(current))[[1L]],
+  tar.banner=NULL, cur.banner=NULL,
   silent=getOption("diffobj.silent"),
   max.diffs=getOption("diffobj.max.diffs"),
   max.diffs.in.hunk=getOption("diffobj.max.diffs.in.hunk"),
@@ -352,6 +352,8 @@ diff_tpl <- function(
 ) {
   # Check arguments and update function environment with "fixed" args
 
+  tar.exp <- substitute(target)
+  cur.exp <- substitute(current)
   list2env(
     check_args(as.list(environment())), envir=environment()
   )
@@ -361,7 +363,9 @@ diff_tpl <- function(
     cur.capt, tar.capt, context=context, ignore.white.space=ignore.white.space,
     mode=mode
   )
-  res <- do.call("new", c(list("diffObjDiff"), as.list(environment())))
+  vars <- as.list(environment())
+  slot.args <- vars[names(vars) %in% names(getSlots("diffObjDiff"))]
+  res <- do.call("new", c(list("diffObjDiff"), slot.args))
   if(!silent) cat(as.character(res), sep="\n")
   invisible(res)
 }
@@ -395,7 +399,7 @@ diff_obj <- diff_tpl; body(diff_obj) <- quote({
 #' @rdname diff_obj
 #' @export
 
-diff_print <- diff_tpl; body(diff_print)[[4L]] <- quote({
+diff_print <- diff_tpl; body(diff_print)[[6L]] <- quote({
   local({
     # capture normal prints, along with default prints to make sure that if we
     # do try to wrap an atomic vector print it is very likely to be in a format
@@ -414,19 +418,30 @@ diff_print <- diff_tpl; body(diff_print)[[4L]] <- quote({
 #' @rdname diff_obj
 #' @export
 
-diff_str <- diff_tpl; body(diff_str)[[4L]] <- quote({
+diff_str <- diff_tpl; body(diff_str)[[6L]] <- quote({
   local({
-    obj.add.capt.str <- obj.rem.capt.str <- obj.add.capt.str.prev <-
-      obj.rem.capt.str.prev <- character()
+    dots <- list(...)
+    if("object" %in% names(dots))
+      stop("You may not specify `object` as part of `...`")
+    str.match <- try(
+      match.call(
+        get("str", envir=frame, mode="function"),
+        call=as.call(c(list(quote(str), object=NULL), dots)), envir=frame
+      )
+    )
+    names(str.match)[[2L]] <- ""
+    tar.call <- cur.call <- str.match
+    tar.call[[2L]] <- tar.exp
+    cur.call[[2L]] <- cur.exp
+    if(is.null(tar.banner)) tar.banner <<- deparse(tar.call)[[1L]]
+    if(is.null(cur.banner)) cur.banner <<- deparse(cur.call)[[1L]]
 
     pad.width <- calc_width_pad(disp.width, mode)
-    lvl <- NA # run full display first
-    nlines_2 <- function(x) nlines(x, disp.width, mode, use.ansi)
     has.diff <- has.diff.prev <- FALSE
 
     tar.depth <- list_depth(target)
     cur.depth <- list_depth(current)
-    prev.lvl.hi <- max.depth <- max(tar.depth, cur.depth)
+    prev.lvl.hi <- lvl <- max.depth <- max(tar.depth, cur.depth)
     prev.lvl.lo <- 0L
     first.loop <- TRUE
     safety <- 0L
@@ -460,7 +475,13 @@ diff_str <- diff_tpl; body(diff_str)[[4L]] <- quote({
       }
       if(line.limit[[1L]] < 1L) break
 
-      line.len <- max(nlines2(tar.capt), nlines2(cur.capt))
+      line.len <- max(
+        0L,
+        cumsum(
+          get_hunk_chr_lens(
+            diffs.str@hunks, mode, disp.width, use.ansi
+          )[, "len"]
+      ) ) + banner_len(mode)
 
       # We need a higher level if we don't have diffs
 
@@ -502,14 +523,14 @@ diff_str <- diff_tpl; body(diff_str)[[4L]] <- quote({
 #' @rdname diff_obj
 #' @export
 
-diff_chr <- diff_tpl; body(diff_chr)[[4L]] <- quote({
+diff_chr <- diff_tpl; body(diff_chr)[[6L]] <- quote({
   tar.capt <- if(!is.character(target)) as.character(target) else target
   cur.capt <- if(!is.character(current)) as.character(current) else current
 })
 #' @rdname diff_obj
 #' @export
 
-diff_deparse <- diff_tpl; body(diff_deparse)[[4L]] <- quote({
+diff_deparse <- diff_tpl; body(diff_deparse)[[6L]] <- quote({
   tar.capt <- deparse(target, ...)
   cur.capt <- deparse(current, ...)
 })
