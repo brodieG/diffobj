@@ -160,20 +160,16 @@ setMethod("as.character", "diffObjDiff",
     ignore.white.space <- x@ignore.white.space
 
     len.max <- max(length(x@tar.capt), length(x@cur.capt))
-    if(!any(x)) {
+    no.diffs <- if(!any(x)) {
       msg <- "No visible differences between objects."
       if(!ignore.white.space && !identical(x@tar.capt, x@cur.capt)) {
         msg <- paste0(
           "Only visible differences between objects are horizontal white ",
           "spaces. You can re-run diff with `ignore.white.space=FALSE` to show ",
           "them."
-        )
-      }
-      return(
-        ansi_style(
-          msg, "silver",
-          use.style=use.ansi
-    ) ) }
+      ) }
+      res <- ansi_style(msg, "silver", use.style=use.ansi)
+    }
     # Basic width computation and banner size
 
     banner.len <- banner_len(mode)
@@ -385,7 +381,7 @@ setMethod("as.character", "diffObjDiff",
     )
     # Finalize
 
-    fin <- c(banner, unlist(out), limit.out, str.fold.out)
+    fin <- c(banner, unlist(out), limit.out, str.fold.out, no.diffs)
     attr(fin, "meta") <- trim.meta
     fin
 } )
