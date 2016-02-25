@@ -144,10 +144,10 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
         mode, disp.width, use.ansi
       )
       ctx.opt <- context@def
-      context <- if(len.min > line.limit[[1L]]) {
-        ctx.opt
-      } else if(len <= line.limit[[1L]]) {
+      context <- if(len <= line.limit[[1L]] || line.limit[[1L]] < 0L) {
         -1L
+      } else if(len.min > line.limit[[1L]]) {
+        ctx.opt
       } else {
         # compute max context size
 
