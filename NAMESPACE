@@ -2,6 +2,7 @@
 
 export(Rdiff_chr)
 export(Rdiff_obj)
+export(auto_context)
 export(diff_chr)
 export(diff_deparse)
 export(diff_obj)

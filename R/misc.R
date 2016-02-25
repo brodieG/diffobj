@@ -83,7 +83,7 @@ check_args <- function(env.to.check, call) {
 
   limit.vars <- c("line.limit", "hunk.limit")
   int1L.vars <- c(
-    "context", "disp.width", "max.diffs", "max.diffs.in.hunk", "max.diffs.wrap"
+    "disp.width", "max.diffs", "max.diffs.in.hunk", "max.diffs.wrap"
   )
   TF.vars <- c("use.ansi", "ignore.white.space", "silent")
   chr1LorNULL.vars <- c("tar.banner", "cur.banner")
@@ -111,6 +111,16 @@ check_args <- function(env.to.check, call) {
     if(!is.int.1L(env.to.check[[i]])) {
       stop(simpleError(sprintf(msg.base, i), call=call))
     } else as.integer(env.to.check[[i]])
+
+  msg.base <- paste0(
+    "Argument `%s` must be integer(1L) and not NA, or an object produced ",
+    "by `auto_context`."
+  )
+  if(
+    !is.int.1L(env.to.check$context) &&
+    !is(env.to.check$context,"diffObjAutoContext")
+  )
+    stop(simpleError(sprintf(msg.base, "context"), call=call))
 
   # check T F args
 

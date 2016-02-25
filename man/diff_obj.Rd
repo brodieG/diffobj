@@ -17,8 +17,7 @@ diff_obj(target, current, mode = getOption("diffobj.mode"),
   line.limit = getOption("diffobj.line.limit"),
   ignore.white.space = getOption("diffobj.ignore.white.space"),
   use.ansi = getOption("diffobj.use.ansi"), disp.width = getOption("width"),
-  tar.banner = deparse(substitute(target))[[1L]],
-  cur.banner = deparse(substitute(current))[[1L]],
+  tar.banner = NULL, cur.banner = NULL,
   silent = getOption("diffobj.silent"),
   max.diffs = getOption("diffobj.max.diffs"),
   max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
@@ -31,8 +30,7 @@ diff_print(target, current, mode = getOption("diffobj.mode"),
   line.limit = getOption("diffobj.line.limit"),
   ignore.white.space = getOption("diffobj.ignore.white.space"),
   use.ansi = getOption("diffobj.use.ansi"), disp.width = getOption("width"),
-  tar.banner = deparse(substitute(target))[[1L]],
-  cur.banner = deparse(substitute(current))[[1L]],
+  tar.banner = NULL, cur.banner = NULL,
   silent = getOption("diffobj.silent"),
   max.diffs = getOption("diffobj.max.diffs"),
   max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
@@ -45,8 +43,7 @@ diff_str(target, current, mode = getOption("diffobj.mode"),
   line.limit = getOption("diffobj.line.limit"),
   ignore.white.space = getOption("diffobj.ignore.white.space"),
   use.ansi = getOption("diffobj.use.ansi"), disp.width = getOption("width"),
-  tar.banner = deparse(substitute(target))[[1L]],
-  cur.banner = deparse(substitute(current))[[1L]],
+  tar.banner = NULL, cur.banner = NULL,
   silent = getOption("diffobj.silent"),
   max.diffs = getOption("diffobj.max.diffs"),
   max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
@@ -59,8 +56,7 @@ diff_chr(target, current, mode = getOption("diffobj.mode"),
   line.limit = getOption("diffobj.line.limit"),
   ignore.white.space = getOption("diffobj.ignore.white.space"),
   use.ansi = getOption("diffobj.use.ansi"), disp.width = getOption("width"),
-  tar.banner = deparse(substitute(target))[[1L]],
-  cur.banner = deparse(substitute(current))[[1L]],
+  tar.banner = NULL, cur.banner = NULL,
   silent = getOption("diffobj.silent"),
   max.diffs = getOption("diffobj.max.diffs"),
   max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
@@ -73,8 +69,7 @@ diff_deparse(target, current, mode = getOption("diffobj.mode"),
   line.limit = getOption("diffobj.line.limit"),
   ignore.white.space = getOption("diffobj.ignore.white.space"),
   use.ansi = getOption("diffobj.use.ansi"), disp.width = getOption("width"),
-  tar.banner = deparse(substitute(target))[[1L]],
-  cur.banner = deparse(substitute(current))[[1L]],
+  tar.banner = NULL, cur.banner = NULL,
   silent = getOption("diffobj.silent"),
   max.diffs = getOption("diffobj.max.diffs"),
   max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
@@ -107,8 +102,9 @@ differences (TRUE by default if we detect that your terminal supports it)}
 in \dQuote{sidebyside} mode the effective display width is halved from this
 number}
 
-\item{tar.banner}{character(1L) used to clarify the symbology of the diff
-output (see the \dQuote{Output} section in the docs)}
+\item{tar.banner}{character(1L) or NULL, used to clarify the symbology of the
+diff output (see the \dQuote{Output} section in the docs), if NULL will be
+inferred from \code{target} and \code{current} expressions}
 
 \item{cur.banner}{character(1L) like \code{tar.banner}}
 

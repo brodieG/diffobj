@@ -91,7 +91,7 @@ find_brackets <- function(x) {
 
 diff_word <- function(
   target, current, ignore.white.space, match.quotes=FALSE,
-  use.ansi
+  use.ansi, disp.width
 ) {
   stopifnot(
     is.character(target), is.character(current),
@@ -125,7 +125,8 @@ diff_word <- function(
 
   diffs <- char_diff(
     tar.split, cur.split, ignore.white.space=ignore.white.space,
-    context=-1L, mode="context"
+    context=-1L, mode="context", line.limit=-1L, hunk.limit=-1L,
+    disp.width=disp.width, use.ansi=use.ansi
   )
   # Color
 
@@ -376,7 +377,8 @@ diff_tpl <- function(
 
   if(is.null(diffs)) diffs <- char_diff(
     cur.capt, tar.capt, context=context, ignore.white.space=ignore.white.space,
-    mode=mode
+    mode=mode, hunk.limit=hunk.limit, line.limit=line.limit,
+    disp.width=disp.width, use.ansi=use.ansi
   )
   # Create the output structures, and display if requested
 
@@ -553,7 +555,8 @@ diff_str <- diff_tpl; body(diff_str)[[10L]] <- quote({
 
     diffs.str <- char_diff(
       cur.capt, tar.capt, context=context,
-      ignore.white.space=ignore.white.space, mode=mode
+      ignore.white.space=ignore.white.space, mode=mode, hunk.limit=hunk.limit,
+      line.limit=line.limit, disp.width=disp.width, use.ansi=use.ansi
     )
     if(!auto.mode) break  # Only optimized disp size if in auto mode
     has.diff <- any(
@@ -572,13 +575,7 @@ diff_str <- diff_tpl; body(diff_str)[[10L]] <- quote({
     }
     if(line.limit[[1L]] < 1L) break
 
-    line.len <- max(
-      0L,
-      cumsum(
-        get_hunk_chr_lens(
-          diffs.str@hunks, mode, disp.width, use.ansi
-        )[, "len"]
-    ) ) + banner_len(mode)
+    line.len <- diff_line_len(diffs.str@hunks, mode, disp.width, use.ansi)
 
     # We need a higher level if we don't have diffs
 

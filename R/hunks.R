@@ -32,7 +32,9 @@
 
 setGeneric("as.hunks", function(x, ...) standardGeneric("as.hunks"))
 setMethod("as.hunks", "diffObjMyersMbaSes",
-  function(x, mode, context, ...) {
+  function(
+    x, mode, context, disp.width, line.limit, hunk.limit, use.ansi, ...
+  ) {
     stopifnot(
       is.character(mode), length(mode) == 1L, !is.na(mode),
       mode %in% c("context", "unified", "sidebyside")
@@ -127,10 +129,78 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
             tar.rng.trim=tar.rng, cur.rng.trim=cur.rng
           )
     } ) }
-    # group hunks together based on context
+    # Group hunks together based on context, in "auto" mode we find the context
+    # that maximizes lines displayed while adhering to line and hunk limits
+    # Definitely not very efficient since we re-run code multiple times we
+    # probably don't need to.
 
-    process_hunks(res.l, context)
+    if(is(context, "diffObjAutoContext")) {
+      len <- diff_line_len(
+        p_and_t_hunks(res.l, context=context@max,  hunk.limit=hunk.limit),
+        mode, disp.width, use.ansi
+      )
+      len.min <- diff_line_len(
+        p_and_t_hunks(res.l, context=context@min, hunk.limit=hunk.limit),
+        mode, disp.width, use.ansi
+      )
+      ctx.opt <- context@def
+      context <- if(len.min > line.limit[[1L]]) {
+        ctx.opt
+      } else if(len <= line.limit[[1L]]) {
+        -1L
+      } else {
+        # compute max context size
+
+        ctx.max <- ctx.hi <- ctx <- as.integer(
+          ceiling(
+            max(
+              vapply(
+                res.l,
+                function(x) if(x$context) length(x$A.chr) else 0L, integer(1L)
+            ) ) / 2L
+        ) )
+        ctx.lo <- safety <- 0L
+
+        repeat {
+          if((safety <- safety + 1L) > ctx.max)
+            stop(
+              "Logic Error: stuck trying to find auto-context; contact ",
+              "maintainer."
+            )
+          if(len > line.limit[[1L]] && ctx - ctx.lo > 1L) {
+            ctx.hi <- ctx
+            ctx <- as.integer((ctx - ctx.lo) / 2)
+          } else if (len < line.limit[[1L]] && ctx.hi - ctx > 1L) {
+            ctx.lo <- ctx
+            ctx <- ctx + as.integer(ceiling(ctx.hi - ctx) / 2)
+          } else if (len > line.limit[[1L]]) {
+            # unable to get something small enough, but we know 0 context
+            # works from inital test
+            ctx <- 0L
+            break
+          } else if (len <= line.limit[[1L]]) {
+            break
+          }
+          len <- diff_line_len(
+            p_and_t_hunks(res.l, context=ctx, hunk.limit=hunk.limit),
+            mode, disp.width, use.ansi
+          )
+        }
+        ctx
+    } }
+    process_hunks(res.l, context=context)
 } )
+# process the hunks and also drop off groups that exceed limit
+#
+# used exclusively when we are trying to auto-calculate context
+
+p_and_t_hunks <- function(hunks.raw, context, hunk.limit) {
+  c.all <- process_hunks(hunks.raw, context=context)
+  if(hunk.limit[[1L]] >= 0L && length(c.all) > hunk.limit)
+    c.all <- c.all[seq_along(hunk.limit[[2L]])]
+  c.all
+}
+
 # Subset hunks; should only ever be subsetting context hunks
 
 hunk_sub <- function(hunk, op, n) {
@@ -170,12 +240,6 @@ hunk_sub <- function(hunk, op, n) {
 # This will group atomic hunks into hunk groups
 
 process_hunks <- function(x, context) {
-  stopifnot(
-    is.integer(context), length(context) == 1L, !is.na(context),
-    # assuming hunk list is more or less in correct format, checks not
-    # comprehensive here
-    is.list(x)
-  )
   ctx.vec <- vapply(x, "[[", logical(1L), "context")
   if(!all(abs(diff(ctx.vec)) == 1L))
     stop(
@@ -312,6 +376,14 @@ get_hunk_chr_lens <- function(hunk.grps, mode, disp.width, use.ansi) {
   # line that we can use to figure out what to show
 
   do.call(rbind, lapply(seq_along(hunk.grps), hunk_grp_len))
+}
+# Compute total diff length in lines
+
+diff_line_len <- function(hunk.grps, mode, disp.width, use.ansi) {
+  max(
+    0L,
+    cumsum(get_hunk_chr_lens(hunk.grps, mode, disp.width, use.ansi)[, "len"])
+  ) + banner_len(mode)
 }
 # Remove hunk groups and atomic hunks that exceed the line limit
 #
