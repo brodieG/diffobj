@@ -102,9 +102,10 @@ diff_word <- function(
   # Compute the char by char diffs for each line
 
   reg <- paste0(
+    "[^ \"]+|",
     if(match.quotes) "((?<= )|(?<=^))\"([^\"]|\\\")*?\"((?= )|(?=$))|",
-    "-?\\d+(\\.\\d+)?(e-?\\d{1,3})?",
-    "|\\w+|\\d+|[^[:alnum:]_[:blank:]]+"
+    "((?<=[ ([])|(?<=^))\"([^\"]|\\\"|\"(?=[^ ]))*?\"((?=[ ,)\\]])|(?=$))",
+    ""
   )
   tar.reg <- gregexpr(reg, target, perl=TRUE)
   cur.reg <- gregexpr(reg, current, perl=TRUE)
