@@ -53,7 +53,11 @@ setClassUnion("doacOrInt", c("diffObjAutoContext", "integer"))
 
 setClass(
   "diffObjDiffDiffs",
-  slots=c(hunks="list"),
+  slots=c(
+    hunks="list",
+    max.diffs="integer"  # used for `str` with auto `max.level`
+  ),
+  prototype=list(max.diffs=0L),
   validity=function(object) {
     hunk.check <- lapply(
       object@hunks,
@@ -83,11 +87,15 @@ setClass(
     ) ) {
       return("atomic hunk ids invalid")
     }
+    if(!is.int.1L(object@max.diffs) || object@max.diffs < 0L) {
+      return("Slot `max.diffs` must be integer(1L), non-NA, and positive")
+
+    }
     TRUE
   }
 )
 setClass(
-  "diffObjDiff",
+ "diffObjDiff",
   slots=c(
     target="ANY",                 # Actual object
     tar.capt="character",         # The captured representation

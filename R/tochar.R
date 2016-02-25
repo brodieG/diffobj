@@ -226,8 +226,22 @@ setMethod("as.character", "diffObjDiff",
     lim.hunk <- trim.meta$hunks
     ll <- !!lim.line[[1L]]
     lh <- !!lim.hunk[[1L]]
-
-    limit.out <- if(ll || lh)
+    diff.count <- count_diffs(hunk.grps)
+    str.fold.out <- if(x@diffs@max.diffs > diff.count) {
+      ansi_style(
+        paste0(
+          x@diffs@max.diffs - diff.count, " differences are hidden by our use ",
+          "of `max.level`"
+        ),
+        "silver", use.style=use.ansi
+      )
+    }
+    limit.out <- if(ll || lh) {
+      if(!is.null(str.fold.out))
+        stop(
+          "Logic Error: should not be str folding when limited; contact ",
+          "maintainer."
+        )
       ansi_style(
         paste0(
           "... omitted ",
@@ -238,6 +252,7 @@ setMethod("as.character", "diffObjDiff",
         "silver",
         use.style=use.ansi
       )
+    }
     ranges <- vapply(
       hunks.flat, function(h.a)
         c(h.a$tar.rng.trim, h.a$cur.rng.trim),
@@ -370,7 +385,7 @@ setMethod("as.character", "diffObjDiff",
     )
     # Finalize
 
-    fin <- c(banner, unlist(out), limit.out)
+    fin <- c(banner, unlist(out), limit.out, str.fold.out)
     attr(fin, "meta") <- trim.meta
     fin
 } )

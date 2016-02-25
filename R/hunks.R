@@ -529,8 +529,8 @@ count_diffs <- function(x) {
       unlist(x, recursive=FALSE),
       function(y) {
         if(y$context) 0L else {
-          if(y$tar.rng.trim[[1L]]) diff(y$tar.rng.trim) + 1L else 0L +
-          if(y$cur.rng.trim[[1L]]) diff(y$cur.rng.trim) + 1L else 0L
+          (if(y$tar.rng.trim[[1L]]) diff(y$tar.rng.trim) + 1L else 0L) +
+          (if(y$cur.rng.trim[[1L]]) diff(y$cur.rng.trim) + 1L else 0L)
       } },
       integer(1L)
 ) ) }

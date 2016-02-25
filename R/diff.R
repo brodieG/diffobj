@@ -613,6 +613,7 @@ diff_str <- diff_tpl; body(diff_str)[[10L]] <- quote({
     diffs.str <- diffs.max
   }
   diffs <- diffs.str
+  diffs@max.diffs <- count_diffs(diffs.max@hunks)
 
   if(auto.mode) {
     str.match[[max.level.pos]] <- lvl
