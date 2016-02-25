@@ -191,7 +191,8 @@ diff_color <- function(txt, diffs, range, color, use.ansi) {
 #' Highlights at a glance the \bold{display} differences between
 #' two objects.  Lack of display differences is no guarantee that the objects
 #' are the same.  Use \code{identical} or \code{all.equal} to confirm objects
-#' are not different.  For basic usage see examples.  For details read on.
+#' are not different.  For basic usage we recommend you look at the examples.
+#' If you are interested in the details, read on.
 #'
 #' @section Overview:
 #'
@@ -516,13 +517,14 @@ diff_str <- diff_tpl; body(diff_str)[[10L]] <- quote({
         err("Error evaluating `max.level` arg: ", conditionMessage(e))
     )
     if(identical(res, "auto")) {
-      str.match[["max.level"]] <- NA
       auto.mode <- TRUE
+      str.match[["max.level"]] <- NA
     } else {
       max.level.supplied <- TRUE
     }
   } else {
     str.match[["max.level"]] <- NA
+    auto.mode <- TRUE
     max.level.pos <- length(str.match)
     max.level.supplied <- FALSE
   }
@@ -559,20 +561,22 @@ diff_str <- diff_tpl; body(diff_str)[[10L]] <- quote({
       ignore.white.space=ignore.white.space, mode=mode, hunk.limit=hunk.limit,
       line.limit=line.limit, disp.width=disp.width, use.ansi=use.ansi
     )
-    if(!auto.mode) break  # Only optimized disp size if in auto mode
     has.diff <- any(
       !vapply(
         unlist(diffs.str@hunks, recursive=FALSE), "[[", logical(1L), "context"
     ) )
     if(first.loop) {
-      # If there are no differences reducing levels isn't going to help to
-      # find one
 
-      if(!has.diff) break
       tar.capt.max <- tar.capt
       cur.capt.max <- cur.capt
       diffs.max <- diffs.str
       first.loop <- FALSE
+
+      # If there are no differences reducing levels isn't going to help to
+      # find one; additionally, if not in auto.mode we should not be going
+      # through this process
+
+      if(!has.diff || !auto.mode) break
     }
     if(line.limit[[1L]] < 1L) break
 
