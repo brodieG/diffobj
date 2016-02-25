@@ -10,6 +10,43 @@ setClassUnion("charOrNULL", c("character", "NULL"))
 
 NULL
 
+#' Configure Automatic Context Calculation
+#'
+#' Defines parameters for selecting an appropriate context value when using
+#' \code{\link{diff_obj}} and related functions.
+#'
+#' @export
+#' @param def integer(1L) value to revert to if automatic context calculation
+#'   fails
+#' @param min integer(1L), positive, set to zero to allow any context
+#' @param max integer(1L), set to negative to allow any context
+#' @return S4 object containing configuration parameters, for use as the
+#'   \code{context} parameter value in \code{\link{diff_obj}} and related
+#'   functions
+
+auto_context <- function(def=3L, min=0L, max=-1L) {
+  new("diffObjAutoContext", def=def, min=min, max=max)
+}
+setClass(
+  "diffObjAutoContext",
+  slots=c(
+    def="integer",
+    min="integer",
+    max="integer"
+  ),
+  validity=function(object) {
+    if(!is.int.1L(object@def))
+      return("Slot `def` must be integer(1L) and not NA")
+    if(!is.int.1L(object@max) || object@min < 0L)
+      return("Slot `max` must be integer(1L), positive, and not NA")
+    if(!is.int.1L(object@max))
+      return("Slot `max` must be integer(1L), and not NA")
+    if(object@max > 0L && object@min > object@max)
+      return("Slot `max` must be negative, or greater than slot `min`")
+    TRUE
+} )
+setClassUnion("doacOrInt", c("diffObjAutoContext", "integer"))
+
 # Classes for tracking intermediate diff obj data
 #
 # DiffDiffs contains a slot corresponding to each of target and current where
@@ -63,7 +100,7 @@ setClass(
     cur.capt.def="charOrNULL",
     cur.banner="character",
     mode="character",             # diff output mode
-    context="diffObjAutoContext",
+    context="doacOrInt",
     hunk.limit="integer",
     line.limit="integer",
     disp.width="integer",
@@ -124,38 +161,3 @@ setClass(
     TRUE
   }
 )
-#' Configure Automatic Context Calculation
-#'
-#' Defines parameters for selecting an appropriate context value when using
-#' \code{\link{diff_obj}} and related functions.
-#'
-#' @export
-#' @param def integer(1L) value to revert to if automatic context calculation
-#'   fails
-#' @param min integer(1L), positive, set to zero to allow any context
-#' @param max integer(1L), set to negative to allow any context
-#' @return S4 object containing configuration parameters, for use as the
-#'   \code{context} parameter value in \code{\link{diff_obj}} and related
-#'   functions
-
-auto_context <- function(def=3L, min=0L, max=-1L) {
-  new("diffObjAutoContext", def=def, min=min, max=max)
-}
-setClass(
-  "diffObjAutoContext",
-  slots=c(
-    def="integer",
-    min="integer",
-    max="integer"
-  ),
-  validity=function(object) {
-    if(!is.int.1L(object@def))
-      return("Slot `def` must be integer(1L) and not NA")
-    if(!is.int.1L(object@max) || object@min < 0L)
-      return("Slot `max` must be integer(1L), positive, and not NA")
-    if(!is.int.1L(object@max))
-      return("Slot `max` must be integer(1L), and not NA")
-    if(object@max > 0L && object@min > object@max)
-      return("Slot `max` must be negative, or greater than slot `min`")
-    TRUE
-} )
