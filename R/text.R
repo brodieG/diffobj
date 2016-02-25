@@ -6,7 +6,7 @@
 nlines <- function(txt, disp.width, mode, use.ansi) {
   stopifnot(is.character(txt), all(!is.na(txt)))
   net.width <- calc_width_pad(disp.width, mode)
-  as.integer(ceiling(ansi_style_nchar(txt, use.ansi) / net.width))
+  pmax(1L, as.integer(ceiling(ansi_style_nchar(txt, use.ansi) / net.width)))
 }
 # Simple text manip functions
 
