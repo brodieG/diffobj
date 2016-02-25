@@ -143,11 +143,10 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
         p_and_t_hunks(res.l, context=context@min, hunk.limit=hunk.limit),
         mode, disp.width, use.ansi
       )
-      ctx.opt <- context@def
       context <- if(len <= line.limit[[1L]] || line.limit[[1L]] < 0L) {
         -1L
       } else if(len.min > line.limit[[1L]]) {
-        ctx.opt
+        context@min
       } else {
         # compute max context size
 
