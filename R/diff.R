@@ -87,7 +87,8 @@ find_brackets <- function(x) {
 # `match.quotes` will make "words" starting and ending with quotes; it should
 # only be used if the objects are known to be attribute-less character vectors
 # that are printed (as that is the only way we can know for sure how to match
-# the quoted bits)
+# the quoted bits): note, we relaxed this constraint a little bit so that we
+# can better match deparsed things and so on
 
 diff_word <- function(
   target, current, ignore.white.space, match.quotes=FALSE,
@@ -102,10 +103,17 @@ diff_word <- function(
   # Compute the char by char diffs for each line
 
   reg <- paste0(
+    # Not whitespaces that doesn't include quotes
     "[^ \"]+|",
+    # Quoted phrases as structured in atomic character vectors
     if(match.quotes) "((?<= )|(?<=^))\"([^\"]|\\\")*?\"((?= )|(?=$))|",
-    "((?<=[ ([])|(?<=^))\"([^\"]|\\\"|\"(?=[^ ]))*?\"((?=[ ,)\\]])|(?=$))",
-    ""
+    # Other quoted phrases we might see in expressions or deparsed chr vecs,
+    # this is a bit lazy currently b/c we're not forcing precise matching b/w
+    # starting and ending delimiters
+    "((?<=[ ([,{])|(?<=^))\"([^\"]|\\\"|\"(?=[^ ]))*?\"((?=[ ,)\\]}])|(?=$))|",
+    # Other otherwise 'illegal' quotes that couldn't be matched to one of the
+    # known valid quote structures
+    "\""
   )
   tar.reg <- gregexpr(reg, target, perl=TRUE)
   cur.reg <- gregexpr(reg, current, perl=TRUE)
