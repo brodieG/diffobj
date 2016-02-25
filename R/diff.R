@@ -200,10 +200,13 @@ diff_color <- function(txt, diffs, range, color, use.ansi) {
 #'   \item \code{diff_print} prints the objects, captures the output, and runs
 #'     the diff on the captured output
 #'   \item \code{diff_str} runs \code{str} on the objects, captures the output
-#'     and runs the diff on the captured output.  This will show as many
-#'     recursive levels as possible so long as the line limits are not exeeded,
-#'     and if they are, as few as possible to show at least one error, provided
-#'     you do not specify a \code{max.level} argument as part of \code{...}
+#'     and runs the diff on the captured output.  If a \code{line.limit} is
+#'     specified, it will attempt to find a \code{max.level} for which the
+#'     output fits within the limit.  You can specify an explicit
+#'     \code{max.level} to prevent this behavior (see \code{\link{str}}).  Note
+#'     that using a \code{max.level} lower than the deepest nested level of an
+#'     object may conceal display differences between objects.  You will be
+#'     alerted to this if you did \bold{not} specify \code{max.level} yourself.
 #'   \item \code{diff_obj} picks between \code{diff_print} and \code{diff_str}
 #'     depending on which one it thinks will provide the most useful diff.
 #'   \item \code{diff_chr} will run the diff directly on the actual character
@@ -233,7 +236,7 @@ diff_color <- function(txt, diffs, range, color, use.ansi) {
 #' each hunk to help quickly identify small differences.  Just keep in mind that
 #' the \code{+-} symbols always relate to the original line diff.  The
 #' word-diff is indicated only by the ANSI escape sequence styling and will not
-#' be visible if your terminal does not support them or if you diable them.
+#' be visible if your terminal does not support them or if you disable them.
 #'
 #' The output format used here is loosely based on the \code{git diff} format.
 #'
@@ -274,6 +277,10 @@ diff_color <- function(txt, diffs, range, color, use.ansi) {
 #'    http://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz
 #' }{\code{libmba}} \code{C} library.
 #'
+#' This algorithm scales with the \bold{square} of the number of differences
+#' between compared objects, and so is most effective when comparing objects
+#' that are mostly similar.
+#'
 #' @note: differences shown or reported by these functions may not be the
 #'   totality of the differences between objects since display methods may not
 #'   display all differences.  This is particularly true when using \code{str}
@@ -285,7 +292,9 @@ diff_color <- function(txt, diffs, range, color, use.ansi) {
 #' @param target the reference object
 #' @param current the object being compared to \code{target}
 #' @param context integer(1L) how many lines of context are shown on either side
-#'   of differences.
+#'   of differences, set to \code{-1L} to allow as many as possible.
+#'   Alternatively you can provde the output of \code{\link{auto_context()}} to
+#'   display as much context as possible without violating the \code{line.limit}
 #' @param hunk.limit integer(2L) how many sections of differences to show.
 #'   The first value is the maximum number of elements before we start trimming
 #'   output.  The second value is how many elements to trim to.  If only one
@@ -301,16 +310,14 @@ diff_color <- function(txt, diffs, range, color, use.ansi) {
 #'   horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
 #'   FALSE)
 #' @param disp.width integer(1L) number of display columns to take up; note that
-#'   in \dQuote{sidebyside} mode the effective display width is halved from this
-#'   number
+#'   in \dQuote{sidebyside} mode the effective display width is half this number
 #' @param tar.banner character(1L) or NULL, used to clarify the symbology of the
 #'   diff output (see the \dQuote{Output} section in the docs), if NULL will be
 #'   inferred from \code{target} and \code{current} expressions
-#' @param cur.banner character(1L) like \code{tar.banner}
+#' @param cur.banner character(1L) like \code{tar.banner}, but for \code{current}
 #' @param frame environment the evaluation frame for the \code{print/show/str},
 #'   calls, allows user to ensure correct methods are used, not used by
-#'   \code{diff_chr} or \code{diff_deparse} though present as argument for
-#'   simplicity
+#'   \code{diff_chr} or \code{diff_deparse}
 #' @param silent TRUE or FALSE, whether to display the diff (FALSE by default)
 #' @param allow.in.hunk.diff TRUE or FALSE, whether to do a secondary diff on
 #'   each hunk to highlight word differences (TRUE by default).  May be
