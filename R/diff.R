@@ -388,6 +388,9 @@ diff_tpl <- function(
     mode=mode, hunk.limit=hunk.limit, line.limit=line.limit,
     disp.width=disp.width, use.ansi=use.ansi
   )
+  if(is.null(tar.banner)) tar.banner <- deparse(tar.exp)[[1L]]
+  if(is.null(cur.banner)) cur.banner <- deparse(cur.exp)[[1L]]
+
   # Create the output structures, and display if requested
 
   vars <- as.list(environment())
@@ -420,8 +423,8 @@ diff_obj <- diff_tpl; body(diff_obj) <- quote({
   res.print <- eval(call.print, parent.frame())
   res.str <- eval(call.str, parent.frame())
 
-  diff.p <- count_diffs(res.str@diffs@hunks)
-  diff.s <- count_diffs(res.print@diffs@hunks)
+  diff.p <- count_diffs(res.print@diffs@hunks)
+  diff.s <- count_diffs(res.str@diffs@hunks)
 
   # Only show the one with differences
 
