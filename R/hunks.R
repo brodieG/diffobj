@@ -518,8 +518,9 @@ update_hunks <- function(hunk.grps, A.chr, B.chr) {
 
 # Count how many "lines" of differences there are in the  hunks
 #
-# Note that the lines are not necessarily display lines, just literal lines
-# as they appear in the text elements being diffed
+# Counts original diff lines, not lines left after trim.  This is because
+# we are checking for 'str' folding, and 'str' folding should only happen
+# if the folded results fits fully within limit.
 #
 # param x should be a hunk group list
 
@@ -529,8 +530,8 @@ count_diffs <- function(x) {
       unlist(x, recursive=FALSE),
       function(y) {
         if(y$context) 0L else {
-          (if(y$tar.rng.trim[[1L]]) diff(y$tar.rng.trim) + 1L else 0L) +
-          (if(y$cur.rng.trim[[1L]]) diff(y$cur.rng.trim) + 1L else 0L)
+          (if(y$tar.rng[[1L]]) diff(y$tar.rng) + 1L else 0L) +
+          (if(y$cur.rng[[1L]]) diff(y$cur.rng) + 1L else 0L)
       } },
       integer(1L)
 ) ) }
