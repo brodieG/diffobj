@@ -402,6 +402,7 @@ diff_obj <- diff_tpl; body(diff_obj) <- quote({
   call.raw[["silent"]] <- TRUE
   call.str <- call.print <- call.raw
   call.str[[1L]] <- quote(diff_str)
+  call.str[["max.level"]] <- "auto"
   call.print[[1L]] <- quote(diff_print)
 
   # Run both the print and str versions, and then decide which to use based
