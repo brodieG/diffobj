@@ -24,8 +24,15 @@ NULL
 #'   \code{context} parameter value in \code{\link{diff_obj}} and related
 #'   functions
 
-auto_context <- function(def=3L, min=0L, max=-1L) {
-  new("diffObjAutoContext", def=def, min=min, max=max)
+auto_context <- function(
+  def=getOption("diffobj.context.auto.def"),
+  min=getOption("diffobj.context.auto.min"),
+  max=getOption("diffobj.context.auto.max")
+) {
+  new(
+    "diffObjAutoContext", def=as.integer(def), min=as.integer(min),
+    max=as.integer(max)
+  )
 }
 setClass(
   "diffObjAutoContext",

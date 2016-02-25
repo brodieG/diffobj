@@ -159,7 +159,8 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
                 function(x) if(x$context) length(x$A.chr) else 0L, integer(1L)
             ) ) / 2L
         ) )
-        ctx.lo <- safety <- 0L
+        ctx.lo <- context@min
+        safety <- 0L
 
         repeat {
           if((safety <- safety + 1L) > ctx.max)
@@ -174,9 +175,9 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
             ctx.lo <- ctx
             ctx <- ctx + as.integer(ceiling(ctx.hi - ctx) / 2)
           } else if (len > line.limit[[1L]]) {
-            # unable to get something small enough, but we know 0 context
+            # unable to get something small enough, but we know min context
             # works from inital test
-            ctx <- 0L
+            ctx <- context@min
             break
           } else if (len <= line.limit[[1L]]) {
             break

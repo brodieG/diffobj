@@ -1,7 +1,10 @@
 
 .onLoad <- function(libname, pkgname) {
   default.opts <- list(
-    diffobj.context=c(2L),
+    diffobj.context=3L,
+    diffobj.context.auto.def=3L,
+    diffobj.context.auto.min=1L,
+    diffobj.context.auto.max=-1L,
     diffobj.ignore.white.space=TRUE,
     diffobj.line.limit=-1L,
     diffobj.hunk.limit=-1L,
