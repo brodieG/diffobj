@@ -7,7 +7,7 @@
     diffobj.ignore.white.space=TRUE,
     diffobj.line.limit=-1L,
     diffobj.hunk.limit=-1L,
-    diffobj.use.ansi=ansistyle::ansi_available(),
+    diffobj.use.ansi=crayon::has_color(),
     diffobj.mode="unified",
     diffobj.silent=FALSE,
     diffobj.max.diffs=10000L,

@@ -33,7 +33,7 @@
 setGeneric("as.hunks", function(x, ...) standardGeneric("as.hunks"))
 setMethod("as.hunks", "diffObjMyersMbaSes",
   function(
-    x, mode, context, disp.width, line.limit, hunk.limit, use.ansi, ...
+    x, mode, context, disp.width, line.limit, hunk.limit, ...
   ) {
     stopifnot(
       is.character(mode), length(mode) == 1L, !is.na(mode),
@@ -137,11 +137,11 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
     if(is(context, "diffObjAutoContext")) {
       len <- diff_line_len(
         p_and_t_hunks(res.l, context=context@max,  hunk.limit=hunk.limit),
-        mode, disp.width, use.ansi
+        mode, disp.width
       )
       len.min <- diff_line_len(
         p_and_t_hunks(res.l, context=context@min, hunk.limit=hunk.limit),
-        mode, disp.width, use.ansi
+        mode, disp.width
       )
       context <- if(len <= line.limit[[1L]] || line.limit[[1L]] < 0L) {
         -1L
@@ -183,7 +183,7 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
           }
           len <- diff_line_len(
             p_and_t_hunks(res.l, context=ctx, hunk.limit=hunk.limit),
-            mode, disp.width, use.ansi
+            mode, disp.width
           )
         }
         ctx
@@ -317,13 +317,13 @@ process_hunks <- function(x, context) {
 #
 # NOTE: need to account for multi-space characters and escape sequences
 
-get_hunk_chr_lens <- function(hunk.grps, mode, disp.width, use.ansi) {
+get_hunk_chr_lens <- function(hunk.grps, mode, disp.width) {
   # Account for overhead / side by sideness in width calculations
   # Internal funs
   hunk_len <- function(hunk.id, hunks) {
     hunk <- hunks[[hunk.id]]
-    A.lines <- nlines(hunk$A.chr, disp.width, mode, use.ansi)
-    B.lines <- nlines(hunk$B.chr, disp.width, mode, use.ansi)
+    A.lines <- nlines(hunk$A.chr, disp.width, mode)
+    B.lines <- nlines(hunk$B.chr, disp.width, mode)
 
     # Depending on each mode, figure out how to set up the lines;
     # straightforward except for context where we need to account for the
@@ -379,10 +379,10 @@ get_hunk_chr_lens <- function(hunk.grps, mode, disp.width, use.ansi) {
 }
 # Compute total diff length in lines
 
-diff_line_len <- function(hunk.grps, mode, disp.width, use.ansi) {
+diff_line_len <- function(hunk.grps, mode, disp.width) {
   max(
     0L,
-    cumsum(get_hunk_chr_lens(hunk.grps, mode, disp.width, use.ansi)[, "len"])
+    cumsum(get_hunk_chr_lens(hunk.grps, mode, disp.width)[, "len"])
   ) + banner_len(mode)
 }
 # Remove hunk groups and atomic hunks that exceed the line limit
@@ -405,9 +405,7 @@ trim_hunk <- function(hunk, type, line.id) {
   hunk[dat.idx] <- lapply(hunk[dat.idx], head, n=line.id)
   hunk
 }
-trim_hunks <- function(
-  hunk.grps, mode, disp.width, hunk.limit, line.limit, use.ansi
-) {
+trim_hunks <- function(hunk.grps, mode, disp.width, hunk.limit, line.limit) {
   diffs.orig <- count_diffs(hunk.grps)
   hunk.grps.count <- length(hunk.grps)
   if(hunk.limit[[1L]] < 0L) hunk.limit <- rep(hunk.grps.count, 2L)
@@ -417,7 +415,7 @@ trim_hunks <- function(
   hunk.grps.used <- min(hunk.grps.count, hunk.limit.act)
   hunk.grps <- hunk.grps[seq_len(hunk.grps.used)]
 
-  lines <- get_hunk_chr_lens(hunk.grps, mode, disp.width, use.ansi)
+  lines <- get_hunk_chr_lens(hunk.grps, mode, disp.width)
   cum.len <- cumsum(abs(lines[, "len"]))
   cut.off <- -1L
   lines.omitted <- 0L

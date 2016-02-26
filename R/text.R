@@ -3,10 +3,12 @@
 # `disp.width` should be the available display width, this function computes
 # the net real estate account for mode, padding, etc.
 
-nlines <- function(txt, disp.width, mode, use.ansi) {
+nlines <- function(txt, disp.width, mode) {
+  use.ansi <- crayon::has_color()
   stopifnot(is.character(txt), all(!is.na(txt)))
   net.width <- calc_width_pad(disp.width, mode)
-  pmax(1L, as.integer(ceiling(ansi_style_nchar(txt, use.ansi) / net.width)))
+  nc_fun <- if(use.ansi) crayon::col_nchar else nchar
+  pmax(1L, as.integer(ceiling(nc_fun(txt) / net.width)))
 }
 # Simple text manip functions
 
@@ -18,9 +20,10 @@ chr_trim <- function(text, width) {
     text
   )
 }
-rpad <- function(text, width, pad.chr=" ", use.ansi=TRUE) {
+rpad <- function(text, width, pad.chr=" ") {
+  use.ansi <- crayon::has_color()
   stopifnot(is.character(pad.chr), length(pad.chr) == 1L, nchar(pad.chr) == 1L)
-  nchar_fun <- if(use.ansi) ansi_style_nchar else nchar
+  nchar_fun <- if(use.ansi) crayon::col_nchar else nchar
   pad.count <- width - nchar_fun(text)
   pad.count[pad.count < 0L] <- 0L
   pad.chrs <- vapply(
@@ -39,8 +42,8 @@ rpadt <- function(text, width, pad.chr=" ")
 #
 # Returns a list of split vectors
 
-wrap <- function(txt, width, use.ansi, pad=FALSE) {
-  # Get rid of newlines
+wrap <- function(txt, width, pad=FALSE) {
+  # Get rid of newlines (NOTE: how does this even work??? must be wrong)
 
   txt[!!nchar(txt)] <- unlist(strsplit(txt[!!nchar(txt)], "\n"))
 
@@ -48,56 +51,31 @@ wrap <- function(txt, width, use.ansi, pad=FALSE) {
   # a vector of character positions after which we should split our character
   # vector
 
-  esc.loc <- if(use.ansi) {
-    gregexpr(.ansistyle_ansi_regex, txt)
-  } else {
-    # Equivalent to no-match
-    replicate(length(txt), structure(-1L, match.length=-1L), simplify=FALSE)
-  }
+  use.ansi <- crayon::has_color()
+  ss_fun <- if(use.ansi) crayon::col_substr else substr
+  nc_fun <- if(use.ansi) crayon::col_nchar else nchar
+
   # Map each character to a length of 1 or zero depending on whether it is
   # part of an ANSI escape sequence or not
 
   res.l <- lapply(
     seq_along(txt),
     function(i) {
-      nchars <- nchar(txt[[i]])
+      nchars <- nc_fun(txt[[i]])
       if(!nchars) return("")
-      char.len <- rep(1L, nchars)
-      esi <- esc.loc[[i]]
-      zero.len <- unlist(
-        Map(
-          function(x, y) if(x > 0L) seq_len(y) + x - 1L else 0L,
-          esi, attr(esi, "match.length")
-      ) )
-      char.len[zero.len] <- 0L
 
-      # Determine locations to split at; we are greedy, grabbing as many zero
-      # width chars as we can
+      split.end <- seq(
+        from=width, by=width, length.out=ceiling(nchars / width)
+      ) + 1L
+      split.start <- split.end - width
 
-      cum.len <- cumsum(char.len)
-      max.len <- tail(cum.len, 1L)
-
-      if(max.len <= width) return(txt[[i]])
-
-      split.chr.pos <- seq(
-        from=width, by=width, length.out=ceiling(max.len / width)
+      unlist(
+        Map(ss_fun, rep(txt[[i]], length(split.start)), split.start, split.end)
       )
-      # match the locations in reversed string (reverse so `match` matches)
-      # last instance of a length
-
-      split.locs <-
-        length(cum.len) - c(na.omit(match(split.chr.pos, rev(cum.len)))) + 1L
-      split.locs <- split.locs[which(split.locs < nchars)]
-
-      res <- substr(
-        rep(txt[[i]], length(split.locs) + 1L),
-        c(1L, split.locs + 1L), c(split.locs, nchars)
-      )
-      res
     }
   )
   if(!length(res.l)) res.l <- list(txt)
-  if(pad) lapply(res.l, rpad, width=width, use.ansi=use.ansi) else res.l
+  if(pad) lapply(res.l, rpad, width=width) else res.l
 }
 # Add the +/- in front of a text line and color accordingly
 #
@@ -106,13 +84,14 @@ wrap <- function(txt, width, use.ansi, pad=FALSE) {
 #
 # returns a list containing padded char vectors
 
-sign_pad <- function(txt, pad, rev=FALSE, use.ansi) {
+sign_pad <- function(txt, pad, rev=FALSE) {
+  use.ansi <- crayon::has_color()
   if(!length(txt)) return(txt)
   stopifnot(
     is.list(txt), all(vapply(txt, is.character, logical(1L))),
     !any(is.na(unlist(txt))),
     is.integer(pad), length(pad) == 1L || length(pad) == length(txt),
-    all(pad %in% 1:3),  isTRUE(use.ansi) || identical(use.ansi, FALSE)
+    all(pad %in% 1:3)
   )
   pads <- if(!rev) c("  ", "+ ", "- ") else c("  ", " +", " -")
   pad.ex <- if(!rev) ": " else " :"
@@ -128,10 +107,7 @@ sign_pad <- function(txt, pad, rev=FALSE, use.ansi) {
         extras <- rep(if(color) pad.ex else "  ", len - 1L)
         res <- c(pads[pad[[x]]], extras)
         if(use.ansi && color) {
-          ansi_style(
-            res, if(pad[[x]] == 2L) "green" else "red",
-            use.style=use.ansi
-          )
+          crayon:::style(res, if(pad[[x]] == 2L) "green" else "red")
         } else res
   } } )
   Map(paste0, if(rev) txt else pad.out, if(!rev) txt else pad.out)
