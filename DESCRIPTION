@@ -32,4 +32,4 @@ Collate:
     'text.R'
     'tochar.R'
 Imports:
-    ansistyle
+    crayon (>= 1.3.1)

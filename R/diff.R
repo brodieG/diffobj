@@ -10,7 +10,7 @@ NULL
 #' \code{\link{tools::Rdiff}} except the diff is computed directly on R objects
 #' instead of text files and does not rely on the system \code{diff} utility.
 #'
-#' @import ansistyle
+#' @import crayon
 #' @name diffobj-package
 #' @docType package
 
@@ -92,13 +92,12 @@ find_brackets <- function(x) {
 
 diff_word <- function(
   target, current, ignore.white.space, match.quotes=FALSE,
-  use.ansi, disp.width
+  disp.width
 ) {
   stopifnot(
     is.character(target), is.character(current),
     all(!is.na(target)), all(!is.na(current)),
-    is.TF(match.quotes),
-    isTRUE(use.ansi) || identical(use.ansi, FALSE)
+    is.TF(match.quotes)
   )
   # Compute the char by char diffs for each line
 
@@ -135,11 +134,11 @@ diff_word <- function(
   diffs <- char_diff(
     tar.split, cur.split, ignore.white.space=ignore.white.space,
     context=-1L, mode="context", line.limit=-1L, hunk.limit=-1L,
-    disp.width=disp.width, use.ansi=use.ansi
+    disp.width=disp.width
   )
   # Color
 
-  diff.colored <- diffColor(diffs, use.ansi=use.ansi)
+  diff.colored <- diffColor(diffs)
   tar.colored <- diff.colored$A
   cur.colored <- diff.colored$B
 
@@ -162,7 +161,7 @@ diff_word <- function(
 
 setGeneric("diffColor", function(x, ...) standardGeneric("diffColor"))
 setMethod("diffColor", "diffObjDiffDiffs",
- function(x, use.ansi, ...) {
+ function(x, ...) {
    res.l <- lapply(x@hunks,
      function(y) {
        lapply(y,
@@ -170,10 +169,10 @@ setMethod("diffColor", "diffObjDiffDiffs",
            A <- z$A.chr
            B <- z$B.chr
            if(!z$context) {
-             A[z$A < 0L] <- ansi_style(A[z$A < 0L], "green", use.style=use.ansi)
-             A[z$A > 0L] <- ansi_style(A[z$A > 0L], "red", use.style=use.ansi)
-             B[z$B < 0L] <- ansi_style(B[z$B < 0L], "green", use.style=use.ansi)
-             B[z$B > 0L] <- ansi_style(B[z$B > 0L], "red", use.style=use.ansi)
+             A[z$A < 0L] <- crayon::style(A[z$A < 0L], "green")
+             A[z$A > 0L] <- crayon::style(A[z$A > 0L], "red")
+             B[z$B < 0L] <- crayon::style(B[z$B < 0L], "green")
+             B[z$B > 0L] <- crayon::style(B[z$B > 0L], "red")
            }
            list(A=A, B=B)
   } ) } )
@@ -183,16 +182,14 @@ setMethod("diffColor", "diffObjDiffDiffs",
   list(A=A, B=B)
 } )
 
-diff_color <- function(txt, diffs, range, color, use.ansi) {
+diff_color <- function(txt, diffs, range, color) {
   stopifnot(
     is.character(txt), is.logical(diffs), !any(is.na(diffs)),
     length(txt) == length(diffs), is.integer(range), !any(is.na(range)),
     all(range > 0 & range <= length(txt)), is.chr1(color)
   )
   to.color <- diffs & seq_along(diffs) %in% range
-  txt[to.color] <- ansi_style(
-    txt[to.color], color, use.style=use.ansi
-  )
+  txt[to.color] <- crayon::style(txt[to.color], color)
   txt
 }
 #' Show Diffs Between the Screen Display Versions of Two Objects
@@ -385,6 +382,13 @@ diff_tpl <- function(
 
   tar.capt <- tar.capt.def <- cur.capt <- cur.capt.def <- diffs <- NULL
 
+  # Force crayon to whatever ansi status we chose; note we must do this after
+  # touching vars in case someone passes `options(crayon.enabled=...)` as one
+  # of the arguments
+
+  old.crayon.opt <- options(crayon.enabled=use.ansi)
+  on.exit(options(old.crayon.opt))
+
   # line where we will insert code; each of the different `diff_*` functions
   # will have different logic here
 
@@ -395,7 +399,7 @@ diff_tpl <- function(
   if(is.null(diffs)) diffs <- char_diff(
     cur.capt, tar.capt, context=context, ignore.white.space=ignore.white.space,
     mode=mode, hunk.limit=hunk.limit, line.limit=line.limit,
-    disp.width=disp.width, use.ansi=use.ansi
+    disp.width=disp.width
   )
   if(is.null(tar.banner)) tar.banner <- deparse(tar.exp)[[1L]]
   if(is.null(cur.banner)) cur.banner <- deparse(cur.exp)[[1L]]
@@ -469,7 +473,7 @@ diff_obj <- diff_tpl; body(diff_obj) <- quote({
 #' @rdname diff_obj
 #' @export
 
-diff_print <- diff_tpl; body(diff_print)[[10L]] <- quote({
+diff_print <- diff_tpl; body(diff_print)[[12L]] <- quote({
   # capture normal prints, along with default prints to make sure that if we
   # do try to wrap an atomic vector print it is very likely to be in a format
   # we are familiar with and not affected by a non-default print method
@@ -510,7 +514,7 @@ diff_print <- diff_tpl; body(diff_print)[[10L]] <- quote({
 #' @rdname diff_obj
 #' @export
 
-diff_str <- diff_tpl; body(diff_str)[[10L]] <- quote({
+diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
   # Match original call and managed dots, in particular wrt to the
   # `max.level` arg
 
@@ -567,9 +571,9 @@ diff_str <- diff_tpl; body(diff_str)[[10L]] <- quote({
   safety <- 0L
 
   repeat{
-    if((safety <- safety + 1L) > max.depth)
+    if((safety <- safety + 1L) > max.depth && !first.loop)
       stop(
-        "Logic Error: exceed list depth when comparing structures; contact ",
+        "Logic Error: exceeded list depth when comparing structures; contact ",
         "maintainer."
       )
     tar.capt <- capt_call(tar.call, capt.width, frame)
@@ -578,7 +582,7 @@ diff_str <- diff_tpl; body(diff_str)[[10L]] <- quote({
     diffs.str <- char_diff(
       cur.capt, tar.capt, context=context,
       ignore.white.space=ignore.white.space, mode=mode, hunk.limit=hunk.limit,
-      line.limit=line.limit, disp.width=disp.width, use.ansi=use.ansi
+      line.limit=line.limit, disp.width=disp.width
     )
     has.diff <- any(
       !vapply(
@@ -599,7 +603,7 @@ diff_str <- diff_tpl; body(diff_str)[[10L]] <- quote({
     }
     if(line.limit[[1L]] < 1L) break
 
-    line.len <- diff_line_len(diffs.str@hunks, mode, disp.width, use.ansi)
+    line.len <- diff_line_len(diffs.str@hunks, mode, disp.width)
 
     # We need a higher level if we don't have diffs
 
@@ -652,14 +656,14 @@ diff_str <- diff_tpl; body(diff_str)[[10L]] <- quote({
 #' @rdname diff_obj
 #' @export
 
-diff_chr <- diff_tpl; body(diff_chr)[[10L]] <- quote({
+diff_chr <- diff_tpl; body(diff_chr)[[12L]] <- quote({
   tar.capt <- if(!is.character(target)) as.character(target) else target
   cur.capt <- if(!is.character(current)) as.character(current) else current
 })
 #' @rdname diff_obj
 #' @export
 
-diff_deparse <- diff_tpl; body(diff_deparse)[[10L]] <- quote({
+diff_deparse <- diff_tpl; body(diff_deparse)[[12L]] <- quote({
   tar.capt <- deparse(target, ...)
   cur.capt <- deparse(current, ...)
 })
