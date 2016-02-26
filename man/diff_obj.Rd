@@ -82,7 +82,9 @@ diff_deparse(target, current, mode = getOption("diffobj.mode"),
 \item{current}{the object being compared to \code{target}}
 
 \item{context}{integer(1L) how many lines of context are shown on either side
-of differences.}
+of differences, set to \code{-1L} to allow as many as possible.
+Alternatively you can provde the output of \code{\link{auto_context()}} to
+display as much context as possible without violating the \code{line.limit}}
 
 \item{hunk.limit}{integer(2L) how many sections of differences to show.
 The first value is the maximum number of elements before we start trimming
@@ -99,21 +101,19 @@ Behaves like \code{hunk.limit}}
 differences (TRUE by default if we detect that your terminal supports it)}
 
 \item{disp.width}{integer(1L) number of display columns to take up; note that
-in \dQuote{sidebyside} mode the effective display width is halved from this
-number}
+in \dQuote{sidebyside} mode the effective display width is half this number}
 
 \item{tar.banner}{character(1L) or NULL, used to clarify the symbology of the
 diff output (see the \dQuote{Output} section in the docs), if NULL will be
 inferred from \code{target} and \code{current} expressions}
 
-\item{cur.banner}{character(1L) like \code{tar.banner}}
+\item{cur.banner}{character(1L) like \code{tar.banner}, but for \code{current}}
 
 \item{silent}{TRUE or FALSE, whether to display the diff (FALSE by default)}
 
 \item{frame}{environment the evaluation frame for the \code{print/show/str},
 calls, allows user to ensure correct methods are used, not used by
-\code{diff_chr} or \code{diff_deparse} though present as argument for
-simplicity}
+\code{diff_chr} or \code{diff_deparse}}
 
 \item{...}{additional arguments to pass on to \code{print}, etc.}
 
@@ -140,7 +140,8 @@ a \code{\link{diffObjDiff}} object, invisibly.  This function is
 Highlights at a glance the \bold{display} differences between
 two objects.  Lack of display differences is no guarantee that the objects
 are the same.  Use \code{identical} or \code{all.equal} to confirm objects
-are not different.  For basic usage see examples.  For details read on.
+are not different.  For basic usage we recommend you look at the examples.
+If you are interested in the details, read on.
 }
 \note{
 : differences shown or reported by these functions may not be the
@@ -156,10 +157,13 @@ are not different.  For basic usage see examples.  For details read on.
   \item \code{diff_print} prints the objects, captures the output, and runs
     the diff on the captured output
   \item \code{diff_str} runs \code{str} on the objects, captures the output
-    and runs the diff on the captured output.  This will show as many
-    recursive levels as possible so long as the line limits are not exeeded,
-    and if they are, as few as possible to show at least one error, provided
-    you do not specify a \code{max.level} argument as part of \code{...}
+    and runs the diff on the captured output.  If a \code{line.limit} is
+    specified, it will attempt to find a \code{max.level} for which the
+    output fits within the limit.  You can specify an explicit
+    \code{max.level} to prevent this behavior (see \code{\link{str}}).  Note
+    that using a \code{max.level} lower than the deepest nested level of an
+    object may conceal display differences between objects.  You will be
+    alerted to this if you did \bold{not} specify \code{max.level} yourself.
   \item \code{diff_obj} picks between \code{diff_print} and \code{diff_str}
     depending on which one it thinks will provide the most useful diff.
   \item \code{diff_chr} will run the diff directly on the actual character
@@ -192,7 +196,7 @@ In addition to the primary line diff, hunks are themselves word-diffed within
 each hunk to help quickly identify small differences.  Just keep in mind that
 the \code{+-} symbols always relate to the original line diff.  The
 word-diff is indicated only by the ANSI escape sequence styling and will not
-be visible if your terminal does not support them or if you diable them.
+be visible if your terminal does not support them or if you disable them.
 
 The output format used here is loosely based on the \code{git diff} format.
 }
@@ -239,5 +243,9 @@ used here is an adaptation of Michael B. Allen's diff program from the
 \href{
    http://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz
 }{\code{libmba}} \code{C} library.
+
+This algorithm scales with the \bold{square} of the number of differences
+between compared objects, and so is most effective when comparing objects
+that are mostly similar.
 }
 
