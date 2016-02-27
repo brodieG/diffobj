@@ -397,7 +397,7 @@ diff_tpl <- function(
   # Finalize stuff
 
   if(is.null(diffs)) diffs <- char_diff(
-    cur.capt, tar.capt, context=context, ignore.white.space=ignore.white.space,
+    tar.capt, cur.capt, context=context, ignore.white.space=ignore.white.space,
     mode=mode, hunk.limit=hunk.limit, line.limit=line.limit,
     disp.width=disp.width
   )
