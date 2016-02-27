@@ -99,6 +99,16 @@ local({
     lst.3 <- lst.2
     lst.3[[1]] <- "hello"
 
+    chr.1 <- c(
+      "hello world",
+      "I ran into a rather bizarre bug involving memoise that made it impossible to forget the cached version of crayon:::i_num_colors. Somehow, the binary version of crayon on CRAN has a corrupted copy of the memoised crayon:::i_num_colors function",,
+      "goodbye"
+    )
+    chr.2 <- c(
+      "hello world",
+      "I ran blah a rather bizarre bug involving memoise that made it impossible to forget the cached version of crayon:::i_num_colors. Somehow, the binary version of crayon gah CRAN has a corrupted copy of the memoised crayon:::i_num_colors function"
+    )
+
     expect_identical(
       diff_obj(lst.1, lst.2, context=c(10, 5)),
       c("\033[36m@@ str(lst.1, max.level = 5) @@\033[39m", "   List of 2", "    $  : NULL", "    $ z:List of 4", "     ..$  :List of 1", "\033[31m-  \033[39m  .. ..$ : chr [1:3] \"a\" \"\033[31mb\033[39m\" \"c\"", "     ..$  :List of 1", "     .. ..$ : NULL", "     ..$ z:List of 4", "     .. ..$  : int [1:3] 1 2 3", "     .. ..$  : num 1", "     .. ..$  : num 2", "     .. ..$ z:List of 2", "     .. .. ..$  : num 1", "     .. .. ..$ z:List of 1", "\033[31m-  \033[39m  .. .. .. ..$ z: num \033[31m5\033[39m",  "\033[31m-  \033[39m  ..$  : int [1:\033[31m3\033[39m, 1:3] \033[31m1\033[39m \033[31m2\033[39m 3 \033[31m4\033[39m \033[31m5\033[39m \033[31m6\033[39m \033[31m7\033[39m \033[31m8\033[39m \033[31m9\033[39m", "\033[36m@@ str(lst.2, max.level = 5) @@\033[39m", "   List of 2", "    $  : NULL", "    $ z:List of 4", "     ..$  :List of 1", "\033[32m+  \033[39m  .. ..$ : chr [1:3] \"a\" \"\033[32mbananas\033[39m\" \"c\"", "     ..$  :List of 1", "     .. ..$ : NULL", "     ..$ z:List of 4", "     .. ..$  : int [1:3] 1 2 3",  "     .. ..$  : num 1", "     .. ..$  : num 2", "     .. ..$ z:List of 2", "     .. .. ..$  : num 1", "     .. .. ..$ z:List of 1", "\033[32m+  \033[39m  .. .. .. ..$ z: num \033[32m6\033[39m", "\033[32m+  \033[39m  ..$  : int [1:\033[32m4\033[39m, 1:3] \033[32m12\033[39m \033[32m11\033[39m \033[32m10\033[39m \033[32m9\033[39m \033[32m8\033[39m \033[32m7\033[39m \033[32m6\033[39m \033[32m5\033[39m \033[32m4\033[39m 3 \033[32m...\033[39m")

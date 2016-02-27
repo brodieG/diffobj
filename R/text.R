@@ -66,8 +66,8 @@ wrap <- function(txt, width, pad=FALSE) {
 
       split.end <- seq(
         from=width, by=width, length.out=ceiling(nchars / width)
-      ) + 1L
-      split.start <- split.end - width
+      )
+      split.start <- split.end - width + 1L
 
       unlist(
         Map(ss_fun, rep(txt[[i]], length(split.start)), split.start, split.end)
