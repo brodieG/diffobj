@@ -33,6 +33,8 @@ rng_as_chr <- function(range) {
 # Convert a hunk group into text representation
 
 hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
+  max.w <- calc_width(disp.width, mode)
+  capt.width <- calc_width_pad(disp.width, mode)
   h.ids <- vapply(h.g, "[[", integer(1L), "id")
   tar.rng <- find_rng(h.ids, ranges.orig[1:2, , drop=FALSE])
   cur.rng <- find_rng(h.ids, ranges.orig[3:4, , drop=FALSE])
@@ -43,9 +45,9 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
   hunk.head <- crayon::style(
     if(mode == "sidebyside") {
       paste0(
-        rpadt(sprintf("@@ %s @@", hh.a), disp.width),
+        rpadt(sprintf("@@ %s @@", hh.a), max.w),
         "  ",
-        rpadt(sprintf("@@ %s @@", hh.b), disp.width),
+        rpadt(sprintf("@@ %s @@", hh.b), max.w),
         collapse=""
       )
     } else {
@@ -83,7 +85,7 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
       lapply(h.g,
         function(h.a) {
           pos <- h.a$A > 0L
-          A.out <- wrap(h.a$A.chr, disp.width - 2L)
+          A.out <- wrap(h.a$A.chr, capt.width)
           if(!h.a$context) {
             A.out[pos] <- sign_pad(A.out[pos], 3L)
             A.out[!pos] <- sign_pad(A.out[!pos], 2L)
@@ -111,28 +113,28 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
             B.out <- c(B.out, character(len.diff))
             B.present <- c(B.present, rep(FALSE, len.diff))
           }
-          A.w <- wrap(A.out, disp.width - 2L, pad=TRUE)
-          B.w <- wrap(B.out, disp.width - 2L, pad=TRUE)
-
-          # Same number of els post wrap
-
+          A.w <- wrap(A.out, capt.width, pad=TRUE)
+          B.w <- wrap(B.out, capt.width, pad=TRUE)
           A.lens <- sum(vapply(A.w, length, integer(1L)))
           B.lens <- sum(vapply(B.w, length, integer(1L)))
           len.max <- max(A.lens, B.lens)
-          blanks <- paste0(rep(" ", disp.width), collapse="")
 
-          for(i in seq_along(len.max)) {
-            if(A.lens < B.lens)
-              A.w[[i]] <- c(A.w[[i]], rep(blanks, B.lens - A.lens))
-            if(A.lens > B.lens)
-              B.w[[i]] <- c(B.w[[i]], rep(blanks, A.lens - B.lens))
-          }
+          # Same number of els post wrap
+
           if(A.lens || B.lens) {
-            paste0(
-              unlist(sign_pad(A.w, ifelse(!h.a$context & A.present, 3L, 1L))),
-              "  ",
-              unlist(sign_pad(B.w, ifelse(!h.a$context & B.present, 2L, 1L))))
+            A.w.pad <- sign_pad(A.w, ifelse(!h.a$context & A.present, 3L, 1L))
+            B.w.pad <- sign_pad(B.w, ifelse(!h.a$context & B.present, 2L, 1L))
+
+            blanks <- paste0(rep(" ", max.w), collapse="")
+
+            for(i in seq_along(len.max)) {
+              if(A.lens < B.lens)
+                A.w.pad[[i]] <- c(A.w.pad[[i]], rep(blanks, B.lens - A.lens))
+              if(A.lens > B.lens)
+                B.w.pad[[i]] <- c(B.w.pad[[i]], rep(blanks, A.lens - B.lens))
             }
+            paste0(unlist(A.w.pad), "  ", unlist(B.w.pad))
+          }
   } ) ) }
   c(hunk.head, diff.txt)
 }
@@ -174,7 +176,7 @@ setMethod("as.character", "diffObjDiff",
     # dropping hunks beyond hunk limit
 
     hunk.grps <- trim_hunks(
-      x@diffs@hunks, mode=mode, disp.width=max.w, line.limit=line.limit,
+      x@diffs@hunks, mode=mode, disp.width=disp.width, line.limit=line.limit,
       hunk.limit=hunk.limit
     )
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
@@ -366,7 +368,7 @@ setMethod("as.character", "diffObjDiff",
 
     out <- lapply(
       hunk.grps, hunk_as_char, ranges.orig=ranges.orig,
-      mode=mode, disp.width=max.w
+      mode=mode, disp.width=disp.width
     )
     # Finalize
 

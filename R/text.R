@@ -6,9 +6,9 @@
 nlines <- function(txt, disp.width, mode) {
   use.ansi <- crayon::has_color()
   stopifnot(is.character(txt), all(!is.na(txt)))
-  net.width <- calc_width_pad(disp.width, mode)
+  capt.width <- calc_width_pad(disp.width, mode)
   nc_fun <- if(use.ansi) crayon::col_nchar else nchar
-  pmax(1L, as.integer(ceiling(nc_fun(txt) / net.width)))
+  pmax(1L, as.integer(ceiling(nc_fun(txt) / capt.width)))
 }
 # Simple text manip functions
 

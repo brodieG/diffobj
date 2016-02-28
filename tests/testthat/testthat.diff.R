@@ -101,13 +101,17 @@ local({
 
     chr.1 <- c(
       "hello world",
-      "I ran into a rather bizarre bug involving memoise that made it impossible to forget the cached version of crayon:::i_num_colors. Somehow, the binary version of crayon on CRAN has a corrupted copy of the memoised crayon:::i_num_colors function",,
+      "I ran into a rather bizarre bug involving memoise that made it impossible to forget the cached version of crayon:::i_num_colors. Somehow, the binary version of crayon on CRAN has a corrupted copy of the memoised crayon:::i_num_colors function",
       "goodbye"
     )
     chr.2 <- c(
       "hello world",
-      "I ran blah a rather bizarre bug involving memoise that made it impossible to forget the cached version of crayon:::i_num_colors. Somehow, the binary version of crayon gah CRAN has a corrupted copy of the memoised crayon:::i_num_colors function"
+      "I ran blah a rather bizarre bug involving memoise that made it"
     )
+    diff_print(chr.1, chr.2)
+    diff_obj(chr.1, chr.2)
+    diff_print(chr.1, chr.2, mode="sidebyside")
+    diff_print(chr.1[2:3], chr.2[2], mode="sidebyside")
 
     expect_identical(
       diff_obj(lst.1, lst.2, context=c(10, 5)),
