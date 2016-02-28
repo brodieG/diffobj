@@ -371,7 +371,8 @@ diff_tpl <- function(
   # to error; then check them
 
   for(i in names(formals())) environment()[[i]]
-  check_args(environment())      # this potentially modifies environment()
+  # this potentially modifies environment()
+  check_args(environment(), sys.call())
   this.call <- sys.call()
   par.frame <- parent.frame()
   err <- function(...)

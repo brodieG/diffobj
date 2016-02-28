@@ -106,13 +106,6 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
           B.present <- rep(TRUE, length(B.out))
           len.diff <- length(A.out) - length(B.out)
 
-          # if(len.diff < 0L) {
-          #   A.out <- c(A.out, character(abs(len.diff)))
-          #   A.present <- c(A.present, rep(FALSE, abs(len.diff)))
-          # } else if(len.diff) {
-          #   B.out <- c(B.out, character(len.diff))
-          #   B.present <- c(B.present, rep(FALSE, len.diff))
-          # }
           A.w <- wrap(A.out, capt.width, pad=TRUE)
           B.w <- wrap(B.out, capt.width, pad=TRUE)
           A.w.l <- length(A.w)
@@ -122,7 +115,7 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
 
           # Same number of els post wrap
 
-          if(A.w.l || B.w.l) {
+          if(length(unlist(A.w)) || length(unlist(B.w))) {
             A.w.pad <- sign_pad(A.w, ifelse(!h.a$context & A.present, 3L, 1L))
             B.w.pad <- sign_pad(B.w, ifelse(!h.a$context & B.present, 2L, 1L))
 
