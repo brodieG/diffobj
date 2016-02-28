@@ -120,14 +120,18 @@ check_args <- function(env.to.check, call) {
     } else as.integer(env.to.check[[i]])
 
   msg.base <- paste0(
-    "Argument `%s` must be integer(1L) and not NA, or an object produced ",
-    "by `auto_context`."
+    "Argument `%s` must be integer(1L) and not NA, an object produced ",
+    "by `auto_context`, or \"auto\"."
   )
   if(
     !is.int.1L(env.to.check$context) &&
-    !is(env.to.check$context,"diffObjAutoContext")
+    !is(env.to.check$context,"diffObjAutoContext") &&
+    !identical(env.to.check$context, "auto")
   )
     stop(simpleError(sprintf(msg.base, "context"), call=call))
+
+  if(identical(env.to.check$context, "auto"))
+    env.to.check$context <- auto_context()
 
   # check T F args
 
