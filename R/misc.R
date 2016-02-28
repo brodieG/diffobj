@@ -31,6 +31,8 @@ list_depth <- function(x, depth=0L) {
 # Note this does not account for the padding required
 
 .pad <- list(context=2L, sidebyside=2L, unified=2L)
+.min.width <- 15L
+
 calc_width <- function(width, mode) {
   stopifnot(
     is.numeric(width), length(width) == 1L, !is.na(width), is.finite(width),
@@ -40,7 +42,7 @@ calc_width <- function(width, mode) {
   width <- as.integer(width)
   width.tmp <- if(mode == "sidebyside")
     as.integer(floor((width - 2)/ 2)) else width
-  as.integer(max(20L, width.tmp))
+  as.integer(max(.min.width, width.tmp))
 }
 calc_width_pad <- function(width, mode) {
   stopifnot(

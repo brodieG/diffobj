@@ -190,7 +190,7 @@ setMethod("as.character", "diffObjDiff",
           unlist(lapply(hunks.flat, function(x) nchar(c(x$A.chr, x$B.chr))))
         ), mode=mode
       )
-      max.w <- if(max.col.w < max.w) max(15L, max.col.w) else max.w
+      max.w <- if(max.col.w < max.w) max(.min.width, max.col.w) else max.w
       # future calculations should assume narrower display
       disp.width <- max.w * 2L + 2L
       comb.fun <- paste0
