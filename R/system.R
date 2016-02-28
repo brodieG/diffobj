@@ -1,11 +1,11 @@
 
 .onLoad <- function(libname, pkgname) {
   default.opts <- list(
-    diffobj.context=3L,
+    diffobj.context="auto",
     diffobj.context.auto.min=1L,
     diffobj.context.auto.max=-1L,
     diffobj.ignore.white.space=TRUE,
-    diffobj.line.limit=-1L,
+    diffobj.line.limit=c(50L, 25L),
     diffobj.hunk.limit=-1L,
     diffobj.use.ansi=crayon::has_color(),
     diffobj.mode="unified",
