@@ -82,9 +82,11 @@ diff_deparse(target, current, mode = getOption("diffobj.mode"),
 \item{current}{the object being compared to \code{target}}
 
 \item{context}{integer(1L) how many lines of context are shown on either side
-of differences, set to \code{-1L} to allow as many as possible.
-Alternatively you can provde the output of \code{\link{auto_context()}} to
-display as much context as possible without violating the \code{line.limit}}
+of differences, set to \code{-1L} to allow as many as possible.  Set to
+\dQuote{"auto"} to display as much context as possible without violating
+\code{line.limit}, or alternatively pass the return value of
+\code{link{auto_context}} to fine tune the parameters of the auto context
+calculation}
 
 \item{hunk.limit}{integer(2L) how many sections of differences to show.
 The first value is the maximum number of elements before we start trimming
@@ -92,7 +94,7 @@ output.  The second value is how many elements to trim to.  If only one
 value is provided that value is used for the initial threshold as well as
 the limit to trim to.  If both values are provided the second must be
 smaller than the first.  Set to \code{-1L} or \code{c(-1L, -1L)} to run
-without limits.}
+without limits}
 
 \item{line.limit}{integer(2L) how many lines of screen output to show.
 Behaves like \code{hunk.limit}}
@@ -245,7 +247,7 @@ used here is an adaptation of Michael B. Allen's diff program from the
 }{\code{libmba}} \code{C} library.
 
 This algorithm scales with the \bold{square} of the number of differences
-between compared objects, and so is most effective when comparing objects
+between compared objects so is most effective when comparing objects
 that are mostly similar.
 }
 

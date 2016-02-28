@@ -22,14 +22,15 @@ BugReports: https://github.com/brodieG/diffobj/issues
 RoxygenNote: 5.0.1
 Collate:
     'capt.R'
+    'misc.R'
     's4.R'
     'core.R'
-    'misc.R'
     'diff.R'
     'hunks.R'
     'rdiff.R'
     'system.R'
     'text.R'
     'tochar.R'
+    'word.R'
 Imports:
     crayon (>= 1.3.1)

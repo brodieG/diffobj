@@ -117,7 +117,7 @@ local({
     diff_print(chr.1[2:3], chr.2[2], mode="sidebyside")
 
     # make sure blanks line up correctly
-    chr.3 <- letters[1:20]
+j
     chr.4 <- c(
       "a phrase long enough to wrap a few lines when looked at on a side by side basis",
       "lorem ipsum dolor something or other I don't remember what the whole thing was anyway"
