@@ -11,16 +11,6 @@
 
 NULL
 
-diff_color <- function(txt, diffs, range, color) {
-  stopifnot(
-    is.character(txt), is.logical(diffs), !any(is.na(diffs)),
-    length(txt) == length(diffs), is.integer(range), !any(is.na(range)),
-    all(range > 0 & range <= length(txt)), is.chr1(color)
-  )
-  to.color <- diffs & seq_along(diffs) %in% range
-  txt[to.color] <- crayon::style(txt[to.color], color)
-  txt
-}
 #' Show Diffs Between the Screen Display Versions of Two Objects
 #'
 #' Highlights at a glance the \bold{display} differences between
