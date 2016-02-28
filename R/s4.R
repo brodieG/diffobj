@@ -1,3 +1,7 @@
+#' @include misc.R
+
+NULL
+
 # S4 class definitions
 
 setClassUnion("charOrNULL", c("character", "NULL"))
@@ -139,6 +143,55 @@ setClass(
       return("slot `trim.dat` in incorrect format")
     TRUE
 } )
+#' @rdname diffobj_s4method_doc
+
+setMethod("any", "diffObjDiff",
+  function(x, ..., na.rm = FALSE) {
+    dots <- list(...)
+    if(length(dots))
+      stop("`any` method for `diffObjDiff` supports only one argument")
+    any(x@diffs)
+} )
+#' @rdname diffobj_s4method_doc
+
+setMethod("any", "diffObjDiffDiffs",
+  function(x, ..., na.rm = FALSE) {
+    dots <- list(...)
+    if(length(dots))
+      stop("`any` method for `diffObjDiff` supports only one argument")
+    any(
+      which(
+        !vapply(unlist(x@hunks, recursive=FALSE), "[[", logical(1L), "context")
+    ) )
+} )
+# Apply line colors; returns a list with the A and B vectors colored,
+# note that all hunks will be collapsed.
+#
+# Really only intended to be used for stuff that produces a single hunk
+
+setGeneric("diffColor", function(x, ...) standardGeneric("diffColor"))
+setMethod("diffColor", "diffObjDiffDiffs",
+ function(x, ...) {
+   res.l <- lapply(x@hunks,
+     function(y) {
+       lapply(y,
+         function(z) {
+           A <- z$A.chr
+           B <- z$B.chr
+           if(!z$context) {
+             A[z$A < 0L] <- crayon::style(A[z$A < 0L], "green")
+             A[z$A > 0L] <- crayon::style(A[z$A > 0L], "red")
+             B[z$B < 0L] <- crayon::style(B[z$B < 0L], "green")
+             B[z$B > 0L] <- crayon::style(B[z$B > 0L], "red")
+           }
+           list(A=A, B=B)
+  } ) } )
+  res.l <- unlist(res.l, recursive=FALSE)
+  A <- unlist(lapply(res.l, "[[", "A"))
+  B <- unlist(lapply(res.l, "[[", "B"))
+  list(A=A, B=B)
+} )
+
 setClass(
   "diffObjMyersMbaSes",
   slots=c(
