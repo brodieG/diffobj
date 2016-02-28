@@ -192,10 +192,14 @@ setMethod("as.character", "diffObjDiff",
 
     if(mode == "sidebyside") {
       # If side by side we want stuff close together if reasonable
-      max.col.w <- max(
-        unlist(lapply(hunks.flat, function(x) nchar(c(x$A.chr, x$B.chr))))
-      ) + 2L
+      max.col.w <- calc_width_unpad(
+        max(
+          unlist(lapply(hunks.flat, function(x) nchar(c(x$A.chr, x$B.chr))))
+        ), mode=mode
+      )
       max.w <- if(max.col.w < max.w) max(15L, max.col.w) else max.w
+      # future calculations should assume narrower display
+      disp.width <- max.w * 2L + 2L
       comb.fun <- paste0
       t.fun <- rpadt
     } else {

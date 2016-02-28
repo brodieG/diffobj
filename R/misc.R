@@ -30,6 +30,7 @@ list_depth <- function(x, depth=0L) {
 #
 # Note this does not account for the padding required
 
+.pad <- list(context=2L, sidebyside=2L, unified=2L)
 calc_width <- function(width, mode) {
   stopifnot(
     is.numeric(width), length(width) == 1L, !is.na(width), is.finite(width),
@@ -46,7 +47,13 @@ calc_width_pad <- function(width, mode) {
     is.character(mode), mode %in% c("context", "unified", "sidebyside")
   )
   width.tmp <- calc_width(width, mode)
-  width.tmp - if(mode == "sidebyside") 2L else 2L # happens to be same now
+  width.tmp - .pad[[mode]]
+}
+calc_width_unpad <- function(capt.width, mode) {
+  stopifnot(
+    is.character(mode), mode %in% c("context", "unified", "sidebyside")
+  )
+  capt.width + .pad[[mode]]
 }
 # for checking the limits; for use exclusively within `check_args`
 #
