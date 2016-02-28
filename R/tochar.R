@@ -59,7 +59,7 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
 
   diff.txt <- if(mode == "context") {
     # Need to get all the A data and the B data
-    get_chr_vals <- function(h.a, ind) wrap(h.a[[ind]], disp.width)
+    get_chr_vals <- function(h.a, ind) wrap(h.a[[ind]], capt.width)
 
     A.ctx <- unlist(
       lapply(h.g, function(h.a) rep(h.a$context, length(h.a$A.chr)))
@@ -106,33 +106,37 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
           B.present <- rep(TRUE, length(B.out))
           len.diff <- length(A.out) - length(B.out)
 
-          if(len.diff < 0L) {
-            A.out <- c(A.out, character(abs(len.diff)))
-            A.present <- c(A.present, rep(FALSE, abs(len.diff)))
-          } else if(len.diff) {
-            B.out <- c(B.out, character(len.diff))
-            B.present <- c(B.present, rep(FALSE, len.diff))
-          }
+          # if(len.diff < 0L) {
+          #   A.out <- c(A.out, character(abs(len.diff)))
+          #   A.present <- c(A.present, rep(FALSE, abs(len.diff)))
+          # } else if(len.diff) {
+          #   B.out <- c(B.out, character(len.diff))
+          #   B.present <- c(B.present, rep(FALSE, len.diff))
+          # }
           A.w <- wrap(A.out, capt.width, pad=TRUE)
           B.w <- wrap(B.out, capt.width, pad=TRUE)
-          A.lens <- sum(vapply(A.w, length, integer(1L)))
-          B.lens <- sum(vapply(B.w, length, integer(1L)))
-          len.max <- max(A.lens, B.lens)
+          A.w.l <- length(A.w)
+          B.w.l <- length(B.w)
+          A.lens <- vapply(A.w, length, integer(1L))
+          B.lens <- vapply(B.w, length, integer(1L))
 
           # Same number of els post wrap
 
-          if(A.lens || B.lens) {
+          if(A.w.l || B.w.l) {
             A.w.pad <- sign_pad(A.w, ifelse(!h.a$context & A.present, 3L, 1L))
             B.w.pad <- sign_pad(B.w, ifelse(!h.a$context & B.present, 2L, 1L))
 
             blanks <- paste0(rep(" ", max.w), collapse="")
 
-            for(i in seq_along(len.max)) {
-              if(A.lens < B.lens)
-                A.w.pad[[i]] <- c(A.w.pad[[i]], rep(blanks, B.lens - A.lens))
-              if(A.lens > B.lens)
-                B.w.pad[[i]] <- c(B.w.pad[[i]], rep(blanks, A.lens - B.lens))
-            }
+            for(i in seq_len(max(A.w.l, B.w.l))) {
+              if(i > A.w.l) A.w.pad[[i]] <- rep(blanks, B.lens[[i]]) else
+              if(i > B.w.l) B.w.pad[[i]] <- rep(blanks, A.lens[[i]]) else {
+                A.B.diff <- A.lens[[i]] - B.lens[[i]]
+                if(A.B.diff > 0L) {
+                  B.w.pad[[i]] <- c(B.w.pad[[i]], rep(blanks, A.B.diff))
+                } else if(A.B.diff < 0L) {
+                  A.w.pad[[i]] <- c(A.w.pad[[i]], rep(blanks, -A.B.diff))
+            } } }
             paste0(unlist(A.w.pad), "  ", unlist(B.w.pad))
           }
   } ) ) }

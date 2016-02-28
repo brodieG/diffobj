@@ -110,7 +110,7 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
             chr <- character(length(ids))
             chr[ids > 0L] <- x@a[ids[ids > 0]]
             chr[ids < 0L] <- x@b[abs(ids[ids < 0])]
-            chr[ids == 0L] <- ""
+            chr[ids == 0L] <- NA_character_
             chr
           }
           A.chr <- get_chr(A)
