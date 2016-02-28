@@ -32,7 +32,9 @@
 
 setGeneric("as.hunks", function(x, ...) standardGeneric("as.hunks"))
 setMethod("as.hunks", "diffObjMyersMbaSes",
-  function(x, mode, context, ...) {
+  function(
+    x, mode, context, disp.width, line.limit, hunk.limit, ...
+  ) {
     stopifnot(
       is.character(mode), length(mode) == 1L, !is.na(mode),
       mode %in% c("context", "unified", "sidebyside")
@@ -108,7 +110,7 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
             chr <- character(length(ids))
             chr[ids > 0L] <- x@a[ids[ids > 0]]
             chr[ids < 0L] <- x@b[abs(ids[ids < 0])]
-            chr[ids == 0L] <- ""
+            chr[ids == 0L] <- NA_character_
             chr
           }
           A.chr <- get_chr(A)
@@ -127,10 +129,78 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
             tar.rng.trim=tar.rng, cur.rng.trim=cur.rng
           )
     } ) }
-    # group hunks together based on context
+    # Group hunks together based on context, in "auto" mode we find the context
+    # that maximizes lines displayed while adhering to line and hunk limits
+    # Definitely not very efficient since we re-run code multiple times we
+    # probably don't need to.
 
-    process_hunks(res.l, context)
+    if(is(context, "diffObjAutoContext")) {
+      len <- diff_line_len(
+        p_and_t_hunks(res.l, context=context@max,  hunk.limit=hunk.limit),
+        mode, disp.width
+      )
+      len.min <- diff_line_len(
+        p_and_t_hunks(res.l, context=context@min, hunk.limit=hunk.limit),
+        mode, disp.width
+      )
+      context <- if(len <= line.limit[[1L]] || line.limit[[1L]] < 0L) {
+        -1L
+      } else if(len.min > line.limit[[1L]]) {
+        context@min
+      } else {
+        # compute max context size
+
+        ctx.max <- ctx.hi <- ctx <- as.integer(
+          ceiling(
+            max(
+              vapply(
+                res.l,
+                function(x) if(x$context) length(x$A.chr) else 0L, integer(1L)
+            ) ) / 2L
+        ) )
+        ctx.lo <- context@min
+        safety <- 0L
+
+        repeat {
+          if((safety <- safety + 1L) > ctx.max)
+            stop(
+              "Logic Error: stuck trying to find auto-context; contact ",
+              "maintainer."
+            )
+          if(len > line.limit[[1L]] && ctx - ctx.lo > 1L) {
+            ctx.hi <- ctx
+            ctx <- as.integer((ctx - ctx.lo) / 2)
+          } else if (len < line.limit[[1L]] && ctx.hi - ctx > 1L) {
+            ctx.lo <- ctx
+            ctx <- ctx + as.integer(ceiling(ctx.hi - ctx) / 2)
+          } else if (len > line.limit[[1L]]) {
+            # unable to get something small enough, but we know min context
+            # works from inital test
+            ctx <- context@min
+            break
+          } else if (len <= line.limit[[1L]]) {
+            break
+          }
+          len <- diff_line_len(
+            p_and_t_hunks(res.l, context=ctx, hunk.limit=hunk.limit),
+            mode, disp.width
+          )
+        }
+        ctx
+    } }
+    process_hunks(res.l, context=context)
 } )
+# process the hunks and also drop off groups that exceed limit
+#
+# used exclusively when we are trying to auto-calculate context
+
+p_and_t_hunks <- function(hunks.raw, context, hunk.limit) {
+  c.all <- process_hunks(hunks.raw, context=context)
+  if(hunk.limit[[1L]] >= 0L && length(c.all) > hunk.limit)
+    c.all <- c.all[seq_along(hunk.limit[[2L]])]
+  c.all
+}
+
 # Subset hunks; should only ever be subsetting context hunks
 
 hunk_sub <- function(hunk, op, n) {
@@ -170,12 +240,6 @@ hunk_sub <- function(hunk, op, n) {
 # This will group atomic hunks into hunk groups
 
 process_hunks <- function(x, context) {
-  stopifnot(
-    is.integer(context), length(context) == 1L, !is.na(context),
-    # assuming hunk list is more or less in correct format, checks not
-    # comprehensive here
-    is.list(x)
-  )
   ctx.vec <- vapply(x, "[[", logical(1L), "context")
   if(!all(abs(diff(ctx.vec)) == 1L))
     stop(
@@ -253,18 +317,14 @@ process_hunks <- function(x, context) {
 #
 # NOTE: need to account for multi-space characters and escape sequences
 
-get_hunk_chr_lens <- function(hunk.grps, mode, disp.width, use.ansi) {
+get_hunk_chr_lens <- function(hunk.grps, mode, disp.width) {
   # Account for overhead / side by sideness in width calculations
-  max.w <- calc_width(disp.width, mode) - 2L
   # Internal funs
   hunk_len <- function(hunk.id, hunks) {
     hunk <- hunks[[hunk.id]]
-    A.lines <- as.integer(
-      ceiling(ansi_style_nchar(hunk$A.chr, use.ansi) / disp.width)
-    )
-    B.lines <- as.integer(
-      ceiling(ansi_style_nchar(hunk$B.chr, use.ansi) / disp.width)
-    )
+    A.lines <- nlines(hunk$A.chr, disp.width, mode)
+    B.lines <- nlines(hunk$B.chr, disp.width, mode)
+
     # Depending on each mode, figure out how to set up the lines;
     # straightforward except for context where we need to account for the
     # fact that all the A of a hunk group are shown first, and then all
@@ -317,6 +377,14 @@ get_hunk_chr_lens <- function(hunk.grps, mode, disp.width, use.ansi) {
 
   do.call(rbind, lapply(seq_along(hunk.grps), hunk_grp_len))
 }
+# Compute total diff length in lines
+
+diff_line_len <- function(hunk.grps, mode, disp.width) {
+  max(
+    0L,
+    cumsum(get_hunk_chr_lens(hunk.grps, mode, disp.width)[, "len"])
+  ) + banner_len(mode)
+}
 # Remove hunk groups and atomic hunks that exceed the line limit
 #
 # Return value is a hunk group list, with an attribute indicating how many
@@ -337,9 +405,8 @@ trim_hunk <- function(hunk, type, line.id) {
   hunk[dat.idx] <- lapply(hunk[dat.idx], head, n=line.id)
   hunk
 }
-trim_hunks <- function(
-  hunk.grps, mode, disp.width, hunk.limit, line.limit, use.ansi
-) {
+trim_hunks <- function(hunk.grps, mode, disp.width, hunk.limit, line.limit) {
+  diffs.orig <- count_diffs(hunk.grps)
   hunk.grps.count <- length(hunk.grps)
   if(hunk.limit[[1L]] < 0L) hunk.limit <- rep(hunk.grps.count, 2L)
   hunk.limit.act <- if(hunk.grps.count > hunk.limit[[1L]]) hunk.limit[[2L]]
@@ -348,7 +415,7 @@ trim_hunks <- function(
   hunk.grps.used <- min(hunk.grps.count, hunk.limit.act)
   hunk.grps <- hunk.grps[seq_len(hunk.grps.used)]
 
-  lines <- get_hunk_chr_lens(hunk.grps, mode, disp.width, use.ansi)
+  lines <- get_hunk_chr_lens(hunk.grps, mode, disp.width)
   cum.len <- cumsum(abs(lines[, "len"]))
   cut.off <- -1L
   lines.omitted <- 0L
@@ -414,9 +481,11 @@ trim_hunks <- function(
     hunk.grps.omitted <- hunk.grps.count
     hunk.grps <- list()
   }
+  diffs.trim <- count_diffs(hunk.grps)
   attr(hunk.grps, "meta") <- list(
     lines=c(lines.omitted, lines.total),
-    hunks=c(hunk.grps.omitted, hunk.grps.count)
+    hunks=c(hunk.grps.omitted, hunk.grps.count),
+    diffs=c(diffs.orig - diffs.trim, diffs.orig)
   )
   hunk.grps
 }
@@ -444,3 +513,23 @@ update_hunks <- function(hunk.grps, A.chr, B.chr) {
         }
   ) )
 }
+
+# Count how many "lines" of differences there are in the  hunks
+#
+# Counts original diff lines, not lines left after trim.  This is because
+# we are checking for 'str' folding, and 'str' folding should only happen
+# if the folded results fits fully within limit.
+#
+# param x should be a hunk group list
+
+count_diffs <- function(x) {
+  sum(
+    vapply(
+      unlist(x, recursive=FALSE),
+      function(y) {
+        if(y$context) 0L else {
+          (if(y$tar.rng[[1L]]) diff(y$tar.rng) + 1L else 0L) +
+          (if(y$cur.rng[[1L]]) diff(y$cur.rng) + 1L else 0L)
+      } },
+      integer(1L)
+) ) }

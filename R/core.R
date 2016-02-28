@@ -165,7 +165,8 @@ setMethod("summary", "diffObjMyersMbaSes",
 # elements that match and those that don't as a unitizerDiffDiffs object
 
 char_diff <- function(
-  x, y, context=-1L, ignore.white.space=ignore.white.space, mode=mode
+  x, y, context=-1L, ignore.white.space, mode, hunk.limit, line.limit,
+  disp.width
 ) {
   if(ignore.white.space) {
     sub.pat <- "(\t| )"
@@ -179,7 +180,10 @@ char_diff <- function(
     diff@a <- x
     diff@b <- y
   }
-  hunks <- as.hunks(diff, context=context, mode=mode)
+  hunks <- as.hunks(
+    diff, context=context, mode=mode, hunk.limit=hunk.limit,
+    line.limit=line.limit, disp.width=disp.width
+  )
   new("diffObjDiffDiffs", hunks=hunks)
 }
 # Helper function encodes matches within mismatches so that we can later word

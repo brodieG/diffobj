@@ -94,3 +94,14 @@ Rdiff_run <- function(from, to, nullPointers, silent, minimal) {
     invisible(res)
   }
 }
+# Mostly replaced by Rdiff_x funs; tbd whether we get rid of this or update the
+# Rdiff functions to use diff directly
+
+diff_rdiff <- function(target, current) {
+  stopifnot(is.character(target), is.character(current))
+  a <- tempfile("diffObjRdiffa")
+  writeLines(target, a)
+  b <- tempfile("diffObjRdiffb")
+  writeLines(current, b)
+  diff <- capture.output(system(paste("diff -bw", shQuote(a), shQuote(b))))
+}

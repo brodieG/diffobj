@@ -57,34 +57,6 @@ local({
     mx.3 <- mx.2
     mx.3[31, 2] <- 111L
 
-    mx.1.2.str.ref <- c("\033[36m@@ str(mx.1, max.level = 1L) @@\033[39m", "\033[31m-  \033[39m int [1:\033[31m3\033[39m, 1:\033[31m3\033[39m] 1 2 3 4 5 6 7 8 9", "\033[36m@@ str(mx.2, max.level = 1L) @@\033[39m", "\033[32m+  \033[39m int [1:\033[32m50\033[39m, 1:\033[32m2\033[39m] 1 2 3 4 5 6 7 8 9 \033[32m10\033[39m \033[32m...\033[39m")
-    mx.1.2.prn.ref <- c("\033[36m@@ mx.1 @@\033[39m", "\033[31m-  \033[39m     [,1] [,2] \033[31m[,\033[39m\033[31m3\033[39m\033[31m]\033[39m", "\033[31m-  \033[39m[1,]    1    \033[31m4\033[39m    \033[31m7\033[39m", "\033[31m-  \033[39m[2,]    2    \033[31m5\033[39m    \033[31m8\033[39m", "\033[31m-  \033[39m[3,]    3    \033[31m6\033[39m    \033[31m9\033[39m", "\033[36m@@ mx.2 @@\033[39m", "\033[32m+  \033[39m      [,1] [,2]", "\033[32m+  \033[39m [1,]    1   \033[32m51\033[39m", "\033[32m+  \033[39m [2,]    2   \033[32m52\033[39m",  "\033[32m+  \033[39m [3,]    3   \033[32m53\033[39m", "\033[32m+  \033[39m\033[32m [4,]    4   54\033[39m", "\033[90m   ~~ omitted 46 lines w/ 46 diffs ~~\033[39m")
-
-    # should be choosing str
-
-    expect_identical(diff_str(mx.1, mx.2, context=c(10L, 2L)), mx.1.2.str.ref)
-    expect_identical(diff_print(mx.1, mx.2, context=c(10L, 2L)), mx.1.2.prn.ref)
-    expect_identical(diff_obj(mx.1, mx.2, context=c(10L, 2L)), mx.1.2.str.ref)
-
-    mx.2.3.prn.ref <- c("\033[36m@@ mx.2 @@\033[39m", "\033[90m   ~~ omitted 29 lines w/o diffs ~~\033[39m", "   [29,]   29   79", "   [30,]   30   80", "\033[31m-  \033[39m[31,]   31   \033[31m81\033[39m", "   [32,]   32   82", "   [33,]   33   83", "\033[90m   ~~ omitted 17 lines w/o diffs ~~\033[39m", "\033[36m@@ mx.3 @@\033[39m", "\033[90m   ~~ omitted 29 lines w/o diffs ~~\033[39m", "   [29,]   29   79", "   [30,]   30   80", "\033[32m+  \033[39m[31,]   31  \033[32m111\033[39m", "   [32,]   32   82", "   [33,]   33   83",  "\033[90m   ~~ omitted 17 lines w/o diffs ~~\033[39m")
-
-    expect_identical(diff_obj(mx.2, mx.3, context=c(10L, 2L)), mx.2.3.prn.ref)
-    expect_identical(diff_print(mx.2, mx.3, context=c(10L, 2L)), mx.2.3.prn.ref)
-
-    # List tests
-
-    expect_identical(
-      diff_obj(mx.3[1:6, ], mx.3[1:5, ], context=c(10L, 2L)),
-      c("\033[36m@@ mx.3[1:6, ] @@\033[39m", "        [,1] [,2]", "   [1,]    1   51", "   [2,]    2   52", "   [3,]    3   53", "   [4,]    4   54", "   [5,]    5   55", "\033[31m-  \033[39m\033[31m[6,]    6   56\033[39m", "\033[36m@@ mx.3[1:5, ] @@\033[39m", "        [,1] [,2]", "   [1,]    1   51", "   [2,]    2   52", "   [3,]    3   53", "   [4,]    4   54", "   [5,]    5   55")
-    )
-    expect_identical(
-      diff_obj(mx.3[1:6, ], mx.3[2:6, ], context=c(10L, 2L)),
-      c("\033[36m@@ mx.3[1:6, ] @@\033[39m", "        [,1] [,2]", "\033[31m-  \033[39m[1,]    \033[31m1\033[39m   \033[31m51\033[39m", "\033[31m-  \033[39m[2,]    \033[31m2\033[39m   \033[31m52\033[39m", "\033[31m-  \033[39m[3,]    \033[31m3\033[39m   \033[31m53\033[39m", "\033[31m-  \033[39m[4,]    \033[31m4\033[39m   \033[31m54\033[39m", "\033[31m-  \033[39m[5,]    \033[31m5\033[39m   \033[31m55\033[39m", "\033[31m-  \033[39m\033[31m[6,]    6   56\033[39m", "\033[36m@@ mx.3[2:6, ] @@\033[39m", "        [,1] [,2]",  "\033[32m+  \033[39m[1,]    \033[32m2\033[39m   \033[32m52\033[39m", "\033[32m+  \033[39m[2,]    \033[32m3\033[39m   \033[32m53\033[39m", "\033[32m+  \033[39m[3,]    \033[32m4\033[39m   \033[32m54\033[39m", "\033[32m+  \033[39m[4,]    \033[32m5\033[39m   \033[32m55\033[39m", "\033[32m+  \033[39m[5,]    \033[32m6\033[39m   \033[32m56\033[39m")
-    )
-    expect_identical(
-      diff_obj(mx.3[1:6, ], mx.3[1:6, ], context=c(10L, 2L)),
-      "\033[90mNo visible differences between objects\033[39m"
-    )
     lst.1 <- list(
       NULL,
       z=list(
@@ -96,14 +68,47 @@ local({
     lst.2$z$z$z$z$z <- 6
     lst.2$z[[1L]][[1L]][2L] <- "bananas"
     lst.2$z[[4L]] <- matrix(12:1, ncol=3)
-    expect_identical(
-      diff_obj(lst.1, lst.2, context=c(10, 5)),
-      c("\033[36m@@ str(lst.1, max.level = 5) @@\033[39m", "   List of 2", "    $  : NULL", "    $ z:List of 4", "     ..$  :List of 1", "\033[31m-  \033[39m  .. ..$ : chr [1:3] \"a\" \"\033[31mb\033[39m\" \"c\"", "     ..$  :List of 1", "     .. ..$ : NULL", "     ..$ z:List of 4", "     .. ..$  : int [1:3] 1 2 3", "     .. ..$  : num 1", "     .. ..$  : num 2", "     .. ..$ z:List of 2", "     .. .. ..$  : num 1", "     .. .. ..$ z:List of 1", "\033[31m-  \033[39m  .. .. .. ..$ z: num \033[31m5\033[39m",  "\033[31m-  \033[39m  ..$  : int [1:\033[31m3\033[39m, 1:3] \033[31m1\033[39m \033[31m2\033[39m 3 \033[31m4\033[39m \033[31m5\033[39m \033[31m6\033[39m \033[31m7\033[39m \033[31m8\033[39m \033[31m9\033[39m", "\033[36m@@ str(lst.2, max.level = 5) @@\033[39m", "   List of 2", "    $  : NULL", "    $ z:List of 4", "     ..$  :List of 1", "\033[32m+  \033[39m  .. ..$ : chr [1:3] \"a\" \"\033[32mbananas\033[39m\" \"c\"", "     ..$  :List of 1", "     .. ..$ : NULL", "     ..$ z:List of 4", "     .. ..$  : int [1:3] 1 2 3",  "     .. ..$  : num 1", "     .. ..$  : num 2", "     .. ..$ z:List of 2", "     .. .. ..$  : num 1", "     .. .. ..$ z:List of 1", "\033[32m+  \033[39m  .. .. .. ..$ z: num \033[32m6\033[39m", "\033[32m+  \033[39m  ..$  : int [1:\033[32m4\033[39m, 1:3] \033[32m12\033[39m \033[32m11\033[39m \033[32m10\033[39m \033[32m9\033[39m \033[32m8\033[39m \033[32m7\033[39m \033[32m6\033[39m \033[32m5\033[39m \033[32m4\033[39m 3 \033[32m...\033[39m")
+    lst.3 <- lst.2
+    lst.3[[1]] <- "hello"
+
+    diff_print(lst.1, lst.3)
+    diff_print(lst.1, lst.3, mode="sidebyside")
+    chr.1 <- c(
+      "hello world",
+      "I ran into a rather bizarre bug involving memoise that made it impossible to forget the cached version of crayon:::i_num_colors. Somehow, the binary version of crayon on CRAN has a corrupted copy of the memoised crayon:::i_num_colors function",
+      "goodbye"
     )
-    expect_identical(
-      diff_obj(lst.1, lst.2, context=c(2, 1)),
-      c("\033[36m@@ lst.1 @@\033[39m", "\033[90m   ~~ omitted 5 lines w/o diffs ~~\033[39m", "   $z[[1]][[1]]", "\033[31m-  \033[39m[1] \"a\" \"\033[31mb\033[39m\" \"c\"", "   ", "\033[90m   ~~ omitted 34 lines w/ 4 diffs ~~\033[39m", "\033[36m@@ lst.2 @@\033[39m", "\033[90m   ~~ omitted 5 lines w/o diffs ~~\033[39m", "   $z[[1]][[1]]", "\033[32m+  \033[39m[1] \"a\"       \"\033[32mbananas\033[39m\" \"c\"", "   ", "\033[90m   ~~ omitted 35 lines w/ 5 diffs ~~\033[39m")
+    chr.2 <- c(
+      "hello world",
+      "I ran blah a rather bizarre bug involving memoise that made it"
     )
+
+    diff_print(chr.1, chr.2)
+    diff_obj(chr.1, chr.2)
+    diff_print(chr.1, chr.2, mode="sidebyside")
+    diff_print(chr.1[2:3], chr.2[2], mode="sidebyside")
+
+    # make sure blanks line up correctly
+    chr.3 <- letters[1:20]
+    chr.4 <- c(
+      "a phrase long enough to wrap a few lines when looked at on a side by side basis",
+      "lorem ipsum dolor something or other I don't remember what the whole thing was anyway"
+    )
+    diff_print(chr.3, chr.4, mode="sidebyside")
+
+    iris.c <- iris.c <- transform(iris, Species=as.character(Species))
+    # without rounding this is a bit wild, but good corner case to test
+    iris.2$Sepal.Length[sample(nrow(iris.2), 10)] <-
+      rnorm(10, mean(iris.2$Sepal.Length), sd(iris.2$Sepal.Length))
+
+    iris.3 <- iris.2
+    iris.3$Sepal.Length <- round(iris.3$Sepal.Length, 1L)
+    diff_print(iris, iris.c)
+    diff_obj(iris, iris.c)
+    diff_obj(iris, iris.c)
+    diff_obj(iris, iris.2)
+    diff_obj(iris, iris.3)
+    diff_obj(iris, iris.3, mode="sidebyside")
   } )
   set.seed(2)
   w1 <- sample(

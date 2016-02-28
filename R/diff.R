@@ -1,8 +1,3 @@
-#' @include s4.R
-#' @include misc.R
-
-NULL
-
 #' Compare R Objects with a Text Diff
 #'
 #' Compare R objects by computing a \code{diff} on their text representations
@@ -10,187 +5,19 @@ NULL
 #' \code{\link{tools::Rdiff}} except the diff is computed directly on R objects
 #' instead of text files and does not rely on the system \code{diff} utility.
 #'
-#' @import ansistyle
+#' @import crayon
 #' @name diffobj-package
 #' @docType package
 
 NULL
 
-#' @rdname diffobj_s4method_doc
-
-setMethod("any", "diffObjDiff",
-  function(x, ..., na.rm = FALSE) {
-    dots <- list(...)
-    if(length(dots))
-      stop("`any` method for `diffObjDiff` supports only one argument")
-    any(x@diffs)
-} )
-#' @rdname diffobj_s4method_doc
-
-setMethod("any", "diffObjDiffDiffs",
-  function(x, ..., na.rm = FALSE) {
-    dots <- list(...)
-    if(length(dots))
-      stop("`any` method for `diffObjDiff` supports only one argument")
-    any(
-      which(
-        !vapply(unlist(x@hunks, recursive=FALSE), "[[", logical(1L), "context")
-    ) )
-} )
-# Mostly replaced by Rdiff_x funs; tbd whether we get rid of this or update the
-# Rdiff functions to use diff directly
-
-diff_rdiff <- function(target, current) {
-  stopifnot(is.character(target), is.character(current))
-  a <- tempfile("diffObjRdiffa")
-  writeLines(target, a)
-  b <- tempfile("diffObjRdiffb")
-  writeLines(current, b)
-  diff <- capture.output(system(paste("diff -bw", shQuote(a), shQuote(b))))
-}
-# Try to use fancier word matching with vectors and matrices
-
-.brack.pat <- "^ *\\[\\d+\\]"
-
-# Determine if a string contains what appear to be standard index headers
-#
-# Returns index of elements in string that start with index headers.
-# Note that it is permissible to have ouput that doesn't match brackets
-# provided that it starts with brackets (e.g. attributes shown after break
-# pattern)
-
-find_brackets <- function(x) {
-  stopifnot(is.character(x), all(!is.na(x)))
-  matches <- regexpr(.brack.pat,  x)
-  vals <- regmatches(x, matches)
-  # the matching section must be uninterrupted starting from first line
-  # and must have consisten formatting
-
-  brackets <- which(cumsum(!nzchar(vals)) == 0L)
-  vals.in.brk <- vals[brackets]
-  nums.in.brk <- regmatches(vals.in.brk, regexpr("\\d+", vals.in.brk))
-
-  if(
-    length(brackets) && length(unique(nchar(vals.in.brk)) == 1L) &&
-    length(unique(diff(as.integer(nums.in.brk)))) <= 1L
-  ) {
-    brackets
-  } else integer(0L)
-}
-# Apply diff algorithm within lines
-#
-# For each line, splits into words, runs diffs, and colors them appropriately.
-# For `across.lines=TRUE`, merges all lines into one and does the word diff on
-# a single line to allow for the diff to look for matches across lines, though
-# the result is then unwrapped back to the original lines.
-#
-# `match.quotes` will make "words" starting and ending with quotes; it should
-# only be used if the objects are known to be attribute-less character vectors
-# that are printed (as that is the only way we can know for sure how to match
-# the quoted bits)
-
-diff_word <- function(
-  target, current, ignore.white.space, match.quotes=FALSE,
-  use.ansi
-) {
-  stopifnot(
-    is.character(target), is.character(current),
-    all(!is.na(target)), all(!is.na(current)),
-    is.TF(match.quotes),
-    isTRUE(use.ansi) || identical(use.ansi, FALSE)
-  )
-  # Compute the char by char diffs for each line
-
-  reg <- paste0(
-    if(match.quotes) "((?<= )|(?<=^))\"([^\"]|\\\")*?\"((?= )|(?=$))|",
-    "-?\\d+(\\.\\d+)?(e-?\\d{1,3})?",
-    "|\\w+|\\d+|[^[:alnum:]_[:blank:]]+"
-  )
-  tar.reg <- gregexpr(reg, target, perl=TRUE)
-  cur.reg <- gregexpr(reg, current, perl=TRUE)
-
-  tar.split <- regmatches(target, tar.reg)
-  cur.split <- regmatches(current, cur.reg)
-
-  # Collapse into one line if to do the diff across lines, but record
-  # item counts so we can reconstitute the lines at the end
-
-  tar.lens <- vapply(tar.split, length, integer(1L))
-  cur.lens <- vapply(cur.split, length, integer(1L))
-
-  tar.split <- unlist(tar.split)
-  cur.split <- unlist(cur.split)
-  if(is.null(tar.split)) tar.split <- character(0L)
-  if(is.null(cur.split)) cur.split <- character(0L)
-
-  diffs <- char_diff(
-    tar.split, cur.split, ignore.white.space=ignore.white.space,
-    context=-1L, mode="context"
-  )
-  # Color
-
-  diff.colored <- diffColor(diffs, use.ansi=use.ansi)
-  tar.colored <- diff.colored$A
-  cur.colored <- diff.colored$B
-
-  # Reconstitute lines if needed
-
-  tar.colored <- split(tar.colored, rep(seq_along(tar.lens), tar.lens))
-  cur.colored <- split(cur.colored, rep(seq_along(cur.lens), cur.lens))
-
-  # Merge back into original
-
-  if(length(tar.colored)) regmatches(target, tar.reg) <- tar.colored
-  if(length(cur.colored)) regmatches(current, cur.reg) <- cur.colored
-
-  list(target=target, current=current)
-}
-# Apply line colors; returns a list with the A and B vectors colored,
-# note that all hunks will be collapsed.
-#
-# Really only intended to be used for stuff that produces a single hunk
-
-setGeneric("diffColor", function(x, ...) standardGeneric("diffColor"))
-setMethod("diffColor", "diffObjDiffDiffs",
- function(x, use.ansi, ...) {
-   res.l <- lapply(x@hunks,
-     function(y) {
-       lapply(y,
-         function(z) {
-           A <- z$A.chr
-           B <- z$B.chr
-           if(!z$context) {
-             A[z$A < 0L] <- ansi_style(A[z$A < 0L], "green", use.style=use.ansi)
-             A[z$A > 0L] <- ansi_style(A[z$A > 0L], "red", use.style=use.ansi)
-             B[z$B < 0L] <- ansi_style(B[z$B < 0L], "green", use.style=use.ansi)
-             B[z$B > 0L] <- ansi_style(B[z$B > 0L], "red", use.style=use.ansi)
-           }
-           list(A=A, B=B)
-  } ) } )
-  res.l <- unlist(res.l, recursive=FALSE)
-  A <- unlist(lapply(res.l, "[[", "A"))
-  B <- unlist(lapply(res.l, "[[", "B"))
-  list(A=A, B=B)
-} )
-
-diff_color <- function(txt, diffs, range, color, use.ansi) {
-  stopifnot(
-    is.character(txt), is.logical(diffs), !any(is.na(diffs)),
-    length(txt) == length(diffs), is.integer(range), !any(is.na(range)),
-    all(range > 0 & range <= length(txt)), is.chr1(color)
-  )
-  to.color <- diffs & seq_along(diffs) %in% range
-  txt[to.color] <- ansi_style(
-    txt[to.color], color, use.style=use.ansi
-  )
-  txt
-}
 #' Show Diffs Between the Screen Display Versions of Two Objects
 #'
 #' Highlights at a glance the \bold{display} differences between
 #' two objects.  Lack of display differences is no guarantee that the objects
 #' are the same.  Use \code{identical} or \code{all.equal} to confirm objects
-#' are not different.  For basic usage see examples.  For details read on.
+#' are not different.  For basic usage we recommend you look at the examples.
+#' If you are interested in the details, read on.
 #'
 #' @section Overview:
 #'
@@ -198,10 +25,13 @@ diff_color <- function(txt, diffs, range, color, use.ansi) {
 #'   \item \code{diff_print} prints the objects, captures the output, and runs
 #'     the diff on the captured output
 #'   \item \code{diff_str} runs \code{str} on the objects, captures the output
-#'     and runs the diff on the captured output.  This will show as many
-#'     recursive levels as possible so long as the line limits are not exeeded,
-#'     and if they are, as few as possible to show at least one error, provided
-#'     you do not specify a \code{max.level} argument as part of \code{...}
+#'     and runs the diff on the captured output.  If a \code{line.limit} is
+#'     specified, it will attempt to find a \code{max.level} for which the
+#'     output fits within the limit.  You can specify an explicit
+#'     \code{max.level} to prevent this behavior (see \code{\link{str}}).  Note
+#'     that using a \code{max.level} lower than the deepest nested level of an
+#'     object may conceal display differences between objects.  You will be
+#'     alerted to this if you did \bold{not} specify \code{max.level} yourself.
 #'   \item \code{diff_obj} picks between \code{diff_print} and \code{diff_str}
 #'     depending on which one it thinks will provide the most useful diff.
 #'   \item \code{diff_chr} will run the diff directly on the actual character
@@ -231,7 +61,7 @@ diff_color <- function(txt, diffs, range, color, use.ansi) {
 #' each hunk to help quickly identify small differences.  Just keep in mind that
 #' the \code{+-} symbols always relate to the original line diff.  The
 #' word-diff is indicated only by the ANSI escape sequence styling and will not
-#' be visible if your terminal does not support them or if you diable them.
+#' be visible if your terminal does not support them or if you disable them.
 #'
 #' The output format used here is loosely based on the \code{git diff} format.
 #'
@@ -272,6 +102,10 @@ diff_color <- function(txt, diffs, range, color, use.ansi) {
 #'    http://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz
 #' }{\code{libmba}} \code{C} library.
 #'
+#' This algorithm scales with the \bold{square} of the number of differences
+#' between compared objects so is most effective when comparing objects
+#' that are mostly similar.
+#'
 #' @note: differences shown or reported by these functions may not be the
 #'   totality of the differences between objects since display methods may not
 #'   display all differences.  This is particularly true when using \code{str}
@@ -283,14 +117,18 @@ diff_color <- function(txt, diffs, range, color, use.ansi) {
 #' @param target the reference object
 #' @param current the object being compared to \code{target}
 #' @param context integer(1L) how many lines of context are shown on either side
-#'   of differences.
+#'   of differences, set to \code{-1L} to allow as many as possible.  Set to
+#'   \dQuote{"auto"} to display as much context as possible without violating
+#'   \code{line.limit}, or alternatively pass the return value of
+#'   \code{link{auto_context}} to fine tune the parameters of the auto context
+#'   calculation
 #' @param hunk.limit integer(2L) how many sections of differences to show.
 #'   The first value is the maximum number of elements before we start trimming
 #'   output.  The second value is how many elements to trim to.  If only one
 #'   value is provided that value is used for the initial threshold as well as
 #'   the limit to trim to.  If both values are provided the second must be
 #'   smaller than the first.  Set to \code{-1L} or \code{c(-1L, -1L)} to run
-#'   without limits.
+#'   without limits
 #' @param line.limit integer(2L) how many lines of screen output to show.
 #'   Behaves like \code{hunk.limit}
 #' @param use.ansi TRUE or FALSE, whether to use ANSI escape sequences to color
@@ -299,15 +137,14 @@ diff_color <- function(txt, diffs, range, color, use.ansi) {
 #'   horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
 #'   FALSE)
 #' @param disp.width integer(1L) number of display columns to take up; note that
-#'   in \dQuote{sidebyside} mode the effective display width is halved from this
-#'   number
-#' @param tar.banner character(1L) used to clarify the symbology of the diff
-#'   output (see the \dQuote{Output} section in the docs)
-#' @param cur.banner character(1L) like \code{tar.banner}
+#'   in \dQuote{sidebyside} mode the effective display width is half this number
+#' @param tar.banner character(1L) or NULL, used to clarify the symbology of the
+#'   diff output (see the \dQuote{Output} section in the docs), if NULL will be
+#'   inferred from \code{target} and \code{current} expressions
+#' @param cur.banner character(1L) like \code{tar.banner}, but for \code{current}
 #' @param frame environment the evaluation frame for the \code{print/show/str},
 #'   calls, allows user to ensure correct methods are used, not used by
-#'   \code{diff_chr} or \code{diff_deparse} though present as argument for
-#'   simplicity
+#'   \code{diff_chr} or \code{diff_deparse}
 #' @param silent TRUE or FALSE, whether to display the diff (FALSE by default)
 #' @param allow.in.hunk.diff TRUE or FALSE, whether to do a secondary diff on
 #'   each hunk to highlight word differences (TRUE by default).  May be
@@ -329,9 +166,6 @@ NULL
 # - All the formals are defined in a separate dummy function `diff_tpl`
 # - We copy this dummy function for each of our actual functions, and change
 #   the bodies
-# - Within the bodies, make sure that the environment itself only has variables
-#   defined that will be re-used in our instantiation of our diff object
-#   (hence you'll see calls to `local` to avoid polluting the environment)
 
 diff_tpl <- function(
   target, current, mode=getOption("diffobj.mode"),
@@ -341,8 +175,7 @@ diff_tpl <- function(
   ignore.white.space=getOption("diffobj.ignore.white.space"),
   use.ansi=getOption("diffobj.use.ansi"),
   disp.width=getOption("width"),
-  tar.banner=deparse(substitute(target))[[1L]],
-  cur.banner=deparse(substitute(current))[[1L]],
+  tar.banner=NULL, cur.banner=NULL,
   silent=getOption("diffobj.silent"),
   max.diffs=getOption("diffobj.max.diffs"),
   max.diffs.in.hunk=getOption("diffobj.max.diffs.in.hunk"),
@@ -350,19 +183,57 @@ diff_tpl <- function(
   frame=parent.frame(),
   ...
 ) {
-  # Check arguments and update function environment with "fixed" args
+  # Sub expressions before we touch any of the variables
 
-  list2env(
-    check_args(as.list(environment())), envir=environment()
+  tar.exp <- substitute(target)
+  cur.exp <- substitute(current)
+
+  # Touch all the formals in case user passed an expression that evaluates
+  # to error; then check them
+
+  for(i in names(formals())) environment()[[i]]
+  # this potentially modifies environment()
+  check_args(environment(), sys.call())
+  this.call <- sys.call()
+  par.frame <- parent.frame()
+  err <- function(...)
+    stop(
+      simpleError(do.call(paste0, c(list(...), collapse="")), call=this.call)
+    )
+  # Variables to populate by inserted code
+
+  tar.capt <- tar.capt.def <- cur.capt <- cur.capt.def <- diffs <- NULL
+
+  # Force crayon to whatever ansi status we chose; note we must do this after
+  # touching vars in case someone passes `options(crayon.enabled=...)` as one
+  # of the arguments
+
+  old.crayon.opt <- options(crayon.enabled=use.ansi)
+  on.exit(options(old.crayon.opt))
+
+  # line where we will insert code; each of the different `diff_*` functions
+  # will have different logic here
+
+  NULL
+
+  # Finalize stuff
+
+  if(is.null(diffs)) diffs <- char_diff(
+    tar.capt, cur.capt, context=context, ignore.white.space=ignore.white.space,
+    mode=mode, hunk.limit=hunk.limit, line.limit=line.limit,
+    disp.width=disp.width
   )
-  tar.capt <- tar.capt.def <- cur.capt <- cur.capt.def <- NULL
-  NULL         # line where we will insert code
-  diffs <- char_diff(
-    cur.capt, tar.capt, context=context, ignore.white.space=ignore.white.space,
-    mode=mode
-  )
-  res <- do.call("new", c(list("diffObjDiff"), as.list(environment())))
-  if(!silent) cat(as.character(res), sep="\n")
+  if(is.null(tar.banner)) tar.banner <- deparse(tar.exp)[[1L]]
+  if(is.null(cur.banner)) cur.banner <- deparse(cur.exp)[[1L]]
+
+  # Create the output structures, and display if requested
+
+  vars <- as.list(environment())
+  slot.args <- vars[names(vars) %in% names(getSlots("diffObjDiff"))]
+  res <- do.call("new", c(list("diffObjDiff"), slot.args))
+  res.chr <- as.character(res)
+  if(!silent) cat(res.chr, sep="\n")
+  slot(res, "trim.dat") <- attr(res.chr, "meta")
   invisible(res)
 }
 # Note this one overwrites the entire body
@@ -370,228 +241,252 @@ diff_tpl <- function(
 #' @export
 
 diff_obj <- diff_tpl; body(diff_obj) <- quote({
-  check_args()
-  tar.capt <- tar.capt.def <- cur.capt <- cur.capt.def <- NULL
-  vars <- as.list(environment())
-  vars$silent <- TRUE
-  res.print <- do.call("diff_print", vars)
-  res.str <- do.call("diff_str", vars)
-  len.print <- max(length(res.print@tar.capt), length(res.print@cur.capt))
-  len.str <- max(length(res.str@tar.capt), length(res.str@cur.capt))
-  # Choose which display to use; only favor res.str if it really is
-  # substantially more compact and it does show an error and not possible to
-  # show full print diff in context
+  if(length(list(...))) {
+    stop("`...` argument not supported in `diff_obj`")
+  }
+  call.raw <- match.call()
+  call.raw[["silent"]] <- TRUE
+  call.str <- call.print <- call.raw
+  call.str[[1L]] <- quote(diff_str)
+  call.str[["max.level"]] <- "auto"
+  call.print[[1L]] <- quote(diff_print)
 
-  res <- if(
-    (len.print <= len.max && any(res.print)) ||
-    !any(res.str) ||
-    (len.print < len.str * 3 && len.str > len.max)
-  )
-    res.print else res.str
+  # Run both the print and str versions, and then decide which to use based
+  # on some weighting of various factors including how many lines needed to be
+  # omitted vs. how many differences were reported
 
+  res.print <- eval(call.print, parent.frame())
+  res.str <- eval(call.str, parent.frame())
+
+  diff.p <- count_diffs(res.print@diffs@hunks)
+  diff.s <- count_diffs(res.str@diffs@hunks)
+
+  # Only show the one with differences
+
+  res <- if(!diff.s && diff.p) {
+    res.print
+  } else if(!diff.p && diff.s) {
+    res.str
+
+  # If one fits in full and the other doesn't, show the one that fits in full
+  } else if(
+    !res.str@trim.dat$lines[[1L]] &&
+    res.print@trim.dat$lines[[1L]]
+  ) {
+    res.str
+  } else if(
+    res.str@trim.dat$lines[[1L]] &&
+    !res.print@trim.dat$lines[[1L]]
+  ) {
+    res.print
+  # Calculate the trade offs between the two options
+  } else {
+    s.score <- with(res.str@trim.dat, {
+      diff(lines) - lines[[1L]] + diff(diffs)
+    })
+    p.score <- with(res.print@trim.dat, {
+      diff(lines) - .5 * lines[[1L]] + diff(diffs)
+    })
+    if(p.score >= s.score) res.print else res.str
+  }
   if(!silent) cat(as.character(res), sep="\n")
   invisible(res)
 })
 #' @rdname diff_obj
 #' @export
 
-diff_print <- diff_tpl; body(diff_print)[[4L]] <- quote({
-  local({
-    # capture normal prints, along with default prints to make sure that if we
-    # do try to wrap an atomic vector print it is very likely to be in a format
-    # we are familiar with and not affected by a non-default print method
+diff_print <- diff_tpl; body(diff_print)[[12L]] <- quote({
+  # capture normal prints, along with default prints to make sure that if we
+  # do try to wrap an atomic vector print it is very likely to be in a format
+  # we are familiar with and not affected by a non-default print method
 
-    both.at <- is.atomic(current) && is.atomic(target)
-    max.w <- calc_width(disp.width, mode) - 2L
-    cur.capt <<- obj_capt(current, max.w, frame, ...)
-    cur.capt.def <<- if(both.at)
-      obj_capt(current, max.w, frame, default=TRUE, ...)
-    tar.capt <<- obj_capt(target, max.w, frame, ...)
-    tar.capt.def <<- if(both.at)
-      obj_capt(target, max.w, frame, default=TRUE, ...)
-  })
+  dots <- list(...)
+  print.match <- try(
+    match.call(
+      get("print", envir=frame),
+      as.call(c(list(quote(print), x=NULL), dots)),
+      envir=frame
+  ) )
+  names(print.match)[[2L]] <- ""
+  tar.call <- cur.call <- print.match
+
+  if(length(dots)) {
+    tar.call[[2L]] <- tar.exp
+    cur.call[[2L]] <- cur.exp
+    tar.banner <- deparse(tar.call)[[1L]]
+    cur.banner <- deparse(cur.call)[[1L]]
+  } else {
+    tar.banner <- deparse(tar.exp)[[1L]]
+    cur.banner <- deparse(cur.exp)[[1L]]
+  }
+  tar.call[[2L]] <- target
+  cur.call[[2L]] <- current
+
+  tar.call.def <- tar.call
+  cur.call.def <- cur.call
+  tar.call.def[[1L]] <- cur.call.def[[1L]] <- base::print.default
+
+  both.at <- is.atomic(current) && is.atomic(target)
+  capt.width <- calc_width(disp.width, mode) - 2L
+  cur.capt <- capt_call(cur.call, capt.width, frame)
+  cur.capt.def <- if(both.at) capt_call(cur.call.def, capt.width, frame)
+  tar.capt <- capt_call(tar.call, capt.width, frame)
+  tar.capt.def <- if(both.at) capt_call(tar.call.def, capt.width, frame)
 })
 #' @rdname diff_obj
 #' @export
 
-diff_str <- diff_tpl; body(diff_str)[[4L]] <- quote({
-  local({
-    obj.add.capt.str <- obj.rem.capt.str <- obj.add.capt.str.prev <-
-      obj.rem.capt.str.prev <- character()
+diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
+  # Match original call and managed dots, in particular wrt to the
+  # `max.level` arg
 
-    prev.lvl <- 0L
-    lvl <- 1L
-    max.w <- calc_width(disp.width, mode)
-    repeat{
-      if(lvl > 100 || line.limit[[1L]] < 0) lvl <- NA # safety valve
-      obj.add.capt.str <-
-        obj_capt(current, max.w - 2L, frame, mode="str", max.level=lvl)
-      obj.rem.capt.str <-
-        obj_capt(target, max.w - 2L, frame, mode="str", max.level=lvl)
-      str.len.min <- min(length(obj.add.capt.str), length(obj.rem.capt.str))
-      str.len.max <- max(length(obj.add.capt.str), length(obj.rem.capt.str))
+  dots <- list(...)
+  if("object" %in% names(dots))
+    err("You may not specify `object` as part of `...`")
 
-      # Overshot full displayable size; check to see if previous iteration had
-      # differences
-
-      if(line.limit[[1L]] < 0 || is.na(lvl)) {
-        break
-      } else {
-        max.lines <- line.limit[[2L]]
-        if(str.len.max > max.lines && lvl > 1L && any(diffs.str)) {
-          obj.add.capt.str <- obj.add.capt.str.prev
-          obj.rem.capt.str <- obj.rem.capt.str.prev
-          break
-        }
-        # Other break conditions
-
-        if(is.na(lvl) || lvl >= max.level) break
-        if(
-          identical(obj.add.capt.str.prev, obj.add.capt.str) &&
-          identical(obj.rem.capt.str.prev, obj.rem.capt.str)
-        ) {
-          lvl <- prev.lvl
-          break
-        }
-        # Run differences and iterate
-
-        diffs.str <- char_diff(obj.rem.capt.str, obj.add.capt.str, white.space)
-        obj.add.capt.str.prev <- obj.add.capt.str
-        obj.rem.capt.str.prev <- obj.rem.capt.str
-        prev.lvl <- lvl
-        lvl <- lvl + 1
-      }
+  str.match <- try(
+    match.call(
+      str_tpl,
+      call=as.call(c(list(quote(str), object=NULL), dots)), envir=frame
+  ) )
+  names(str.match)[[2L]] <- ""
+  auto.mode <- FALSE
+  max.level.supplied <- FALSE
+  if(
+    max.level.pos <- match("max.level", names(str.match), nomatch=0L)
+  ) {
+    # max.level exited in call; check for special 'auto' case
+    res <- tryCatch(
+      eval(str.match$max.level, envir=par.frame),
+      error=function(e)
+        err("Error evaluating `max.level` arg: ", conditionMessage(e))
+    )
+    if(identical(res, "auto")) {
+      auto.mode <- TRUE
+      str.match[["max.level"]] <- NA
+    } else {
+      max.level.supplied <- TRUE
     }
-    tar.capt <<- obj.rem.capt.str
-    cur.capt <<- obj.add.capt.str
-  })
-})
+  } else {
+    str.match[["max.level"]] <- NA
+    auto.mode <- TRUE
+    max.level.pos <- length(str.match)
+    max.level.supplied <- FALSE
+  }
+  # don't want to evaluate target and current more than once, so can't eval
+  # tar.exp/cur.exp
+
+  tar.call <- cur.call <- str.match
+  tar.call[[2L]] <- target
+  cur.call[[2L]] <- current
+
+  # Run str
+
+  capt.width <- calc_width_pad(disp.width, mode)
+  has.diff <- has.diff.prev <- FALSE
+
+  tar.depth <- list_depth(target)
+  cur.depth <- list_depth(current)
+  prev.lvl.hi <- lvl <- max.depth <- max(tar.depth, cur.depth)
+  prev.lvl.lo <- 0L
+  first.loop <- TRUE
+  safety <- 0L
+
+  repeat{
+    if((safety <- safety + 1L) > max.depth && !first.loop)
+      stop(
+        "Logic Error: exceeded list depth when comparing structures; contact ",
+        "maintainer."
+      )
+    tar.capt <- capt_call(tar.call, capt.width, frame)
+    cur.capt <- capt_call(cur.call, capt.width, frame)
+
+    diffs.str <- char_diff(
+      cur.capt, tar.capt, context=context,
+      ignore.white.space=ignore.white.space, mode=mode, hunk.limit=hunk.limit,
+      line.limit=line.limit, disp.width=disp.width
+    )
+    has.diff <- any(
+      !vapply(
+        unlist(diffs.str@hunks, recursive=FALSE), "[[", logical(1L), "context"
+    ) )
+    if(first.loop) {
+
+      tar.capt.max <- tar.capt
+      cur.capt.max <- cur.capt
+      diffs.max <- diffs.str
+      first.loop <- FALSE
+
+      # If there are no differences reducing levels isn't going to help to
+      # find one; additionally, if not in auto.mode we should not be going
+      # through this process
+
+      if(!has.diff || !auto.mode) break
+    }
+    if(line.limit[[1L]] < 1L) break
+
+    line.len <- diff_line_len(diffs.str@hunks, mode, disp.width)
+
+    # We need a higher level if we don't have diffs
+
+    if(!has.diff && prev.lvl.hi - lvl > 1L) {
+      prev.lvl.lo <- lvl
+      lvl <- lvl + as.integer((prev.lvl.hi - lvl) / 2)
+      tar.call[[max.level.pos]] <- lvl
+      cur.call[[max.level.pos]] <- lvl
+      next
+    } else if(!has.diff) {
+      tar.capt <- tar.capt.max
+      tar.capt <- tar.capt.max
+      diffs.str <- diffs.max
+      break
+    }
+    # If we have diffs, need to check whether we should try to reduce lines
+    # to get under line limit
+
+    if(line.len <= line.limit[[1L]]) {
+      # We fit, nothing else to do
+      break
+    }
+    if(lvl - prev.lvl.lo > 1L) {
+      prev.lvl.hi <- lvl
+      lvl <- lvl - as.integer((lvl - prev.lvl.lo) / 2)
+      tar.call[[max.level.pos]] <- lvl
+      cur.call[[max.level.pos]] <- lvl
+      next
+    }
+    # Couldn't get under limit, so use first run results
+
+    tar.capt <- tar.capt.max
+    tar.capt <- tar.capt.max
+    diffs.str <- diffs.max
+  }
+  diffs <- diffs.str
+  diffs@max.diffs <- count_diffs(diffs.max@hunks)
+
+  if(auto.mode) {
+    str.match[[max.level.pos]] <- lvl
+  } else if (!max.level.supplied) {
+    str.match[[max.level.pos]] <- NULL
+  }
+  tar.call <- cur.call <- str.match
+  tar.call[[2L]] <- tar.exp
+  cur.call[[2L]] <- cur.exp
+  if(is.null(tar.banner)) tar.banner <- deparse(tar.call)[[1L]]
+  if(is.null(cur.banner)) cur.banner <- deparse(cur.call)[[1L]]
+} )
 #' @rdname diff_obj
 #' @export
 
-diff_chr <- diff_tpl; body(diff_chr)[[4L]] <- quote({
+diff_chr <- diff_tpl; body(diff_chr)[[12L]] <- quote({
   tar.capt <- if(!is.character(target)) as.character(target) else target
   cur.capt <- if(!is.character(current)) as.character(current) else current
 })
 #' @rdname diff_obj
 #' @export
 
-diff_deparse <- diff_tpl; body(diff_deparse)[[4L]] <- quote({
+diff_deparse <- diff_tpl; body(diff_deparse)[[12L]] <- quote({
   tar.capt <- deparse(target, ...)
   cur.capt <- deparse(current, ...)
 })
-# Capture output of print/show/str; unfortuantely doesn't have superb handling
-# of errors during print/show call, though hopefully these are rare
 
-obj_capt <- function(
-  obj, width=getOption("width"), frame=parent.frame(), mode="print",
-  max.level=0L, default=FALSE, ...
-) {
-  if(!is.numeric(width) || length(width) != 1L || is.na(width))
-    stop("Argument `width` must be a one long numeric/integer.")
-  if(
-    !is.character(mode) || length(mode) != 1L || is.na(mode) ||
-    !mode %in% c("print", "str")
-  )
-    stop("Argument `mode` must be one of \"print\" or \"str\"")
-  # note this forces eval, which is needed
-  if(!is.environment(frame))
-    stop("Argument `frame` must be an environment")
-  if(
-    !is.na(max.level) && (
-      !is.numeric(max.level) || length(max.level) != 1L ||  max.level < 0
-    )
-  )
-    stop("Argument `max.level` must be integer(1L) and positive")
-
-  max.level <- as.integer(max.level)
-  width.old <- getOption("width")
-  on.exit(options(width=width.old))
-  width <- max(width, 10L)
-  options(width=width)
-
-  res <- try({
-    extra <- NULL
-    fun <- if(identical(mode, "print")) {
-      if(isS4(obj)) quote(show) else quote(print)
-    } else if(identical(mode, "str")) {
-      extra <- list(max.level=max.level)
-      quote(str)
-    } else stop("Logic Error: unexpected mode; contact maintainer.")
-    call <- as.call(c(list(fun, obj, `...`=...), extra))
-  })
-  res <- try(obj.out <- capture.output(eval(call, frame)))
-  if(inherits(res, "try-error"))
-    stop("Failed attempting to get text representation of object")
-
-  options(width=width.old)
-  on.exit(NULL)
-
-  # remove trailing spaces; shouldn't have to do it but doing it since legacy
-  # tests remove them and PITA to update those
-
-  obj.out <- sub("\\s*$", "", obj.out)
-  obj.out
-}
-# constructs the full diff message with additional meta information
-
-obj_screen_chr <- function(
-  obj.chr, obj.name, diffs, range, width, pad, color=NA_character_
-) {
-  stopifnot(is.chr1(pad))
-  pre <- post <- NULL
-  pad.all <- pad.pre.post <- NULL
-  obj.name.dep <- deparse(obj.name)[[1L]]
-  extra <- character()
-  len.obj <- length(obj.chr)
-
-  if(len.obj) {
-    pad.all <- character(len.obj)
-    pad.chars <- nchar(pad)
-    if(!any(diffs)) {
-      pad.all <- replicate(len.obj, paste0(rep(" ", pad.chars)), collapse="")
-    } else {
-      pad.all[diffs] <- pad
-      pad.all <- format(pad.all)
-    }
-    pad.all[diffs] <- ansi_style(
-      pad.all[diffs], style=color, use.style=getOption("diffobj.use.ansi")
-    )
-    pad.pre.post <- paste0(rep(" ", pad.chars), collapse="")
-
-    omit.first <- max(min(range[[1L]] - 1L, len.obj), 0L)
-    omit.last <- max(len.obj - tail(range, 1L), 0L)
-    diffs.last <- sum(tail(diffs, -tail(range, 1L)))
-
-    if(omit.first)
-      pre <- paste0(
-        "~~ omitted ", omit.first, " line", if(omit.first != 1L) "s",
-        " w/o diffs"
-      )
-    if(omit.last) {
-      post <- paste0(
-        "~~ omitted ", omit.last, " line", if(omit.last != 1L) "s",
-        if(diffs.last) paste0(" w/ ", diffs.last, " diff") else " w/o diff",
-        if(diffs.last != 1L) "s"
-    ) }
-    if(!is.null(post)) {
-      post <- ansi_style(
-        paste0(pad.pre.post, paste0(post, extra, " ~~")),
-        "silver", use.style=getOption("diffobj.use.ansi")
-    ) }
-    if (!is.null(pre)) {
-      pre <- ansi_style(
-        paste0(pad.pre.post, paste0(pre, if(is.null(post)) extra, " ~~")),
-        "silver", use.style=getOption("diffobj.use.ansi")
-    ) }
-  }
-  c(
-    ansi_style(
-      paste0("@@ ", obj.name.dep, " @@"), "cyan",
-      use.style=getOption("diffobj.use.ansi")
-    ),
-    paste0(
-      c(pre, paste0(pad.all, obj.chr)[range[range <= len.obj]], post)
-    )
-  )
-}
