@@ -59,7 +59,6 @@ struct _ctx {
   int si;
   int simax;
   int dmax;
-  diff_op *faux_snake;        // used to handle diffs greater than diffmax
 };
 
 struct middle_snake {
@@ -139,7 +138,7 @@ int _comp_chr(SEXP a, int aidx, SEXP b, int bidx) {
 static int
 _find_faux_snake(
   SEXP a, int aoff, int n, SEXP b, int boff, int m, struct _ctx *ctx,
-  struct middle_snake *ms, int d
+  struct middle_snake *ms, int d, diff_op ** faux_snake
 ) {
   /* normally we would record k/x values at the end of the furthest reaching
    * snake, but here we need pick a path from top left  and extend it until
@@ -216,8 +215,10 @@ _find_faux_snake(
   /* initialize the fake snake */
   if(max_steps < 0) error("Logic Error: fake snake step overflow? Contact maintainer.");
 
-  diff_op * faux_snake = (diff_op*) R_alloc(max_steps, sizeof(diff_op));
-  for(int i = 0; i < max_steps; i++) *(faux_snake + i) = DIFF_NULL;
+  Rprintf("allocate faux snake\n");
+  diff_op * faux_snake_tmp = (diff_op*) R_alloc(max_steps, sizeof(diff_op));
+  for(int i = 0; i < max_steps; i++) *(faux_snake_tmp + i) = DIFF_NULL;
+  Rprintf("done allocating faux snake\n");
 
   while(x_sn < x_r || y_sn < y_r) {
     if(x_sn > x_r || y_sn > y_r) {
@@ -230,14 +231,14 @@ _find_faux_snake(
         _comp_chr(a, aoff + x_sn, b, boff + y_sn)
     ) {
       x_sn++; y_sn++;
-      *(faux_snake + steps) = DIFF_MATCH;
+      *(faux_snake_tmp + steps) = DIFF_MATCH;
     } else if (x_sn < x_r && (step_dir || y_sn >= y_r)) {
       x_sn++;
       step_dir = !step_dir;
-      *(faux_snake + steps) = DIFF_DELETE;
+      *(faux_snake_tmp + steps) = DIFF_DELETE;
     } else if (y_sn < y_r && (!step_dir || x_sn >= x_r)) {
       y_sn++;
-      *(faux_snake + steps) = DIFF_INSERT;
+      *(faux_snake_tmp + steps) = DIFF_INSERT;
       step_dir = !step_dir;
     } else {
       Rprintf(
@@ -259,7 +260,11 @@ _find_faux_snake(
     );
     error("Logic Error: faux snake process failed; contact maintainer.");
   }
-  ctx->faux_snake = faux_snake;
+  /* modify the pointer to the pointer so we can return in by ref */
+
+  Rprintf("Assigning temp faux snake to pointer");
+  faux_snake = &faux_snake_tmp;
+
   /* record the coordinates of our faux snake using `ms` */
   ms->x = x_f;
   ms->y = y_f;
@@ -281,7 +286,7 @@ _find_faux_snake(
   static int
 _find_middle_snake(
   SEXP a, int aoff, int n, SEXP b, int boff, int m, struct _ctx *ctx,
-  struct middle_snake *ms
+  struct middle_snake *ms, diff_op ** faux_snake
 ) {
   int delta, odd, mid, d;
 
@@ -301,7 +306,7 @@ _find_middle_snake(
 
     /* reached maximum allowable differences before real exit condition*/
     if ((2 * d - 1) >= ctx->dmax) {
-      return _find_faux_snake(a, aoff, n, b, boff, m, ctx, ms, d);
+      return _find_faux_snake(a, aoff, n, b, boff, m, ctx, ms, d, faux_snake);
     }
     /* Forward (from top left) paths*/
 
@@ -411,10 +416,10 @@ _edit(struct _ctx *ctx, int op, int off, int len)
  * Update edit script with the faux diff data
  */
   static void
-_edit_faux(struct _ctx *ctx, int aoff, int boff) {
+_edit_faux(struct _ctx *ctx, diff_op ** faux_snake, int aoff, int boff) {
   int i = 0, off;
   diff_op op;
-  while((op = *(ctx->faux_snake + i++)) != DIFF_NULL) {
+  while((op = *(*faux_snake + i++)) != DIFF_NULL) {
     switch (op) {
       case DIFF_MATCH: boff++;  /* note no break here */
       case DIFF_DELETE: off = aoff++;
@@ -454,8 +459,16 @@ _ses(
      * irrespective of whether it was found on a forward or reverse path as
      * f_m_s will flip the coordinates when appropriately when recording them
      * in `ms`
+     *
+     * Additionally, if diffs exceed max.diffs, then `faux.snake` will also
+     * be set.  `faux_snake` is a pointer to a pointer that points to a the
+     * beginning of an array of match/delete/insert instructions generated
+     * to connect the top left and bottom right paths. _fms() repoints the
+     * pointer to an updated edit list if needed via (_ffs())
      */
-    d = _find_middle_snake(a, aoff, n, b, boff, m, ctx, &ms);
+    diff_op ** faux_snake = 0;
+    d = _find_middle_snake(a, aoff, n, b, boff, m, ctx, &ms, faux_snake);
+    if(faux_snake) Rprintf("Snake is fake!\n");
     if (d == -1) {
       error(
         "Logic error: failed trying to find middle snake, contact maintainer."
@@ -493,11 +506,12 @@ _ses(
        * if faux_snake is defined it means that there were too many differences
        * to complete algorigthm normally so we need to record the faux snake
        */
-      if(ctx->faux_snake) {
+      if(faux_snake) {
         /* for faux snake length of snake will most likely not be ms.u - ms.x
          * since it will not be a diagonal
          */
-        _edit_faux(ctx, aoff + ms.x, boff + ms.y);
+        Rprintf("Faux edit at offs: %d %d\n", ms.x, ms.y);
+        _edit_faux(ctx, faux_snake, aoff + ms.x, boff + ms.y);
       } else {
         _edit(ctx, DIFF_MATCH, aoff + ms.x, ms.u - ms.x);
       }
@@ -586,7 +600,6 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
   ctx.si = 0;
   ctx.simax = n + m;
   ctx.dmax = dmax ? dmax : INT_MAX;
-  ctx.faux_snake = 0;
 
   /* initialize first ses edit struct*/
   if (ses && sn) {
