@@ -98,12 +98,16 @@ diff_ses <- function(a, b) as.character(diff_myers_mba(a, b))
 #' @keywords internal
 #' @param a character
 #' @param b character
+#' @param max.diffs integer(1L) how many differences before giving up; set to
+#'   zero to allow as many as there are
 #' @return list
 #' @useDynLib diffobj, .registration=TRUE, .fixes="DIFFOBJ_"
 
-diff_myers_mba <- function(a, b) {
-  stopifnot(is.character(a), is.character(b), all(!is.na(c(a, b))))
-  res <- .Call(DIFFOBJ_diffobj, a, b)
+diff_myers_mba <- function(a, b, max.diffs=0L) {
+  stopifnot(
+    is.character(a), is.character(b), all(!is.na(c(a, b))), is.int.1L(max.diffs)
+  )
+  res <- .Call(DIFFOBJ_diffobj, a, b, max.diffs)
   res <- setNames(res, c("type", "length", "offset"))
   types <- c("Match", "Insert", "Delete")
   res$type <- factor(types[res$type], levels=types)
@@ -166,7 +170,7 @@ setMethod("summary", "diffObjMyersMbaSes",
 
 char_diff <- function(
   x, y, context=-1L, ignore.white.space, mode, hunk.limit, line.limit,
-  disp.width
+  disp.width, max.diffs
 ) {
   if(ignore.white.space) {
     sub.pat <- "(\t| )"
@@ -175,7 +179,7 @@ char_diff <- function(
     x.w <- gsub(pat.2, " ", gsub(pat.1, "", x))
     y.w <- gsub(pat.2, " ", gsub(pat.1, "", y))
   }
-  diff <- diff_myers_mba(x.w, y.w)
+  diff <- diff_myers_mba(x.w, y.w, max.diffs)
   if(ignore.white.space) {
     diff@a <- x
     diff@b <- y

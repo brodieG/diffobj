@@ -221,7 +221,7 @@ diff_tpl <- function(
   if(is.null(diffs)) diffs <- char_diff(
     tar.capt, cur.capt, context=context, ignore.white.space=ignore.white.space,
     mode=mode, hunk.limit=hunk.limit, line.limit=line.limit,
-    disp.width=disp.width
+    disp.width=disp.width, max.diffs=max.diffs
   )
   if(is.null(tar.banner)) tar.banner <- deparse(tar.exp)[[1L]]
   if(is.null(cur.banner)) cur.banner <- deparse(cur.exp)[[1L]]
@@ -404,7 +404,7 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
     diffs.str <- char_diff(
       cur.capt, tar.capt, context=context,
       ignore.white.space=ignore.white.space, mode=mode, hunk.limit=hunk.limit,
-      line.limit=line.limit, disp.width=disp.width
+      line.limit=line.limit, disp.width=disp.width, max.diffs=max.diffs
     )
     has.diff <- any(
       !vapply(

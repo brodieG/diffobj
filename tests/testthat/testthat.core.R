@@ -1,5 +1,12 @@
 library(diffobj)
 
+stop("Add tests for following strings described in https://neil.fraser.name/writing/diff/")
+XAXCXABC
+ABCY
+
+ABXAB
+AYB
+
 local({
   # The Myers paper strings
 

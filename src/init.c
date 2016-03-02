@@ -3,7 +3,7 @@
 
 static const
 R_CallMethodDef callMethods[] = {
-  {"diffobj", (DL_FUNC) &DIFFOBJ_diffobj, 2},
+  {"diffobj", (DL_FUNC) &DIFFOBJ_diffobj, 3},
   {NULL, NULL, 0}
 };
 
