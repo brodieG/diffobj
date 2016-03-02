@@ -201,7 +201,6 @@ _find_faux_snake(
     x_r = x_max_r;
     y_r = x_r - k_max_r;
   }
-  Rprintf("\nk: %d, x: %d, y: %d\n", k_r, x_r, y_r);
   /*
    * attempt to connect the two paths we found.  We need to store this
    * information as our "faux" snake since it will have to be processed
