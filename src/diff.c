@@ -544,7 +544,7 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
     error("Logic Error: exceeded maximum allowable combined string length.");
 
   int *tmp = (int *) R_alloc(bufmax, sizeof(int));
-  for(int i = 0; i < bufmax; i++) *(tmp + 1) = 0;
+  for(int i = 0; i < bufmax; i++) *(tmp + i) = 0;
 
   ctx.context = context;
 
