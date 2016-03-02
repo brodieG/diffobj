@@ -148,11 +148,11 @@ _find_faux_snake(
   /* start by finding which diagonal has the furthest reaching value
    * when looking from top left
    */
-  int k_max_f = 0, x_max_f = 0;
+  int k_max_f = 0, x_max_f = -1;
   int x_f, y_f, k_f;
   int delta = n - m;
 
-  for (int k = d; k >= -d; k -= 2) { /* might need to shift by 1 */
+  for (int k = d - 1; k >= -d + 1; k -= 2) { /* might need to shift by 1 */
     int x_f = FV(k);
     int f_dist = x_f - abs(k);
 
@@ -161,29 +161,47 @@ _find_faux_snake(
       k_max_f = k;
     }
   }
-  k_f = k_max_f;
-  x_f = x_max_f;
-  y_f = x_f - k_max_f;
+  /* didn't find a path so use origin */
+  if(x_max_f < 0) {
+    x_f = y_f = k_f = 0;
+  } else {
+    k_f = k_max_f;
+    x_f = x_max_f;
+    y_f = x_f - k_max_f;
+  }
   /*
    * now look for the furthest reaching point in any diagonal that is
    * below the diagonal we found above since those are the only ones we
    * can connect to
+   *
+   * Watch out `k_f` and `k_r` are not in direct correspondance as they must
+   * be shifted by `delta`
    */
-  int k_max_r = 0, x_max_r = n;
+  int k_max_r = 0, x_max_r = n + 1;
   int x_r, y_r, k_r;
 
   for (int k = -d; k <= k_max_f - delta; k += 2) {
     int x_r = RV(k);
     int r_dist = n - x_r - abs(k);
 
-    if(r_dist > n - x_max_r - abs(k_max_r)) {
+    /* since buffer is init to zero, an x_r value of zero means nothing, and
+     * not all the way to the left of the graph; also, in reverse snakes the
+     * snake should end at x == 1 in the leftmost case (we think)
+     */
+    if(r_dist > n - x_max_r - abs(k_max_r) && x_r) {
       x_max_r = x_r;
       k_max_r = k;
     }
   }
-  k_r = k_max_r;
-  x_r = x_max_r;
-  y_r = x_r - k_max_r;
+  /* didn't find a path so use origin */
+  if(x_max_r > n) {
+    x_r = n; y_r = m; k_r = 0;
+  } else {
+    k_r = k_max_r;
+    x_r = x_max_r;
+    y_r = x_r - k_max_r;
+  }
+  Rprintf("\nk: %d, x: %d, y: %d\n", k_r, x_r, y_r);
   /*
    * attempt to connect the two paths we found.  We need to store this
    * information as our "faux" snake since it will have to be processed
@@ -191,36 +209,43 @@ _find_faux_snake(
    * figuring out max number of steps it would take to connect the two
    * paths
    */
-  int max_steps = x_r - x_f + y_f - y_r + 1;
+  int max_steps = x_r - x_f + y_r - y_f + 1;
   int steps = 0;
   int step_dir = 1; /* last direction we moved in, 1 is down */
   int x_sn = x_f, y_sn = y_f;
-  /*
-   * initialize the fake snake; here we will use 1 = move right, 2 = move
-   * down, 3 = move down diagonal; + 1 ensures
-   */
+
+  /* initialize the fake snake */
+  if(max_steps < 0) error("Logic Error: fake snake step overflow? Contact maintainer.");
 
   diff_op * faux_snake = (diff_op*) R_alloc(max_steps, sizeof(diff_op));
-  for(int i = 0; i < max_steps; i++) *(faux_snake + i) = 0;
+  for(int i = 0; i < max_steps; i++) *(faux_snake + i) = DIFF_NULL;
 
-  while(x_sn <= x_r || y_sn <= y_r) {
+  while(x_sn < x_r || y_sn < y_r) {
     if(x_sn > x_r || y_sn > y_r) {
       error("Logic Error: Exceeded buffer for finding fake snake; contact maintainer.");
     }
     /* check to see if we could possibly move on a diagonal, and do so
      * if possible, if not alternate going down and right*/
     if(
-        x_sn < x_r && y_sn < y_r &&
+        x_sn <= x_r && y_sn <= y_r &&
         _comp_chr(a, aoff + x_sn, b, boff + y_sn)
-      ) {
+    ) {
       x_sn++; y_sn++;
       *(faux_snake + steps) = DIFF_MATCH;
     } else if (x_sn < x_r && (step_dir || y_sn >= y_r)) {
       x_sn++;
-      *(faux_snake + steps) = DIFF_INSERT;
+      step_dir = !step_dir;
+      *(faux_snake + steps) = DIFF_DELETE;
     } else if (y_sn < y_r && (!step_dir || x_sn >= x_r)) {
       y_sn++;
-      *(faux_snake + steps) = 2;
+      *(faux_snake + steps) = DIFF_INSERT;
+      step_dir = !step_dir;
+    } else {
+      Rprintf(
+        "x_sn: %d y_sn: %d x_r: %d, y_r: %d steps: %d max_steps: %d\n",
+        x_sn, y_sn, x_r, y_r, steps, max_steps
+      );
+      error("Logic Error: unexpected outcome in snake creation process; contact maintainer");
     }
     steps++;
   }
@@ -229,6 +254,10 @@ _find_faux_snake(
    * to stop reading it
    */
   if(x_sn != x_r || y_sn != y_r || steps >= max_steps) {
+    Rprintf(
+      "x_sn: %d y_sn: %d x_r: %d, y_r: %d steps: %d max_steps: %d\n",
+      x_sn, y_sn, x_r, y_r, steps, max_steps
+    );
     error("Logic Error: faux snake process failed; contact maintainer.");
   }
   ctx->faux_snake = faux_snake;
@@ -386,18 +415,20 @@ _edit(struct _ctx *ctx, int op, int off, int len)
 _edit_faux(struct _ctx *ctx, int aoff, int boff) {
   int i = 0, off;
   diff_op op;
-  while((op = *(ctx->faux_snake + i++))) {
+  while((op = *(ctx->faux_snake + i++)) != DIFF_NULL) {
     switch (op) {
       case DIFF_MATCH: boff++;  /* note no break here */
       case DIFF_DELETE: off = aoff++;
         break;
       case DIFF_INSERT: off = boff++;
         break;
+      default:
+        error("Logic Error: unexpected faux snake instruction; contact maintainer");
     }
     /* use x (aoff) offset for MATCH and DELETE, y offset for INSERT */
     _edit(ctx, op, off, 1);
   }
-  ctx->faux_snake = NULL;  /* kill the faux snake */
+  ctx->faux_snake = 0;  /* kill the faux snake */
 }
 /* Generate shortest edit script
  *
@@ -556,6 +587,7 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
   ctx.si = 0;
   ctx.simax = n + m;
   ctx.dmax = dmax ? dmax : INT_MAX;
+  ctx.faux_snake = 0;
 
   /* initialize first ses edit struct*/
   if (ses && sn) {
