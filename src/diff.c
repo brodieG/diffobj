@@ -64,6 +64,17 @@ struct _ctx {
 struct middle_snake {
   int x, y, u, v;
 };
+/* debugging util */
+const char * _op_to_chr(diff_op op) {
+    switch (op) {
+      case DIFF_MATCH: return "match"; break;
+      case DIFF_DELETE: return "delete"; break;
+      case DIFF_INSERT: return "insert"; break;
+      case DIFF_NULL: return "NULL"; break;
+      default:
+        error("Logic Error: unexpected faux snake instruction; contact maintainer");
+    }
+}
 /*
  * k = diagonal number
  * val = x value
@@ -262,8 +273,7 @@ _find_faux_snake(
   }
   /* modify the pointer to the pointer so we can return in by ref */
 
-  Rprintf("Assigning temp faux snake to pointer");
-  faux_snake = &faux_snake_tmp;
+  *faux_snake = faux_snake_tmp;
 
   /* record the coordinates of our faux snake using `ms` */
   ms->x = x_f;
@@ -416,10 +426,10 @@ _edit(struct _ctx *ctx, int op, int off, int len)
  * Update edit script with the faux diff data
  */
   static void
-_edit_faux(struct _ctx *ctx, diff_op ** faux_snake, int aoff, int boff) {
+_edit_faux(struct _ctx *ctx, diff_op * faux_snake, int aoff, int boff) {
   int i = 0, off;
   diff_op op;
-  while((op = *(*faux_snake + i++)) != DIFF_NULL) {
+  while((op = *(faux_snake + i++)) != DIFF_NULL) {
     switch (op) {
       case DIFF_MATCH: boff++;  /* note no break here */
       case DIFF_DELETE: off = aoff++;
@@ -432,7 +442,6 @@ _edit_faux(struct _ctx *ctx, diff_op ** faux_snake, int aoff, int boff) {
     /* use x (aoff) offset for MATCH and DELETE, y offset for INSERT */
     _edit(ctx, op, off, 1);
   }
-  ctx->faux_snake = 0;  /* kill the faux snake */
 }
 /* Generate shortest edit script
  *
@@ -466,9 +475,20 @@ _ses(
      * to connect the top left and bottom right paths. _fms() repoints the
      * pointer to an updated edit list if needed via (_ffs())
      */
-    diff_op ** faux_snake = 0;
-    d = _find_middle_snake(a, aoff, n, b, boff, m, ctx, &ms, faux_snake);
-    if(faux_snake) Rprintf("Snake is fake!\n");
+    diff_op fsv = DIFF_NULL;
+    diff_op * faux_snake;
+    faux_snake = &fsv;
+    //
+    // d
+    // diff_op * fsp = NULL;
+    // diff_op fsv = DIFF_NULL;
+    // *fsp = fsv;
+    // **faux_snake = *fsp;
+
+    Rprintf("sn1: %s\n", _op_to_chr(*faux_snake));
+    d = _find_middle_snake(a, aoff, n, b, boff, m, ctx, &ms, &faux_snake);
+    Rprintf("sn2: %s\n", _op_to_chr(*faux_snake));
+    if(*faux_snake) Rprintf("Snake is fake!\n");
     if (d == -1) {
       error(
         "Logic error: failed trying to find middle snake, contact maintainer."
