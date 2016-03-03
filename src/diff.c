@@ -390,7 +390,6 @@ _find_middle_snake(
   }
   error("Logic Error: failed finding middle snake, contact maintainer");
 }
-
 /*
  * Update edit script atom with newest info, we record the operation, and the
  * offset and length so we can recover the values from the original vector
@@ -526,7 +525,7 @@ _ses(
        * if faux_snake is defined it means that there were too many differences
        * to complete algorigthm normally so we need to record the faux snake
        */
-      if(faux_snake) {
+      if(*faux_snake) {
         /* for faux snake length of snake will most likely not be ms.u - ms.x
          * since it will not be a diagonal
          */
