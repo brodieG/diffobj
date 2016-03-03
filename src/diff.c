@@ -487,8 +487,6 @@ _ses(
       error(
         "Logic error: failed trying to find middle snake, contact maintainer."
       );
-    } else if (d >= ctx->dmax) {
-      return ctx->dmax;
     } else if (ctx->ses == NULL) {
       return d;
     } else if (d > 1) {

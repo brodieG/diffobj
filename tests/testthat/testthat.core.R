@@ -19,6 +19,7 @@ set.seed(1)
 X <- do.call(paste0, expand.grid(LETTERS, LETTERS, LETTERS))
 
 diff_chr(X[1:2000], X[2001:4000])
+diff_chr(X[1:5000], X[5001:10000])
 local({
   # The Myers paper strings
 
