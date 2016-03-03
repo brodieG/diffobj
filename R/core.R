@@ -62,13 +62,18 @@ setMethod("as.data.frame", "diffObjMyersMbaSes",
     # so that if we have an insert command we can get the insert position in
     # `a`
 
-    dat$last.a <-
-      cummax(ifelse(dat$type != "Insert", dat$off + dat$len, 1L)) - 1L
+    dat$last.a <- c(
+      0L,
+      head(
+        cummax(ifelse(dat$type != "Insert", dat$off + dat$len, 1L)) - 1L, -1L
+    ) )
 
     # Do same thing with `b`, complicated because the matching entries are all
     # in terms of `a`
 
-    dat$last.b <- cumsum(ifelse(dat$type != "Delete", dat$len, 0L))
+    dat$last.b <- c(
+      0L, head(cumsum(ifelse(dat$type != "Delete", dat$len, 0L)), -1L)
+    )
     dat
 } )
 #' Produce Shortest Edit Script
