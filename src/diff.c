@@ -226,10 +226,8 @@ _find_faux_snake(
   /* initialize the fake snake */
   if(max_steps < 0) error("Logic Error: fake snake step overflow? Contact maintainer.");
 
-  Rprintf("allocate faux snake\n");
   diff_op * faux_snake_tmp = (diff_op*) R_alloc(max_steps, sizeof(diff_op));
   for(int i = 0; i < max_steps; i++) *(faux_snake_tmp + i) = DIFF_NULL;
-  Rprintf("done allocating faux snake\n");
 
   while(x_sn < x_r || y_sn < y_r) {
     if(x_sn > x_r || y_sn > y_r) {
@@ -252,10 +250,6 @@ _find_faux_snake(
       *(faux_snake_tmp + steps) = DIFF_INSERT;
       step_dir = !step_dir;
     } else {
-      Rprintf(
-        "x_sn: %d y_sn: %d x_r: %d, y_r: %d steps: %d max_steps: %d\n",
-        x_sn, y_sn, x_r, y_r, steps, max_steps
-      );
       error("Logic Error: unexpected outcome in snake creation process; contact maintainer");
     }
     steps++;
@@ -265,10 +259,6 @@ _find_faux_snake(
    * to stop reading it
    */
   if(x_sn != x_r || y_sn != y_r || steps >= max_steps) {
-    Rprintf(
-      "x_sn: %d y_sn: %d x_r: %d, y_r: %d steps: %d max_steps: %d\n",
-      x_sn, y_sn, x_r, y_r, steps, max_steps
-    );
     error("Logic Error: faux snake process failed; contact maintainer.");
   }
   /* modify the pointer to the pointer so we can return in by ref */
@@ -484,10 +474,7 @@ _ses(
     // *fsp = fsv;
     // **faux_snake = *fsp;
 
-    Rprintf("sn1: %s\n", _op_to_chr(*faux_snake));
     d = _find_middle_snake(a, aoff, n, b, boff, m, ctx, &ms, &faux_snake);
-    Rprintf("sn2: %s\n", _op_to_chr(*faux_snake));
-    if(*faux_snake) Rprintf("Snake is fake!\n");
     if (d == -1) {
       error(
         "Logic error: failed trying to find middle snake, contact maintainer."
@@ -529,7 +516,6 @@ _ses(
         /* for faux snake length of snake will most likely not be ms.u - ms.x
          * since it will not be a diagonal
          */
-        Rprintf("Faux edit at offs: %d %d\n", ms.x, ms.y);
         _edit_faux(ctx, faux_snake, aoff + ms.x, boff + ms.y);
       } else {
         _edit(ctx, DIFF_MATCH, aoff + ms.x, ms.u - ms.x);
