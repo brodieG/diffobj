@@ -179,10 +179,10 @@ setMethod("diffColor", "diffObjDiffDiffs",
            A <- z$A.chr
            B <- z$B.chr
            if(!z$context) {
-             A[z$A < 0L] <- crayon::style(A[z$A < 0L], "green")
-             A[z$A > 0L] <- crayon::style(A[z$A > 0L], "red")
-             B[z$B < 0L] <- crayon::style(B[z$B < 0L], "green")
-             B[z$B > 0L] <- crayon::style(B[z$B > 0L], "red")
+             A[z$A < 0L] <- crayon_style(A[z$A < 0L], "green")
+             A[z$A > 0L] <- crayon_style(A[z$A > 0L], "red")
+             B[z$B < 0L] <- crayon_style(B[z$B < 0L], "green")
+             B[z$B > 0L] <- crayon_style(B[z$B > 0L], "red")
            }
            list(A=A, B=B)
   } ) } )

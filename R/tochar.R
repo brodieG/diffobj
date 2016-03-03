@@ -42,7 +42,7 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
   hh.a <- paste0("-", rng_as_chr(tar.rng))
   hh.b <- paste0("+", rng_as_chr(cur.rng))
 
-  hunk.head <- crayon::style(
+  hunk.head <- crayon_style(
     if(mode == "sidebyside") {
       paste0(
         rpadt(sprintf("@@ %s @@", hh.a), max.w),
@@ -77,7 +77,7 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
     unlist(
       c(
         A,
-        if(length(B)) crayon:::style("~~~~", "silver"),
+        if(length(B)) crayon_style("~~~~", "silver"),
         B
     ) )
   } else if(mode == "unified") {
@@ -160,7 +160,7 @@ setMethod("as.character", "diffObjDiff",
           "spaces. You can re-run diff with `ignore.white.space=FALSE` to show ",
           "them."
       ) }
-      res <- crayon::style(msg, "silver")
+      res <- crayon_style(msg, "silver")
     }
     # Basic width computation and banner size
 
@@ -201,9 +201,9 @@ setMethod("as.character", "diffObjDiff",
       t.fun <- chr_trim
     }
     banner <- comb.fun(
-      crayon::style(t.fun(banner.A, max.w), "red"),
+      crayon_style(t.fun(banner.A, max.w), "red"),
       if(mode == "sidebyside") "  ",
-      crayon::style(t.fun(banner.B, max.w), "green")
+      crayon_style(t.fun(banner.B, max.w), "green")
     )
     # Trim banner if exceeds line limit, and adjust line limit for banner size
 
@@ -220,7 +220,7 @@ setMethod("as.character", "diffObjDiff",
     lh <- !!lim.hunk[[1L]]
     diff.count <- count_diffs(hunk.grps)
     str.fold.out <- if(x@diffs@max.diffs > diff.count) {
-      crayon::style(
+      crayon_style(
         paste0(
           x@diffs@max.diffs - diff.count, " differences are hidden by our use ",
           "of `max.level`"
@@ -234,7 +234,7 @@ setMethod("as.character", "diffObjDiff",
           "Logic Error: should not be str folding when limited; contact ",
           "maintainer."
         )
-      crayon::style(
+      crayon_style(
         paste0(
           "... omitted ",
           if(ll) sprintf("%d/%d lines", lim.line[[1L]], lim.line[[2L]]),

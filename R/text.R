@@ -1,13 +1,20 @@
+# Remap crayon funs so they show up in profiling
+
+crayon_nchar <- crayon::col_nchar
+crayon_substr <- crayon::col_substr
+crayon_style <- crayon::style
+crayon_hascolor <- crayon::has_color
+
 # Calculate how many lines of screen space are taken up by the diff hunks
 #
 # `disp.width` should be the available display width, this function computes
 # the net real estate account for mode, padding, etc.
 
 nlines <- function(txt, disp.width, mode) {
-  use.ansi <- crayon::has_color()
+  use.ansi <- crayon_hascolor()
   stopifnot(is.character(txt), all(!is.na(txt)))
   capt.width <- calc_width_pad(disp.width, mode)
-  nc_fun <- if(use.ansi) crayon::col_nchar else nchar
+  nc_fun <- if(use.ansi) crayon_nchar else nchar
   pmax(1L, as.integer(ceiling(nc_fun(txt) / capt.width)))
 }
 # Simple text manip functions
@@ -21,9 +28,9 @@ chr_trim <- function(text, width) {
   )
 }
 rpad <- function(text, width, pad.chr=" ") {
-  use.ansi <- crayon::has_color()
+  use.ansi <- crayon_hascolor()
   stopifnot(is.character(pad.chr), length(pad.chr) == 1L, nchar(pad.chr) == 1L)
-  nchar_fun <- if(use.ansi) crayon::col_nchar else nchar
+  nchar_fun <- if(use.ansi) crayon_nchar else nchar
   pad.count <- width - nchar_fun(text)
   pad.count[pad.count < 0L] <- 0L
   pad.chrs <- vapply(
@@ -51,9 +58,9 @@ wrap <- function(txt, width, pad=FALSE) {
   # a vector of character positions after which we should split our character
   # vector
 
-  use.ansi <- crayon::has_color()
-  ss_fun <- if(use.ansi) crayon::col_substr else substr
-  nc_fun <- if(use.ansi) crayon::col_nchar else nchar
+  use.ansi <- crayon_hascolor()
+  ss_fun <- if(use.ansi) crayon_substr else substr
+  nc_fun <- if(use.ansi) crayon_nchar else nchar
 
   # Map each character to a length of 1 or zero depending on whether it is
   # part of an ANSI escape sequence or not
@@ -85,7 +92,7 @@ wrap <- function(txt, width, pad=FALSE) {
 # returns a list containing padded char vectors
 
 sign_pad <- function(txt, pad, rev=FALSE) {
-  use.ansi <- crayon::has_color()
+  use.ansi <- crayon_hascolor()
   if(!length(txt)) return(txt)
   stopifnot(
     is.list(txt), all(vapply(txt, is.character, logical(1L))),
@@ -107,7 +114,7 @@ sign_pad <- function(txt, pad, rev=FALSE) {
         extras <- rep(if(color) pad.ex else "  ", len - 1L)
         res <- c(pads[pad[[x]]], extras)
         if(use.ansi && color) {
-          crayon:::style(res, if(pad[[x]] == 2L) "green" else "red")
+          crayon_style(res, if(pad[[x]] == 2L) "green" else "red")
         } else res
   } } )
   Map(paste0, if(rev) txt else pad.out, if(!rev) txt else pad.out)
