@@ -343,7 +343,9 @@ setMethod("as.character", "diffObjDiff",
         for(j in seq_along(hunk.grps[[i]])) {
           h.a <- hunk.grps[[i]][[j]]
           # Skip context or those that have been wrap diffed
-          if(h.a$id < wd.max || h.a$context) next
+          if(
+            h.a$id < wd.max || h.a$context || !(length(h.a$A) && length(h.a$B))
+          ) next
           # Do word diff on each non-context hunk; real messy because the
           # stuff from `tar` and `cur` are mixed in in A and B (well, really
           # only in unified mode) so we have to separate it back out before

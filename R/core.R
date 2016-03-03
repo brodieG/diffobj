@@ -63,7 +63,7 @@ setMethod("as.data.frame", "diffObjMyersMbaSes",
     # `a`
 
     dat$last.a <- c(
-      0L,
+      if(nrow(dat)) 0L,
       head(
         cummax(ifelse(dat$type != "Insert", dat$off + dat$len, 1L)) - 1L, -1L
     ) )
@@ -72,7 +72,8 @@ setMethod("as.data.frame", "diffObjMyersMbaSes",
     # in terms of `a`
 
     dat$last.b <- c(
-      0L, head(cumsum(ifelse(dat$type != "Delete", dat$len, 0L)), -1L)
+      if(nrow(dat)) 0L,
+      head(cumsum(ifelse(dat$type != "Delete", dat$len, 0L)), -1L)
     )
     dat
 } )
