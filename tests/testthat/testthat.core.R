@@ -7,6 +7,10 @@ ABCY
 ABXAB
 AYB
 
+set.seed(1)
+X <- do.call(paste0, expand.grid(LETTERS, LETTERS, LETTERS))
+
+diff_chr(X[1:2000], X[2001:4000])
 local({
   # The Myers paper strings
 
