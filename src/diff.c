@@ -1,11 +1,19 @@
 /* This an adaptation of the Michael B. Allen implementation of the
  * Myers diff algorithm (see below for details)
  *
- * The main changes are adapting to use in an R context (memory allocations with
- * R_alloc) and simplifying code by removing the variable arrays and the
- * ability to specify custom comparison functions.  Because we don't use the
- * variable arrays we need to pre-allocate 4 * (n + m + abs(n - m)) + 1 vector
- * which is wasteful but still linear so should be okay.
+ * Here is a list of changes from the original implementation:
+ * - Switch memory allocation and error handling to R specific functions
+ * - Removing variable arrays in favor of fixed sized buffers to simplify code;
+ *   this results in potential overallocation of memory since we pre-allocate a
+ *   4 * (n + m + abs(n - m)) + 1 vector which is wasteful but still linear so
+ *   should be okay.
+ * - Removing ability to specify custom comparison functions
+ * - Adding a failover result if diffs exceed maximum allowable diffs whereby
+ *   we failover into a linear time algorithm to produce a sub optimal edit
+ *   script rather than simply saying the shortest edit script is longer than
+ *   allowable diffs; this is all the `faux_snake` stuff.  This algorithm tries
+ *   to salvage whatever the myers algo computed up to the point of max diffs
+ * - Adding lots of comments as we worked through the logic
  */
 
 /* diff - compute a shortest edit script (SES) given two sequences
