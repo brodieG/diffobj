@@ -74,7 +74,7 @@ wrap <- function(txt, width, pad=FALSE) {
       )
     }
   )
-  if(!length(res.l)) res.l <- list(txt)
+  if(!length(res.l)) res.l <- list()
   if(pad) lapply(res.l, rpad, width=width) else res.l
 }
 # Add the +/- in front of a text line and color accordingly
