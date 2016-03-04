@@ -433,7 +433,14 @@ trim_hunks <- function(hunk.grps, mode, disp.width, hunk.limit, line.limit) {
     line.cut <- cut.dat[["line.id"]]
     line.neg <- cut.dat[["len"]] < 0
 
-    hunk.grps <- hunk.grps[seq_len(grp.cut)]
+    # completely trim hunks that will not be shown
+
+    grps.to.cut <- setdiff(seq_along(hunk.grps), seq_len(grp.cut))
+    for(i in grps.to.cut)
+      for(j in seq_along(hunk.grps[[i]]))
+        hunk.grps[[i]][[j]][c("tar.rng.trim", "cur.rng.trim")] <-
+          list(integer(2L), integer(2L))
+
     hunk.grps.used <- grp.cut
     hunk.grps.omitted <- max(0L, hunk.grps.count - grp.cut)
 

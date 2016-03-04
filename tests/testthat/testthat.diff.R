@@ -113,6 +113,7 @@ local({
 
     mdl1 <- lm(Sepal.Length ~ Sepal.Width, iris)
     mdl2 <- lm(Sepal.Length ~ Sepal.Width + Species, iris.3)
+    diff_obj(mdl1, mdl2)
   } )
   set.seed(2)
   w1 <- sample(

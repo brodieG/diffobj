@@ -11,4 +11,9 @@ test_that("list_depth", {
   lst.2 <- lst.1
   attr(lst.2, "boo")[[1L]][[2L]] <- lst.0
   expect_identical(diffobj:::list_depth(lst.2), 6L)
+  lst.3 <- lst.0
+  attributes(lst.3) <- list(xx=a ~ b, zz=c("a", "b"))
+  attributes(lst.3) <- list(xx=1:3, zz=c("a", "b"))
+  attr(attr(lst.3, "xx"), "yy") <- list(1:2)
+
 })

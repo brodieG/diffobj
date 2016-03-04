@@ -59,9 +59,9 @@ setClass(
   "diffObjDiffDiffs",
   slots=c(
     hunks="list",
-    max.diffs="integer"  # used for `str` with auto `max.level`
+    count.diffs="integer"  # used for `str` with auto `max.level`
   ),
-  prototype=list(max.diffs=0L),
+  prototype=list(count.diffs=0L),
   validity=function(object) {
     hunk.check <- lapply(
       object@hunks,
@@ -91,7 +91,7 @@ setClass(
     ) ) {
       return("atomic hunk ids invalid")
     }
-    if(!is.int.1L(object@max.diffs) || object@max.diffs < 0L) {
+    if(!is.int.1L(object@count.diffs) || object@count.diffs < 0L) {
       return("Slot `max.diffs` must be integer(1L), non-NA, and positive")
 
     }

@@ -219,21 +219,23 @@ setMethod("as.character", "diffObjDiff",
     ll <- !!lim.line[[1L]]
     lh <- !!lim.hunk[[1L]]
     diff.count <- count_diffs(hunk.grps)
-    str.fold.out <- if(x@diffs@max.diffs > diff.count) {
+    str.fold.out <- if(x@diffs@count.diffs > diff.count) {
       crayon_style(
         paste0(
-          x@diffs@max.diffs - diff.count, " differences are hidden by our use ",
-          "of `max.level`"
+          x@diffs@count.diffs - diff.count,
+          " differences are hidden by our use of `max.level`"
         ),
         "silver"
       )
     }
     limit.out <- if(ll || lh) {
-      if(!is.null(str.fold.out))
+      if(!is.null(str.fold.out)) {
         stop(
           "Logic Error: should not be str folding when limited; contact ",
           "maintainer."
         )
+
+      }
       crayon_style(
         paste0(
           "... omitted ",
@@ -344,7 +346,7 @@ setMethod("as.character", "diffObjDiff",
           h.a <- hunk.grps[[i]][[j]]
           # Skip context or those that have been wrap diffed
           if(
-            h.a$id < wd.max || h.a$context || !(length(h.a$A) && length(h.a$B))
+            h.a$id < wd.max || h.a$context || (!length(h.a$A) && !length(h.a$B))
           ) next
           # Do word diff on each non-context hunk; real messy because the
           # stuff from `tar` and `cur` are mixed in in A and B (well, really

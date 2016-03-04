@@ -385,9 +385,13 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
   capt.width <- calc_width_pad(disp.width, mode)
   has.diff <- has.diff.prev <- FALSE
 
+  # note list_depth for some mysterious reason doesn't quite line up with
+  # display of `str` when there are formulas as attributes, so just adding
+  # + 2L
+
   tar.depth <- list_depth(target)
   cur.depth <- list_depth(current)
-  prev.lvl.hi <- lvl <- max.depth <- max(tar.depth, cur.depth)
+  prev.lvl.hi <- lvl <- max.depth <- max(tar.depth, cur.depth) + 2L
   prev.lvl.lo <- 0L
   first.loop <- TRUE
   safety <- 0L
@@ -437,7 +441,7 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
       next
     } else if(!has.diff) {
       tar.capt <- tar.capt.max
-      tar.capt <- tar.capt.max
+      cur.capt <- cur.capt.max
       diffs.str <- diffs.max
       break
     }
@@ -458,11 +462,13 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
     # Couldn't get under limit, so use first run results
 
     tar.capt <- tar.capt.max
-    tar.capt <- tar.capt.max
+    cur.capt <- cur.capt.max
     diffs.str <- diffs.max
+    lvl <- NULL
+    break
   }
   diffs <- diffs.str
-  diffs@max.diffs <- count_diffs(diffs.max@hunks)
+  diffs@count.diffs <- count_diffs(diffs.max@hunks)
 
   if(auto.mode) {
     str.match[[max.level.pos]] <- lvl
