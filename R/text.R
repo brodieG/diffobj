@@ -127,8 +127,8 @@ strip_hz_control <- function(txt, stops=8L) {
     function(x) {
       if(length(x) > 1L) {
         chrs <- nc_fun(x)
-        max.disp <- c(tail(rev(cummax(rev(chrs))), -1L), 1L)
-        res <- paste0(sub_fun(x, max.disp, x), collapse="")
+        max.disp <- c(tail(rev(cummax(rev(chrs))), -1L), 0L)
+        res <- paste0(rev(sub_fun(x, max.disp + 1L, chrs)), collapse="")
         # add back every ANSI esc sequence from last line to very end
         # to ensure that we leave in correct ANSI escaped state
         if(use.ansi && grepl(ansi_regex, res)) {
