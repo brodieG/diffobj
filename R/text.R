@@ -4,7 +4,25 @@ crayon_nchar <- crayon::col_nchar
 crayon_substr <- crayon::col_substr
 crayon_style <- crayon::style
 crayon_hascolor <- crayon::has_color
+crayon_split <- crayon::col_strsplit
 
+# borrowed from crayon, will lobby to get it exported
+ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
+                     "(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])",
+                     "|\\x{001b}[A-M]")
+# if last char matches, repeat, but only if not in use.ansi mode
+#
+# needed b/c col_strsplit behaves differently than strisplit when delimiter
+# is at end.  Will break if you pass a regex reserved character as pad
+
+pad_end <- function(x, pad, use.ansi) {
+  stopifnot(
+    is.character(x), !anyNA(x), is.character(pad), length(pad) == 1L,
+    !is.na(pad), nchar(pad) == 1L, is.TF(use.ansi)
+  )
+  if(!use.ansi || packageVersion("crayon") >= "1.3.2")
+    sub(paste0(pad, "$"), paste0(pad, pad), x) else x
+}
 # Calculate how many lines of screen space are taken up by the diff hunks
 #
 # `disp.width` should be the available display width, this function computes
@@ -17,6 +35,116 @@ nlines <- function(txt, disp.width, mode) {
   nc_fun <- if(use.ansi) crayon_nchar else nchar
   pmax(1L, as.integer(ceiling(nc_fun(txt) / capt.width)))
 }
+# Gets rid of tabs and carriage returns
+#
+# Assumes each line is one screen line
+# @param stops may be a single positive integer value, or a vector of values
+#   whereby the last value will be repeated as many times as necessary
+
+strip_hz_control <- function(txt, stops=8L) {
+  stopifnot(
+    is.character(txt), !anyNA(txt),
+    is.integer(stops), length(stops) >= 1L, !anyNA(stops), all(stops > 0L)
+  )
+  use.ansi <- crayon_hascolor()
+  nc_fun <- if(use.ansi) crayon_nchar else nchar
+  sub_fun <- if(use.ansi) crayon_substr else substr
+  split_fun <- if(use.ansi) crayon_split else strsplit
+
+  # remove trailing and leading CRs (need to record if trailing remains to add
+  # back at end? no, not really since by structure next thing must be a newline
+
+  txt <- gsub("^\r+|\r+$", "", txt)
+  has.tabs <- grep("\t", txt, fixed=TRUE)
+  has.crs <- grep("\r", txt, fixed=TRUE)
+  txt.s <- split_fun(txt, "\r+")
+
+  # Assume \r resets tab stops as it would on a type writer; so now need to
+  # generate the set maximum set of possible tab stops; approximate here by
+  # using largest stop
+
+  if(length(has.tabs)) {
+    max.stop <- max(stops)
+    width.w.tabs <- max(
+      vapply(
+        txt.s[has.tabs], function(x) {
+          # add number of chars and number of tabs times max tab length
+          nc_fun(x) + (
+            vapply(strsplit(x, "\t"), length, integer(1L)) +
+            grepl("\t$", x) - 1L
+          ) * max.stop
+        }, integer(1L)
+    ) )
+    extra.chars <- width.w.tabs - sum(stops)
+    extra.stops <- ceiling(extra.chars / tail(stops, 1L))
+    stop.vec <- cumsum(c(stops, rep(tail(stops, 1L), extra.stops)))
+
+    # For each line, assess effects of tabs
+
+    txt.s[has.tabs] <- lapply(txt.s[has.tabs],
+      function(x) {
+        if(length(h.t <- grep("\t", x, fixed=T))) {
+          # workaround for strsplit dropping trailing tabs
+          x.t <- pad_end(x[h.t], "\t", use.ansi)
+          x.s <- split_fun(x.t, "\t")
+
+          # Now cycle through each line with tabs and replace them with
+          # spaces
+
+          res <- vapply(x.s,
+            function(y) {
+              topad <- head(y, -1L)
+              rest <- tail(y, 1L)
+              chrs <- nc_fun(topad)
+              pads <- character(length(topad))
+              txt.len <- 0L
+              for(i in seq_along(topad)) {
+                txt.len <- chrs[i] + txt.len
+                tab.stop <- head(which(stop.vec > txt.len), 1L)
+                if(!length(tab.stop))
+                  stop(
+                    "Logic Error: failed trying to find tab stop; contact ",
+                    "maintainer"
+                  )
+                tab.len <- stop.vec[tab.stop]
+                pads[i] <- paste0(rep(" ", tab.len - txt.len), collapse="")
+                txt.len <- tab.len
+              }
+              paste0(paste0(topad, pads, collapse=""), rest)
+            },
+            character(1L)
+          )
+          x[h.t] <- res
+        }
+        x
+  } ) }
+  # Simulate the effect of \r by collapsing every \r separated element on top
+  # of each other with some special handling for ansi escape seqs
+
+  txt.fin <- txt.s
+  txt.fin[has.crs] <- vapply(
+    txt.s[has.crs],
+    function(x) {
+      if(length(x) > 1L) {
+        chrs <- nc_fun(x)
+        max.disp <- c(tail(rev(cummax(rev(chrs))), -1L), 1L)
+        res <- paste0(sub_fun(x, max.disp, x), collapse="")
+        # add back every ANSI esc sequence from last line to very end
+        # to ensure that we leave in correct ANSI escaped state
+        if(use.ansi && grepl(ansi_regex, res)) {
+          res <- paste0(
+            res,
+            gsub(paste0(".*", ansi_regex, ".*", "\\1", tail(x, 1L)))
+        ) }
+        res
+      } else x
+    },
+    character(1L)
+  )
+  unlist(txt.fin)
+}
+
+
 # Simple text manip functions
 
 chr_trim <- function(text, width) {

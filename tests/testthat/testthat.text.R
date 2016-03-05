@@ -68,3 +68,39 @@ test_that("pad sign", {
   )
   expect_error(diffobj:::sign_pad(txt1, "* ", FALSE, TRUE), "pad %in%")
 } )
+test_that("strip hz whitespace", {
+  old.opt <- options(crayon.enabled=FALSE)
+  on.exit(options(old.opt))
+  expect_equal(diffobj:::strip_hz_control("a\tb", stops=4L), "a   b")
+  expect_equal(diffobj:::strip_hz_control("ab\t", stops=4L), "ab  ")
+  expect_equal(diffobj:::strip_hz_control("a\tb\t", stops=4L), "a   b   ")
+  expect_equal(diffobj:::strip_hz_control("\ta\tb\t", stops=4L), "    a   b   ")
+  expect_equal(
+    diffobj:::strip_hz_control("\ta\tb\t", stops=c(2L, 4L)), "  a   b   "
+  )
+  expect_equal(
+    diffobj:::strip_hz_control(c("ab\t", "\ta\tb\t"), stops=4L), 
+    c("ab  ", "    a   b   ")
+  )
+  # recall that nchar("\033") == 1
+  expect_equal(
+    diffobj:::strip_hz_control("\033[31ma\t\033[39mhello\tb", stops=10L),
+    "\033[31ma    \033[39mhello          b"
+  )
+  # carriage returns
+
+  expect_equal(
+    diffobj:::strip_hz_control("hellothere\rHELLO"),
+    "HELLOthere"
+  )
+  options(crayon.enabled=TRUE)
+
+  expect_equal(
+    crayon::strip_style(
+      diffobj:::strip_hz_control("\033[31ma\t\033[39mhello\tb", stops=10L)
+    ),
+    "a         hello     b"
+  )
+
+
+})
