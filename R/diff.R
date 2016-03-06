@@ -407,7 +407,7 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
     cur.capt <- capt_call(cur.call, capt.width, frame)
 
     diffs.str <- char_diff(
-      cur.capt, tar.capt, context=context,
+      tar.capt, cur.capt, context=context,
       ignore.white.space=ignore.white.space, mode=mode, hunk.limit=hunk.limit,
       line.limit=line.limit, disp.width=disp.width, max.diffs=max.diffs,
       tab.stops=tab.stops
