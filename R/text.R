@@ -208,11 +208,10 @@ wrap <- function(txt, width, pad=FALSE) {
       )
       split.start <- split.end - width + 1L
 
-      unlist(
-        Map(ss_fun, rep(txt[[i]], length(split.start)), split.start, split.end)
-      )
-    }
-  )
+      unname(
+        unlist(
+          Map(ss_fun, rep(txt[[i]], length(split.start)), split.start, split.end)
+  ) ) } )
   if(!length(res.l)) res.l <- list()
   if(pad) lapply(res.l, rpad, width=width) else res.l
 }
