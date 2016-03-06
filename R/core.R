@@ -176,7 +176,7 @@ setMethod("summary", "diffObjMyersMbaSes",
 
 char_diff <- function(
   x, y, context=-1L, ignore.white.space, mode, hunk.limit, line.limit,
-  disp.width, max.diffs
+  disp.width, max.diffs, tab.stops
 ) {
   if(ignore.white.space) {
     sub.pat <- "(\t| )"
@@ -192,7 +192,7 @@ char_diff <- function(
   }
   hunks <- as.hunks(
     diff, context=context, mode=mode, hunk.limit=hunk.limit,
-    line.limit=line.limit, disp.width=disp.width
+    line.limit=line.limit, disp.width=disp.width, tab.stops=tab.stops
   )
   new("diffObjDiffDiffs", hunks=hunks)
 }

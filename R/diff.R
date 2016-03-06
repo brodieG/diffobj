@@ -180,6 +180,7 @@ diff_tpl <- function(
   max.diffs=getOption("diffobj.max.diffs"),
   max.diffs.in.hunk=getOption("diffobj.max.diffs.in.hunk"),
   max.diffs.wrap=getOption("diffobj.max.diffs.wrap"),
+  tab.stops=getOption("diffobj.tab.stops"),
   frame=parent.frame(),
   ...
 ) {
@@ -221,7 +222,7 @@ diff_tpl <- function(
   if(is.null(diffs)) diffs <- char_diff(
     tar.capt, cur.capt, context=context, ignore.white.space=ignore.white.space,
     mode=mode, hunk.limit=hunk.limit, line.limit=line.limit,
-    disp.width=disp.width, max.diffs=max.diffs
+    disp.width=disp.width, max.diffs=max.diffs, tab.stops=tab.stops
   )
   if(is.null(tar.banner)) tar.banner <- deparse(tar.exp)[[1L]]
   if(is.null(cur.banner)) cur.banner <- deparse(cur.exp)[[1L]]
@@ -408,7 +409,8 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
     diffs.str <- char_diff(
       cur.capt, tar.capt, context=context,
       ignore.white.space=ignore.white.space, mode=mode, hunk.limit=hunk.limit,
-      line.limit=line.limit, disp.width=disp.width, max.diffs=max.diffs
+      line.limit=line.limit, disp.width=disp.width, max.diffs=max.diffs,
+      tab.stops=tab.stops
     )
     has.diff <- any(
       !vapply(

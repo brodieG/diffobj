@@ -12,7 +12,8 @@
     diffobj.silent=FALSE,
     diffobj.max.diffs=10000L,
     diffobj.max.diffs.in.hunk=100L,
-    diffobj.max.diffs.wrap=10000L
+    diffobj.max.diffs.wrap=10000L,
+    diffobj.tab.stops=8L
   )
   existing.opts <- options()
   options(default.opts[setdiff(names(default.opts), names(existing.opts))])

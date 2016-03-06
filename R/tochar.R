@@ -149,6 +149,7 @@ setMethod("as.character", "diffObjDiff",
     disp.width <- x@disp.width
     max.diffs <- x@max.diffs
     mode <- x@mode
+    tab.stops <- x@tab.stops
     ignore.white.space <- x@ignore.white.space
 
     len.max <- max(length(x@tar.capt), length(x@cur.capt))
@@ -293,7 +294,7 @@ setMethod("as.character", "diffObjDiff",
           regmatches(x@cur.capt[cur.head], cur.body),
           ignore.white.space=ignore.white.space,
           match.quotes=is.character(x@target) && is.character(x@current),
-          max.diffs=max.diffs
+          max.diffs=max.diffs, tab.stops=tab.stops
         )
         regmatches(x@tar.capt[tar.head], tar.body) <- body.diff$target
         regmatches(x@cur.capt[cur.head], cur.body) <- body.diff$current
@@ -311,7 +312,7 @@ setMethod("as.character", "diffObjDiff",
           diffs=char_diff(
             tar.r.h.txt, cur.r.h.txt, ignore.white.space=ignore.white.space,
             mode="context", hunk.limit=hunk.limit, line.limit=line.limit,
-            disp.width=disp.width, max.diffs=max.diffs
+            disp.width=disp.width, max.diffs=max.diffs, tab.stops=tab.stops
           )
         )
         x.r.h.color <- diffColor(x.r.h@diffs)
@@ -363,7 +364,7 @@ setMethod("as.character", "diffObjDiff",
 
           new.diff <- diff_word(
             A.new, B.new, ignore.white.space=ignore.white.space,
-            max.diffs=max.diffs
+            max.diffs=max.diffs, tab.stops=tab.stops
           )
           h.a$A.chr[A.pos] <- new.diff$target[seq_along(A.pos)]
           h.a$A.chr[A.neg] <- new.diff$current[seq_along(A.neg)]

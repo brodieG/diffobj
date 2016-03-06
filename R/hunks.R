@@ -33,7 +33,7 @@
 setGeneric("as.hunks", function(x, ...) standardGeneric("as.hunks"))
 setMethod("as.hunks", "diffObjMyersMbaSes",
   function(
-    x, mode, context, disp.width, line.limit, hunk.limit, ...
+    x, mode, context, disp.width, line.limit, hunk.limit, tab.stops, ...
   ) {
     stopifnot(
       is.character(mode), length(mode) == 1L, !is.na(mode),
@@ -113,8 +113,8 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
             chr[ids == 0L] <- NA_character_
             chr
           }
-          A.chr <- get_chr(A)
-          B.chr <- get_chr(B)
+          A.chr <- strip_hz_control(get_chr(A), tab.stops)
+          B.chr <- strip_hz_control(get_chr(B), tab.stops)
 
           # compute ranges
 

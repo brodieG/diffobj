@@ -145,7 +145,7 @@ strip_hz_control <- function(txt, stops=8L) {
     },
     character(1L)
   )
-  unlist(txt.fin)
+  if(!length(txt.fin)) character() else unlist(txt.fin)
 }
 
 

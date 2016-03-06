@@ -124,6 +124,7 @@ setClass(
     frame="environment",
     silent="logical",
     diffs="diffObjDiffDiffs",     # line by line diffs
+    tab.stops="integer",
     trim.dat="list"               # result of trimmaxg
   ),
   prototype=list(
