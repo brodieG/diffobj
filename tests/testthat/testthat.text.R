@@ -93,6 +93,14 @@ test_that("strip hz whitespace", {
     diffobj:::strip_hz_control("hellothere\rHELLO"),
     "HELLOthere"
   )
+  expect_equal(
+    diffobj:::strip_hz_control(
+      c("hellothere\rHELLO", "000\r12345678\rabcdef\rABC")
+    ),
+    c("HELLOthere", "ABCdef78")
+  )
+  # with colors
+
   options(crayon.enabled=TRUE)
 
   expect_equal(
@@ -101,6 +109,12 @@ test_that("strip hz whitespace", {
     ),
     "a         hello     b"
   )
+  test.chr <- paste0(
+    red("000", bgBlue("\r12345678")), "\rabcdef", green("\rABC")
+  )
+  library
 
+
+  
 
 })
