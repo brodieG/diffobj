@@ -86,9 +86,8 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
       B.ctx <- unlist(
         lapply(h.g, function(h.a) rep(h.a$context, length(h.a$B.chr)))
       )
-      A <- as.list(unlist(lapply(h.g, get_chrs, mode="A")))
-      B <- as.list(unlist(lapply(h.g, get_chrs, mode="B")))
-
+      A <- wrap(unlist(lapply(h.g, get_chrs, mode="A")), width=capt.width)
+      B <- wrap(unlist(lapply(h.g, get_chrs, mode="B")), width=capt.width)
       A[!A.ctx] <- sign_pad(A[!A.ctx], 3L)
       B[!B.ctx] <- sign_pad(B[!B.ctx], 2L)
       A[A.ctx] <- sign_pad(A[A.ctx], 1L)
