@@ -64,24 +64,16 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
       },
       "cyan"
     )
-    # Make
+    # Get trimmed character ranges; positives are originally from target, and
+    # negatives from current
 
     get_chrs <- function(h.a, mode) {
       stopifnot(mode %in% c("A", "B"), length(mode) == 1L)
-      pre <- if(mode == "A") "tar" else "cur"
-      rng <- h.a[[sprintf("%s.rng", pre)]]
-      rng.t <- h.a[[sprintf("%s.rng.trim", pre)]]
-      chr <- h.a[[sprintf("%s.chr", mode)]]
-      if(any(rng) && diff(rng) >= 0L && any(rng.t) && diff(rng.t) > 1L) {
-        seq.rng <- seq(rng[[1L]], rng[[2L]])
-        seq.rng.t <- seq(rng.t[[1L]], rng.t[[2L]])
-        res <- chr[match(seq.rng.t, seq.rng)]
-        if(anyNA(chr))
-          stop(
-            "Logic Error: unable to retrieve trimmed char; contact maintainer."
-          )
-        res
-      } else character()
+      rng <- c(
+        seq(h.a$tar.rng.trim[[1L]], h.a$tar.rng.trim[[2L]]),
+        -seq(h.a$cur.rng.trim[[1L]], h.a$cur.rng.trim[[2L]])
+      )
+      h.a[[sprintf("%s.chr", mode)]][match(rng, h.a[[mode]], nomatch=0L)]
     }
     # Output varies by mode
 
@@ -203,7 +195,6 @@ setMethod("as.character", "diffObjDiff",
     # Trim hunks to the extent need to make sure we fit in lines; start by
     # dropping hunks beyond hunk limit
 
-    browser()
     hunk.grps <- trim_hunks(
       x@diffs@hunks, mode=mode, disp.width=disp.width, line.limit=line.limit,
       hunk.limit=hunk.limit
