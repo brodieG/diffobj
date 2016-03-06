@@ -71,10 +71,12 @@ strip_hz_control <- function(txt, stops=8L) {
       vapply(
         txt.s[has.tabs], function(x) {
           # add number of chars and number of tabs times max tab length
-          nc_fun(x) + (
-            vapply(strsplit(x, "\t"), length, integer(1L)) +
-            grepl("\t$", x) - 1L
-          ) * max.stop
+          sum(
+            nc_fun(x) + (
+              vapply(strsplit(x, "\t"), length, integer(1L)) +
+              grepl("\t$", x) - 1L
+            ) * max.stop
+          )
         }, integer(1L)
     ) )
     extra.chars <- width.w.tabs - sum(stops)
