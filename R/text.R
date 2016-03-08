@@ -41,17 +41,7 @@ nlines <- function(txt, disp.width, mode) {
 # @param stops may be a single positive integer value, or a vector of values
 #   whereby the last value will be repeated as many times as necessary
 
-strip_hz_control <- function(txt, stops=8L) {
-  stopifnot(
-    is.character(txt), !anyNA(txt),
-    is.integer(stops), length(stops) >= 1L, !anyNA(stops), all(stops > 0L)
-  )
-  if(any(grepl("\n", txt)))
-    stop("Logic Error: input may not contain newlines; contact maintainer")
-  use.ansi <- crayon_hascolor()
-  nc_fun <- if(use.ansi) crayon_nchar else nchar
-  sub_fun <- if(use.ansi) crayon_substr else substr
-  split_fun <- if(use.ansi) crayon_split else strsplit
+strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
 
   # remove trailing and leading CRs (need to record if trailing remains to add
   # back at end? no, not really since by structure next thing must be a newline
@@ -146,6 +136,30 @@ strip_hz_control <- function(txt, stops=8L) {
     character(1L)
   )
   if(!length(txt.fin)) character() else unlist(txt.fin)
+}
+strip_hz_control <- function(txt, stops=8L) {
+  stopifnot(
+    is.character(txt), !anyNA(txt),
+    is.integer(stops), length(stops) >= 1L, !anyNA(stops), all(stops > 0L)
+  )
+  if(any(grepl("\n", txt)))
+    stop("Logic Error: input may not contain newlines; contact maintainer")
+  use.ansi <- crayon_hascolor()
+  has.ansi <- grepl(ansi_regex, txt, perl=TRUE) & use.ansi
+  w.ansi <- which(has.ansi)
+  wo.ansi <- which(!has.ansi)
+
+  # since for the time being the crayon funs are a bit slow, only us them on
+  # strings that are known to have ansi escape sequences
+
+  res <- character(length(txt))
+  res[w.ansi] <- strip_hz_c_int(
+    txt[w.ansi], stops, use.ansi, crayon_nchar, crayon_substr, crayon_split
+  )
+  res[wo.ansi] <- strip_hz_c_int(
+    txt[wo.ansi], stops, use.ansi, nchar, substr, strsplit
+  )
+  res
 }
 
 
