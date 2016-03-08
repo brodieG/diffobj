@@ -41,15 +41,15 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
     )
     # Split our data into sections that have either deletes/inserts or matches
 
-    dat <- as.data.frame(x)
-    d.s <- split(dat, dat$section)
+    dat <- as.matrix(x)
+    sects <- unique(dat[, "section"])
     j <- 0L
 
     # For each section, figure out how to represent target and current where
     # 0 means match, 1:n is a matched mismatch (change in edit script parlance),
     # and NA is a full mismatch (d or i).
 
-    res.l <- if(!length(d.s)) {
+    res.l <- if(!nrow(dat)) {
       # Minimum one empty hunk if nothing; arbitrarily chose to make it a
       # non context hunk; ideally would figure out a way to integrate this
       # code in the lapply...
@@ -65,15 +65,16 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
       )
     } else {
       lapply(
-        seq_along(d.s),
+        seq_along(sects),
         function(i) {
-          d <- d.s[[i]]
-          d.del <- d[which(d$type == "Delete"), ]
-          d.ins <- d[which(d$type == "Insert"), ]
-          d.mtc <- d[which(d$type == "Match"), ]
-          del.len <- sum(d.del$len)
-          ins.len <- sum(d.ins$len)
-          mtc.len <- sum(d.mtc$len)
+          s <- sects[i]
+          d <- dat[which(dat[, "section"] == s), , drop=FALSE]
+          d.del <- d[which(.edit.map[d[, "type"]] == "Delete"), ,drop=FALSE]
+          d.ins <- d[which(.edit.map[d[, "type"]] == "Insert"), ,drop=FALSE]
+          d.mtc <- d[which(.edit.map[d[, "type"]] == "Match"), ,drop=FALSE]
+          del.len <- sum(d.del[, "len"])
+          ins.len <- sum(d.ins[, "len"])
+          mtc.len <- sum(d.mtc[, "len"])
           tar.len <- del.len + mtc.len
           cur.len <- ins.len + mtc.len
 
@@ -84,8 +85,8 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
 
           # Figure out where previous hunk left off
 
-          del.last <- if(nrow(d.del)) d.del$last.a[[1L]] else d$last.a[[1L]]
-          ins.last <- if(nrow(d.ins)) d.ins$last.b[[1L]] else d$last.b[[1L]]
+          del.last <- if(nrow(d.del)) d.del[1L, "last.a"] else d[1L, "last.a"]
+          ins.last <- if(nrow(d.ins)) d.ins[1L, "last.b"] else d[1L, "last.b"]
           A.start <- del.last
           B.start <- ins.last
 

@@ -50,6 +50,43 @@ setMethod("as.character", "diffObjMyersMbaSes",
       },
       character(1L)
 ) } )
+# Used for mapping edit actions to numbers so we can use numeric matrices
+.edit.map <- c("Match", "Insert", "Delete")
+
+setMethod("as.matrix", "diffObjMyersMbaSes",
+  function(x, row.names=NULL, optional=FALSE, ...) {
+    # map del/ins/match to numbers
+
+    len <- length(x@type)
+
+    edit <- match(x@type, .edit.map)
+    matches <- .edit.map[edit] == "Match"
+    section <- cumsum(matches + c(0L, head(matches, -1L)))
+
+    # Track what the max offset observed so far for elements of the `a` string
+    # so that if we have an insert command we can get the insert position in
+    # `a`
+
+    last.a <- c(
+      if(len) 0L,
+      head(
+        cummax(
+          ifelse(.edit.map[edit] != "Insert", x@offset + x@length, 1L)
+        ) - 1L, -1L
+    ) )
+
+    # Do same thing with `b`, complicated because the matching entries are all
+    # in terms of `a`
+
+    last.b <- c(
+      if(len) 0L,
+      head(cumsum(ifelse(.edit.map[edit] != "Delete", x@length, 0L)), -1L)
+    )
+    cbind(
+      type=edit, len=x@length, off=x@offset, section=section, last.a=last.a,
+      last.b = last.b
+    )
+} )
 setMethod("as.data.frame", "diffObjMyersMbaSes",
   function(x, row.names=NULL, optional=FALSE, ...) {
     len <- length(x@type)
@@ -115,7 +152,7 @@ diff_myers_mba <- function(a, b, max.diffs=0L) {
   )
   res <- .Call(DIFFOBJ_diffobj, a, b, max.diffs)
   res <- setNames(res, c("type", "length", "offset"))
-  types <- c("Match", "Insert", "Delete")
+  types <- .edit.map
   res$type <- factor(types[res$type], levels=types)
   res$offset <- res$offset + 1L  # C 0-indexing originally
   res.s4 <- try(do.call("new", c(list("diffObjMyersMbaSes", a=a, b=b), res)))
