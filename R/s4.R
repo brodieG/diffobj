@@ -172,25 +172,42 @@ setMethod("any", "diffObjDiffDiffs",
 
 setGeneric("diffColor", function(x, ...) standardGeneric("diffColor"))
 setMethod("diffColor", "diffObjDiffDiffs",
- function(x, ...) {
-   res.l <- lapply(x@hunks,
-     function(y) {
-       lapply(y,
-         function(z) {
-           A <- z$A.chr
-           B <- z$B.chr
-           if(!z$context) {
-             A[z$A < 0L] <- crayon_style(A[z$A < 0L], "green")
-             A[z$A > 0L] <- crayon_style(A[z$A > 0L], "red")
-             B[z$B < 0L] <- crayon_style(B[z$B < 0L], "green")
-             B[z$B > 0L] <- crayon_style(B[z$B > 0L], "red")
-           }
-           list(A=A, B=B)
-  } ) } )
-  res.l <- unlist(res.l, recursive=FALSE)
-  A <- unlist(lapply(res.l, "[[", "A"))
-  B <- unlist(lapply(res.l, "[[", "B"))
-  list(A=A, B=B)
+  function(x, ...) {
+    h.flat <- unlist(x@hunks, recursive=FALSE)
+    # the & !logical(...) business is to ensure we get zero row matrices when
+    # the id vector is length zero
+
+    bind_hunks <- function(hunk, val)
+      do.call(
+        rbind,
+        lapply(
+          hunk,
+          function(y)
+            cbind(id=y[[val]], ctx=y$context & !logical(length(y[[val]])))
+      ) )
+
+    A.num <- bind_hunks(h.flat, "A")
+    B.num <- bind_hunks(h.flat, "B")
+    A.chr <- unlist(lapply(h.flat, "[[", "A.chr"))
+    B.chr <- unlist(lapply(h.flat, "[[", "B.chr"))
+
+    # The following contortions are to minimize number of calls to
+    # `crayon_style`
+
+    A.green <- which(A.num[, "id"] < 0 & !A.num[, "ctx"])
+    A.red <- which(A.num[, "id"] > 0 & !A.num[, "ctx"])
+    B.green <- which(B.num[, "id"] < 0 & !B.num[, "ctx"])
+    B.red <- which(B.num[, "id"] > 0 & !B.num[, "ctx"])
+
+    AB.green <- crayon_style(c(A.chr[A.green], B.chr[B.green]), "green")
+    AB.red <- crayon_style(c(A.chr[A.red], B.chr[B.red]), "red")
+
+    A.chr[A.green] <- head(AB.green, length(A.green))
+    A.chr[A.red] <- head(AB.red, length(A.red))
+    B.chr[B.green] <- tail(AB.green, length(B.green))
+    B.chr[B.red] <- tail(AB.red, length(B.red))
+
+    list(A=A.chr, B=B.chr)
 } )
 
 setClass(
