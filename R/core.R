@@ -190,6 +190,8 @@ char_diff <- function(
     diff@a <- x
     diff@b <- y
   }
+  diff@a <- strip_hz_control(diff@a, tab.stops)
+  diff@b <- strip_hz_control(diff@b, tab.stops)
   hunks <- as.hunks(
     diff, context=context, mode=mode, hunk.limit=hunk.limit,
     line.limit=line.limit, disp.width=disp.width, tab.stops=tab.stops

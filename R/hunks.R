@@ -113,8 +113,8 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
             chr[ids == 0L] <- NA_character_
             chr
           }
-          A.chr <- strip_hz_control(get_chr(A), tab.stops)
-          B.chr <- strip_hz_control(get_chr(B), tab.stops)
+          A.chr <- get_chr(A)
+          B.chr <- get_chr(B)
 
           # compute ranges
 
