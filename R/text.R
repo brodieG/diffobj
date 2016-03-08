@@ -30,9 +30,10 @@ pad_end <- function(x, pad, use.ansi) {
 
 nlines <- function(txt, disp.width, mode) {
   use.ansi <- crayon_hascolor()
-  stopifnot(is.character(txt), all(!is.na(txt)))
+  # stopifnot(is.character(txt), all(!is.na(txt)))
   capt.width <- calc_width_pad(disp.width, mode)
-  nc_fun <- if(use.ansi) crayon_nchar else nchar
+  nc_fun <- if(use.ansi && length(grep(ansi_regex, txt)))
+    crayon_nchar else nchar
   pmax(1L, as.integer(ceiling(nc_fun(txt) / capt.width)))
 }
 # Gets rid of tabs and carriage returns

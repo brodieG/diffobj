@@ -34,20 +34,20 @@ list_depth <- function(x, depth=0L) {
 .min.width <- 15L
 
 calc_width <- function(width, mode) {
-  stopifnot(
-    is.numeric(width), length(width) == 1L, !is.na(width), is.finite(width),
-    width >= 0L,
-    is.character(mode), mode %in% c("context", "unified", "sidebyside")
-  )
+  # stopifnot(
+  #   is.numeric(width), length(width) == 1L, !is.na(width), is.finite(width),
+  #   width >= 0L,
+  #   is.character(mode), mode %in% c("context", "unified", "sidebyside")
+  # )
   width <- as.integer(width)
   width.tmp <- if(mode == "sidebyside")
     as.integer(floor((width - 2)/ 2)) else width
   as.integer(max(.min.width, width.tmp))
 }
 calc_width_pad <- function(width, mode) {
-  stopifnot(
-    is.character(mode), mode %in% c("context", "unified", "sidebyside")
-  )
+  # stopifnot(
+  #   is.character(mode), mode %in% c("context", "unified", "sidebyside")
+  # )
   width.tmp <- calc_width(width, mode)
   width.tmp - .pad[[mode]]
 }

@@ -345,7 +345,13 @@ get_hunk_chr_lens <- function(hunk.grps, mode, disp.width) {
     # Make sure that line.id refers to the position of the line in either
     # original A or B vector
 
-    line.id <- unlist(lapply(split(lines.out, lines.out > 0L), seq_along))
+    l.o.len <- length(lines.out)
+    line.id <- integer(l.o.len)
+    l.gt.z <- lines.out > 0L
+    l.gt.z.w <- which(l.gt.z)
+    line.id[l.gt.z.w] <- seq_along(l.gt.z.w)
+    l.lt.z.w <- which(!l.gt.z)
+    line.id[l.lt.z.w] <- seq_along(l.lt.z.w)
     cbind(
       hunk.id=if(length(lines.out)) hunk.id else integer(),
       line.id=unname(line.id), len=lines.out
