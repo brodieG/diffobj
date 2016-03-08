@@ -67,6 +67,7 @@ struct _ctx {
   int si;
   int simax;
   int dmax;
+  int dmaxhit;
 };
 
 struct middle_snake {
@@ -314,6 +315,7 @@ _find_middle_snake(
 
     /* reached maximum allowable differences before real exit condition*/
     if ((2 * d - 1) >= ctx->dmax) {
+      ctx->dmaxhit = 1;
       return _find_faux_snake(a, aoff, n, b, boff, m, ctx, ms, d, faux_snake);
     }
     /* Forward (from top left) paths*/
@@ -611,6 +613,7 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
   ctx.si = 0;
   ctx.simax = n + m;
   ctx.dmax = dmax ? dmax : INT_MAX;
+  ctx.dmaxhit = 0;
 
   /* initialize first ses edit struct*/
   if (ses && sn) {
@@ -639,6 +642,6 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
   if (ses && sn) {
     *sn = e->op ? ctx.si + 1 : 0;
   }
-  return d;
+  return d * (ctx.dmaxhit ? -1 : 1);
 }
 
