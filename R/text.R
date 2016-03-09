@@ -32,7 +32,7 @@ nlines <- function(txt, disp.width, mode) {
   use.ansi <- crayon_hascolor()
   # stopifnot(is.character(txt), all(!is.na(txt)))
   capt.width <- calc_width_pad(disp.width, mode)
-  nc_fun <- if(use.ansi && length(grep(ansi_regex, txt)))
+  nc_fun <- if(use.ansi && length(grep(ansi_regex, txt, perl=TRUE)))
     crayon_nchar else nchar
   pmax(1L, as.integer(ceiling(nc_fun(txt) / capt.width)))
 }
@@ -127,10 +127,11 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
         res <- paste0(rev(sub_fun(x, max.disp + 1L, chrs)), collapse="")
         # add back every ANSI esc sequence from last line to very end
         # to ensure that we leave in correct ANSI escaped state
-        if(use.ansi && grepl(ansi_regex, res)) {
+
+        if(use.ansi && grepl(ansi_regex, res, perl=TRUE)) {
           res <- paste0(
             res,
-            gsub(paste0(".*", ansi_regex, ".*"), "\\1", tail(x, 1L))
+            gsub(paste0(".*", ansi_regex, ".*"), "\\1", tail(x, 1L), perl=TRUE)
         ) }
         res
       } else x
@@ -228,7 +229,7 @@ wrap <- function(txt, width, pad=FALSE) {
   wo.chars <- which(!has.chars)
 
   txt.sub <- txt[has.chars]
-  w.ansi.log <- grepl(ansi_regex, txt.sub) & use.ansi
+  w.ansi.log <- grepl(ansi_regex, txt.sub, perl=TRUE) & use.ansi
   w.ansi <- which(w.ansi.log)
   wo.ansi <- which(!w.ansi.log)
 
