@@ -332,7 +332,8 @@ setMethod("as.character", "diffObjDiff",
           diffs=char_diff(
             tar.r.h.txt, cur.r.h.txt, ignore.white.space=ignore.white.space,
             mode="context", hunk.limit=hunk.limit, line.limit=line.limit,
-            disp.width=disp.width, max.diffs=max.diffs, tab.stops=tab.stops
+            disp.width=disp.width, max.diffs=max.diffs, tab.stops=tab.stops,
+            strip.hz=FALSE
           )
         )
         x.r.h.color <- diff_color(x.r.h@diffs)

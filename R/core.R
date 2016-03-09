@@ -213,7 +213,7 @@ setMethod("summary", "diffObjMyersMbaSes",
 
 char_diff <- function(
   x, y, context=-1L, ignore.white.space, mode, hunk.limit, line.limit,
-  disp.width, max.diffs, tab.stops
+  disp.width, max.diffs, tab.stops, strip.hz=TRUE
 ) {
   if(ignore.white.space) {
     sub.pat <- "(\t| )"
@@ -227,8 +227,10 @@ char_diff <- function(
     diff@a <- x
     diff@b <- y
   }
-  diff@a <- strip_hz_control(diff@a, tab.stops)
-  diff@b <- strip_hz_control(diff@b, tab.stops)
+  if(strip.hz) {
+    diff@a <- strip_hz_control(diff@a, tab.stops)
+    diff@b <- strip_hz_control(diff@b, tab.stops)
+  }
   hunks <- as.hunks(
     diff, context=context, mode=mode, hunk.limit=hunk.limit,
     line.limit=line.limit, disp.width=disp.width, tab.stops=tab.stops
