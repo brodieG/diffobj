@@ -202,38 +202,48 @@ rpadt <- function(text, width, pad.chr=" ")
 #
 # Returns a list of split vectors
 
+wrap_int <- function(txt, width, sub_fun, nc_fun) {
+  lapply(
+    seq_along(txt),
+    function(i) {
+      nchars <- nc_fun(txt[[i]])
+      split.end <- seq(
+        from=width, by=width, length.out=ceiling(nchars / width)
+      )
+      split.start <- split.end - width + 1L
+      sub_fun(rep(txt[[i]], length(split.start)), split.start, split.end)
+  } )
+}
 wrap <- function(txt, width, pad=FALSE) {
-  # Get rid of newlines (NOTE: how does this even work??? must be wrong)
-
-  txt[!!nchar(txt)] <- unlist(strsplit(txt[!!nchar(txt)], "\n"))
+  if(length(grep("\n", txt, fixed=TRUE)))
+    stop("Logic error: wrap input contains newlines; contact maintainer.")
 
   # If there are ansi escape sequences, account for them; either way, create
   # a vector of character positions after which we should split our character
   # vector
 
   use.ansi <- crayon_hascolor()
-  ss_fun <- if(use.ansi) crayon_substr else substr
-  nc_fun <- if(use.ansi) crayon_nchar else nchar
+  has.chars <- nzchar(txt)
+  w.chars <- which(has.chars)
+  wo.chars <- which(!has.chars)
 
-  # Map each character to a length of 1 or zero depending on whether it is
-  # part of an ANSI escape sequence or not
+  txt.sub <- txt[has.chars]
+  w.ansi.log <- grepl(ansi_regex, txt.sub) & use.ansi
+  w.ansi <- which(w.ansi.log)
+  wo.ansi <- which(!w.ansi.log)
 
-  res.l <- lapply(
-    seq_along(txt),
-    function(i) {
-      nchars <- nc_fun(txt[[i]])
-      if(!nchars) return("")
+  # Wrap differently depending on whether contains ansi or not, exclude zero
+  # length char elements
 
-      split.end <- seq(
-        from=width, by=width, length.out=ceiling(nchars / width)
-      )
-      split.start <- split.end - width + 1L
+  res.l <- vector("list", length(txt))
+  res.l[wo.chars] <- ""
+  res.l[w.chars][w.ansi] <-
+    wrap_int(txt.sub[w.ansi], width, crayon_substr, crayon_nchar)
+  res.l[w.chars][wo.ansi] <-
+    wrap_int(txt.sub[wo.ansi], width, substr, nchar)
 
-      unname(
-        unlist(
-          Map(ss_fun, rep(txt[[i]], length(split.start)), split.start, split.end)
-  ) ) } )
-  if(!length(res.l)) res.l <- list()
+  # pad if requested
+
   if(pad) lapply(res.l, rpad, width=width) else res.l
 }
 # Add the +/- in front of a text line and color accordingly
