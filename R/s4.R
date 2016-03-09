@@ -54,6 +54,9 @@ setClassUnion("doacOrInt", c("diffObjAutoContext", "integer"))
 # DiffDiffs contains a slot corresponding to each of target and current where
 # a TRUE value means the corresponding value matches in both objects and FALSE
 # means that it does not match
+#
+# Object deprecated in favor of list because to slow to instantiate and possible
+# instantiated as many times as there are hunks, + 1
 
 setClass(
   "diffObjDiffDiffs",
@@ -70,7 +73,7 @@ setClass(
     nm <- c("id", "A", "B", "A.chr", "B.chr", "context", rng.names)
     valid_rng <- function(x) length(x) == 2L && x[[2L]] - x[[1L]] >= 0L
 
-    hunks.flat <- unlist(object@hunks, recursive=FALSE)
+    hunks.flat <- unlist(object$hunks, recursive=FALSE)
     hunk.check <- vapply(
       hunks.flat,
       function(y) {
@@ -115,7 +118,7 @@ setClass(
     capt.mode="character",        # whether in print or str mode
     frame="environment",
     silent="logical",
-    diffs="diffObjDiffDiffs",     # line by line diffs
+    diffs="list",
     tab.stops="integer",
     trim.dat="list"               # result of trimmaxg
   ),
@@ -143,18 +146,22 @@ setMethod("any", "diffObjDiff",
     dots <- list(...)
     if(length(dots))
       stop("`any` method for `diffObjDiff` supports only one argument")
-    any(x@diffs)
-} )
+    any(
+      which(
+        !vapply(
+          unlist(x@diffs$hunks, recursive=FALSE), "[[", logical(1L), "context"
+) ) ) } )
 #' @rdname diffobj_s4method_doc
 
 setMethod("any", "diffObjDiffDiffs",
   function(x, ..., na.rm = FALSE) {
+    stop("function deprecated")
     dots <- list(...)
     if(length(dots))
       stop("`any` method for `diffObjDiff` supports only one argument")
     any(
       which(
-        !vapply(unlist(x@hunks, recursive=FALSE), "[[", logical(1L), "context")
+        !vapply(unlist(x$hunks, recursive=FALSE), "[[", logical(1L), "context")
     ) )
 } )
 # Apply line colors; returns a list with the A and B vectors colored,
@@ -162,45 +169,44 @@ setMethod("any", "diffObjDiffDiffs",
 #
 # Really only intended to be used for stuff that produces a single hunk
 
-setGeneric("diffColor", function(x, ...) standardGeneric("diffColor"))
-setMethod("diffColor", "diffObjDiffDiffs",
-  function(x, ...) {
-    h.flat <- unlist(x@hunks, recursive=FALSE)
-    # the & !logical(...) business is to ensure we get zero row matrices when
-    # the id vector is length zero
+diff_color <- function(x, ...) {
+  if(!is.diffs(x)) stop("Logic Error: unexpected input; contact maintainer.")
+  h.flat <- unlist(x$hunks, recursive=FALSE)
+  # the & !logical(...) business is to ensure we get zero row matrices when
+  # the id vector is length zero
 
-    bind_hunks <- function(hunk, val)
-      do.call(
-        rbind,
-        lapply(
-          hunk,
-          function(y)
-            cbind(id=y[[val]], ctx=y$context & !logical(length(y[[val]])))
-      ) )
+  bind_hunks <- function(hunk, val)
+    do.call(
+      rbind,
+      lapply(
+        hunk,
+        function(y)
+          cbind(id=y[[val]], ctx=y$context & !logical(length(y[[val]])))
+    ) )
 
-    A.num <- bind_hunks(h.flat, "A")
-    B.num <- bind_hunks(h.flat, "B")
-    A.chr <- unlist(lapply(h.flat, "[[", "A.chr"))
-    B.chr <- unlist(lapply(h.flat, "[[", "B.chr"))
+  A.num <- bind_hunks(h.flat, "A")
+  B.num <- bind_hunks(h.flat, "B")
+  A.chr <- unlist(lapply(h.flat, "[[", "A.chr"))
+  B.chr <- unlist(lapply(h.flat, "[[", "B.chr"))
 
-    # The following contortions are to minimize number of calls to
-    # `crayon_style`
+  # The following contortions are to minimize number of calls to
+  # `crayon_style`
 
-    A.green <- which(A.num[, "id"] < 0 & !A.num[, "ctx"])
-    A.red <- which(A.num[, "id"] > 0 & !A.num[, "ctx"])
-    B.green <- which(B.num[, "id"] < 0 & !B.num[, "ctx"])
-    B.red <- which(B.num[, "id"] > 0 & !B.num[, "ctx"])
+  A.green <- which(A.num[, "id"] < 0 & !A.num[, "ctx"])
+  A.red <- which(A.num[, "id"] > 0 & !A.num[, "ctx"])
+  B.green <- which(B.num[, "id"] < 0 & !B.num[, "ctx"])
+  B.red <- which(B.num[, "id"] > 0 & !B.num[, "ctx"])
 
-    AB.green <- crayon_style(c(A.chr[A.green], B.chr[B.green]), "green")
-    AB.red <- crayon_style(c(A.chr[A.red], B.chr[B.red]), "red")
+  AB.green <- crayon_style(c(A.chr[A.green], B.chr[B.green]), "green")
+  AB.red <- crayon_style(c(A.chr[A.red], B.chr[B.red]), "red")
 
-    A.chr[A.green] <- head(AB.green, length(A.green))
-    A.chr[A.red] <- head(AB.red, length(A.red))
-    B.chr[B.green] <- tail(AB.green, length(B.green))
-    B.chr[B.red] <- tail(AB.red, length(B.red))
+  A.chr[A.green] <- head(AB.green, length(A.green))
+  A.chr[A.red] <- head(AB.red, length(A.red))
+  B.chr[B.green] <- tail(AB.green, length(B.green))
+  B.chr[B.red] <- tail(AB.red, length(B.red))
 
-    list(A=A.chr, B=B.chr)
-} )
+  list(A=A.chr, B=B.chr)
+}
 
 setClass(
   "diffObjMyersMbaSes",

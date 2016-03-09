@@ -171,3 +171,8 @@ is.TF <- function(x) isTRUE(x) || identical(x, FALSE)
 
 is.chr.1L <- function(x) is.character(x) && length(x) == 1L && !is.na(x)
 
+is.diffs <- function(x)
+  is.list(x) && length(x) == 2L &&
+  identical(names(x), c("hunks", "count.diffs")) &&
+  is.list(x$hunks) && is.integer(x$count.diffs)
+

@@ -233,7 +233,9 @@ char_diff <- function(
     diff, context=context, mode=mode, hunk.limit=hunk.limit,
     line.limit=line.limit, disp.width=disp.width, tab.stops=tab.stops
   )
-  new("diffObjDiffDiffs", hunks=hunks)
+  # used to be a `diffObjDiffDiffs` object, but too slow
+
+  list(hunks=hunks, count.diffs=0L)
 }
 # Helper function encodes matches within mismatches so that we can later word
 # diff the mismatches

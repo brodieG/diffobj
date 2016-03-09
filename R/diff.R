@@ -259,8 +259,8 @@ diff_obj <- diff_tpl; body(diff_obj) <- quote({
   res.print <- eval(call.print, parent.frame())
   res.str <- eval(call.str, parent.frame())
 
-  diff.p <- count_diffs(res.print@diffs@hunks)
-  diff.s <- count_diffs(res.str@diffs@hunks)
+  diff.p <- count_diffs(res.print@diffs$hunks)
+  diff.s <- count_diffs(res.str@diffs$hunks)
 
   # Only show the one with differences
 
@@ -414,7 +414,7 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
     )
     has.diff <- any(
       !vapply(
-        unlist(diffs.str@hunks, recursive=FALSE), "[[", logical(1L), "context"
+        unlist(diffs.str$hunks, recursive=FALSE), "[[", logical(1L), "context"
     ) )
     if(first.loop) {
 
@@ -431,7 +431,7 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
     }
     if(line.limit[[1L]] < 1L) break
 
-    line.len <- diff_line_len(diffs.str@hunks, mode, disp.width)
+    line.len <- diff_line_len(diffs.str$hunks, mode, disp.width)
 
     # We need a higher level if we don't have diffs
 
@@ -470,7 +470,7 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
     break
   }
   diffs <- diffs.str
-  diffs@count.diffs <- count_diffs(diffs.max@hunks)
+  diffs$count.diffs <- count_diffs(diffs.max$hunks)
 
   if(auto.mode) {
     str.match[[max.level.pos]] <- lvl

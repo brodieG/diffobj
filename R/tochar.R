@@ -195,7 +195,7 @@ setMethod("as.character", "diffObjDiff",
     # dropping hunks beyond hunk limit
 
     hunk.grps <- trim_hunks(
-      x@diffs@hunks, mode=mode, disp.width=disp.width, line.limit=line.limit,
+      x@diffs$hunks, mode=mode, disp.width=disp.width, line.limit=line.limit,
       hunk.limit=hunk.limit
     )
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
@@ -240,10 +240,10 @@ setMethod("as.character", "diffObjDiff",
     ll <- !!lim.line[[1L]]
     lh <- !!lim.hunk[[1L]]
     diff.count <- count_diffs(hunk.grps)
-    str.fold.out <- if(x@diffs@count.diffs > diff.count) {
+    str.fold.out <- if(x@diffs$count.diffs > diff.count) {
       crayon_style(
         paste0(
-          x@diffs@count.diffs - diff.count,
+          x@diffs$count.diffs - diff.count,
           " differences are hidden by our use of `max.level`"
         ),
         "silver"
@@ -335,7 +335,7 @@ setMethod("as.character", "diffObjDiff",
             disp.width=disp.width, max.diffs=max.diffs, tab.stops=tab.stops
           )
         )
-        x.r.h.color <- diffColor(x.r.h@diffs)
+        x.r.h.color <- diff_color(x.r.h@diffs)
         regmatches(x@tar.capt[tar.head], tar.r.h) <- x.r.h.color$A
         regmatches(x@cur.capt[cur.head], cur.r.h) <- x.r.h.color$B
 
