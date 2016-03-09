@@ -47,6 +47,7 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
   # remove trailing and leading CRs (need to record if trailing remains to add
   # back at end? no, not really since by structure next thing must be a newline
 
+  w.chr <- nzchar(txt)  # corner case with strsplit and zero length strings
   txt <- gsub("^\r+|\r+$", "", txt)
   has.tabs <- grep("\t", txt, fixed=TRUE)
   has.crs <- grep("\r", txt, fixed=TRUE)
@@ -136,7 +137,12 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
     },
     character(1L)
   )
-  if(!length(txt.fin)) character() else unlist(txt.fin)
+  # txt.fin should only have one long char vectors as elements
+  if(!length(txt.fin)) txt else {
+    # handle strsplit corner case where splitting empty string
+    txt.fin[!nzchar(txt)] <- ""
+    unlist(txt.fin)
+  }
 }
 strip_hz_control <- function(txt, stops=8L) {
   stopifnot(
