@@ -51,7 +51,8 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
   txt <- gsub("^\r+|\r+$", "", txt)
   has.tabs <- grep("\t", txt, fixed=TRUE)
   has.crs <- grep("\r", txt, fixed=TRUE)
-  txt.s <- split_fun(txt, "\r+")
+  txt.s <- as.list(txt)
+  txt.s[has.crs] <- if(!any(has.crs)) list() else split_fun(txt[has.crs], "\r+")
 
   # Assume \r resets tab stops as it would on a type writer; so now need to
   # generate the set maximum set of possible tab stops; approximate here by
@@ -146,10 +147,10 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
   }
 }
 strip_hz_control <- function(txt, stops=8L) {
-  stopifnot(
-    is.character(txt), !anyNA(txt),
-    is.integer(stops), length(stops) >= 1L, !anyNA(stops), all(stops > 0L)
-  )
+  # stopifnot(
+  #   is.character(txt), !anyNA(txt),
+  #   is.integer(stops), length(stops) >= 1L, !anyNA(stops), all(stops > 0L)
+  # )
   if(any(grepl("\n", txt)))
     stop("Logic Error: input may not contain newlines; contact maintainer")
   use.ansi <- crayon_hascolor()
