@@ -5,6 +5,7 @@ crayon_substr <- crayon::col_substr
 crayon_style <- crayon::style
 crayon_hascolor <- crayon::has_color
 crayon_split <- crayon::col_strsplit
+crayon_strip <- crayon::strip_style
 
 # borrowed from crayon, will lobby to get it exported
 ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
@@ -32,9 +33,8 @@ nlines <- function(txt, disp.width, mode) {
   use.ansi <- crayon_hascolor()
   # stopifnot(is.character(txt), all(!is.na(txt)))
   capt.width <- calc_width_pad(disp.width, mode)
-  nc_fun <- if(use.ansi && length(grep(ansi_regex, txt, perl=TRUE)))
-    crayon_nchar else nchar
-  pmax(1L, as.integer(ceiling(nc_fun(txt) / capt.width)))
+  if(use.ansi) txt <- crayon_strip(txt)
+  pmax(1L, as.integer(ceiling(nchar(txt) / capt.width)))
 }
 # Gets rid of tabs and carriage returns
 #
