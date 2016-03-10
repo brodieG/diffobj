@@ -315,8 +315,6 @@ process_hunks <- function(x, context) {
 # count lines for each remaining hunk and figure out if we need to cut some
 # hunks off; note that "negative" lengths indicate the lines being counted
 # originated from the B hunk in context mode
-#
-# NOTE: need to account for multi-space characters and escape sequences
 
 get_hunk_chr_lens <- function(hunk.grps, mode, disp.width) {
   # Account for overhead / side by sideness in width calculations
