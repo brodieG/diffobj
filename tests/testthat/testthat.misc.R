@@ -17,3 +17,32 @@ test_that("list_depth", {
   attr(attr(lst.3, "xx"), "yy") <- list(1:2)
 
 })
+
+test_that("trim_str", {
+  a <- structure("hello", class="A", xx="B")
+  b <- structure(1:10, yy=a)
+  long.string <- "I'm a string long enough to force wrapping under most cases so that I may be useful for tests andiamareallylongwordtoseehowwrappingbreakslongwordsthatexceed"
+  obj <- list(
+    a=a, b=b, c=1:50,
+    d=long.string,
+    e=list(1, structure(2, zz=list(a=1, b=list("a", ls=long.string))), e=letters)
+  )
+  str.txt <- capture.output(str(obj))
+  expect_equal(
+    diffobj:::str_levels(str.txt, wrap=FALSE),
+    c(0L, 1L, 3L, 1L, 2L, 4L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L,  5L, 2L)
+  )
+  str.txt.w <- capture.output(str(obj, width=30L, strict.width="wrap"))
+  expect_equal(
+    diffobj:::str_levels(str.txt.w, wrap=TRUE),
+    c(0L, 1L, 3L, 1L, 2L, 4L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L,  5L, 2L)
+  )
+  diffobj:::trim_str(txt, NA)
+  cat(
+    paste(
+      format(substr(str.txt.w, 1, 20)), diffobj:::str_levels(str.txt.w, TRUE),
+      sep=": "
+    ),
+    sep="\n"
+  )
+})
