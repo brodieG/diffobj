@@ -210,6 +210,14 @@ setMethod("summary", "diffObjMyersMbaSes",
 } )
 # Carries out the comparison between two character vectors and returns the
 # elements that match and those that don't as a unitizerDiffDiffs object
+# 
+# mode is display mode (sidebyside, etc.)
+# diff.mode is whether we are doing the first pass line diff, or doing the
+#   in-hunk or word-wrap versions
+# warn is to allow us to suppress warnings after first hunk warning
+# strip.hz is to tell us to remove the horizontal control characters, needed
+#   because when doing `diff_str` we remove them early and don't want to keep
+#   doing it over and over since it is potentially slow
 
 char_diff <- function(
   x, y, context=-1L, ignore.white.space, mode, hunk.limit, line.limit,

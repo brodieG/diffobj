@@ -20,6 +20,16 @@ X <- do.call(paste0, expand.grid(LETTERS, LETTERS, LETTERS))
 
 diff_chr(X[1:2000], X[2001:4000])
 diff_chr(X[1:5000], X[5001:10000])
+
+# Max limit warnings work properly; these are not fully fleshed out
+
+A3 <- c("a b c", "d e f A B C D", "g h i", "f")
+B3 <- c("a b c", "xd e f E Q L S", "g h i", "q")
+
+expect_warning(diff_chr(A3, B3, max.diffs=2), "max.diffs")
+expect_warning(diff_chr(A3, B3, max.diffs.in.hunk=2), "max.diffs.in")
+expect_warning(diff_print(A3, B3, max.diffs.wrap=2), "max.diffs.wrap")
+
 local({
   # The Myers paper strings
 
