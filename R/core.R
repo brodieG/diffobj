@@ -255,12 +255,13 @@ char_diff <- function(
       line="max.diffs", hunk="max.diffs.in.hunk", wrap="max.diffs.wrap"
     )
     diff.msg <- c(
-      line="overall diff", hunk="within hunk word diff", wrap="word diff"
+      line="overall", hunk="in-hunk word", wrap="word"
     )
     if(warn)
       warning(
         "Exceeded `", diff.param[diff.mode], "` limit during diff computation (",
-        diff@diffs, "), ", diff.msg[diff.mode], " diff is likely not optimal",
+        diff@diffs, " vs. ", max.diffs, " allowed); ", diff.msg[diff.mode],
+        " diff is likely not optimal",
         call.=FALSE
       )
   }
