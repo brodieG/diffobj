@@ -210,7 +210,7 @@ setMethod("summary", "diffObjMyersMbaSes",
 } )
 # Carries out the comparison between two character vectors and returns the
 # elements that match and those that don't as a unitizerDiffDiffs object
-# 
+#
 # mode is display mode (sidebyside, etc.)
 # diff.mode is whether we are doing the first pass line diff, or doing the
 #   in-hunk or word-wrap versions
@@ -254,10 +254,15 @@ char_diff <- function(
     diff.param <- c(
       line="max.diffs", hunk="max.diffs.in.hunk", wrap="max.diffs.wrap"
     )
-    warning(
-      "Exceeded `", diff.param[diff.mode], "` limit during diff computation (",
-      diff@diffs, "), diff is likely not optimal"
+    diff.msg <- c(
+      line="overall diff", hunk="within hunk word diff", wrap="word diff"
     )
+    if(warn)
+      warning(
+        "Exceeded `", diff.param[diff.mode], "` limit during diff computation (",
+        diff@diffs, "), ", diff.msg[diff.mode], " diff is likely not optimal",
+        call.=FALSE
+      )
   }
   # used to be a `diffObjDiffDiffs` object, but too slow
 
