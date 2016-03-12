@@ -215,7 +215,8 @@ setClass(
     b="character",
     type="factor",
     length="integer",
-    offset="integer"
+    offset="integer",
+    diffs="integer"
   ),
   prototype=list(
     type=factor(character(), levels=c("Match", "Insert", "Delete"))
@@ -233,6 +234,8 @@ setClass(
           "Slots `type`, `length`,  and `offset` must have values greater ",
           "than zero"
       ) )
+    if(!is.int.1L(object@diffs))
+      return("Slot `diffs` must be integer(1L) and not NA")
     TRUE
   }
 )

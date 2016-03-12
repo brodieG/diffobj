@@ -27,7 +27,7 @@ SEXP DIFFOBJ_diffobj(SEXP a, SEXP b, SEXP max) {
 
   d = diff(a, 0, n, b, 0, m, NULL, max_i, ses, &sn);
 
-  SEXP res = PROTECT(allocVector(VECSXP, 3));
+  SEXP res = PROTECT(allocVector(VECSXP, 4));
   SEXP type = PROTECT(allocVector(INTSXP, sn));
   SEXP count = PROTECT(allocVector(INTSXP, sn));
   SEXP offs = PROTECT(allocVector(INTSXP, sn));
@@ -52,6 +52,7 @@ SEXP DIFFOBJ_diffobj(SEXP a, SEXP b, SEXP max) {
   SET_VECTOR_ELT(res, 0, type);
   SET_VECTOR_ELT(res, 1, count);
   SET_VECTOR_ELT(res, 2, offs);
+  SET_VECTOR_ELT(res, 3, ScalarInteger(d));
   UNPROTECT(4);
 
   return res;

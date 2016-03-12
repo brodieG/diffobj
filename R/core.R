@@ -151,7 +151,7 @@ diff_myers_mba <- function(a, b, max.diffs=0L) {
     is.character(a), is.character(b), all(!is.na(c(a, b))), is.int.1L(max.diffs)
   )
   res <- .Call(DIFFOBJ_diffobj, a, b, max.diffs)
-  res <- setNames(res, c("type", "length", "offset"))
+  res <- setNames(res, c("type", "length", "offset", "diffs"))
   types <- .edit.map
   res$type <- factor(types[res$type], levels=types)
   res$offset <- res$offset + 1L  # C 0-indexing originally
@@ -213,8 +213,12 @@ setMethod("summary", "diffObjMyersMbaSes",
 
 char_diff <- function(
   x, y, context=-1L, ignore.white.space, mode, hunk.limit, line.limit,
-  disp.width, max.diffs, tab.stops, strip.hz=TRUE
+  disp.width, max.diffs, tab.stops, strip.hz=TRUE, diff.mode, warn
 ) {
+  stopifnot(
+    diff.mode %in% c("line", "hunk", "wrap"),
+    isTRUE(warn) || identical(warn, FALSE)
+  )
   if(ignore.white.space) {
     sub.pat <- "(\t| )"
     pat.1 <- sprintf("^%s*|%s*$", sub.pat, sub.pat)
@@ -235,9 +239,24 @@ char_diff <- function(
     diff, context=context, mode=mode, hunk.limit=hunk.limit,
     line.limit=line.limit, disp.width=disp.width, tab.stops=tab.stops
   )
+  hit.diffs.max <- FALSE
+  if(diff@diffs < 0L) {
+    hit.diffs.max <- TRUE
+    diff@diffs <- -diff@diffs
+    diff.param <- c(
+      line="max.diffs", hunk="max.diffs.in.hunk", wrap="max.diffs.wrap"
+    )
+    warning(
+      "Exceeded `", diff.param[diff.mode], "` limit during diff computation (",
+      diff@diffs, "), diff is likely not optimal"
+    )
+  }
   # used to be a `diffObjDiffDiffs` object, but too slow
 
-  list(hunks=hunks, count.diffs=0L)
+  list(
+    hunks=hunks, diffs=count_diffs(hunks), diffs.max=0L,
+    hit.diffs.max=hit.diffs.max
+  )
 }
 # Helper function encodes matches within mismatches so that we can later word
 # diff the mismatches

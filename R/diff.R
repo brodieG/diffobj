@@ -222,7 +222,8 @@ diff_tpl <- function(
   if(is.null(diffs)) diffs <- char_diff(
     tar.capt, cur.capt, context=context, ignore.white.space=ignore.white.space,
     mode=mode, hunk.limit=hunk.limit, line.limit=line.limit,
-    disp.width=disp.width, max.diffs=max.diffs, tab.stops=tab.stops
+    disp.width=disp.width, max.diffs=max.diffs, tab.stops=tab.stops,
+    diff.mode="line", warn=TRUE
   )
   if(is.null(tar.banner)) tar.banner <- deparse(tar.exp)[[1L]]
   if(is.null(cur.banner)) cur.banner <- deparse(cur.exp)[[1L]]
@@ -438,7 +439,7 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
       tar.str, cur.str, context=context,
       ignore.white.space=ignore.white.space, mode=mode, hunk.limit=hunk.limit,
       line.limit=line.limit, disp.width=disp.width, max.diffs=max.diffs,
-      tab.stops=tab.stops, strip.hz=FALSE
+      tab.stops=tab.stops, strip.hz=FALSE, diff.mode="line", warn=TRUE
     )
     has.diff <- any(
       !vapply(
@@ -497,7 +498,7 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
     break
   }
   diffs <- diffs.str
-  diffs$count.diffs <- count_diffs(diffs.max$hunks)
+  diffs$diffs.max <- count_diffs(diffs.max$hunks)
 
   if(auto.mode) {
     str.match[[max.level.pos]] <- lvl

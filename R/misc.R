@@ -10,16 +10,7 @@ trim_str <- function(str.txt, level, kj) {
   NULL
 
 }
-# Evaluate argument from a `match.call` list
 
-eval_try <- function(match.list, index, envir) {
-    res <- tryCatch(
-      eval(match.list[[index]], envir=envir),
-      error=function(e)
-        err("Error evaluating `", index, "` arg: ", conditionMessage(e))
-    )
-
-}
 # Reports how many levels deep each line of a `str` screen output is
 
 str_levels <- function(str.txt, wrap=FALSE) {
@@ -233,6 +224,7 @@ is.chr.1L <- function(x) is.character(x) && length(x) == 1L && !is.na(x)
 
 is.diffs <- function(x)
   is.list(x) && length(x) == 2L &&
-  identical(names(x), c("hunks", "count.diffs")) &&
-  is.list(x$hunks) && is.integer(x$count.diffs)
+  identical(names(x), c("hunks", "diffs", "diffs.max", "hit.max.diffs")) &&
+  is.list(x$hunks) && is.int.1L(x$diffs) && is.int.1L(x$diffs.max) &&
+  is.int.1L(x$hit.diffs.max)
 

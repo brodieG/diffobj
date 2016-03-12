@@ -168,6 +168,8 @@ setMethod("as.character", "diffObjDiff",
     hunk.limit <- x@hunk.limit
     disp.width <- x@disp.width
     max.diffs <- x@max.diffs
+    max.diffs.in.hunk <- x@max.diffs.in.hunk
+    max.diffs.wrap <- x@max.diffs.wrap
     mode <- x@mode
     tab.stops <- x@tab.stops
     ignore.white.space <- x@ignore.white.space
@@ -240,10 +242,10 @@ setMethod("as.character", "diffObjDiff",
     ll <- !!lim.line[[1L]]
     lh <- !!lim.hunk[[1L]]
     diff.count <- count_diffs(hunk.grps)
-    str.fold.out <- if(x@diffs$count.diffs > diff.count) {
+    str.fold.out <- if(x@diffs$diffs.max > diff.count) {
       crayon_style(
         paste0(
-          x@diffs$count.diffs - diff.count,
+          x@diffs$diffs.max - diff.count,
           " differences are hidden by our use of `max.level`"
         ),
         "silver"
@@ -314,7 +316,7 @@ setMethod("as.character", "diffObjDiff",
           regmatches(x@cur.capt[cur.head], cur.body),
           ignore.white.space=ignore.white.space,
           match.quotes=is.character(x@target) && is.character(x@current),
-          max.diffs=max.diffs, tab.stops=tab.stops
+          max.diffs=max.diffs, tab.stops=tab.stops, diff.mode="wrap"
         )
         regmatches(x@tar.capt[tar.head], tar.body) <- body.diff$target
         regmatches(x@cur.capt[cur.head], cur.body) <- body.diff$current
@@ -332,8 +334,8 @@ setMethod("as.character", "diffObjDiff",
           diffs=char_diff(
             tar.r.h.txt, cur.r.h.txt, ignore.white.space=ignore.white.space,
             mode="context", hunk.limit=hunk.limit, line.limit=line.limit,
-            disp.width=disp.width, max.diffs=max.diffs, tab.stops=tab.stops,
-            strip.hz=FALSE
+            disp.width=disp.width, max.diffs=max.diffs.wrap,
+            tab.stops=tab.stops, strip.hz=FALSE, diff.mode="wrap", warn=TRUE
           )
         )
         x.r.h.color <- diff_color(x.r.h@diffs)
@@ -359,6 +361,7 @@ setMethod("as.character", "diffObjDiff",
 
     if(length(tar.to.wd) || length(cur.to.wd)) {
       wd.max <- min(head(tar.to.wd, 1L), head(cur.to.wd, 1L), 0L)
+      warn.hit.diffs.max <- TRUE
 
       # We need to compare the +s to the -s, and then reconstruct back into
       # the original A and B vectors
@@ -385,8 +388,10 @@ setMethod("as.character", "diffObjDiff",
 
           new.diff <- diff_word(
             A.new, B.new, ignore.white.space=ignore.white.space,
-            max.diffs=max.diffs, tab.stops=tab.stops
+            max.diffs=max.diffs.in.hunk, tab.stops=tab.stops,
+            diff.mode="hunk", warn=warn.hit.diffs.max
           )
+          if(new.diff$hit.diffs.max) warn.hit.diffs.max <- FALSE
           h.a$A.chr[A.pos] <- new.diff$target[seq_along(A.pos)]
           h.a$A.chr[A.neg] <- new.diff$current[seq_along(A.neg)]
           h.a$B.chr[B.pos] <- new.diff$target[seq_along(B.pos) + length(A.pos)]

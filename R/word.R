@@ -42,12 +42,12 @@ find_brackets <- function(x) {
 
 diff_word <- function(
   target, current, ignore.white.space, match.quotes=FALSE,
-  disp.width, max.diffs, tab.stops
+  disp.width, max.diffs, tab.stops, diff.mode, warn=TRUE
 ) {
   stopifnot(
     is.character(target), is.character(current),
     all(!is.na(target)), all(!is.na(current)),
-    is.TF(match.quotes)
+    is.TF(match.quotes), is.TF(warn)
   )
   # Compute the char by char diffs for each line
 
@@ -85,7 +85,7 @@ diff_word <- function(
     tar.split, cur.split, ignore.white.space=ignore.white.space,
     context=-1L, mode="context", line.limit=-1L, hunk.limit=-1L,
     disp.width=disp.width, max.diffs=max.diffs, tab.stops=tab.stops,
-    strip.hz=FALSE
+    strip.hz=FALSE, diff.mode=diff.mode, warn=warn
   )
   # Color
 
@@ -103,5 +103,5 @@ diff_word <- function(
   if(length(tar.colored)) regmatches(target, tar.reg) <- tar.colored
   if(length(cur.colored)) regmatches(current, cur.reg) <- cur.colored
 
-  list(target=target, current=current)
+  list(target=target, current=current, hit.diffs.max=diffs$hit.diffs.max)
 }
