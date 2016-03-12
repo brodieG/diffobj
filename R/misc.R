@@ -10,6 +10,16 @@ trim_str <- function(str.txt, level, kj) {
   NULL
 
 }
+# Evaluate argument from a `match.call` list
+
+eval_try <- function(match.list, index, envir) {
+    res <- tryCatch(
+      eval(match.list[[index]], envir=envir),
+      error=function(e)
+        err("Error evaluating `", index, "` arg: ", conditionMessage(e))
+    )
+
+}
 # Reports how many levels deep each line of a `str` screen output is
 
 str_levels <- function(str.txt, wrap=FALSE) {

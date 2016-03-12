@@ -35,14 +35,13 @@ test_that("trim_str", {
   str.txt.w <- capture.output(str(obj, width=30L, strict.width="wrap"))
   expect_equal(
     diffobj:::str_levels(str.txt.w, wrap=TRUE),
-    c(0L, 1L, 3L, 1L, 2L, 4L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L,  5L, 2L)
+    c(0L, 1L, 1L, 3L, 1L, 1L, 2L, 2L, 4L, 4L, 1L, 1L, 1L, 1L, 1L,  1L, 1L, 1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L,  5L, 5L, 2L, 2L)
   )
-  diffobj:::trim_str(txt, NA)
-  cat(
-    paste(
-      format(substr(str.txt.w, 1, 20)), diffobj:::str_levels(str.txt.w, TRUE),
-      sep=": "
-    ),
-    sep="\n"
-  )
+  # cat(
+  #   paste(
+  #     format(substr(str.txt.w, 1, 20)), diffobj:::str_levels(str.txt.w, TRUE),
+  #     sep=": "
+  #   ),
+  #   sep="\n"
+  # )
 })

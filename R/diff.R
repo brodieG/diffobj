@@ -351,17 +351,24 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
       call=as.call(c(list(quote(str), object=NULL), dots)), envir=frame
   ) )
   names(str.match)[[2L]] <- ""
+
+  # Utility function; defining in body so it has access to `err`
+
+  eval_try <- function(match.list, index, envir)
+    tryCatch(
+      eval(match.list[[index]], envir=envir),
+      error=function(e)
+        err("Error evaluating `", index, "` arg: ", conditionMessage(e))
+    )
+  # Setup / process extra args
+
   auto.mode <- FALSE
   max.level.supplied <- FALSE
   if(
     max.level.pos <- match("max.level", names(str.match), nomatch=0L)
   ) {
-    # max.level exited in call; check for special 'auto' case
-    res <- tryCatch(
-      eval(str.match$max.level, envir=par.frame),
-      error=function(e)
-        err("Error evaluating `max.level` arg: ", conditionMessage(e))
-    )
+    # max.level specified in call; check for special 'auto' case
+    res <- eval_try(str.match, "max.level", par.frame)
     if(identical(res, "auto")) {
       auto.mode <- TRUE
       str.match[["max.level"]] <- NA
@@ -374,8 +381,22 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
     max.level.pos <- length(str.match)
     max.level.supplied <- FALSE
   }
+  # Was wrap specified in strict width mode?
+
+  wrap <- FALSE
+  if("strict.width" %in% names(str.match)) {
+    res <- eval_try(str.match, "strict.width", par.frame)
+    wrap <- is.character(res) && length(res) == 1L && !is.na(res) &&
+      nzchar(res) && identical(res, substr("wrap", 1L, nchar(res)))
+  }
+  if(auto.mode) {
+    msg <-
+      "Specifying `%s` may cause `str` output level folding to be incorrect"
+    if("comp.str" %in% names(str.match)) warning(sprintf(msg, "comp.str"))
+    if("indent.str" %in% names(str.match)) warning(sprintf(msg, "indent.str"))
+  }
   # don't want to evaluate target and current more than once, so can't eval
-  # tar.exp/cur.exp
+  # tar.exp/cur.exp, so instead run call with actual object
 
   tar.call <- cur.call <- str.match
   tar.call[[2L]] <- target
@@ -386,13 +407,20 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
   capt.width <- calc_width_pad(disp.width, mode)
   has.diff <- has.diff.prev <- FALSE
 
+  tar.capt <- strip_hz_control(
+    capt_call(tar.call, capt.width, frame), tab.stops
+  )
+  tar.lvls <- str_levels(tar.capt, wrap=wrap)
+  cur.capt <- strip_hz_control(
+    capt_call(cur.call, capt.width, frame), tab.stops
+  )
+  cur.lvls <- str_levels(cur.capt, wrap=wrap)
+
   # note list_depth for some mysterious reason doesn't quite line up with
   # display of `str` when there are formulas as attributes, so just adding
   # + 2L
 
-  tar.depth <- list_depth(target)
-  cur.depth <- list_depth(current)
-  prev.lvl.hi <- lvl <- max.depth <- max(tar.depth, cur.depth) + 2L
+  prev.lvl.hi <- lvl <- max.depth <- max(tar.lvls, cur.lvls)
   prev.lvl.lo <- 0L
   first.loop <- TRUE
   safety <- 0L
@@ -403,23 +431,22 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
         "Logic Error: exceeded list depth when comparing structures; contact ",
         "maintainer."
       )
-    tar.capt <- capt_call(tar.call, capt.width, frame)
-    cur.capt <- capt_call(cur.call, capt.width, frame)
+    tar.str <- tar.capt[tar.lvls <= lvl]
+    cur.str <- cur.capt[cur.lvls <= lvl]
 
     diffs.str <- char_diff(
-      tar.capt, cur.capt, context=context,
+      tar.str, cur.str, context=context,
       ignore.white.space=ignore.white.space, mode=mode, hunk.limit=hunk.limit,
       line.limit=line.limit, disp.width=disp.width, max.diffs=max.diffs,
-      tab.stops=tab.stops
+      tab.stops=tab.stops, strip.hz=FALSE
     )
     has.diff <- any(
       !vapply(
         unlist(diffs.str$hunks, recursive=FALSE), "[[", logical(1L), "context"
     ) )
     if(first.loop) {
-
-      tar.capt.max <- tar.capt
-      cur.capt.max <- cur.capt
+      tar.str.max <- tar.str
+      cur.str.max <- cur.str
       diffs.max <- diffs.str
       first.loop <- FALSE
 
@@ -442,8 +469,8 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
       cur.call[[max.level.pos]] <- lvl
       next
     } else if(!has.diff) {
-      tar.capt <- tar.capt.max
-      cur.capt <- cur.capt.max
+      tar.str <- tar.str.max
+      cur.str <- cur.str.max
       diffs.str <- diffs.max
       break
     }
@@ -463,8 +490,8 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
     }
     # Couldn't get under limit, so use first run results
 
-    tar.capt <- tar.capt.max
-    cur.capt <- cur.capt.max
+    tar.str <- tar.str.max
+    cur.str <- cur.str.max
     diffs.str <- diffs.max
     lvl <- NULL
     break
