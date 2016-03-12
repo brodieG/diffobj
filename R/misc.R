@@ -223,8 +223,8 @@ is.TF <- function(x) isTRUE(x) || identical(x, FALSE)
 is.chr.1L <- function(x) is.character(x) && length(x) == 1L && !is.na(x)
 
 is.diffs <- function(x)
-  is.list(x) && length(x) == 2L &&
-  identical(names(x), c("hunks", "diffs", "diffs.max", "hit.max.diffs")) &&
+  is.list(x) && length(x) == 4L &&
+  identical(names(x), c("hunks", "diffs", "diffs.max", "hit.diffs.max")) &&
   is.list(x$hunks) && is.int.1L(x$diffs) && is.int.1L(x$diffs.max) &&
-  is.int.1L(x$hit.diffs.max)
+  is.TF(x$hit.diffs.max)
 
