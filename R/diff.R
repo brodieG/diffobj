@@ -425,6 +425,7 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
   prev.lvl.lo <- 0L
   first.loop <- TRUE
   safety <- 0L
+  warn <- TRUE
 
   repeat{
     if((safety <- safety + 1L) > max.depth && !first.loop)
@@ -439,8 +440,9 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
       tar.str, cur.str, context=context,
       ignore.white.space=ignore.white.space, mode=mode, hunk.limit=hunk.limit,
       line.limit=line.limit, disp.width=disp.width, max.diffs=max.diffs,
-      tab.stops=tab.stops, strip.hz=FALSE, diff.mode="line", warn=TRUE
+      tab.stops=tab.stops, strip.hz=FALSE, diff.mode="line", warn=warn
     )
+    if(diffs.str$hit.diffs.max) warn <- FALSE 
     has.diff <- any(
       !vapply(
         unlist(diffs.str$hunks, recursive=FALSE), "[[", logical(1L), "context"
