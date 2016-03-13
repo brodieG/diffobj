@@ -215,13 +215,10 @@ setMethod("summary", "diffObjMyersMbaSes",
 # diff.mode is whether we are doing the first pass line diff, or doing the
 #   in-hunk or word-wrap versions
 # warn is to allow us to suppress warnings after first hunk warning
-# strip.hz is to tell us to remove the horizontal control characters, needed
-#   because when doing `diff_str` we remove them early and don't want to keep
-#   doing it over and over since it is potentially slow
 
 char_diff <- function(
   x, y, context=-1L, ignore.white.space, mode, hunk.limit, line.limit,
-  disp.width, max.diffs, tab.stops, strip.hz=TRUE, diff.mode, warn
+  disp.width, max.diffs, tab.stops, diff.mode, warn
 ) {
   stopifnot(
     diff.mode %in% c("line", "hunk", "wrap"),
@@ -238,10 +235,6 @@ char_diff <- function(
   if(ignore.white.space) {
     diff@a <- x
     diff@b <- y
-  }
-  if(strip.hz) {
-    diff@a <- strip_hz_control(diff@a, tab.stops)
-    diff@b <- strip_hz_control(diff@b, tab.stops)
   }
   hunks <- as.hunks(
     diff, context=context, mode=mode, hunk.limit=hunk.limit,

@@ -330,10 +330,14 @@ diff_print <- diff_tpl; body(diff_print)[[12L]] <- quote({
 
   both.at <- is.atomic(current) && is.atomic(target)
   capt.width <- calc_width(disp.width, mode) - 2L
-  cur.capt <- capt_call(cur.call, capt.width, frame)
-  cur.capt.def <- if(both.at) capt_call(cur.call.def, capt.width, frame)
-  tar.capt <- capt_call(tar.call, capt.width, frame)
-  tar.capt.def <- if(both.at) capt_call(tar.call.def, capt.width, frame)
+  cur.capt <-
+    strip_hz_control(capt_call(cur.call, capt.width, frame), tab.stops)
+  cur.capt.def <- if(both.at)
+    strip_hz_control(capt_call(cur.call.def, capt.width, frame), tab.stops)
+  tar.capt <-
+    strip_hz_control(capt_call(tar.call, capt.width, frame), tab.stops)
+  tar.capt.def <- if(both.at)
+    strip_hz_control(capt_call(tar.call.def, capt.width, frame), tab.stops)
 })
 #' @rdname diff_obj
 #' @export
@@ -440,9 +444,9 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
       tar.str, cur.str, context=context,
       ignore.white.space=ignore.white.space, mode=mode, hunk.limit=hunk.limit,
       line.limit=line.limit, disp.width=disp.width, max.diffs=max.diffs,
-      tab.stops=tab.stops, strip.hz=FALSE, diff.mode="line", warn=warn
+      tab.stops=tab.stops, diff.mode="line", warn=warn
     )
-    if(diffs.str$hit.diffs.max) warn <- FALSE 
+    if(diffs.str$hit.diffs.max) warn <- FALSE
     has.diff <- any(
       !vapply(
         unlist(diffs.str$hunks, recursive=FALSE), "[[", logical(1L), "context"
@@ -517,14 +521,18 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
 #' @export
 
 diff_chr <- diff_tpl; body(diff_chr)[[12L]] <- quote({
-  tar.capt <- if(!is.character(target)) as.character(target) else target
-  cur.capt <- if(!is.character(current)) as.character(current) else current
+  tar.capt <- strip_hz_control(
+    if(!is.character(target)) as.character(target) else target, tab.stops
+  )
+  cur.capt <- strip_hz_control(
+    if(!is.character(current)) as.character(current) else current, tab.stops
+  )
 })
 #' @rdname diff_obj
 #' @export
 
 diff_deparse <- diff_tpl; body(diff_deparse)[[12L]] <- quote({
-  tar.capt <- deparse(target, ...)
-  cur.capt <- deparse(current, ...)
+  tar.capt <- strip_hz_control(deparse(target, ...), tab.stops)
+  cur.capt <- strip_hz_control(deparse(current, ...), tab.stops)
 })
 

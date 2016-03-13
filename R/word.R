@@ -85,7 +85,7 @@ diff_word <- function(
     tar.unsplit, cur.unsplit, ignore.white.space=ignore.white.space,
     context=-1L, mode="context", line.limit=-1L, hunk.limit=-1L,
     disp.width=disp.width, max.diffs=max.diffs, tab.stops=tab.stops,
-    strip.hz=FALSE, diff.mode=diff.mode, warn=warn
+    diff.mode=diff.mode, warn=warn
   )
   # Color
 
