@@ -6,9 +6,7 @@ str_tpl <- function(object, max.level, ...) NULL
 # Reduce `str` output to a level
 
 trim_str <- function(str.txt, level, kj) {
-  browser()
   NULL
-
 }
 
 # Reports how many levels deep each line of a `str` screen output is
