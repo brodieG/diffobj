@@ -229,6 +229,7 @@ _find_faux_snake(
    */
   int max_steps = x_r - x_f + y_r - y_f + 1;
   int steps = 0;
+  int diffs = 0;
   int step_dir = 1; /* last direction we moved in, 1 is down */
   int x_sn = x_f, y_sn = y_f;
 
@@ -252,10 +253,12 @@ _find_faux_snake(
       *(faux_snake_tmp + steps) = DIFF_MATCH;
     } else if (x_sn < x_r && (step_dir || y_sn >= y_r)) {
       x_sn++;
+      diffs++;
       step_dir = !step_dir;
       *(faux_snake_tmp + steps) = DIFF_DELETE;
     } else if (y_sn < y_r && (!step_dir || x_sn >= x_r)) {
       y_sn++;
+      diffs++;
       *(faux_snake_tmp + steps) = DIFF_INSERT;
       step_dir = !step_dir;
     } else {
@@ -280,7 +283,7 @@ _find_faux_snake(
   ms->u = x_r;
   ms->v = y_r;
 
-  return d;
+  return diffs;
 }
 
 /*
