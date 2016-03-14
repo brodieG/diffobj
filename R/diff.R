@@ -180,6 +180,7 @@ diff_tpl <- function(
   max.diffs=getOption("diffobj.max.diffs"),
   max.diffs.in.hunk=getOption("diffobj.max.diffs.in.hunk"),
   max.diffs.wrap=getOption("diffobj.max.diffs.wrap"),
+  tab.stops=getOption("diffobj.tab.stops"),
   frame=parent.frame(),
   ...
 ) {
@@ -221,7 +222,8 @@ diff_tpl <- function(
   if(is.null(diffs)) diffs <- char_diff(
     tar.capt, cur.capt, context=context, ignore.white.space=ignore.white.space,
     mode=mode, hunk.limit=hunk.limit, line.limit=line.limit,
-    disp.width=disp.width
+    disp.width=disp.width, max.diffs=max.diffs, tab.stops=tab.stops,
+    diff.mode="line", warn=TRUE
   )
   if(is.null(tar.banner)) tar.banner <- deparse(tar.exp)[[1L]]
   if(is.null(cur.banner)) cur.banner <- deparse(cur.exp)[[1L]]
@@ -258,8 +260,8 @@ diff_obj <- diff_tpl; body(diff_obj) <- quote({
   res.print <- eval(call.print, parent.frame())
   res.str <- eval(call.str, parent.frame())
 
-  diff.p <- count_diffs(res.print@diffs@hunks)
-  diff.s <- count_diffs(res.str@diffs@hunks)
+  diff.p <- count_diffs(res.print@diffs$hunks)
+  diff.s <- count_diffs(res.str@diffs$hunks)
 
   # Only show the one with differences
 
@@ -328,10 +330,14 @@ diff_print <- diff_tpl; body(diff_print)[[12L]] <- quote({
 
   both.at <- is.atomic(current) && is.atomic(target)
   capt.width <- calc_width(disp.width, mode) - 2L
-  cur.capt <- capt_call(cur.call, capt.width, frame)
-  cur.capt.def <- if(both.at) capt_call(cur.call.def, capt.width, frame)
-  tar.capt <- capt_call(tar.call, capt.width, frame)
-  tar.capt.def <- if(both.at) capt_call(tar.call.def, capt.width, frame)
+  cur.capt <-
+    strip_hz_control(capt_call(cur.call, capt.width, frame), tab.stops)
+  cur.capt.def <- if(both.at)
+    strip_hz_control(capt_call(cur.call.def, capt.width, frame), tab.stops)
+  tar.capt <-
+    strip_hz_control(capt_call(tar.call, capt.width, frame), tab.stops)
+  tar.capt.def <- if(both.at)
+    strip_hz_control(capt_call(tar.call.def, capt.width, frame), tab.stops)
 })
 #' @rdname diff_obj
 #' @export
@@ -350,17 +356,24 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
       call=as.call(c(list(quote(str), object=NULL), dots)), envir=frame
   ) )
   names(str.match)[[2L]] <- ""
+
+  # Utility function; defining in body so it has access to `err`
+
+  eval_try <- function(match.list, index, envir)
+    tryCatch(
+      eval(match.list[[index]], envir=envir),
+      error=function(e)
+        err("Error evaluating `", index, "` arg: ", conditionMessage(e))
+    )
+  # Setup / process extra args
+
   auto.mode <- FALSE
   max.level.supplied <- FALSE
   if(
     max.level.pos <- match("max.level", names(str.match), nomatch=0L)
   ) {
-    # max.level exited in call; check for special 'auto' case
-    res <- tryCatch(
-      eval(str.match$max.level, envir=par.frame),
-      error=function(e)
-        err("Error evaluating `max.level` arg: ", conditionMessage(e))
-    )
+    # max.level specified in call; check for special 'auto' case
+    res <- eval_try(str.match, "max.level", par.frame)
     if(identical(res, "auto")) {
       auto.mode <- TRUE
       str.match[["max.level"]] <- NA
@@ -373,8 +386,22 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
     max.level.pos <- length(str.match)
     max.level.supplied <- FALSE
   }
+  # Was wrap specified in strict width mode?
+
+  wrap <- FALSE
+  if("strict.width" %in% names(str.match)) {
+    res <- eval_try(str.match, "strict.width", par.frame)
+    wrap <- is.character(res) && length(res) == 1L && !is.na(res) &&
+      nzchar(res) && identical(res, substr("wrap", 1L, nchar(res)))
+  }
+  if(auto.mode) {
+    msg <-
+      "Specifying `%s` may cause `str` output level folding to be incorrect"
+    if("comp.str" %in% names(str.match)) warning(sprintf(msg, "comp.str"))
+    if("indent.str" %in% names(str.match)) warning(sprintf(msg, "indent.str"))
+  }
   # don't want to evaluate target and current more than once, so can't eval
-  # tar.exp/cur.exp
+  # tar.exp/cur.exp, so instead run call with actual object
 
   tar.call <- cur.call <- str.match
   tar.call[[2L]] <- target
@@ -385,12 +412,24 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
   capt.width <- calc_width_pad(disp.width, mode)
   has.diff <- has.diff.prev <- FALSE
 
-  tar.depth <- list_depth(target)
-  cur.depth <- list_depth(current)
-  prev.lvl.hi <- lvl <- max.depth <- max(tar.depth, cur.depth)
+  tar.capt <- strip_hz_control(
+    capt_call(tar.call, capt.width, frame), tab.stops
+  )
+  tar.lvls <- str_levels(tar.capt, wrap=wrap)
+  cur.capt <- strip_hz_control(
+    capt_call(cur.call, capt.width, frame), tab.stops
+  )
+  cur.lvls <- str_levels(cur.capt, wrap=wrap)
+
+  # note list_depth for some mysterious reason doesn't quite line up with
+  # display of `str` when there are formulas as attributes, so just adding
+  # + 2L
+
+  prev.lvl.hi <- lvl <- max.depth <- max(tar.lvls, cur.lvls)
   prev.lvl.lo <- 0L
   first.loop <- TRUE
   safety <- 0L
+  warn <- TRUE
 
   repeat{
     if((safety <- safety + 1L) > max.depth && !first.loop)
@@ -398,22 +437,23 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
         "Logic Error: exceeded list depth when comparing structures; contact ",
         "maintainer."
       )
-    tar.capt <- capt_call(tar.call, capt.width, frame)
-    cur.capt <- capt_call(cur.call, capt.width, frame)
+    tar.str <- tar.capt[tar.lvls <= lvl]
+    cur.str <- cur.capt[cur.lvls <= lvl]
 
     diffs.str <- char_diff(
-      cur.capt, tar.capt, context=context,
+      tar.str, cur.str, context=context,
       ignore.white.space=ignore.white.space, mode=mode, hunk.limit=hunk.limit,
-      line.limit=line.limit, disp.width=disp.width
+      line.limit=line.limit, disp.width=disp.width, max.diffs=max.diffs,
+      tab.stops=tab.stops, diff.mode="line", warn=warn
     )
+    if(diffs.str$hit.diffs.max) warn <- FALSE
     has.diff <- any(
       !vapply(
-        unlist(diffs.str@hunks, recursive=FALSE), "[[", logical(1L), "context"
+        unlist(diffs.str$hunks, recursive=FALSE), "[[", logical(1L), "context"
     ) )
     if(first.loop) {
-
-      tar.capt.max <- tar.capt
-      cur.capt.max <- cur.capt
+      tar.str.max <- tar.str
+      cur.str.max <- cur.str
       diffs.max <- diffs.str
       first.loop <- FALSE
 
@@ -425,7 +465,7 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
     }
     if(line.limit[[1L]] < 1L) break
 
-    line.len <- diff_line_len(diffs.str@hunks, mode, disp.width)
+    line.len <- diff_line_len(diffs.str$hunks, mode, disp.width)
 
     # We need a higher level if we don't have diffs
 
@@ -436,8 +476,8 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
       cur.call[[max.level.pos]] <- lvl
       next
     } else if(!has.diff) {
-      tar.capt <- tar.capt.max
-      tar.capt <- tar.capt.max
+      tar.str <- tar.str.max
+      cur.str <- cur.str.max
       diffs.str <- diffs.max
       break
     }
@@ -457,12 +497,14 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
     }
     # Couldn't get under limit, so use first run results
 
-    tar.capt <- tar.capt.max
-    tar.capt <- tar.capt.max
+    tar.str <- tar.str.max
+    cur.str <- cur.str.max
     diffs.str <- diffs.max
+    lvl <- NULL
+    break
   }
   diffs <- diffs.str
-  diffs@max.diffs <- count_diffs(diffs.max@hunks)
+  diffs$diffs.max <- count_diffs(diffs.max$hunks)
 
   if(auto.mode) {
     str.match[[max.level.pos]] <- lvl
@@ -479,14 +521,18 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
 #' @export
 
 diff_chr <- diff_tpl; body(diff_chr)[[12L]] <- quote({
-  tar.capt <- if(!is.character(target)) as.character(target) else target
-  cur.capt <- if(!is.character(current)) as.character(current) else current
+  tar.capt <- strip_hz_control(
+    if(!is.character(target)) as.character(target) else target, tab.stops
+  )
+  cur.capt <- strip_hz_control(
+    if(!is.character(current)) as.character(current) else current, tab.stops
+  )
 })
 #' @rdname diff_obj
 #' @export
 
 diff_deparse <- diff_tpl; body(diff_deparse)[[12L]] <- quote({
-  tar.capt <- deparse(target, ...)
-  cur.capt <- deparse(current, ...)
+  tar.capt <- strip_hz_control(deparse(target, ...), tab.stops)
+  cur.capt <- strip_hz_control(deparse(current, ...), tab.stops)
 })
 

@@ -33,7 +33,7 @@
 setGeneric("as.hunks", function(x, ...) standardGeneric("as.hunks"))
 setMethod("as.hunks", "diffObjMyersMbaSes",
   function(
-    x, mode, context, disp.width, line.limit, hunk.limit, ...
+    x, mode, context, disp.width, line.limit, hunk.limit, tab.stops, ...
   ) {
     stopifnot(
       is.character(mode), length(mode) == 1L, !is.na(mode),
@@ -41,15 +41,15 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
     )
     # Split our data into sections that have either deletes/inserts or matches
 
-    dat <- as.data.frame(x)
-    d.s <- split(dat, dat$section)
+    dat <- as.matrix(x)
+    sects <- unique(dat[, "section"])
     j <- 0L
 
     # For each section, figure out how to represent target and current where
     # 0 means match, 1:n is a matched mismatch (change in edit script parlance),
     # and NA is a full mismatch (d or i).
 
-    res.l <- if(!length(d.s)) {
+    res.l <- if(!nrow(dat)) {
       # Minimum one empty hunk if nothing; arbitrarily chose to make it a
       # non context hunk; ideally would figure out a way to integrate this
       # code in the lapply...
@@ -65,15 +65,16 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
       )
     } else {
       lapply(
-        seq_along(d.s),
+        seq_along(sects),
         function(i) {
-          d <- d.s[[i]]
-          d.del <- d[which(d$type == "Delete"), ]
-          d.ins <- d[which(d$type == "Insert"), ]
-          d.mtc <- d[which(d$type == "Match"), ]
-          del.len <- sum(d.del$len)
-          ins.len <- sum(d.ins$len)
-          mtc.len <- sum(d.mtc$len)
+          s <- sects[i]
+          d <- dat[which(dat[, "section"] == s), , drop=FALSE]
+          d.del <- d[which(.edit.map[d[, "type"]] == "Delete"), ,drop=FALSE]
+          d.ins <- d[which(.edit.map[d[, "type"]] == "Insert"), ,drop=FALSE]
+          d.mtc <- d[which(.edit.map[d[, "type"]] == "Match"), ,drop=FALSE]
+          del.len <- sum(d.del[, "len"])
+          ins.len <- sum(d.ins[, "len"])
+          mtc.len <- sum(d.mtc[, "len"])
           tar.len <- del.len + mtc.len
           cur.len <- ins.len + mtc.len
 
@@ -84,10 +85,10 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
 
           # Figure out where previous hunk left off
 
-          del.last <- if(nrow(d.del)) d.del$last.a[[1L]] else d$last.a[[1L]]
-          ins.last <- if(nrow(d.ins)) d.ins$last.b[[1L]] else d$last.b[[1L]]
-          A.start <- del.last - del.len - mtc.len
-          B.start <- ins.last - ins.len - mtc.len
+          del.last <- if(nrow(d.del)) d.del[1L, "last.a"] else d[1L, "last.a"]
+          ins.last <- if(nrow(d.ins)) d.ins[1L, "last.b"] else d[1L, "last.b"]
+          A.start <- del.last
+          B.start <- ins.last
 
           # record `cur` indices as negatives
 
@@ -314,8 +315,6 @@ process_hunks <- function(x, context) {
 # count lines for each remaining hunk and figure out if we need to cut some
 # hunks off; note that "negative" lengths indicate the lines being counted
 # originated from the B hunk in context mode
-#
-# NOTE: need to account for multi-space characters and escape sequences
 
 get_hunk_chr_lens <- function(hunk.grps, mode, disp.width) {
   # Account for overhead / side by sideness in width calculations
@@ -344,7 +343,13 @@ get_hunk_chr_lens <- function(hunk.grps, mode, disp.width) {
     # Make sure that line.id refers to the position of the line in either
     # original A or B vector
 
-    line.id <- unlist(lapply(split(lines.out, lines.out > 0L), seq_along))
+    l.o.len <- length(lines.out)
+    line.id <- integer(l.o.len)
+    l.gt.z <- lines.out > 0L
+    l.gt.z.w <- which(l.gt.z)
+    line.id[l.gt.z.w] <- seq_along(l.gt.z.w)
+    l.lt.z.w <- which(!l.gt.z)
+    line.id[l.lt.z.w] <- seq_along(l.lt.z.w)
     cbind(
       hunk.id=if(length(lines.out)) hunk.id else integer(),
       line.id=unname(line.id), len=lines.out
@@ -433,7 +438,14 @@ trim_hunks <- function(hunk.grps, mode, disp.width, hunk.limit, line.limit) {
     line.cut <- cut.dat[["line.id"]]
     line.neg <- cut.dat[["len"]] < 0
 
-    hunk.grps <- hunk.grps[seq_len(grp.cut)]
+    # completely trim hunks that will not be shown
+
+    grps.to.cut <- setdiff(seq_along(hunk.grps), seq_len(grp.cut))
+    for(i in grps.to.cut)
+      for(j in seq_along(hunk.grps[[i]]))
+        hunk.grps[[i]][[j]][c("tar.rng.trim", "cur.rng.trim")] <-
+          list(integer(2L), integer(2L))
+
     hunk.grps.used <- grp.cut
     hunk.grps.omitted <- max(0L, hunk.grps.count - grp.cut)
 
@@ -528,8 +540,8 @@ count_diffs <- function(x) {
       unlist(x, recursive=FALSE),
       function(y) {
         if(y$context) 0L else {
-          (if(y$tar.rng[[1L]]) diff(y$tar.rng) + 1L else 0L) +
-          (if(y$cur.rng[[1L]]) diff(y$cur.rng) + 1L else 0L)
+          (if(y$tar.rng[[1L]]) y$tar.rng[[2L]] - y$tar.rng[[1L]] + 1L else 0L) +
+          (if(y$cur.rng[[1L]]) y$cur.rng[[2L]] - y$cur.rng[[1L]] + 1L else 0L)
       } },
       integer(1L)
 ) ) }

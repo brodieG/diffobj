@@ -96,19 +96,24 @@ local({
     )
     diff_print(chr.3, chr.4, mode="sidebyside")
 
-    iris.c <- iris.c <- transform(iris, Species=as.character(Species))
+    iris.2 <- iris.c <- transform(iris, Species=as.character(Species))
     # without rounding this is a bit wild, but good corner case to test
     iris.2$Sepal.Length[sample(nrow(iris.2), 10)] <-
       rnorm(10, mean(iris.2$Sepal.Length), sd(iris.2$Sepal.Length))
 
     iris.3 <- iris.2
     iris.3$Sepal.Length <- round(iris.3$Sepal.Length, 1L)
+
     diff_print(iris, iris.c)
     diff_obj(iris, iris.c)
     diff_obj(iris, iris.c)
     diff_obj(iris, iris.2)
     diff_obj(iris, iris.3)
     diff_obj(iris, iris.3, mode="sidebyside")
+
+    mdl1 <- lm(Sepal.Length ~ Sepal.Width, iris)
+    mdl2 <- lm(Sepal.Length ~ Sepal.Width + Species, iris.3)
+    diff_str(mdl1, mdl2, mode="sidebyside")
   } )
   set.seed(2)
   w1 <- sample(

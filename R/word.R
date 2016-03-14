@@ -42,12 +42,12 @@ find_brackets <- function(x) {
 
 diff_word <- function(
   target, current, ignore.white.space, match.quotes=FALSE,
-  disp.width
+  disp.width, max.diffs, tab.stops, diff.mode, warn=TRUE
 ) {
   stopifnot(
     is.character(target), is.character(current),
     all(!is.na(target)), all(!is.na(current)),
-    is.TF(match.quotes)
+    is.TF(match.quotes), is.TF(warn)
   )
   # Compute the char by char diffs for each line
 
@@ -76,31 +76,42 @@ diff_word <- function(
   tar.lens <- vapply(tar.split, length, integer(1L))
   cur.lens <- vapply(cur.split, length, integer(1L))
 
-  tar.split <- unlist(tar.split)
-  cur.split <- unlist(cur.split)
-  if(is.null(tar.split)) tar.split <- character(0L)
-  if(is.null(cur.split)) cur.split <- character(0L)
+  tar.unsplit <- unlist(tar.split)
+  cur.unsplit <- unlist(cur.split)
+  if(is.null(tar.unsplit)) tar.split <- character(0L)
+  if(is.null(cur.unsplit)) cur.split <- character(0L)
 
   diffs <- char_diff(
-    tar.split, cur.split, ignore.white.space=ignore.white.space,
+    tar.unsplit, cur.unsplit, ignore.white.space=ignore.white.space,
     context=-1L, mode="context", line.limit=-1L, hunk.limit=-1L,
-    disp.width=disp.width
+    disp.width=disp.width, max.diffs=max.diffs, tab.stops=tab.stops,
+    diff.mode=diff.mode, warn=warn
   )
   # Color
 
-  diff.colored <- diffColor(diffs)
+  diff.colored <- diff_color(diffs)
   tar.colored <- diff.colored$A
   cur.colored <- diff.colored$B
 
-  # Reconstitute lines if needed
+  # Reconstitute lines, but careful since some lines may be empty
 
-  tar.colored <- split(tar.colored, rep(seq_along(tar.lens), tar.lens))
-  cur.colored <- split(cur.colored, rep(seq_along(cur.lens), cur.lens))
+  tar.fin <- replicate(length(target), character(0L))
+  cur.fin <- replicate(length(current), character(0L))
+
+  tar.w.len <- tar.lens[tar.lens > 0]
+  cur.w.len <- cur.lens[cur.lens > 0]
+
+  tar.fin[tar.lens > 0] <-
+    split(tar.colored, rep(seq_along(tar.w.len), tar.w.len))
+  cur.fin[cur.lens > 0] <-
+    split(cur.colored, rep(seq_along(cur.w.len), cur.w.len))
 
   # Merge back into original
 
-  if(length(tar.colored)) regmatches(target, tar.reg) <- tar.colored
-  if(length(cur.colored)) regmatches(current, cur.reg) <- cur.colored
+  tar.cpy <- target
+  cur.cpy <- current
+  if(length(tar.colored)) regmatches(tar.cpy, tar.reg) <- tar.fin
+  if(length(cur.colored)) regmatches(cur.cpy, cur.reg) <- cur.fin
 
-  list(target=target, current=current)
+  list(target=tar.cpy, current=cur.cpy, hit.diffs.max=diffs$hit.diffs.max)
 }

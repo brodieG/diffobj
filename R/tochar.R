@@ -33,107 +33,127 @@ rng_as_chr <- function(range) {
 # Convert a hunk group into text representation
 
 hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
-  max.w <- calc_width(disp.width, mode)
-  capt.width <- calc_width_pad(disp.width, mode)
-  h.ids <- vapply(h.g, "[[", integer(1L), "id")
-  tar.rng <- find_rng(h.ids, ranges.orig[1:2, , drop=FALSE])
-  cur.rng <- find_rng(h.ids, ranges.orig[3:4, , drop=FALSE])
+  # First check that the hunk group hasn't been completely trimmed
 
-  hh.a <- paste0("-", rng_as_chr(tar.rng))
-  hh.b <- paste0("+", rng_as_chr(cur.rng))
+  all.lines <- sum(
+    unlist(
+      lapply(h.g, function(h.a) unlist(h.a[c("tar.rng.trim", "cur.rng.trim")]))
+  ) )
+  if(!all.lines) {
+    character(0L)
+  } else {
+    max.w <- calc_width(disp.width, mode)
+    capt.width <- calc_width_pad(disp.width, mode)
+    h.ids <- vapply(h.g, "[[", integer(1L), "id")
+    tar.rng <- find_rng(h.ids, ranges.orig[1:2, , drop=FALSE])
+    cur.rng <- find_rng(h.ids, ranges.orig[3:4, , drop=FALSE])
 
-  hunk.head <- crayon::style(
-    if(mode == "sidebyside") {
-      paste0(
-        rpadt(sprintf("@@ %s @@", hh.a), max.w),
-        "  ",
-        rpadt(sprintf("@@ %s @@", hh.b), max.w),
-        collapse=""
+    hh.a <- paste0("-", rng_as_chr(tar.rng))
+    hh.b <- paste0("+", rng_as_chr(cur.rng))
+
+    hunk.head <- crayon_style(
+      if(mode == "sidebyside") {
+        paste0(
+          rpadt(sprintf("@@ %s @@", hh.a), max.w),
+          "  ",
+          rpadt(sprintf("@@ %s @@", hh.b), max.w),
+          collapse=""
+        )
+      } else {
+        sprintf("@@ %s %s @@", hh.a, hh.b)
+      },
+      "cyan"
+    )
+    # Get trimmed character ranges; positives are originally from target, and
+    # negatives from current
+
+    get_chrs <- function(h.a, mode) {
+      stopifnot(mode %in% c("A", "B"), length(mode) == 1L)
+      rng <- c(
+        seq(h.a$tar.rng.trim[[1L]], h.a$tar.rng.trim[[2L]]),
+        -seq(h.a$cur.rng.trim[[1L]], h.a$cur.rng.trim[[2L]])
       )
-    } else {
-      sprintf("@@ %s %s @@", hh.a, hh.b)
-    },
-    "cyan"
-  )
-  # Output varies by mode
+      h.a[[sprintf("%s.chr", mode)]][match(rng, h.a[[mode]], nomatch=0L)]
+    }
+    # Output varies by mode
 
-  diff.txt <- if(mode == "context") {
-    # Need to get all the A data and the B data
-    get_chr_vals <- function(h.a, ind) wrap(h.a[[ind]], capt.width)
+    diff.txt <- if(mode == "context") {
+      # Need to get all the A data and the B data
 
-    A.ctx <- unlist(
-      lapply(h.g, function(h.a) rep(h.a$context, length(h.a$A.chr)))
-    )
-    B.ctx <- unlist(
-      lapply(h.g, function(h.a) rep(h.a$context, length(h.a$B.chr)))
-    )
-    A <- as.list(unlist(lapply(h.g, get_chr_vals, "A.chr")))
-    B <- as.list(unlist(lapply(h.g, get_chr_vals, "B.chr")))
+      A.ctx <- unlist(
+        lapply(h.g, function(h.a) rep(h.a$context, length(h.a$A.chr)))
+      )
+      B.ctx <- unlist(
+        lapply(h.g, function(h.a) rep(h.a$context, length(h.a$B.chr)))
+      )
+      A <- wrap(unlist(lapply(h.g, get_chrs, mode="A")), width=capt.width)
+      B <- wrap(unlist(lapply(h.g, get_chrs, mode="B")), width=capt.width)
+      A[!A.ctx] <- sign_pad(A[!A.ctx], 3L)
+      B[!B.ctx] <- sign_pad(B[!B.ctx], 2L)
+      A[A.ctx] <- sign_pad(A[A.ctx], 1L)
+      B[B.ctx] <- sign_pad(B[B.ctx], 1L)
+      unlist(
+        c(
+          A,
+          if(length(B)) crayon_style("~~~~", "silver"),
+          B
+      ) )
+    } else if(mode == "unified") {
+      unlist(
+        lapply(h.g,
+          function(h.a) {
+            pos <- h.a$A > 0L
+            A.out <- wrap(get_chrs(h.a, mode="A"), capt.width)
+            if(!h.a$context) {
+              A.out[pos] <- sign_pad(A.out[pos], 3L)
+              A.out[!pos] <- sign_pad(A.out[!pos], 2L)
+            } else {
+              A.out <- sign_pad(A.out, 1L)
+            }
+            A.out
+      } ) )
+    } else if(mode == "sidebyside") {
+      unlist(
+        lapply(h.g,
+          function(h.a) {
+            # Ensure same number of elements in A and B
 
-    A[!A.ctx] <- sign_pad(A[!A.ctx], 3L)
-    B[!B.ctx] <- sign_pad(B[!B.ctx], 2L)
-    A[A.ctx] <- sign_pad(A[A.ctx], 1L)
-    B[B.ctx] <- sign_pad(B[B.ctx], 1L)
-    unlist(
-      c(
-        A,
-        if(length(B)) crayon:::style("~~~~", "silver"),
-        B
-    ) )
-  } else if(mode == "unified") {
-    unlist(
-      lapply(h.g,
-        function(h.a) {
-          pos <- h.a$A > 0L
-          A.out <- wrap(h.a$A.chr, capt.width)
-          if(!h.a$context) {
-            A.out[pos] <- sign_pad(A.out[pos], 3L)
-            A.out[!pos] <- sign_pad(A.out[!pos], 2L)
-          } else {
-            A.out <- sign_pad(A.out, 1L)
-          }
-          A.out
-    } ) )
-  } else if(mode == "sidebyside") {
-    unlist(
-      lapply(h.g,
-        function(h.a) {
-          # Ensure same number of elements in A and B
+            A.out <- get_chrs(h.a, "A")
+            B.out <- get_chrs(h.a, "B")
+            A.present <- rep(TRUE, length(A.out))
+            B.present <- rep(TRUE, length(B.out))
+            len.diff <- length(A.out) - length(B.out)
 
-          A.out <- h.a$A.chr
-          B.out <- h.a$B.chr
-          A.present <- rep(TRUE, length(A.out))
-          B.present <- rep(TRUE, length(B.out))
-          len.diff <- length(A.out) - length(B.out)
+            A.w <- wrap(A.out, capt.width, pad=TRUE)
+            B.w <- wrap(B.out, capt.width, pad=TRUE)
+            A.w.l <- length(A.w)
+            B.w.l <- length(B.w)
+            A.lens <- vapply(A.w, length, integer(1L))
+            B.lens <- vapply(B.w, length, integer(1L))
 
-          A.w <- wrap(A.out, capt.width, pad=TRUE)
-          B.w <- wrap(B.out, capt.width, pad=TRUE)
-          A.w.l <- length(A.w)
-          B.w.l <- length(B.w)
-          A.lens <- vapply(A.w, length, integer(1L))
-          B.lens <- vapply(B.w, length, integer(1L))
+            # Same number of els post wrap
 
-          # Same number of els post wrap
+            if(length(unlist(A.w)) || length(unlist(B.w))) {
+              A.w.pad <- sign_pad(A.w, ifelse(!h.a$context & A.present, 3L, 1L))
+              B.w.pad <- sign_pad(B.w, ifelse(!h.a$context & B.present, 2L, 1L))
 
-          if(length(unlist(A.w)) || length(unlist(B.w))) {
-            A.w.pad <- sign_pad(A.w, ifelse(!h.a$context & A.present, 3L, 1L))
-            B.w.pad <- sign_pad(B.w, ifelse(!h.a$context & B.present, 2L, 1L))
+              blanks <- paste0(rep(" ", max.w), collapse="")
 
-            blanks <- paste0(rep(" ", max.w), collapse="")
+              for(i in seq_len(max(A.w.l, B.w.l))) {
+                if(i > A.w.l) A.w.pad[[i]] <- rep(blanks, B.lens[[i]]) else
+                if(i > B.w.l) B.w.pad[[i]] <- rep(blanks, A.lens[[i]]) else {
+                  A.B.diff <- A.lens[[i]] - B.lens[[i]]
+                  if(A.B.diff > 0L) {
+                    B.w.pad[[i]] <- c(B.w.pad[[i]], rep(blanks, A.B.diff))
+                  } else if(A.B.diff < 0L) {
+                    A.w.pad[[i]] <- c(A.w.pad[[i]], rep(blanks, -A.B.diff))
+              } } }
+              paste0(unlist(A.w.pad), "  ", unlist(B.w.pad))
+            }
+    } ) ) }
+    c(hunk.head, diff.txt)
 
-            for(i in seq_len(max(A.w.l, B.w.l))) {
-              if(i > A.w.l) A.w.pad[[i]] <- rep(blanks, B.lens[[i]]) else
-              if(i > B.w.l) B.w.pad[[i]] <- rep(blanks, A.lens[[i]]) else {
-                A.B.diff <- A.lens[[i]] - B.lens[[i]]
-                if(A.B.diff > 0L) {
-                  B.w.pad[[i]] <- c(B.w.pad[[i]], rep(blanks, A.B.diff))
-                } else if(A.B.diff < 0L) {
-                  A.w.pad[[i]] <- c(A.w.pad[[i]], rep(blanks, -A.B.diff))
-            } } }
-            paste0(unlist(A.w.pad), "  ", unlist(B.w.pad))
-          }
-  } ) ) }
-  c(hunk.head, diff.txt)
+  }
 }
 #' @rdname diffobj_s4method_doc
 
@@ -147,7 +167,11 @@ setMethod("as.character", "diffObjDiff",
     line.limit <- x@line.limit
     hunk.limit <- x@hunk.limit
     disp.width <- x@disp.width
+    max.diffs <- x@max.diffs
+    max.diffs.in.hunk <- x@max.diffs.in.hunk
+    max.diffs.wrap <- x@max.diffs.wrap
     mode <- x@mode
+    tab.stops <- x@tab.stops
     ignore.white.space <- x@ignore.white.space
 
     len.max <- max(length(x@tar.capt), length(x@cur.capt))
@@ -159,7 +183,7 @@ setMethod("as.character", "diffObjDiff",
           "spaces. You can re-run diff with `ignore.white.space=FALSE` to show ",
           "them."
       ) }
-      res <- crayon::style(msg, "silver")
+      res <- crayon_style(msg, "silver")
     }
     # Basic width computation and banner size
 
@@ -173,7 +197,7 @@ setMethod("as.character", "diffObjDiff",
     # dropping hunks beyond hunk limit
 
     hunk.grps <- trim_hunks(
-      x@diffs@hunks, mode=mode, disp.width=disp.width, line.limit=line.limit,
+      x@diffs$hunks, mode=mode, disp.width=disp.width, line.limit=line.limit,
       hunk.limit=hunk.limit
     )
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
@@ -200,9 +224,9 @@ setMethod("as.character", "diffObjDiff",
       t.fun <- chr_trim
     }
     banner <- comb.fun(
-      crayon::style(t.fun(banner.A, max.w), "red"),
+      crayon_style(t.fun(banner.A, max.w), "red"),
       if(mode == "sidebyside") "  ",
-      crayon::style(t.fun(banner.B, max.w), "green")
+      crayon_style(t.fun(banner.B, max.w), "green")
     )
     # Trim banner if exceeds line limit, and adjust line limit for banner size
 
@@ -218,22 +242,24 @@ setMethod("as.character", "diffObjDiff",
     ll <- !!lim.line[[1L]]
     lh <- !!lim.hunk[[1L]]
     diff.count <- count_diffs(hunk.grps)
-    str.fold.out <- if(x@diffs@max.diffs > diff.count) {
-      crayon::style(
+    str.fold.out <- if(x@diffs$diffs.max > diff.count) {
+      crayon_style(
         paste0(
-          x@diffs@max.diffs - diff.count, " differences are hidden by our use ",
-          "of `max.level`"
+          x@diffs$diffs.max - diff.count,
+          " differences are hidden by our use of `max.level`"
         ),
         "silver"
       )
     }
     limit.out <- if(ll || lh) {
-      if(!is.null(str.fold.out))
+      if(!is.null(str.fold.out)) {
         stop(
           "Logic Error: should not be str folding when limited; contact ",
           "maintainer."
         )
-      crayon::style(
+
+      }
+      crayon_style(
         paste0(
           "... omitted ",
           if(ll) sprintf("%d/%d lines", lim.line[[1L]], lim.line[[2L]]),
@@ -289,7 +315,8 @@ setMethod("as.character", "diffObjDiff",
           regmatches(x@tar.capt[tar.head], tar.body),
           regmatches(x@cur.capt[cur.head], cur.body),
           ignore.white.space=ignore.white.space,
-          match.quotes=is.character(x@target) && is.character(x@current)
+          match.quotes=is.character(x@target) && is.character(x@current),
+          max.diffs=max.diffs, tab.stops=tab.stops, diff.mode="wrap"
         )
         regmatches(x@tar.capt[tar.head], tar.body) <- body.diff$target
         regmatches(x@cur.capt[cur.head], cur.body) <- body.diff$current
@@ -307,10 +334,11 @@ setMethod("as.character", "diffObjDiff",
           diffs=char_diff(
             tar.r.h.txt, cur.r.h.txt, ignore.white.space=ignore.white.space,
             mode="context", hunk.limit=hunk.limit, line.limit=line.limit,
-            disp.width=disp.width
+            disp.width=disp.width, max.diffs=max.diffs.wrap,
+            tab.stops=tab.stops, diff.mode="wrap", warn=TRUE
           )
         )
-        x.r.h.color <- diffColor(x.r.h@diffs)
+        x.r.h.color <- diff_color(x.r.h@diffs)
         regmatches(x@tar.capt[tar.head], tar.r.h) <- x.r.h.color$A
         regmatches(x@cur.capt[cur.head], cur.r.h) <- x.r.h.color$B
 
@@ -333,6 +361,7 @@ setMethod("as.character", "diffObjDiff",
 
     if(length(tar.to.wd) || length(cur.to.wd)) {
       wd.max <- min(head(tar.to.wd, 1L), head(cur.to.wd, 1L), 0L)
+      warn.hit.diffs.max <- TRUE
 
       # We need to compare the +s to the -s, and then reconstruct back into
       # the original A and B vectors
@@ -341,7 +370,9 @@ setMethod("as.character", "diffObjDiff",
         for(j in seq_along(hunk.grps[[i]])) {
           h.a <- hunk.grps[[i]][[j]]
           # Skip context or those that have been wrap diffed
-          if(h.a$id < wd.max || h.a$context) next
+          if(
+            h.a$id < wd.max || h.a$context || (!length(h.a$A) && !length(h.a$B))
+          ) next
           # Do word diff on each non-context hunk; real messy because the
           # stuff from `tar` and `cur` are mixed in in A and B (well, really
           # only in unified mode) so we have to separate it back out before
@@ -356,8 +387,11 @@ setMethod("as.character", "diffObjDiff",
           B.new <- c(h.a$A.chr[A.neg], h.a$B.chr[B.neg])
 
           new.diff <- diff_word(
-            A.new, B.new, ignore.white.space=ignore.white.space
+            A.new, B.new, ignore.white.space=ignore.white.space,
+            max.diffs=max.diffs.in.hunk, tab.stops=tab.stops,
+            diff.mode="hunk", warn=warn.hit.diffs.max
           )
+          if(new.diff$hit.diffs.max) warn.hit.diffs.max <- FALSE
           h.a$A.chr[A.pos] <- new.diff$target[seq_along(A.pos)]
           h.a$A.chr[A.neg] <- new.diff$current[seq_along(A.neg)]
           h.a$B.chr[B.pos] <- new.diff$target[seq_along(B.pos) + length(A.pos)]
