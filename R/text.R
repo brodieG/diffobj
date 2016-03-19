@@ -21,7 +21,7 @@ ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
 align_eq <- function(A, B, A.eq, B.eq) {
   stopifnot(
     is.character(A.eq), is.character(B.eq), !anyNA(A.eq), !anyNA(B.eq),
-    length(A) != length(A.eq), length(B) != length(B.eq)
+    length(A) == length(A.eq), length(B) == length(B.eq)
   )
   # to simplify logic, force the first value to match
   A.eq <- c("<match>", A.eq)
@@ -38,6 +38,9 @@ align_eq <- function(A, B, A.eq, B.eq) {
   # now chunk; we need to drop the first match from splits since we added it
   A.chunks <- unname(split(A, tail(A.splits, -1L)))
   B.chunks <- unname(split(B, tail(B.splits, -1L)))
+
+  if(length(A.chunks) != length(B.chunks))
+    stop("Logic Error: aligned chunks unequal length; contact maintainer.")
 
   list(A=A.chunks, B=B.chunks)
 }
