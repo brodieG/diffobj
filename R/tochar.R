@@ -143,49 +143,32 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
 
               A.eq <- get_chrs(h.a, "A", TRUE)
               B.eq <- get_chrs(h.a, "B", TRUE)
-              align <- match(A.eq, B.eq, nomatch=0L)
-              align[align < cummax(align)] <- 0L
-              A.splits <- cumsum(!!align)
-              B.align <- align[!!align]
-              B.splits <- unlist(
-                Map(
-                  `+`,
-                  lapply(diff(B.align), seq_len),
-                  head(B.align, -1L) - 1L
-              ) )
-              A.chunks <- split(A.w.pad, A.splits)
-              B.chunks <- split(B.w.pad, B.splits)
-              A.ch.l <- length(A.chunks)
-              B.ch.l <- length(B.chunks)
-              max.l <- max(A.ch.l, B.ch.l)
-              A.res <- vector("list", max.l)
-              B.res <- vector("list", max.l)
-              A.lens <- lapply(A.chunks, vapply, length, integer(1L))
-              B.lens <- lapply(B.chunks, vapply, length, integer(1L))
 
-              # Add blanks to make the two the same length
+              AB.aligned <- align_eq(A.w.pad, B.w.pad, A.eq, B.eq)
+              A.chunks <- AB.aligned$A
+              B.chunks <- AB.aligned$B
 
-              for(i in seq_len(max.l)) {
-                if(i > A.ch.l) {
-                  A.res[[i]] <- rep(blanks, sum(B.lens[[i]]))
-                  B.res[[i]] <- unlist(B.chunks[[i]])
-                } else if (i > B.ch.l) {
-                  B.res[[i]] <- rep(blanks, sum(A.lens[[i]]))
-                  A.res[[i]] <- unlist(A.chunks[[i]])
-                } else {
-                  A.B.diff <- sum(A.lens[[i]]) - sum(B.lens[[i]])
-                  if(A.B.diff > 0L) {
-                    B.res[[i]] <- c(
-                      unlist(B.chunks[[i]], rep(blanks, A.B.diff))
-                    )
-                    A.res[[i]] <- unlist(A.chunks[[i]])
-                  } else if(A.B.diff < 0L) {
-                    A.res[[i]] <- c(
-                      unlist(A.chunks[[i]], rep(blanks, -A.B.diff))
-                    )
-                    B.res[[i]] <- unlist(B.chunks[[i]])
-              } } }
-              paste0(unlist(A.res), "  ", unlist(B.res))
+              # Make everything same length by adding blanks as needed
+
+              for(i in seq_along(A.chunks)) {
+                A.ch <- A.chunks[[i]]
+                B.ch <- B.chunks[[i]]
+                A.l <- length(A.ch)
+                B.l <- length(B.ch)
+                max.l <- max(A.l, B.l)
+                length(A.ch) <- length(B.ch) <- max.l
+
+                for(j in seq_along(A.ch)) {
+                    l.diff <- length(A.ch[[j]]) - length(B.ch[[j]])
+                    if(l.diff < 0L)
+                      A.ch[[j]] <- c(A.ch[[j]], rep(blanks, abs(l.diff)))
+                    if(l.diff > 0L)
+                      B.ch[[j]] <- c(B.ch[[j]], rep(blanks, l.diff))
+                }
+                A.chunks[[i]] <- A.ch
+                B.chunks[[i]] <- B.ch
+              }
+              paste0(unlist(A.chunks), "  ", unlist(B.chunks))
             }
     } ) ) }
     c(hunk.head, diff.txt)
