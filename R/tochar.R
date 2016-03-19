@@ -132,7 +132,6 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
             # Same number of els post wrap
 
             if(length(unlist(A.w)) || length(unlist(B.w))) {
-              browser()
               A.w.pad <- sign_pad(A.w, ifelse(!h.a$context & A.present, 3L, 1L))
               B.w.pad <- sign_pad(B.w, ifelse(!h.a$context & B.present, 2L, 1L))
 
