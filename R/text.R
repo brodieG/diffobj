@@ -25,6 +25,10 @@ align_eq <- function(A, B, A.eq, B.eq, ignore.white.space=FALSE) {
     is.TF(ignore.white.space)
   )
   # to simplify logic, force the first value to match
+
+  A.l <- c("<match>", A)
+  B.l <- c("<match>", B)
+
   A.eq <- c("<match>", if(ignore.white.space) gsub("\\s+", "", A.eq) else A.eq)
   B.eq <- c("<match>", if(ignore.white.space) gsub("\\s+", "", B.eq) else B.eq)
 
@@ -37,8 +41,11 @@ align_eq <- function(A, B, A.eq, B.eq, ignore.white.space=FALSE) {
     rep(seq_len(length(B.align) - 1L), tail(B.align, -1L) - head(B.align, -1L))
 
   # now chunk; we need to drop the first match from splits since we added it
-  A.chunks <- unname(split(A, tail(A.splits, -1L)))
-  B.chunks <- unname(split(B, tail(B.splits, -1L)))
+
+  A.chunks <- unname(split(A.l, A.splits))
+  B.chunks <- unname(split(B.l, B.splits))
+  A.chunks[[1L]] <- tail(A.chunks[[1L]], -1L)
+  B.chunks[[1L]] <- tail(B.chunks[[1L]], -1L)
 
   if(length(A.chunks) != length(B.chunks))
     stop("Logic Error: aligned chunks unequal length; contact maintainer.")

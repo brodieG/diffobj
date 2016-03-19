@@ -170,15 +170,22 @@ test_that("align mismatches", {
   abc <- letters[1:3]
   expect_identical(
     unname(diffobj:::align_eq(character(), abc, character(), abc)),
-    list(list(), list(c("a", "b", "c")))
+    list(list(character(0)), list(c("a", "b", "c")))
   )
   expect_identical(
     unname(diffobj:::align_eq(abc, character(), abc, character())),
-    list(list(c("a", "b", "c")), list())
+    list(list(c("a", "b", "c")), list(character(0)))
   )
   expect_identical(
     unname(diffobj:::align_eq(character(), character(), character(), character())),
-    list(list(), list())
+    list(list(character(0)), list(character(0)))
+  )
+  # empty first match
+  A2 <- letters[2:4]
+  B2 <- letters[1:4]
+  expect_identical(
+    unname(diffobj:::align_eq(A2, B2, A2, B2)),
+    list(list(character(0), "b", "c", "d"), list("a", "b", "c", "d"))
   )
 })
 
