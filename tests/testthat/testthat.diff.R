@@ -131,6 +131,9 @@ local({
     mdl1 <- lm(Sepal.Length ~ Sepal.Width, iris)
     mdl2 <- lm(Sepal.Length ~ Sepal.Width + Species, iris.3)
     diff_str(mdl1, mdl2, mode="sidebyside")
+    # interesting example below where the in-hunk word diff is too aggressive
+    # preventing the eq-lines from atching
+    diff_str(mdl1[7], mdl2[7], mode="sidebyside")
   } )
   set.seed(2)
   w1 <- sample(
