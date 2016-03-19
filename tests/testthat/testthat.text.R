@@ -152,7 +152,33 @@ test_that("align mismatches", {
   A.eq <- tolower(A)
   B.eq <- tolower(B)
 
-  diffobj:::align_eq(A, B, A.eq, B.eq)
-
+  expect_identical(
+    unname(diffobj:::align_eq(A, B, A.eq, B.eq)),
+    list(
+      list(c("a", "b"), c("c", "d", "e"), c("f", "g"), "h", "i", "j"), 
+      list("B A", c("C", "D C", "E D"), c("F", "G F"), "H", "I", c("J", "K J", "L", "M"))
+    )
+  )
+  A1 <- A1.eq <- letters[2:11]  # now match first char
+  expect_identical(
+    unname(diffobj:::align_eq(A1, B, A1.eq, B.eq)),
+    list(
+      list("b", c("c", "d", "e"), c("f", "g"), "h", "i", c("j", "k")),
+      list("B A", c("C", "D C", "E D"), c("F", "G F"), "H", "I", c("J", "K J", "L", "M"))
+  ) )
+  # edge cases
+  abc <- letters[1:3]
+  expect_identical(
+    unname(diffobj:::align_eq(character(), abc, character(), abc)),
+    list(list(), list(c("a", "b", "c")))
+  )
+  expect_identical(
+    unname(diffobj:::align_eq(abc, character(), abc, character())),
+    list(list(c("a", "b", "c")), list())
+  )
+  expect_identical(
+    unname(diffobj:::align_eq(character(), character(), character(), character())),
+    list(list(), list())
+  )
 })
 

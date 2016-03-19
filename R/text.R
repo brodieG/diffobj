@@ -19,8 +19,10 @@ ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
 # `A.eq` and `B.eq`
 
 align_eq <- function(A, B, A.eq, B.eq) {
-  stopifnot(is.character(A.eq), is.character(B.eq), !anyNA(A.eq), !anyNA(B.eq))
-  browser()
+  stopifnot(
+    is.character(A.eq), is.character(B.eq), !anyNA(A.eq), !anyNA(B.eq),
+    length(A) != length(A.eq), length(B) != length(B.eq)
+  )
   # to simplify logic, force the first value to match
   A.eq <- c("<match>", A.eq)
   B.eq <- c("<match>", B.eq)
@@ -29,14 +31,13 @@ align_eq <- function(A, B, A.eq, B.eq) {
   align[align < cummax(align)] <- 0L
   A.splits <- cumsum(!!align)
 
-  B.align <- align[!!align]
-  B.align[length(B.align)] <- length(B.eq) + 1L # include mismatches at end
+  B.align <- c(align[!!align], length(B.eq) + 1L)
   B.splits <-
     rep(seq_len(length(B.align) - 1L), tail(B.align, -1L) - head(B.align, -1L))
 
   # now chunk; we need to drop the first match from splits since we added it
-  A.chunks <- split(A, tail(A.splits, -1L))
-  B.chunks <- split(B, tail(B.splits, -1L))
+  A.chunks <- unname(split(A, tail(A.splits, -1L)))
+  B.chunks <- unname(split(B, tail(B.splits, -1L)))
 
   list(A=A.chunks, B=B.chunks)
 }
