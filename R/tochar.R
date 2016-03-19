@@ -32,7 +32,9 @@ rng_as_chr <- function(range) {
 }
 # Convert a hunk group into text representation
 
-hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
+hunk_as_char <- function(
+  h.g, ranges.orig, mode, disp.width, ignore.white.space
+) {
   # First check that the hunk group hasn't been completely trimmed
 
   all.lines <- sum(
@@ -143,7 +145,9 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
               A.eq <- get_chrs(h.a, "A", TRUE)
               B.eq <- get_chrs(h.a, "B", TRUE)
 
-              AB.aligned <- align_eq(A.w.pad, B.w.pad, A.eq, B.eq)
+              AB.aligned <- align_eq(
+                A.w.pad, B.w.pad, A.eq, B.eq, ignore.white.space
+              )
               A.chunks <- AB.aligned$A
               B.chunks <- AB.aligned$B
 
@@ -432,7 +436,7 @@ setMethod("as.character", "diffObjDiff",
 
     out <- lapply(
       hunk.grps, hunk_as_char, ranges.orig=ranges.orig,
-      mode=mode, disp.width=disp.width
+      mode=mode, disp.width=disp.width, ignore.white.space=ignore.white.space
     )
     # Finalize
 

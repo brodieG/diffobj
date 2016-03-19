@@ -18,14 +18,15 @@ ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
 # be as many groups as there are matches.  The matches are assessed on
 # `A.eq` and `B.eq`
 
-align_eq <- function(A, B, A.eq, B.eq) {
+align_eq <- function(A, B, A.eq, B.eq, ignore.white.space=FALSE) {
   stopifnot(
     is.character(A.eq), is.character(B.eq), !anyNA(A.eq), !anyNA(B.eq),
-    length(A) == length(A.eq), length(B) == length(B.eq)
+    length(A) == length(A.eq), length(B) == length(B.eq),
+    is.TF(ignore.white.space)
   )
   # to simplify logic, force the first value to match
-  A.eq <- c("<match>", A.eq)
-  B.eq <- c("<match>", B.eq)
+  A.eq <- c("<match>", if(ignore.white.space) gsub("\\s+", "", A.eq) else A.eq)
+  B.eq <- c("<match>", if(ignore.white.space) gsub("\\s+", "", B.eq) else B.eq)
 
   align <- match(A.eq, B.eq, nomatch=0L)
   align[align < cummax(align)] <- 0L
