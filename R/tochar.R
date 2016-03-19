@@ -132,6 +132,7 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
             # Same number of els post wrap
 
             if(length(unlist(A.w)) || length(unlist(B.w))) {
+              browser()
               A.w.pad <- sign_pad(A.w, ifelse(!h.a$context & A.present, 3L, 1L))
               B.w.pad <- sign_pad(B.w, ifelse(!h.a$context & B.present, 2L, 1L))
 
@@ -144,9 +145,7 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
               B.eq <- get_chrs(h.a, "B", TRUE)
               align <- match(A.eq, B.eq, nomatch=0L)
               align[align < cummax(align)] <- 0L
-              A.splits <- cumsum(
-                c(!!head(align, 1L), !head(align, -1L) & tail(align, -1L))
-              )
+              A.splits <- cumsum(!!align)
               B.align <- align[!!align]
               B.splits <- unlist(
                 Map(

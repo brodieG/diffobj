@@ -143,3 +143,16 @@ test_that("strip hz whitespace", {
 
   expect_equal(strip_style(res.3), c("ABCdef78", "ABC     cd f    78"))
 })
+test_that("align mismatches", {
+  # Use case differences as the differences
+  A <- letters[1:10]
+  B <- LETTERS[2:13]
+  AB.diffs <- c(1, 3:4, 6, 10)
+  B[AB.diffs] <- paste(B[AB.diffs], LETTERS[AB.diffs])
+  A.eq <- tolower(A)
+  B.eq <- tolower(B)
+
+  diffobj:::align_eq(A, B, A.eq, B.eq)
+
+})
+
