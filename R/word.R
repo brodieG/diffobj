@@ -92,11 +92,13 @@ diff_word <- function(
   diff.colored <- diff_color(diffs)
   tar.colored <- diff.colored$A
   cur.colored <- diff.colored$B
+  tar.eq <- diff.colored$A.eq
+  cur.eq <- diff.colored$B.eq
 
   # Reconstitute lines, but careful since some lines may be empty
 
-  tar.fin <- replicate(length(target), character(0L))
-  cur.fin <- replicate(length(current), character(0L))
+  tar.fin <- tar.fin.eq <- replicate(length(target), character(0L))
+  cur.fin <- cur.fin.eq <- replicate(length(current), character(0L))
 
   tar.w.len <- tar.lens[tar.lens > 0]
   cur.w.len <- cur.lens[cur.lens > 0]
@@ -106,12 +108,24 @@ diff_word <- function(
   cur.fin[cur.lens > 0] <-
     split(cur.colored, rep(seq_along(cur.w.len), cur.w.len))
 
+  # These are with differences suppressed
+
+  tar.fin.eq[tar.lens > 0] <-
+    split(tar.eq, rep(seq_along(tar.w.len), tar.w.len))
+  cur.fin.eq[cur.lens > 0] <-
+    split(cur.eq, rep(seq_along(cur.w.len), cur.w.len))
+
   # Merge back into original
 
-  tar.cpy <- target
-  cur.cpy <- current
+  tar.cpy <- tar.cpy.eq <- target
+  cur.cpy <- cur.cpy.eq <- current
   if(length(tar.colored)) regmatches(tar.cpy, tar.reg) <- tar.fin
   if(length(cur.colored)) regmatches(cur.cpy, cur.reg) <- cur.fin
+  if(length(tar.colored)) regmatches(tar.cpy.eq, tar.reg) <- tar.fin.eq
+  if(length(cur.colored)) regmatches(cur.cpy.eq, cur.reg) <- cur.fin.eq
 
-  list(target=tar.cpy, current=cur.cpy, hit.diffs.max=diffs$hit.diffs.max)
+  list(
+    target=tar.cpy, current=cur.cpy, hit.diffs.max=diffs$hit.diffs.max,
+    tar.eq=tar.cpy.eq, cur.eq=cur.cpy.eq
+  )
 }
