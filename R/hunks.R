@@ -87,8 +87,8 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
 
           del.last <- if(nrow(d.del)) d.del[1L, "last.a"] else d[1L, "last.a"]
           ins.last <- if(nrow(d.ins)) d.ins[1L, "last.b"] else d[1L, "last.b"]
-          A.start <- del.last
-          B.start <- ins.last
+          A.start <- unname(del.last)
+          B.start <- unname(ins.last)
 
           # record `cur` indices as negatives
 

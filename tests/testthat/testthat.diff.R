@@ -134,6 +134,10 @@ local({
     # interesting example below where the in-hunk word diff is too aggressive
     # preventing the eq-lines from atching
     diff_str(mdl1[7], mdl2[7], mode="sidebyside")
+
+    Puromycin2 <- Puromycin
+    set.seed(1)
+    Puromycin$conc[c(8, 15:19, 22)] <- round(runif(7), 2)
   } )
   set.seed(2)
   w1 <- sample(
