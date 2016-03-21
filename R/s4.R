@@ -200,12 +200,22 @@ diff_color <- function(x, ...) {
   AB.green <- crayon_style(c(A.chr[A.green], B.chr[B.green]), "green")
   AB.red <- crayon_style(c(A.chr[A.red], B.chr[B.red]), "red")
 
+  # Make a version where the differences are replaced with blank strings; this
+  # will then allow us to line up the hunk lines
+
+  A.eq <- A.chr
+  B.eq <- B.chr
+  A.eq[c(A.green, A.red)] <- ""
+  B.eq[c(B.green, B.red)] <- ""
+
+  # Color the diffs
+
   A.chr[A.green] <- head(AB.green, length(A.green))
   A.chr[A.red] <- head(AB.red, length(A.red))
   B.chr[B.green] <- tail(AB.green, length(B.green))
   B.chr[B.red] <- tail(AB.red, length(B.red))
 
-  list(A=A.chr, B=B.chr)
+  list(A=A.chr, B=B.chr, A.eq=A.eq, B.eq=B.eq)
 }
 
 setClass(

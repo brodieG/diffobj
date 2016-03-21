@@ -11,6 +11,47 @@ crayon_strip <- crayon::strip_style
 ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
                      "(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])",
                      "|\\x{001b}[A-M]")
+
+# Align to vectors based on the values of two other vectors
+#
+# This will group mismatches with the first match preceding them.  There will
+# be as many groups as there are matches.  The matches are assessed on
+# `A.eq` and `B.eq`
+
+align_eq <- function(A, B, A.eq, B.eq, ignore.white.space=FALSE) {
+  stopifnot(
+    is.character(A.eq), is.character(B.eq), !anyNA(A.eq), !anyNA(B.eq),
+    length(A) == length(A.eq), length(B) == length(B.eq),
+    is.TF(ignore.white.space)
+  )
+  # to simplify logic, force the first value to match
+
+  A.l <- c("<match>", A)
+  B.l <- c("<match>", B)
+
+  A.eq <- c("<match>", if(ignore.white.space) gsub("\\s+", "", A.eq) else A.eq)
+  B.eq <- c("<match>", if(ignore.white.space) gsub("\\s+", "", B.eq) else B.eq)
+
+  align <- match(A.eq, B.eq, nomatch=0L)
+  align[align < cummax(align)] <- 0L
+  A.splits <- cumsum(!!align)
+
+  B.align <- c(align[!!align], length(B.eq) + 1L)
+  B.splits <-
+    rep(seq_len(length(B.align) - 1L), tail(B.align, -1L) - head(B.align, -1L))
+
+  # now chunk; we need to drop the first match from splits since we added it
+
+  A.chunks <- unname(split(A.l, A.splits))
+  B.chunks <- unname(split(B.l, B.splits))
+  A.chunks[[1L]] <- tail(A.chunks[[1L]], -1L)
+  B.chunks[[1L]] <- tail(B.chunks[[1L]], -1L)
+
+  if(length(A.chunks) != length(B.chunks))
+    stop("Logic Error: aligned chunks unequal length; contact maintainer.")
+
+  list(A=A.chunks, B=B.chunks)
+}
 # if last char matches, repeat, but only if not in use.ansi mode
 #
 # needed b/c col_strsplit behaves differently than strisplit when delimiter

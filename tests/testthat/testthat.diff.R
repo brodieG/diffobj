@@ -96,6 +96,23 @@ local({
     )
     diff_print(chr.3, chr.4, mode="sidebyside")
 
+    # Shows that line shifts within hunks are matched
+
+    chr.5 <- c(
+      "hello there how are you doing",
+      "humpty dumpty took a big fall",
+      "lorem ipsum dolor sic est boom",
+      "a computer once wrote a phrase"
+    )
+    chr.6 <- c(
+      "hello THERE how are you doing",
+      "and another SENTENCE blah blah",
+      "humpty dumpty TOOK a big fall",
+      "a COMPUTER once wrote a phrase"
+    )
+    diff_chr(chr.5, chr.6, mode="sidebyside")
+
+
     iris.2 <- iris.c <- transform(iris, Species=as.character(Species))
     # without rounding this is a bit wild, but good corner case to test
     iris.2$Sepal.Length[sample(nrow(iris.2), 10)] <-
@@ -114,6 +131,9 @@ local({
     mdl1 <- lm(Sepal.Length ~ Sepal.Width, iris)
     mdl2 <- lm(Sepal.Length ~ Sepal.Width + Species, iris.3)
     diff_str(mdl1, mdl2, mode="sidebyside")
+    # interesting example below where the in-hunk word diff is too aggressive
+    # preventing the eq-lines from atching
+    diff_str(mdl1[7], mdl2[7], mode="sidebyside")
   } )
   set.seed(2)
   w1 <- sample(

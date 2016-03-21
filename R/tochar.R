@@ -32,7 +32,9 @@ rng_as_chr <- function(range) {
 }
 # Convert a hunk group into text representation
 
-hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
+hunk_as_char <- function(
+  h.g, ranges.orig, mode, disp.width, ignore.white.space
+) {
   # First check that the hunk group hasn't been completely trimmed
 
   all.lines <- sum(
@@ -67,13 +69,15 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
     # Get trimmed character ranges; positives are originally from target, and
     # negatives from current
 
-    get_chrs <- function(h.a, mode) {
-      stopifnot(mode %in% c("A", "B"), length(mode) == 1L)
+    get_chrs <- function(h.a, mode, eq=FALSE) {
+      ab <- LETTERS[1:2]
+      stopifnot(mode %in% LETTERS[1:2], length(mode) == 1L, is.TF(eq))
       rng <- c(
         seq(h.a$tar.rng.trim[[1L]], h.a$tar.rng.trim[[2L]]),
         -seq(h.a$cur.rng.trim[[1L]], h.a$cur.rng.trim[[2L]])
       )
-      h.a[[sprintf("%s.chr", mode)]][match(rng, h.a[[mode]], nomatch=0L)]
+      chr.ind <- sprintf("%s%s.chr", mode, if(eq) ".eq" else "")
+      h.a[[chr.ind]][match(rng, h.a[[mode]], nomatch=0L)]
     }
     # Output varies by mode
 
@@ -104,9 +108,21 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
           function(h.a) {
             pos <- h.a$A > 0L
             A.out <- wrap(get_chrs(h.a, mode="A"), capt.width)
+
             if(!h.a$context) {
-              A.out[pos] <- sign_pad(A.out[pos], 3L)
-              A.out[!pos] <- sign_pad(A.out[!pos], 2L)
+              A.eq <- get_chrs(h.a, "A", TRUE)
+              A.pos <- sign_pad(A.out[pos], 3L)
+              A.neg <- sign_pad(A.out[!pos], 2L)
+              A.eq.p <- A.eq[pos]
+              A.eq.n <- A.eq[!pos]
+              A.p.n.aligned <- align_eq(
+                A.pos, A.neg, A.eq.p, A.eq.n, ignore.white.space
+              )
+              # Intersperse the pos and neg chunks, starting with negs
+
+              A.out <- c(A.p.n.aligned$A, A.p.n.aligned$B)[
+                order(unlist(lapply(A.p.n.aligned, seq_along)))
+              ]
             } else {
               A.out <- sign_pad(A.out, 1L)
             }
@@ -126,10 +142,6 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
 
             A.w <- wrap(A.out, capt.width, pad=TRUE)
             B.w <- wrap(B.out, capt.width, pad=TRUE)
-            A.w.l <- length(A.w)
-            B.w.l <- length(B.w)
-            A.lens <- vapply(A.w, length, integer(1L))
-            B.lens <- vapply(B.w, length, integer(1L))
 
             # Same number of els post wrap
 
@@ -139,20 +151,42 @@ hunk_as_char <- function(h.g, ranges.orig, mode, disp.width) {
 
               blanks <- paste0(rep(" ", max.w), collapse="")
 
-              for(i in seq_len(max(A.w.l, B.w.l))) {
-                if(i > A.w.l) A.w.pad[[i]] <- rep(blanks, B.lens[[i]]) else
-                if(i > B.w.l) B.w.pad[[i]] <- rep(blanks, A.lens[[i]]) else {
-                  A.B.diff <- A.lens[[i]] - B.lens[[i]]
-                  if(A.B.diff > 0L) {
-                    B.w.pad[[i]] <- c(B.w.pad[[i]], rep(blanks, A.B.diff))
-                  } else if(A.B.diff < 0L) {
-                    A.w.pad[[i]] <- c(A.w.pad[[i]], rep(blanks, -A.B.diff))
-              } } }
-              paste0(unlist(A.w.pad), "  ", unlist(B.w.pad))
+              # Match up the "equal" versions of the strings; we want to split
+              # in chunks that start with a match and end in mismatches
+
+              A.eq <- get_chrs(h.a, "A", TRUE)
+              B.eq <- get_chrs(h.a, "B", TRUE)
+
+              AB.aligned <- align_eq(
+                A.w.pad, B.w.pad, A.eq, B.eq, ignore.white.space
+              )
+              A.chunks <- AB.aligned$A
+              B.chunks <- AB.aligned$B
+
+              # Make everything same length by adding blanks as needed
+
+              for(i in seq_along(A.chunks)) {
+                A.ch <- A.chunks[[i]]
+                B.ch <- B.chunks[[i]]
+                A.l <- length(A.ch)
+                B.l <- length(B.ch)
+                max.l <- max(A.l, B.l)
+                length(A.ch) <- length(B.ch) <- max.l
+
+                for(j in seq_along(A.ch)) {
+                    l.diff <- length(A.ch[[j]]) - length(B.ch[[j]])
+                    if(l.diff < 0L)
+                      A.ch[[j]] <- c(A.ch[[j]], rep(blanks, abs(l.diff)))
+                    if(l.diff > 0L)
+                      B.ch[[j]] <- c(B.ch[[j]], rep(blanks, l.diff))
+                }
+                A.chunks[[i]] <- A.ch
+                B.chunks[[i]] <- B.ch
+              }
+              paste0(unlist(A.chunks), "  ", unlist(B.chunks))
             }
     } ) ) }
     c(hunk.head, diff.txt)
-
   }
 }
 #' @rdname diffobj_s4method_doc
@@ -397,13 +431,24 @@ setMethod("as.character", "diffObjDiff",
           h.a$B.chr[B.pos] <- new.diff$target[seq_along(B.pos) + length(A.pos)]
           h.a$B.chr[B.neg] <- new.diff$current[seq_along(B.neg) + length(A.neg)]
 
+          # Do the same with the versions with all differences removed
+
+          h.a$A.eq.chr[A.pos] <- new.diff$tar.eq[seq_along(A.pos)]
+          h.a$A.eq.chr[A.neg] <- new.diff$cur.eq[seq_along(A.neg)]
+          h.a$B.eq.chr[B.pos] <-
+            new.diff$tar.eq[seq_along(B.pos) + length(A.pos)]
+          h.a$B.eq.chr[B.neg] <-
+            new.diff$cur.eq[seq_along(B.neg) + length(A.neg)]
+
+          # Update the hunk
+
           hunk.grps[[i]][[j]] <- h.a
     } } }
     # Process the actual hunks into character
 
     out <- lapply(
       hunk.grps, hunk_as_char, ranges.orig=ranges.orig,
-      mode=mode, disp.width=disp.width
+      mode=mode, disp.width=disp.width, ignore.white.space=ignore.white.space
     )
     # Finalize
 
