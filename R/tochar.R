@@ -108,9 +108,21 @@ hunk_as_char <- function(
           function(h.a) {
             pos <- h.a$A > 0L
             A.out <- wrap(get_chrs(h.a, mode="A"), capt.width)
+
             if(!h.a$context) {
-              A.out[pos] <- sign_pad(A.out[pos], 3L)
-              A.out[!pos] <- sign_pad(A.out[!pos], 2L)
+              A.eq <- get_chrs(h.a, "A", TRUE)
+              A.pos <- sign_pad(A.out[pos], 3L)
+              A.neg <- sign_pad(A.out[!pos], 2L)
+              A.eq.p <- A.eq[pos]
+              A.eq.n <- A.eq[!pos]
+              A.p.n.aligned <- align_eq(
+                A.pos, A.neg, A.eq.p, A.eq.n, ignore.white.space
+              )
+              # Intersperse the pos and neg chunks, starting with negs
+
+              A.out <- c(A.p.n.aligned$A, A.p.n.aligned$B)[
+                order(unlist(lapply(A.p.n.aligned, seq_along)))
+              ]
             } else {
               A.out <- sign_pad(A.out, 1L)
             }
