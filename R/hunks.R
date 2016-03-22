@@ -141,11 +141,17 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
 
     if(is(context, "diffObjAutoContext")) {
       len <- diff_line_len(
-        p_and_t_hunks(res.l, context=context@max,  hunk.limit=hunk.limit),
+        p_and_t_hunks(
+          res.l, context=context@max, hunk.limit=hunk.limit,
+          use.header=use.header
+        ),
         mode, disp.width
       )
       len.min <- diff_line_len(
-        p_and_t_hunks(res.l, context=context@min, hunk.limit=hunk.limit),
+        p_and_t_hunks(
+          res.l, context=context@min, hunk.limit=hunk.limit,
+          use.header=use.header
+        ),
         mode, disp.width
       )
       context <- if(len <= line.limit[[1L]] || line.limit[[1L]] < 0L) {
@@ -187,37 +193,22 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
             break
           }
           len <- diff_line_len(
-            p_and_t_hunks(res.l, context=ctx, hunk.limit=hunk.limit),
+            p_and_t_hunks(
+              res.l, context=ctx, hunk.limit=hunk.limit, use.header=use.header
+            ),
             mode, disp.width
           )
         }
         ctx
     } }
-    res.fin <- process_hunks(res.l, context=context)
-
-    # Add back the header hunk; it may be empty, but no matter what we
-    # need to add it to make sure that the hunk ids start at 1.  Note we
-    # use res.fin to figure out if first line is included, but res.l to
-    # actually get the first line
-
-    missing.first <- res.fin[[1L]][[1L]]$tar.rng.trim[[1L]] != 1L &&
-      res.fin[[1L]][[1L]]$cur.rng.trim[[1L]] != 1L
-    header <- hunk_sub(
-      res.l[[1L]], "head", if(use.header && missing.first) 1L else 0L
-    )
-    header$header <- TRUE
-    header$id <- 1L
-
-    # Return hunks including header hunk
-
-    c(list(list(header)), res.fin)
+    process_hunks(res.l, context=context, use.header=use.header)
 } )
 # process the hunks and also drop off groups that exceed limit
 #
 # used exclusively when we are trying to auto-calculate context
 
-p_and_t_hunks <- function(hunks.raw, context, hunk.limit) {
-  c.all <- process_hunks(hunks.raw, context=context)
+p_and_t_hunks <- function(hunks.raw, context, hunk.limit, use.header) {
+  c.all <- process_hunks(hunks.raw, context=context, use.header=use.header)
   if(hunk.limit[[1L]] >= 0L && length(c.all) > hunk.limit)
     c.all <- c.all[seq_along(hunk.limit[[2L]])]
   c.all
@@ -253,7 +244,7 @@ hunk_sub <- function(hunk, op, n) {
           hunk$cur.rng[[2L]] - len.diff
       }
     } else {
-      hunk$tar.rng.trim <- hunk$cur.rng.trim <- hunk$tar.rng.sub <- 
+      hunk$tar.rng.trim <- hunk$cur.rng.trim <- hunk$tar.rng.sub <-
         hunk$cur.rng.sub <- integer(2L)
     }
   }
@@ -266,7 +257,7 @@ hunk_sub <- function(hunk, op, n) {
 #
 # This will group atomic hunks into hunk groups
 
-process_hunks <- function(x, context) {
+process_hunks <- function(x, context, use.header) {
   ctx.vec <- vapply(x, "[[", logical(1L), "context")
   if(!all(abs(diff(ctx.vec)) == 1L))
     stop(
@@ -279,7 +270,7 @@ process_hunks <- function(x, context) {
   # no differences
 
   if(context < 0L || hunk.len < 2L) return(list(x))
-  if(!any(ctx.vec)) return(list())
+  if(!any(ctx.vec)) return(list()) # is this right?
 
   # Normal cases; allocate maximum possible number of elements, may need fewer
   # if hunks bleed into each other
@@ -322,18 +313,28 @@ process_hunks <- function(x, context) {
     j <- j + 1L
     i <- i + 2L
   }
+  # Add back the header hunk if needed.
+
+  missing.first <- res.l[[1L]][[1L]]$tar.rng.trim[[1L]] != 1L &&
+    res.l[[1L]][[1L]]$cur.rng.trim[[1L]] != 1L
+  header <- if(use.header && missing.first) {
+    header <- hunk_sub(x[[1L]], "head", 1L)
+    header$header <- TRUE
+    list(list(header))
+  }
   # Finalize, including sizing correctly, and setting the ids to the right
   # values since we potentially duplicated some context hunks
 
   length(res.l) <- j - 1L
+  res.fin <- c(header, res.l)
   k <- 1L
-  for(i in seq_along(res.l)) {
-    for(j in seq_along(res.l[[i]])) {
-      res.l[[i]][[j]][["id"]] <- k
+  for(i in seq_along(res.fin)) {
+    for(j in seq_along(res.fin[[i]])) {
+      res.fin[[i]][[j]][["id"]] <- k
       k <- k + 1L
     }
   }
-  res.l
+  res.fin
 }
 # Compute how many lines the display version of the diff will take, meta
 # lines (used for hunk headers) are denoted by negatives
