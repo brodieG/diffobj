@@ -218,7 +218,7 @@ setMethod("summary", "diffObjMyersMbaSes",
 
 char_diff <- function(
   x, y, context=-1L, ignore.white.space, mode, hunk.limit, line.limit,
-  disp.width, max.diffs, tab.stops, diff.mode, warn
+  disp.width, max.diffs, tab.stops, diff.mode, warn, use.header=FALSE
 ) {
   stopifnot(
     diff.mode %in% c("line", "hunk", "wrap"),
@@ -238,7 +238,8 @@ char_diff <- function(
   }
   hunks <- as.hunks(
     diff, context=context, mode=mode, hunk.limit=hunk.limit,
-    line.limit=line.limit, disp.width=disp.width, tab.stops=tab.stops
+    line.limit=line.limit, disp.width=disp.width, tab.stops=tab.stops,
+    use.header=use.header
   )
   hit.diffs.max <- FALSE
   if(diff@diffs < 0L) {

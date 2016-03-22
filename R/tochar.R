@@ -53,19 +53,20 @@ hunk_as_char <- function(
     hh.a <- paste0("-", rng_as_chr(tar.rng))
     hh.b <- paste0("+", rng_as_chr(cur.rng))
 
-    hunk.head <- crayon_style(
-      if(mode == "sidebyside") {
-        paste0(
-          rpadt(sprintf("@@ %s @@", hh.a), max.w),
-          "  ",
-          rpadt(sprintf("@@ %s @@", hh.b), max.w),
-          collapse=""
-        )
-      } else {
-        sprintf("@@ %s %s @@", hh.a, hh.b)
-      },
-      "cyan"
-    )
+    hunk.head <- if(!h.g[[1L]]$header) {
+      crayon_style(
+        if(mode == "sidebyside") {
+          paste0(
+            rpadt(sprintf("@@ %s @@", hh.a), max.w),
+            "  ",
+            rpadt(sprintf("@@ %s @@", hh.b), max.w),
+            collapse=""
+          )
+        } else {
+          sprintf("@@ %s %s @@", hh.a, hh.b)
+        },
+        "cyan"
+    ) }
     # Get trimmed character ranges; positives are originally from target, and
     # negatives from current
 

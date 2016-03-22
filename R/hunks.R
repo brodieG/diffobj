@@ -33,7 +33,8 @@
 setGeneric("as.hunks", function(x, ...) standardGeneric("as.hunks"))
 setMethod("as.hunks", "diffObjMyersMbaSes",
   function(
-    x, mode, context, disp.width, line.limit, hunk.limit, tab.stops, ...
+    x, mode, context, disp.width, line.limit, hunk.limit, tab.stops, 
+    use.header, ...
   ) {
     stopifnot(
       is.character(mode), length(mode) == 1L, !is.na(mode),
@@ -58,7 +59,7 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
         list(
           id=1L, A=integer(0L), B=integer(0L), A.chr=character(0L),
           B.chr=character(0L), A.eq.chr=character(0L), B.eq.chr=character(0L),
-          context=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
+          context=FALSE, header=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
           tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
           tar.rng.trim=integer(2L), cur.rng.trim=integer(2L)
         )
@@ -124,9 +125,10 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
           if(cur.len) cur.rng <- c(B.start + 1L, B.start + cur.len)
 
           list(
-            id=i, A=A, B=B, A.chr=A.chr, B.chr=B.chr, 
+            id=i, A=A, B=B, A.chr=A.chr, B.chr=B.chr,
             A.eq.chr=A.chr, B.eq.chr=B.chr,
-            context=context, tar.rng=tar.rng, cur.rng=cur.rng,
+            context=context, header=FALSE,
+            tar.rng=tar.rng, cur.rng=cur.rng,
             tar.rng.sub=tar.rng, cur.rng.sub=cur.rng,
             tar.rng.trim=tar.rng, cur.rng.trim=cur.rng
           )
@@ -190,7 +192,20 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
         }
         ctx
     } }
-    process_hunks(res.l, context=context)
+    res.fin <- process_hunks(res.l, context=context)
+
+    # Add back first line if not present
+
+    if(
+      use.header && length(res.fin) && length(res.fin[[1L]]) &&
+      res.fin[[1L]][[1L]]$tar.rng.trim[[1L]] != 1L &&
+      res.fin[[1L]][[1L]]$cur.rng.trim[[1L]] != 1L
+    ) {
+      header <- hunk_sub(res.l[[1L]], "head", 1L)
+      header$header <- TRUE
+      res.fin <- c(list(list(header)), res.fin)
+    }
+    res.fin
 } )
 # process the hunks and also drop off groups that exceed limit
 #
@@ -215,7 +230,7 @@ hunk_sub <- function(hunk, op, n) {
   hunk.len <- diff(hunk$tar.rng) + 1L
   len.diff <- hunk.len - n
   if(len.diff >= 0) {
-    nm <- c("A", "B", "A.chr", "B.chr")
+    nm <- c("A", "B", "A.chr", "B.chr", "A.eq.chr", "B.eq.chr")
     hunk[nm] <- lapply(hunk[nm], op, n)
 
     # Need to recompute ranges

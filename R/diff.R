@@ -203,6 +203,7 @@ diff_tpl <- function(
     )
   # Variables to populate by inserted code
 
+  use.header <- FALSE
   tar.capt <- tar.capt.def <- cur.capt <- cur.capt.def <- diffs <- NULL
 
   # Force crayon to whatever ansi status we chose; note we must do this after
@@ -223,7 +224,7 @@ diff_tpl <- function(
     tar.capt, cur.capt, context=context, ignore.white.space=ignore.white.space,
     mode=mode, hunk.limit=hunk.limit, line.limit=line.limit,
     disp.width=disp.width, max.diffs=max.diffs, tab.stops=tab.stops,
-    diff.mode="line", warn=TRUE
+    diff.mode="line", warn=TRUE, use.header=use.header
   )
   if(is.null(tar.banner)) tar.banner <- deparse(tar.exp)[[1L]]
   if(is.null(cur.banner)) cur.banner <- deparse(cur.exp)[[1L]]
@@ -297,7 +298,7 @@ diff_obj <- diff_tpl; body(diff_obj) <- quote({
 #' @rdname diff_obj
 #' @export
 
-diff_print <- diff_tpl; body(diff_print)[[12L]] <- quote({
+diff_print <- diff_tpl; body(diff_print)[[13L]] <- quote({
   # capture normal prints, along with default prints to make sure that if we
   # do try to wrap an atomic vector print it is very likely to be in a format
   # we are familiar with and not affected by a non-default print method
@@ -338,11 +339,14 @@ diff_print <- diff_tpl; body(diff_print)[[12L]] <- quote({
     strip_hz_control(capt_call(tar.call, capt.width, frame), tab.stops)
   tar.capt.def <- if(both.at)
     strip_hz_control(capt_call(tar.call.def, capt.width, frame), tab.stops)
+
+  # For table-like objects always show first row
+  use.header <- length(dim(target)) == 2L && length(dim(current)) == 2L
 })
 #' @rdname diff_obj
 #' @export
 
-diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
+diff_str <- diff_tpl; body(diff_str)[[13L]] <- quote({
   # Match original call and managed dots, in particular wrt to the
   # `max.level` arg
 
@@ -520,7 +524,7 @@ diff_str <- diff_tpl; body(diff_str)[[12L]] <- quote({
 #' @rdname diff_obj
 #' @export
 
-diff_chr <- diff_tpl; body(diff_chr)[[12L]] <- quote({
+diff_chr <- diff_tpl; body(diff_chr)[[13L]] <- quote({
   tar.capt <- strip_hz_control(
     if(!is.character(target)) as.character(target) else target, tab.stops
   )
@@ -531,7 +535,7 @@ diff_chr <- diff_tpl; body(diff_chr)[[12L]] <- quote({
 #' @rdname diff_obj
 #' @export
 
-diff_deparse <- diff_tpl; body(diff_deparse)[[12L]] <- quote({
+diff_deparse <- diff_tpl; body(diff_deparse)[[13L]] <- quote({
   tar.capt <- strip_hz_control(deparse(target, ...), tab.stops)
   cur.capt <- strip_hz_control(deparse(current, ...), tab.stops)
 })
