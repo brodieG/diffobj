@@ -389,18 +389,20 @@ get_hunk_chr_lens <- function(hunk.grps, mode, disp.width) {
     res <- cbind(grp.id=if(nrow(res.tmp)) hunk.grp.id else integer(0L), res.tmp)
     # Need to make sure all positives are first, and all negatives second, if
     # there are negatives (context mode); we also add 1 to the first line in
-    # each section to account for the group hunkheader info
+    # each section to account for the group hunkheader info if required (i.e.
+    # for all hunks except a header hunk
 
+    extra <- if(length(hunks) && hunks[[1L]]$header) 0L else 1L 
     if(identical(mode, "context")) res <- res[order(res[, "len"] < 0L),]
     if(
       identical(mode, "context") &&
       length(negs <- which(res[, "len"] < 0L)) &&
       length(poss <- which(res[, "len"] > 0L))
     ) {
-      if(length(poss)) res[1L, "len"] <- res[1L, "len"] + 1L
-      res[negs[[1L]], "len"] <- res[negs[[1L]], "len"] - 1L
+      if(length(poss)) res[1L, "len"] <- res[1L, "len"] + extra
+      res[negs[[1L]], "len"] <- res[negs[[1L]], "len"] - extra
     } else if(nrow(res)) {
-      res[1L, "len"] <- res[1L, "len"] + 1L
+      res[1L, "len"] <- res[1L, "len"] + extra
     }
     res
   }
