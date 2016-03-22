@@ -430,7 +430,7 @@ in_hunk <- function(h, mode) {
     cur.seq <- if(all(cur.rng.trim))
       seq(from=cur.rng.trim[[1L]], to=cur.rng.trim[[2L]]) else integer(0L)
     j <- h[[mode]]
-    (j > 0L & j %in% tar.seq) | (j < 0L & j %in% abs(cur.seq))
+    (j > 0L & j %in% tar.seq) | (j < 0L & abs(j) %in% cur.seq)
   })
 }
 # Remove hunk groups and atomic hunks that exceed the line limit
