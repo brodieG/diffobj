@@ -392,7 +392,7 @@ get_hunk_chr_lens <- function(hunk.grps, mode, disp.width) {
     # each section to account for the group hunkheader info if required (i.e.
     # for all hunks except a header hunk
 
-    extra <- if(length(hunks) && hunks[[1L]]$header) 0L else 1L 
+    extra <- if(length(hunks) && hunks[[1L]]$header) 0L else 1L
     if(identical(mode, "context")) res <- res[order(res[, "len"] < 0L),]
     if(
       identical(mode, "context") &&
@@ -400,7 +400,7 @@ get_hunk_chr_lens <- function(hunk.grps, mode, disp.width) {
       length(poss <- which(res[, "len"] > 0L))
     ) {
       if(length(poss)) res[1L, "len"] <- res[1L, "len"] + extra
-      TJKU
+      res[negs[[1L]], "len"] <- res[negs[[1L]], "len"] - extra
     } else if(nrow(res)) {
       res[1L, "len"] <- res[1L, "len"] + extra
     }
@@ -419,6 +419,20 @@ diff_line_len <- function(hunk.grps, mode, disp.width) {
     cumsum(get_hunk_chr_lens(hunk.grps, mode, disp.width)[, "len"])
   ) + banner_len(mode)
 }
+# Return which of the values in the data vectors within an atomic hunk are
+# in the post trim range of the hunk
+
+in_hunk <- function(h, mode) {
+  stopifnot(mode %in% c("A", "B"))
+  with(h, {
+    tar.seq <- if(all(tar.rng.trim))
+      seq(from=tar.rng.trim[[1L]], to=tar.rng.trim[[2L]]) else integer(0L)
+    cur.seq <- if(all(cur.rng.trim))
+      seq(from=cur.rng.trim[[1L]], to=cur.rng.trim[[2L]]) else integer(0L)
+    j <- h[[mode]]
+    (j > 0L & j %in% tar.seq) | (j < 0L & j %in% abs(cur.seq))
+  })
+}
 # Remove hunk groups and atomic hunks that exceed the line limit
 #
 # Return value is a hunk group list, with an attribute indicating how many
@@ -427,7 +441,6 @@ diff_line_len <- function(hunk.grps, mode, disp.width) {
 trim_hunk <- function(hunk, type, line.id) {
   stopifnot(type %in% c("tar", "cur"))
   rng.idx <- sprintf("%s.rng.trim", type)
-  dat.idx <- sprintf(c("%s", "%s.chr"), if(type == "tar") "A" else "B")
   hunk[[rng.idx]] <- if(!line.id) integer(2L) else {
     if(all(hunk[[rng.idx]])) {
       c(
@@ -436,7 +449,6 @@ trim_hunk <- function(hunk, type, line.id) {
       )
     } else integer(2L)
   }
-  hunk[dat.idx] <- lapply(hunk[dat.idx], head, n=line.id)
   hunk
 }
 trim_hunks <- function(hunk.grps, mode, disp.width, hunk.limit, line.limit) {

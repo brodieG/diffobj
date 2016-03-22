@@ -71,7 +71,6 @@ hunk_as_char <- function(
     # negatives from current
 
     get_chrs <- function(h.a, mode, eq=FALSE) {
-      ab <- LETTERS[1:2]
       stopifnot(mode %in% LETTERS[1:2], length(mode) == 1L, is.TF(eq))
       rng <- c(
         seq(h.a$tar.rng.trim[[1L]], h.a$tar.rng.trim[[2L]]),
@@ -85,14 +84,20 @@ hunk_as_char <- function(
     diff.txt <- if(mode == "context") {
       # Need to get all the A data and the B data
 
+      A.chrs <- lapply(h.g, get_chrs, mode="A")
+      B.chrs <- lapply(h.g, get_chrs, mode="B")
+      A <- wrap(unlist(A.chrs), width=capt.width)
+      B <- wrap(unlist(B.chrs), width=capt.width)
       A.ctx <- unlist(
-        lapply(h.g, function(h.a) rep(h.a$context, length(h.a$A.chr)))
-      )
+        lapply(
+          seq_along(h.g),
+          function(i) rep(h.g[[i]]$context, length(A.chrs[[i]]))
+      ) )
       B.ctx <- unlist(
-        lapply(h.g, function(h.a) rep(h.a$context, length(h.a$B.chr)))
-      )
-      A <- wrap(unlist(lapply(h.g, get_chrs, mode="A")), width=capt.width)
-      B <- wrap(unlist(lapply(h.g, get_chrs, mode="B")), width=capt.width)
+        lapply(
+          seq_along(h.g),
+          function(i) rep(h.g[[i]]$context, length(B.chrs[[i]]))
+      ) )
       A[!A.ctx] <- sign_pad(A[!A.ctx], 3L)
       B[!B.ctx] <- sign_pad(B[!B.ctx], 2L)
       A[A.ctx] <- sign_pad(A[A.ctx], 1L)
@@ -107,15 +112,16 @@ hunk_as_char <- function(
       unlist(
         lapply(h.g,
           function(h.a) {
-            pos <- h.a$A > 0L
+            pos <- h.a$A > 0L & in_hunk(h.a, "A")
+            neg <- h.a$A < 0L & in_hunk(h.a, "A")
             A.out <- wrap(get_chrs(h.a, mode="A"), capt.width)
 
             if(!h.a$context) {
               A.eq <- get_chrs(h.a, "A", TRUE)
               A.pos <- sign_pad(A.out[pos], 3L)
-              A.neg <- sign_pad(A.out[!pos], 2L)
+              A.neg <- sign_pad(A.out[neg], 2L)
               A.eq.p <- A.eq[pos]
-              A.eq.n <- A.eq[!pos]
+              A.eq.n <- A.eq[neg]
               A.p.n.aligned <- align_eq(
                 A.pos, A.neg, A.eq.p, A.eq.n, ignore.white.space
               )
@@ -228,8 +234,7 @@ setMethod("as.character", "diffObjDiff",
     if(line.limit[[1L]] >= 0L)
       line.limit <- pmax(integer(2L), line.limit - banner.len)
 
-    # Trim hunks to the extent need to make sure we fit in lines; start by
-    # dropping hunks beyond hunk limit
+    # Trim hunks to the extent need to make sure we fit in lines
 
     hunk.grps <- trim_hunks(
       x@diffs$hunks, mode=mode, disp.width=disp.width, line.limit=line.limit,
@@ -404,9 +409,11 @@ setMethod("as.character", "diffObjDiff",
       for(i in seq_along(hunk.grps)) {
         for(j in seq_along(hunk.grps[[i]])) {
           h.a <- hunk.grps[[i]][[j]]
-          # Skip context or those that have been wrap diffed
+          # Skip context or those that have been wrap diffed or non-context
+          # hunks that are being trimmed
           if(
-            h.a$id < wd.max || h.a$context || (!length(h.a$A) && !length(h.a$B))
+            h.a$id < wd.max || h.a$context ||
+            (!length(h.a$A) && !length(h.a$B))
           ) next
           # Do word diff on each non-context hunk; real messy because the
           # stuff from `tar` and `cur` are mixed in in A and B (well, really
