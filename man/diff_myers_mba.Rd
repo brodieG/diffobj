@@ -4,12 +4,15 @@
 \alias{diff_myers_mba}
 \title{Diff two character vectors}
 \usage{
-diff_myers_mba(a, b)
+diff_myers_mba(a, b, max.diffs = 0L)
 }
 \arguments{
 \item{a}{character}
 
 \item{b}{character}
+
+\item{max.diffs}{integer(1L) how many differences before giving up; set to
+zero to allow as many as there are}
 }
 \value{
 list
