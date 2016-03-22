@@ -112,8 +112,9 @@ hunk_as_char <- function(
       unlist(
         lapply(h.g,
           function(h.a) {
-            pos <- h.a$A > 0L & in_hunk(h.a, "A")
-            neg <- h.a$A < 0L & in_hunk(h.a, "A")
+            i.h <- in_hunk(h.a, "A")
+            pos <- (h.a$A > 0L)[i.h]
+            neg <- (h.a$A < 0L)[i.h]
             A.out <- wrap(get_chrs(h.a, mode="A"), capt.width)
 
             if(!h.a$context) {
