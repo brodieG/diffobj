@@ -33,7 +33,7 @@
 setGeneric("as.hunks", function(x, ...) standardGeneric("as.hunks"))
 setMethod("as.hunks", "diffObjMyersMbaSes",
   function(
-    x, mode, context, disp.width, line.limit, hunk.limit, tab.stops, 
+    x, mode, context, disp.width, line.limit, hunk.limit, tab.stops,
     use.header, ...
   ) {
     stopifnot(
@@ -48,7 +48,8 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
 
     # For each section, figure out how to represent target and current where
     # 0 means match, 1:n is a matched mismatch (change in edit script parlance),
-    # and NA is a full mismatch (d or i).
+    # and NA is a full mismatch (d or i).  Note we start the hunk ids at 2 so
+    # we can add a header hunk later
 
     res.l <- if(!nrow(dat)) {
       # Minimum one empty hunk if nothing; arbitrarily chose to make it a
@@ -57,7 +58,7 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
 
       list(
         list(
-          id=1L, A=integer(0L), B=integer(0L), A.chr=character(0L),
+          id=2L, A=integer(0L), B=integer(0L), A.chr=character(0L),
           B.chr=character(0L), A.eq.chr=character(0L), B.eq.chr=character(0L),
           context=FALSE, header=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
           tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
@@ -125,7 +126,7 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
           if(cur.len) cur.rng <- c(B.start + 1L, B.start + cur.len)
 
           list(
-            id=i, A=A, B=B, A.chr=A.chr, B.chr=B.chr,
+            id=i + 1L, A=A, B=B, A.chr=A.chr, B.chr=B.chr,
             A.eq.chr=A.chr, B.eq.chr=B.chr,
             context=context, header=FALSE,
             tar.rng=tar.rng, cur.rng=cur.rng,
@@ -194,18 +195,22 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
     } }
     res.fin <- process_hunks(res.l, context=context)
 
-    # Add back first line if not present
+    # Add back the header hunk; it may be empty, but no matter what we
+    # need to add it to make sure that the hunk ids start at 1.  Note we
+    # use res.fin to figure out if first line is included, but res.l to
+    # actually get the first line
 
-    if(
-      use.header && length(res.fin) && length(res.fin[[1L]]) &&
-      res.fin[[1L]][[1L]]$tar.rng.trim[[1L]] != 1L &&
+    missing.first <- res.fin[[1L]][[1L]]$tar.rng.trim[[1L]] != 1L &&
       res.fin[[1L]][[1L]]$cur.rng.trim[[1L]] != 1L
-    ) {
-      header <- hunk_sub(res.l[[1L]], "head", 1L)
-      header$header <- TRUE
-      res.fin <- c(list(list(header)), res.fin)
-    }
-    res.fin
+    header <- hunk_sub(
+      res.l[[1L]], "head", if(use.header && missing.first) 1L else 0L
+    )
+    header$header <- TRUE
+    header$id <- 1L
+
+    # Return hunks including header hunk
+
+    c(list(list(header)), res.fin)
 } )
 # process the hunks and also drop off groups that exceed limit
 #
@@ -246,7 +251,12 @@ hunk_sub <- function(hunk, op, n) {
           hunk$tar.rng[[2L]] - len.diff
         hunk$cur.rng.trim[[2L]] <- hunk$cur.rng.sub[[2L]] <-
           hunk$cur.rng[[2L]] - len.diff
-  } } }
+      }
+    } else {
+      hunk$tar.rng.trim <- hunk$cur.rng.trim <- hunk$tar.rng.sub <- 
+        hunk$cur.rng.sub <- integer(2L)
+    }
+  }
   hunk
 }
 # Figure Out Context for Each Chunk
@@ -388,7 +398,7 @@ get_hunk_chr_lens <- function(hunk.grps, mode, disp.width) {
     ) {
       if(length(poss)) res[1L, "len"] <- res[1L, "len"] + 1L
       res[negs[[1L]], "len"] <- res[negs[[1L]], "len"] - 1L
-    } else {
+    } else if(nrow(res)) {
       res[1L, "len"] <- res[1L, "len"] + 1L
     }
     res
