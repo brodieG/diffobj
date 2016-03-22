@@ -400,7 +400,7 @@ get_hunk_chr_lens <- function(hunk.grps, mode, disp.width) {
       length(poss <- which(res[, "len"] > 0L))
     ) {
       if(length(poss)) res[1L, "len"] <- res[1L, "len"] + extra
-      res[negs[[1L]], "len"] <- res[negs[[1L]], "len"] - extra
+      TJKU
     } else if(nrow(res)) {
       res[1L, "len"] <- res[1L, "len"] + extra
     }

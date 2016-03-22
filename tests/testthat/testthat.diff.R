@@ -138,6 +138,7 @@ local({
     Puromycin2 <- Puromycin
     set.seed(1)
     Puromycin$conc[c(8, 15:19, 22)] <- round(runif(7), 2)
+    diff_print(Puromycin, Puromycin2, line.limit=15) # bug()
   } )
   set.seed(2)
   w1 <- sample(
