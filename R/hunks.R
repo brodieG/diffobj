@@ -519,6 +519,13 @@ trim_hunks <- function(hunk.grps, mode, disp.width, hunk.limit, line.limit) {
     } else {
       hunk.atom <- hunk.grps[[grp.cut]][[hunk.cut]]
       hunk.atom <- trim_hunk(hunk.atom, "tar", line.cut)
+      if(mode == "unified") {
+        # Need to share lines between tar and cur in unified mode
+        line.cut <- max(
+          0L, line.cut - if(any(hunk.atom$tar.rng))
+            diff(hunk.atom$tar.rng) + 1L else 0L
+        )
+      }
       hunk.atom <- trim_hunk(hunk.atom, "cur", line.cut)
       hunk.grps[[grp.cut]][[hunk.cut]] <- hunk.atom
       null.hunks <- seq_len(length(hunk.grps[[grp.cut]]) - hunk.cut) + hunk.cut
