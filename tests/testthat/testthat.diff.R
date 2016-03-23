@@ -143,7 +143,7 @@ local({
     diff_print(Puromycin, Puromycin2, line.limit=15, mode="sidebyside")
     diff_print(Puromycin, Puromycin2, line.limit=15, mode="context")
 
-    # line limit issues
+    # 
     diff_print(Puromycin, Puromycin2, line.limit=6)
     diff_print(Puromycin, Puromycin2, line.limit=6, mode="sidebyside")
     diff_print(Puromycin, Puromycin2, line.limit=6, mode="context")

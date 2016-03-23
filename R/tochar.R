@@ -233,13 +233,13 @@ setMethod("as.character", "diffObjDiff",
     banner.len <- banner_len(mode)
     max.w <- calc_width(disp.width, mode)
 
-    if(line.limit[[1L]] >= 0L)
-      line.limit <- pmax(integer(2L), line.limit - banner.len)
+    line.limit.a <- if(line.limit[[1L]] >= 0L)
+      pmax(integer(2L), line.limit - banner.len) else line.limit
 
     # Trim hunks to the extent need to make sure we fit in lines
 
     hunk.grps <- trim_hunks(
-      x@diffs$hunks, mode=mode, disp.width=disp.width, line.limit=line.limit,
+      x@diffs$hunks, mode=mode, disp.width=disp.width, line.limit=line.limit.a,
       hunk.limit=hunk.limit
     )
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
@@ -270,7 +270,8 @@ setMethod("as.character", "diffObjDiff",
       if(mode == "sidebyside") "  ",
       crayon_style(t.fun(banner.B, max.w), "green")
     )
-    # Trim banner if exceeds line limit, and adjust line limit for banner size
+    # Trim banner if exceeds line limit, and adjust line limit for banner size;
+    # note we add back 
 
     if(line.limit[[1L]] >= 0 && line.limit[[1L]] < banner.len)
       length(banner) <- line.limit[[2L]]
@@ -375,7 +376,7 @@ setMethod("as.character", "diffObjDiff",
           "diffObjDiff", tar.capt=tar.r.h.txt, cur.capt=cur.r.h.txt,
           diffs=char_diff(
             tar.r.h.txt, cur.r.h.txt, ignore.white.space=ignore.white.space,
-            mode="context", hunk.limit=hunk.limit, line.limit=line.limit,
+            mode="context", hunk.limit=hunk.limit, line.limit=-1L,
             disp.width=disp.width, max.diffs=max.diffs.wrap,
             tab.stops=tab.stops, diff.mode="wrap", warn=TRUE
           )
