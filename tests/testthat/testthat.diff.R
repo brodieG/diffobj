@@ -143,7 +143,18 @@ local({
     diff_print(Puromycin, Puromycin2, line.limit=15, mode="sidebyside")
     diff_print(Puromycin, Puromycin2, line.limit=15, mode="context")
 
-    diff_print(Puromycin, Puromycin2, line.limit=15)
+    # line limit issues
+    diff_print(Puromycin, Puromycin2, line.limit=6)
+    diff_print(Puromycin, Puromycin2, line.limit=6, mode="sidebyside")
+    diff_print(Puromycin, Puromycin2, line.limit=6, mode="context")
+
+    diff_print(Puromycin, Puromycin2, line.limit=3)
+    diff_print(Puromycin, Puromycin2, line.limit=3)
+    diff_print(Puromycin, Puromycin2, line.limit=4)
+
+    Puromycin3 <- Puromycin2
+    names(Puromycin3)[3L] <- "blargh"
+    diff_print(Puromycin, Puromycin3, line.limit=6, mode="context")
   } )
   set.seed(2)
   w1 <- sample(

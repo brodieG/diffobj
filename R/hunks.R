@@ -358,7 +358,7 @@ get_hunk_chr_lens <- function(hunk.grps, mode, disp.width) {
 
     lines.out <- switch(
       mode,
-      context=c(A.lines, -B.lines),
+      context=c(A.lines, if(!hunk$header) -B.lines),
       unified=c(A.lines),
       sidebyside={
         max.len <- max(length(A.lines), length(B.lines))
@@ -393,7 +393,8 @@ get_hunk_chr_lens <- function(hunk.grps, mode, disp.width) {
     # for all hunks except a header hunk
 
     extra <- if(length(hunks) && hunks[[1L]]$header) 0L else 1L
-    if(identical(mode, "context")) res <- res[order(res[, "len"] < 0L),]
+    if(identical(mode, "context"))
+      res <- res[order(res[, "len"] < 0L), , drop=FALSE]
     if(
       identical(mode, "context") &&
       length(negs <- which(res[, "len"] < 0L)) &&

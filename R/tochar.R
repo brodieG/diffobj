@@ -102,6 +102,7 @@ hunk_as_char <- function(
       B[!B.ctx] <- sign_pad(B[!B.ctx], 2L)
       A[A.ctx] <- sign_pad(A[A.ctx], 1L)
       B[B.ctx] <- sign_pad(B[B.ctx], 1L)
+      if(h.g[[1L]]$header) B <- NULL  # don't show B for header
       unlist(
         c(
           A,
