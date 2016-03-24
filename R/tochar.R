@@ -313,8 +313,7 @@ setMethod("as.character", "diffObjDiff",
       )
     }
     ranges <- vapply(
-      hunks.flat, function(h.a)
-        c(h.a$tar.rng.trim, h.a$cur.rng.trim),
+      hunks.flat, function(h.a) c(h.a$tar.rng.trim, h.a$cur.rng.trim),
       integer(4L)
     )
     ranges.orig <- vapply(

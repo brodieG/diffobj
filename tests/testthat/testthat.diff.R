@@ -134,6 +134,9 @@ local({
     # interesting example below where the in-hunk word diff is too aggressive
     # preventing the eq-lines from atching
     diff_str(mdl1[7], mdl2[7], mode="sidebyside")
+    diff_print(mdl1, mdl2)
+
+    diff_print(letters[1:3], LETTERS[1:3])
 
     Puromycin2 <- Puromycin
     set.seed(1)
@@ -143,7 +146,7 @@ local({
     diff_print(Puromycin, Puromycin2, line.limit=15, mode="sidebyside")
     diff_print(Puromycin, Puromycin2, line.limit=15, mode="context")
 
-    # 
+    # line limit issues
     diff_print(Puromycin, Puromycin2, line.limit=6)
     diff_print(Puromycin, Puromycin2, line.limit=6, mode="sidebyside")
     diff_print(Puromycin, Puromycin2, line.limit=6, mode="context")

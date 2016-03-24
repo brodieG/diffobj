@@ -201,7 +201,8 @@ setMethod("as.hunks", "diffObjMyersMbaSes",
         }
         ctx
     } }
-    process_hunks(res.l, context=context, use.header=use.header)
+    res <- process_hunks(res.l, context=context, use.header=use.header)
+    res
 } )
 # process the hunks and also drop off groups that exceed limit
 #
@@ -269,49 +270,52 @@ process_hunks <- function(x, context, use.header) {
   # Special cases, including only one hunk or forcing only one hunk group, or
   # no differences
 
-  if(context < 0L || hunk.len < 2L) return(list(x))
   if(!any(ctx.vec)) return(list()) # is this right?
+  if(context < 0L || hunk.len < 2L) {
+    res.l <- list(x)
+  } else {
+    # Normal cases; allocate maximum possible number of elements, may need fewer
+    # if hunks bleed into each other
 
-  # Normal cases; allocate maximum possible number of elements, may need fewer
-  # if hunks bleed into each other
+    res.l <- vector("list", sum(!ctx.vec))
 
-  res.l <- vector("list", sum(!ctx.vec))
+    # Jump through every second value as those are the mismatch hunks, though
+    # first figure out if first hunk is mismatching, and merge hunks.  This
+    # is likely not super efficient as we keep growing a list, though the only
+    # thing we are actually re-allocating is the list index really, at least if
+    # R is being smart about not copying the list contents (which as of 3.1 I
+    # think it is...)
 
-  # Jump through every second value as those are the mismatch hunks, though
-  # first figure out if first hunk is mismatching, and merge hunks.  This
-  # is likely not super efficient as we keep growing a list, though the only
-  # thing we are actually re-allocating is the list index really, at least if
-  # R is being smart about not copying the list contents (which as of 3.1 I
-  # think it is...)
+    i <- if(ctx.vec[[1L]]) 2L else 1L
+    j <- 1L
+    while(i <= hunk.len) {
+      # Merge left
 
-  i <- if(ctx.vec[[1L]]) 2L else 1L
-  j <- 1L
-  while(i <= hunk.len) {
-    # Merge left
+      res.l[[j]] <- if(i - 1L)
+        list(hunk_sub(x[[i - 1L]], "tail", context), x[[i]]) else x[i]
 
-    res.l[[j]] <- if(i - 1L)
-      list(hunk_sub(x[[i - 1L]], "tail", context), x[[i]]) else x[i]
-
-    # Merge right
-
-    if(i < hunk.len) {
-      # Hunks bleed into next hunk due to context; note that i + 1L will always
-      # be a context hunk, so $A is fully representative
-
-      while(i < hunk.len && length(x[[i + 1L]]$A) <= context * 2) {
-        res.l[[j]] <- append(res.l[[j]], x[i + 1L])
-        if(i < hunk.len - 1L)
-          res.l[[j]] <- append(res.l[[j]], x[i + 2L])
-        i <- i + 2L
-      }
-      # Context enough to cause a break
+      # Merge right
 
       if(i < hunk.len) {
-        res.l[[j]] <- append(
-          res.l[[j]], list(hunk_sub(x[[i + 1L]], "head", context))
-    ) } }
-    j <- j + 1L
-    i <- i + 2L
+        # Hunks bleed into next hunk due to context; note that i + 1L will always
+        # be a context hunk, so $A is fully representative
+
+        while(i < hunk.len && length(x[[i + 1L]]$A) <= context * 2) {
+          res.l[[j]] <- append(res.l[[j]], x[i + 1L])
+          if(i < hunk.len - 1L)
+            res.l[[j]] <- append(res.l[[j]], x[i + 2L])
+          i <- i + 2L
+        }
+        # Context enough to cause a break
+
+        if(i < hunk.len) {
+          res.l[[j]] <- append(
+            res.l[[j]], list(hunk_sub(x[[i + 1L]], "head", context))
+      ) } }
+      j <- j + 1L
+      i <- i + 2L
+    }
+    length(res.l) <- j - 1L
   }
   # Add back the header hunk if needed.
 
@@ -325,7 +329,6 @@ process_hunks <- function(x, context, use.header) {
   # Finalize, including sizing correctly, and setting the ids to the right
   # values since we potentially duplicated some context hunks
 
-  length(res.l) <- j - 1L
   res.fin <- c(header, res.l)
   k <- 1L
   for(i in seq_along(res.fin)) {
