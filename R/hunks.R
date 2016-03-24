@@ -270,8 +270,7 @@ process_hunks <- function(x, context, use.header) {
   # Special cases, including only one hunk or forcing only one hunk group, or
   # no differences
 
-  if(!any(ctx.vec)) return(list()) # is this right?
-  if(context < 0L || hunk.len < 2L) {
+  if(context < 0L || hunk.len < 2L || !any(ctx.vec)) {
     res.l <- list(x)
   } else {
     # Normal cases; allocate maximum possible number of elements, may need fewer
