@@ -52,6 +52,9 @@ diff_word <- function(
   # Compute the char by char diffs for each line
 
   reg <- paste0(
+    # Some attempt at matching R identifiers; note we explicitly chose not to
+    # match `.` or `..`, etc, since those could easily be punctuation
+    "(?:\\.[[:alpha:]]|[[:alpha:]])[[:alnum:]_.]*|",
     # Not whitespaces that doesn't include quotes
     "[^ \"]+|",
     # Quoted phrases as structured in atomic character vectors
