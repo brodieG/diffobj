@@ -235,8 +235,21 @@ diff_tpl <- function(
   slot.args <- vars[names(vars) %in% names(getSlots("diffObjDiff"))]
   res <- do.call("new", c(list("diffObjDiff"), slot.args))
   res.chr <- as.character(res)
-  if(!silent) cat(res.chr, sep="\n")
   slot(res, "trim.dat") <- attr(res.chr, "meta")
+  if(!silent) {
+    screen.lines <- as.integer(Sys.getenv("LINES"))[[1L]]
+    if(is.na(screen.lines) || screen.lines < 1L) screen.lines <- 48L
+    if(length(res.chr) / screen.lines > 1.5) {
+      disp.f <- tempfile()
+      on.exit(add=TRUE, unlink(disp.f))
+      writeLines(res.chr, disp.f)
+      if(pager_is_less() && use.ansi) {
+        old.less <- set_less_var("R")
+        on.exit(reset_less_var(old.less), add=TRUE)
+      }
+      file.show(disp.f)
+    } else cat(res.chr, sep="\n")
+  }
   invisible(res)
 }
 # Note this one overwrites the entire body

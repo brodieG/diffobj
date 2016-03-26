@@ -1,3 +1,43 @@
+# Check whether system has less as pager; this is an approximation since we
+# do not check that the pager shell script actually calls $PAGER
+
+pager_is_less <- function() {
+  PAGER <- Sys.getenv("PAGER")
+  PAGER_PATH <- getOption("pager")
+  R_HOME <- Sys.getenv("R_HOME")
+  isTRUE(grepl("/less$", PAGER)) &&
+    identical(PAGER_PATH, file.path(R_HOME, "bin", "pager"))
+}
+# Changes the LESS system variable to make it compatible with ANSI escape
+# sequences
+#
+# flags is supposed to be character(1L) in form "XVF" or some such
+#
+# Returns the previous value of the variable, NA if it was not set
+
+set_less_var <- function(flags) {
+  LESS <- Sys.getenv("LESS", unset=NA)
+  LESS.new <- NA
+  if(is.character(LESS) && length(LESS) == 1L) {
+    if(isTRUE(grepl("^\\s*$", LESS)) || is.na(LESS) || !nzchar(LESS)) {
+      LESS.new <- sprintf("-%s", flags)
+    } else if(
+      isTRUE(grepl("^\\s*-[[:alpha:]]++(\\s+-[[:alpha:]]+)\\s*$", LESS))
+    ) {
+      LESS.new <-
+        sub("\\s*(-[[:alpha:]]+)\\s*$", sprintf("\\1X%s", flags), LESS)
+    }
+  }
+  if(!is.na(LESS.new)) Sys.setenv(LESS=LESS.new) else
+    warning("Unable to set `LESS` system variable")
+  LESS
+}
+reset_less_var <- function(LESS.old) {
+  if(is.na(LESS.old)) {
+    Sys.unsetenv("LESS")
+  } else Sys.setenv(LESS=LESS.old)
+}
+
 # Function used to match against `str` calls since the existing function
 # does not actually define `max.level`
 

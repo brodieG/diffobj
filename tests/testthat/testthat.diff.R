@@ -121,6 +121,7 @@ local({
     iris.3 <- iris.2
     iris.3$Sepal.Length <- round(iris.3$Sepal.Length, 1L)
 
+    diff_print(iris, iris.2) # no round
     diff_print(iris, iris.c)
     diff_obj(iris, iris.c)
     diff_obj(iris, iris.c)
