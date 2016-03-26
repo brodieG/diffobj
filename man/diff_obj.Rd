@@ -22,7 +22,7 @@ diff_obj(target, current, mode = getOption("diffobj.mode"),
   max.diffs = getOption("diffobj.max.diffs"),
   max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
   max.diffs.wrap = getOption("diffobj.max.diffs.wrap"),
-  frame = parent.frame(), ...)
+  tab.stops = getOption("diffobj.tab.stops"), frame = parent.frame(), ...)
 
 diff_print(target, current, mode = getOption("diffobj.mode"),
   context = getOption("diffobj.context"),
@@ -35,7 +35,7 @@ diff_print(target, current, mode = getOption("diffobj.mode"),
   max.diffs = getOption("diffobj.max.diffs"),
   max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
   max.diffs.wrap = getOption("diffobj.max.diffs.wrap"),
-  frame = parent.frame(), ...)
+  tab.stops = getOption("diffobj.tab.stops"), frame = parent.frame(), ...)
 
 diff_str(target, current, mode = getOption("diffobj.mode"),
   context = getOption("diffobj.context"),
@@ -48,7 +48,7 @@ diff_str(target, current, mode = getOption("diffobj.mode"),
   max.diffs = getOption("diffobj.max.diffs"),
   max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
   max.diffs.wrap = getOption("diffobj.max.diffs.wrap"),
-  frame = parent.frame(), ...)
+  tab.stops = getOption("diffobj.tab.stops"), frame = parent.frame(), ...)
 
 diff_chr(target, current, mode = getOption("diffobj.mode"),
   context = getOption("diffobj.context"),
@@ -61,7 +61,7 @@ diff_chr(target, current, mode = getOption("diffobj.mode"),
   max.diffs = getOption("diffobj.max.diffs"),
   max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
   max.diffs.wrap = getOption("diffobj.max.diffs.wrap"),
-  frame = parent.frame(), ...)
+  tab.stops = getOption("diffobj.tab.stops"), frame = parent.frame(), ...)
 
 diff_deparse(target, current, mode = getOption("diffobj.mode"),
   context = getOption("diffobj.context"),
@@ -74,7 +74,7 @@ diff_deparse(target, current, mode = getOption("diffobj.mode"),
   max.diffs = getOption("diffobj.max.diffs"),
   max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
   max.diffs.wrap = getOption("diffobj.max.diffs.wrap"),
-  frame = parent.frame(), ...)
+  tab.stops = getOption("diffobj.tab.stops"), frame = parent.frame(), ...)
 }
 \arguments{
 \item{target}{the reference object}

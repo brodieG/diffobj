@@ -121,6 +121,7 @@ local({
     iris.3 <- iris.2
     iris.3$Sepal.Length <- round(iris.3$Sepal.Length, 1L)
 
+    diff_print(iris, iris.2) # no round
     diff_print(iris, iris.c)
     diff_obj(iris, iris.c)
     diff_obj(iris, iris.c)
@@ -134,6 +135,30 @@ local({
     # interesting example below where the in-hunk word diff is too aggressive
     # preventing the eq-lines from atching
     diff_str(mdl1[7], mdl2[7], mode="sidebyside")
+    diff_print(mdl1, mdl2)
+
+    diff_print(letters[1:3], LETTERS[1:3])
+
+    Puromycin2 <- Puromycin
+    set.seed(1)
+    Puromycin2$conc[c(8, 15:19, 22)] <- round(runif(7), 2)
+    Puromycin2$state[17] <- "treated"
+    diff_print(Puromycin, Puromycin2, line.limit=15)
+    diff_print(Puromycin, Puromycin2, line.limit=15, mode="sidebyside")
+    diff_print(Puromycin, Puromycin2, line.limit=15, mode="context")
+
+    # line limit issues
+    diff_print(Puromycin, Puromycin2, line.limit=6)
+    diff_print(Puromycin, Puromycin2, line.limit=6, mode="sidebyside")
+    diff_print(Puromycin, Puromycin2, line.limit=6, mode="context")
+
+    diff_print(Puromycin, Puromycin2, line.limit=3)
+    diff_print(Puromycin, Puromycin2, line.limit=3)
+    diff_print(Puromycin, Puromycin2, line.limit=4)
+
+    Puromycin3 <- Puromycin2
+    names(Puromycin3)[3L] <- "blargh"
+    diff_print(Puromycin, Puromycin3, line.limit=6, mode="context")
   } )
   set.seed(2)
   w1 <- sample(

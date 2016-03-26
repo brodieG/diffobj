@@ -53,24 +53,24 @@ hunk_as_char <- function(
     hh.a <- paste0("-", rng_as_chr(tar.rng))
     hh.b <- paste0("+", rng_as_chr(cur.rng))
 
-    hunk.head <- crayon_style(
-      if(mode == "sidebyside") {
-        paste0(
-          rpadt(sprintf("@@ %s @@", hh.a), max.w),
-          "  ",
-          rpadt(sprintf("@@ %s @@", hh.b), max.w),
-          collapse=""
-        )
-      } else {
-        sprintf("@@ %s %s @@", hh.a, hh.b)
-      },
-      "cyan"
-    )
+    hunk.head <- if(!h.g[[1L]]$header) {
+      crayon_style(
+        if(mode == "sidebyside") {
+          paste0(
+            rpadt(sprintf("@@ %s @@", hh.a), max.w),
+            "  ",
+            rpadt(sprintf("@@ %s @@", hh.b), max.w),
+            collapse=""
+          )
+        } else {
+          sprintf("@@ %s %s @@", hh.a, hh.b)
+        },
+        "cyan"
+    ) }
     # Get trimmed character ranges; positives are originally from target, and
     # negatives from current
 
     get_chrs <- function(h.a, mode, eq=FALSE) {
-      ab <- LETTERS[1:2]
       stopifnot(mode %in% LETTERS[1:2], length(mode) == 1L, is.TF(eq))
       rng <- c(
         seq(h.a$tar.rng.trim[[1L]], h.a$tar.rng.trim[[2L]]),
@@ -84,18 +84,25 @@ hunk_as_char <- function(
     diff.txt <- if(mode == "context") {
       # Need to get all the A data and the B data
 
+      A.chrs <- lapply(h.g, get_chrs, mode="A")
+      B.chrs <- lapply(h.g, get_chrs, mode="B")
+      A <- wrap(unlist(A.chrs), width=capt.width)
+      B <- wrap(unlist(B.chrs), width=capt.width)
       A.ctx <- unlist(
-        lapply(h.g, function(h.a) rep(h.a$context, length(h.a$A.chr)))
-      )
+        lapply(
+          seq_along(h.g),
+          function(i) rep(h.g[[i]]$context, length(A.chrs[[i]]))
+      ) )
       B.ctx <- unlist(
-        lapply(h.g, function(h.a) rep(h.a$context, length(h.a$B.chr)))
-      )
-      A <- wrap(unlist(lapply(h.g, get_chrs, mode="A")), width=capt.width)
-      B <- wrap(unlist(lapply(h.g, get_chrs, mode="B")), width=capt.width)
+        lapply(
+          seq_along(h.g),
+          function(i) rep(h.g[[i]]$context, length(B.chrs[[i]]))
+      ) )
       A[!A.ctx] <- sign_pad(A[!A.ctx], 3L)
       B[!B.ctx] <- sign_pad(B[!B.ctx], 2L)
       A[A.ctx] <- sign_pad(A[A.ctx], 1L)
       B[B.ctx] <- sign_pad(B[B.ctx], 1L)
+      if(h.g[[1L]]$header) B <- NULL  # don't show B for header
       unlist(
         c(
           A,
@@ -106,15 +113,17 @@ hunk_as_char <- function(
       unlist(
         lapply(h.g,
           function(h.a) {
-            pos <- h.a$A > 0L
+            i.h <- in_hunk(h.a, "A")
+            pos <- (h.a$A > 0L)[i.h]
+            neg <- (h.a$A < 0L)[i.h]
             A.out <- wrap(get_chrs(h.a, mode="A"), capt.width)
 
             if(!h.a$context) {
               A.eq <- get_chrs(h.a, "A", TRUE)
               A.pos <- sign_pad(A.out[pos], 3L)
-              A.neg <- sign_pad(A.out[!pos], 2L)
+              A.neg <- sign_pad(A.out[neg], 2L)
               A.eq.p <- A.eq[pos]
-              A.eq.n <- A.eq[!pos]
+              A.eq.n <- A.eq[neg]
               A.p.n.aligned <- align_eq(
                 A.pos, A.neg, A.eq.p, A.eq.n, ignore.white.space
               )
@@ -224,14 +233,13 @@ setMethod("as.character", "diffObjDiff",
     banner.len <- banner_len(mode)
     max.w <- calc_width(disp.width, mode)
 
-    if(line.limit[[1L]] >= 0L)
-      line.limit <- pmax(integer(2L), line.limit - banner.len)
+    line.limit.a <- if(line.limit[[1L]] >= 0L)
+      pmax(integer(2L), line.limit - banner.len) else line.limit
 
-    # Trim hunks to the extent need to make sure we fit in lines; start by
-    # dropping hunks beyond hunk limit
+    # Trim hunks to the extent need to make sure we fit in lines
 
     hunk.grps <- trim_hunks(
-      x@diffs$hunks, mode=mode, disp.width=disp.width, line.limit=line.limit,
+      x@diffs$hunks, mode=mode, disp.width=disp.width, line.limit=line.limit.a,
       hunk.limit=hunk.limit
     )
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
@@ -262,7 +270,8 @@ setMethod("as.character", "diffObjDiff",
       if(mode == "sidebyside") "  ",
       crayon_style(t.fun(banner.B, max.w), "green")
     )
-    # Trim banner if exceeds line limit, and adjust line limit for banner size
+    # Trim banner if exceeds line limit, and adjust line limit for banner size;
+    # note we add back 
 
     if(line.limit[[1L]] >= 0 && line.limit[[1L]] < banner.len)
       length(banner) <- line.limit[[2L]]
@@ -304,8 +313,7 @@ setMethod("as.character", "diffObjDiff",
       )
     }
     ranges <- vapply(
-      hunks.flat, function(h.a)
-        c(h.a$tar.rng.trim, h.a$cur.rng.trim),
+      hunks.flat, function(h.a) c(h.a$tar.rng.trim, h.a$cur.rng.trim),
       integer(4L)
     )
     ranges.orig <- vapply(
@@ -367,7 +375,7 @@ setMethod("as.character", "diffObjDiff",
           "diffObjDiff", tar.capt=tar.r.h.txt, cur.capt=cur.r.h.txt,
           diffs=char_diff(
             tar.r.h.txt, cur.r.h.txt, ignore.white.space=ignore.white.space,
-            mode="context", hunk.limit=hunk.limit, line.limit=line.limit,
+            mode="context", hunk.limit=hunk.limit, line.limit=-1L,
             disp.width=disp.width, max.diffs=max.diffs.wrap,
             tab.stops=tab.stops, diff.mode="wrap", warn=TRUE
           )
@@ -403,9 +411,11 @@ setMethod("as.character", "diffObjDiff",
       for(i in seq_along(hunk.grps)) {
         for(j in seq_along(hunk.grps[[i]])) {
           h.a <- hunk.grps[[i]][[j]]
-          # Skip context or those that have been wrap diffed
+          # Skip context or those that have been wrap diffed or non-context
+          # hunks that are being trimmed
           if(
-            h.a$id < wd.max || h.a$context || (!length(h.a$A) && !length(h.a$B))
+            h.a$id < wd.max || h.a$context ||
+            (!length(h.a$A) && !length(h.a$B))
           ) next
           # Do word diff on each non-context hunk; real messy because the
           # stuff from `tar` and `cur` are mixed in in A and B (well, really

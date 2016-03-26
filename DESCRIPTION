@@ -27,6 +27,7 @@ Collate:
     'core.R'
     'diff.R'
     'hunks.R'
+    'myerssimple.R'
     'rdiff.R'
     'system.R'
     'text.R'
