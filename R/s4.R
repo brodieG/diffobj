@@ -14,24 +14,6 @@ setClassUnion("charOrNULL", c("character", "NULL"))
 
 NULL
 
-#' Configure Automatic Context Calculation
-#'
-#' Defines parameters for selecting an appropriate context value when using
-#' \code{\link{diff_obj}} and related functions.
-#'
-#' @export
-#' @param min integer(1L), positive, set to zero to allow any context
-#' @param max integer(1L), set to negative to allow any context
-#' @return S4 object containing configuration parameters, for use as the
-#'   \code{context} parameter value in \code{\link{diff_obj}} and related
-#'   functions
-
-auto_context <- function(
-  min=getOption("diffobj.context.auto.min"),
-  max=getOption("diffobj.context.auto.max")
-) {
-  new("diffObjAutoContext", min=as.integer(min), max=as.integer(max))
-}
 setClass(
   "diffObjAutoContext",
   slots=c(
@@ -47,8 +29,48 @@ setClass(
       return("Slot `max` must be negative, or greater than slot `min`")
     TRUE
 } )
-setClassUnion("doacOrInt", c("diffObjAutoContext", "integer"))
+setClassUnion("doAutoCOrInt", c("diffObjAutoContext", "integer"))
+setClass(
+  "diffObjAutoLineLimit",
+  slots=c(
+    limit="integer",
+    pager.lines="integer",
+    less.flags="character"
+  ),
+  validity=function(object) {
+    if(!is.int.1L(object@pager.lines))
+      return("Slot `pager.lines` must be integer(1L), positive, and not NA")
+    if(!is.int.1L(object@limit) && !is.int.2L(object@limit))
+      return("Slot `limit` must be integer(2L), and not NA")
+    if(
+      !is.chr.1L(object@less.flags) &&
+      !isTRUE(grepl("^[[:alpha:]]$", object@less.flags))
+    )
+      return("Slot `less.flags` must be character(1L) and contain only letters")
+    TRUE
+} )
+setClassUnion("doAutoLLOrInt", c("diffObjAutoLineLimit", "integer"))
 
+setClass(
+  "diffObjSettings",
+  slots=c(
+    mode="character",             # diff output mode
+    context="doAutoCOrInt",
+    line.limit="doAutoLLOrInt",
+    hunk.limit="integer",
+    disp.width="integer",
+    use.ansi="logical",
+    max.diffs="integer",
+    max.diffs.in.hunk="integer",
+    max.diffs.wrap="integer",
+    ignore.white.space="logical",
+    frame="environment",
+    silent="logical",
+    tab.stops="integer",
+    tar.banner="charOrNULL",
+    cur.banner="charOrNULL"
+  )
+)
 # Classes for tracking intermediate diff obj data
 #
 # DiffDiffs contains a slot corresponding to each of target and current where
@@ -104,23 +126,10 @@ setClass(
     cur.capt="character",
     cur.capt.def="charOrNULL",
     cur.banner="character",
-    mode="character",             # diff output mode
-    context="doacOrInt",
-    hunk.limit="integer",
-    line.limit="integer",
-    disp.width="integer",
-    use.ansi="logical",
-    max.diffs="integer",          # after how many differences should we give up
-    max.diffs.in.hunk="integer",  # give up threshold for hunk-hunk comparison
-    # give up threshold for word diff on wrapped atomic
-    max.diffs.wrap="integer",
-    ignore.white.space="logical",
-    capt.mode="character",        # whether in print or str mode
-    frame="environment",
-    silent="logical",
     diffs="list",
-    tab.stops="integer",
-    trim.dat="list"               # result of trimmaxg
+    trim.dat="list",              # result of trimmaxg
+    capt.mode="character",        # whether in print or str mode
+    settings="diffObjSettings"
   ),
   prototype=list(
     capt.mode="print",

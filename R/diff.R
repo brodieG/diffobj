@@ -118,40 +118,10 @@ NULL
 #' @param current the object being compared to \code{target}
 #' @param context integer(1L) how many lines of context are shown on either side
 #'   of differences, set to \code{-1L} to allow as many as possible.  Set to
-#'   \dQuote{"auto"} to display as much context as possible without violating
+#'   \dQuote{auto} to display as much context as possible without violating
 #'   \code{line.limit}, or alternatively pass the return value of
 #'   \code{link{auto_context}} to fine tune the parameters of the auto context
 #'   calculation
-#' @param hunk.limit integer(2L) how many sections of differences to show.
-#'   The first value is the maximum number of elements before we start trimming
-#'   output.  The second value is how many elements to trim to.  If only one
-#'   value is provided that value is used for the initial threshold as well as
-#'   the limit to trim to.  If both values are provided the second must be
-#'   smaller than the first.  Set to \code{-1L} or \code{c(-1L, -1L)} to run
-#'   without limits
-#' @param line.limit integer(2L) how many lines of screen output to show.
-#'   Behaves like \code{hunk.limit}
-#' @param use.ansi TRUE or FALSE, whether to use ANSI escape sequences to color
-#'   differences (TRUE by default if we detect that your terminal supports it)
-#' @param white.space TRUE or FALSE, whether to consider differences in
-#'   horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
-#'   FALSE)
-#' @param disp.width integer(1L) number of display columns to take up; note that
-#'   in \dQuote{sidebyside} mode the effective display width is half this number
-#' @param tar.banner character(1L) or NULL, used to clarify the symbology of the
-#'   diff output (see the \dQuote{Output} section in the docs), if NULL will be
-#'   inferred from \code{target} and \code{current} expressions
-#' @param cur.banner character(1L) like \code{tar.banner}, but for \code{current}
-#' @param frame environment the evaluation frame for the \code{print/show/str},
-#'   calls, allows user to ensure correct methods are used, not used by
-#'   \code{diff_chr} or \code{diff_deparse}
-#' @param silent TRUE or FALSE, whether to display the diff (FALSE by default)
-#' @param allow.in.hunk.diff TRUE or FALSE, whether to do a secondary diff on
-#'   each hunk to highlight word differences (TRUE by default).  May be
-#'   expensive if your objects has lots of nearby differences that end up
-#'   aggregated in large hunks.
-#' @param allow.wrap.diff TRUE whether to use a wrapping word diff for atomic
-#'   vectors (see \dQuote{"Atomic Vectors"} section above)
 #' @param ... additional arguments to pass on to \code{print}, etc.
 #' @return a \code{\link{diffObjDiff}} object, invisibly.  This function is
 #'   intended primarily to be used for its side-effects, but the return value
@@ -170,18 +140,7 @@ NULL
 diff_tpl <- function(
   target, current, mode=getOption("diffobj.mode"),
   context=getOption("diffobj.context"),
-  hunk.limit=getOption("diffobj.hunk.limit"),
   line.limit=getOption("diffobj.line.limit"),
-  ignore.white.space=getOption("diffobj.ignore.white.space"),
-  use.ansi=getOption("diffobj.use.ansi"),
-  disp.width=getOption("width"),
-  tar.banner=NULL, cur.banner=NULL,
-  silent=getOption("diffobj.silent"),
-  max.diffs=getOption("diffobj.max.diffs"),
-  max.diffs.in.hunk=getOption("diffobj.max.diffs.in.hunk"),
-  max.diffs.wrap=getOption("diffobj.max.diffs.wrap"),
-  tab.stops=getOption("diffobj.tab.stops"),
-  frame=parent.frame(),
   ...
 ) {
   # Sub expressions before we touch any of the variables

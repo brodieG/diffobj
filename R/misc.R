@@ -1,42 +1,3 @@
-# Check whether system has less as pager; this is an approximation since we
-# do not check that the pager shell script actually calls $PAGER
-
-pager_is_less <- function() {
-  PAGER <- Sys.getenv("PAGER")
-  PAGER_PATH <- getOption("pager")
-  R_HOME <- Sys.getenv("R_HOME")
-  isTRUE(grepl("/less$", PAGER)) &&
-    identical(PAGER_PATH, file.path(R_HOME, "bin", "pager"))
-}
-# Changes the LESS system variable to make it compatible with ANSI escape
-# sequences
-#
-# flags is supposed to be character(1L) in form "XVF" or some such
-#
-# Returns the previous value of the variable, NA if it was not set
-
-set_less_var <- function(flags) {
-  LESS <- Sys.getenv("LESS", unset=NA)
-  LESS.new <- NA
-  if(is.character(LESS) && length(LESS) == 1L) {
-    if(isTRUE(grepl("^\\s*$", LESS)) || is.na(LESS) || !nzchar(LESS)) {
-      LESS.new <- sprintf("-%s", flags)
-    } else if(
-      isTRUE(grepl("^\\s*-[[:alpha:]]++(\\s+-[[:alpha:]]+)\\s*$", LESS))
-    ) {
-      LESS.new <-
-        sub("\\s*(-[[:alpha:]]+)\\s*$", sprintf("\\1X%s", flags), LESS)
-    }
-  }
-  if(!is.na(LESS.new)) Sys.setenv(LESS=LESS.new) else
-    warning("Unable to set `LESS` system variable")
-  LESS
-}
-reset_less_var <- function(LESS.old) {
-  if(is.na(LESS.old)) {
-    Sys.unsetenv("LESS")
-  } else Sys.setenv(LESS=LESS.old)
-}
 
 # Function used to match against `str` calls since the existing function
 # does not actually define `max.level`
@@ -147,7 +108,7 @@ calc_width_unpad <- function(capt.width, mode) {
   )
   capt.width + .pad[[mode]]
 }
-# for checking the limits; for use exclusively within `check_args`
+# for checking the limits
 #
 # run exclusively for side effects (throwing an error, or assigning value in
 # parent env of 'check_args').
@@ -160,13 +121,12 @@ check_limit <- function(limit, type) {
     round(limit) != limit ||
     (length(limit) == 2L && diff(limit) > 0)
   ) {
-    msg <- paste0(
-      "Argument `%s` must be an integer vector of length 1 or 2 ",
-      "and if length 2, with the first ",
-      "value larger than or equal to the second."
-    )
-    stop(sprintf(msg, type), call=sys.call(-2L))
-  }
+    return(
+      paste0(
+        "Argument `%s` must be an integer vector of length 1 or 2 ",
+        "and if length 2, with the first value larger than or equal to ",
+        "the second."
+  ) ) }
   limit <- as.integer(limit)
   if(length(limit) == 1L) limit <- rep(limit, 2L)
   limit
@@ -183,7 +143,6 @@ check_args <- function(env.to.check, call) {
   int1L.vars <- c(
     "disp.width", "max.diffs", "max.diffs.in.hunk", "max.diffs.wrap"
   )
-  TF.vars <- c("use.ansi", "ignore.white.space", "silent")
   chr1LorNULL.vars <- c("tar.banner", "cur.banner")
 
   # check modes
@@ -224,15 +183,6 @@ check_args <- function(env.to.check, call) {
   if(identical(env.to.check$context, "auto"))
     env.to.check$context <- auto_context()
 
-  # check T F args
-
-  msg.base <- "Argument `%s` must be TRUE or FALSE."
-  lapply(
-    TF.vars,
-    function(x)
-      if(!is.TF(env.to.check[[x]]))
-        stop(simpleError(sprintf(msg.base, x), call=call))
-  )
   # check char 1L
 
   msg.base <- "Argument `%s` must be character(1L) and not NA, or NULL"
@@ -254,6 +204,10 @@ check_args <- function(env.to.check, call) {
 
 is.int.1L <- function(x)
   is.numeric(x) && length(x) == 1L && !is.na(x) && x ==  round(x) &&
+  is.finite(x)
+
+is.int.2L <- function(x)
+  is.numeric(x) && length(x) == 2L && !anyNA(x) && x ==  round(x) &&
   is.finite(x)
 
 is.TF <- function(x) isTRUE(x) || identical(x, FALSE)
