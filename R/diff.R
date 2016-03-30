@@ -137,85 +137,34 @@ NULL
 # - We copy this dummy function for each of our actual functions, and change
 #   the bodies
 
-diff_tpl <- function(
-  target, current, mode=getOption("diffobj.mode"),
-  context=getOption("diffobj.context"),
-  line.limit=getOption("diffobj.line.limit"),
-  ...
+diff_core <- function(
+  call, capt, target, current, tar.exp, cur.exp, mode, context, line.limit,
+  settings, ...
 ) {
-  # Sub expressions before we touch any of the variables
-
-  tar.exp <- substitute(target)
-  cur.exp <- substitute(current)
-
-  # Touch all the formals in case user passed an expression that evaluates
-  # to error; then check them
-
-  for(i in names(formals())) environment()[[i]]
-  # this potentially modifies environment()
-  check_args(environment(), sys.call())
-  this.call <- sys.call()
-  par.frame <- parent.frame()
-  err <- function(...)
-    stop(
-      simpleError(do.call(paste0, c(list(...), collapse="")), call=this.call)
-    )
-  # Variables to populate by inserted code
-
-  use.header <- FALSE
-  tar.capt <- tar.capt.def <- cur.capt <- cur.capt.def <- diffs <- NULL
-
+  settings <- check_args(
+    call=call, tar.exp=tar.exp, cur.exp=cur.exp, context=context,
+    line.limit=line.limit, settings=settings
+  )
   # Force crayon to whatever ansi status we chose; note we must do this after
   # touching vars in case someone passes `options(crayon.enabled=...)` as one
   # of the arguments
 
-  old.crayon.opt <- options(crayon.enabled=use.ansi)
-  on.exit(options(old.crayon.opt))
-
-  # line where we will insert code; each of the different `diff_*` functions
-  # will have different logic here
-
-  NULL
-
-  # Finalize stuff
-
-  if(is.null(diffs)) diffs <- char_diff(
-    tar.capt, cur.capt, context=context, ignore.white.space=ignore.white.space,
-    mode=mode, hunk.limit=hunk.limit, line.limit=line.limit,
-    disp.width=disp.width, max.diffs=max.diffs, tab.stops=tab.stops,
-    diff.mode="line", warn=TRUE, use.header=use.header
-  )
-  if(is.null(tar.banner)) tar.banner <- deparse(tar.exp)[[1L]]
-  if(is.null(cur.banner)) cur.banner <- deparse(cur.exp)[[1L]]
-
-  # Create the output structures, and display if requested
-
-  vars <- as.list(environment())
-  slot.args <- vars[names(vars) %in% names(getSlots("diffObjDiff"))]
-  res <- do.call("new", c(list("diffObjDiff"), slot.args))
-  res.chr <- as.character(res)
-  slot(res, "trim.dat") <- attr(res.chr, "meta")
-  if(!silent) {
-    screen.lines <- as.integer(Sys.getenv("LINES"))[[1L]]
-    if(is.na(screen.lines) || screen.lines < 1L) screen.lines <- 48L
-    if(length(res.chr) / screen.lines > 1.5) {
-      disp.f <- tempfile()
-      on.exit(add=TRUE, unlink(disp.f))
-      writeLines(res.chr, disp.f)
-      if(pager_is_less() && use.ansi) {
-        old.less <- set_less_var("R")
-        on.exit(reset_less_var(old.less), add=TRUE)
-      }
-      file.show(disp.f)
-    } else cat(res.chr, sep="\n")
-  }
-  invisible(res)
+  old.crayon.opt <- options(crayon.enabled=settings@use.ansi)
+  on.exit(options(old.crayon.opt), add=TRUE)
+  err <- function(x) stop(simpleError(x, call=call))
+  capt(target, current, settings=settings, err=err, ...)
 }
 # Note this one overwrites the entire body
 #' @rdname diff_obj
 #' @export
 
-diff_obj <- diff_tpl; body(diff_obj) <- quote({
+diff_obj <- function(
+  target, current, mode=getOption("diffobj.mode"),
+  context=getOption("diffobj.context"),
+  line.limit=getOption("diffobj.line.limit"),
+  settings=diffobj_settings(),
+  ...
+) {
   if(length(list(...))) {
     stop("`...` argument not supported in `diff_obj`")
   }
@@ -264,239 +213,53 @@ diff_obj <- diff_tpl; body(diff_obj) <- quote({
     })
     if(p.score >= s.score) res.print else res.str
   }
-  if(!silent) cat(as.character(res), sep="\n")
-  invisible(res)
-})
+  res
+}
 #' @rdname diff_obj
 #' @export
 
-diff_print <- diff_tpl; body(diff_print)[[13L]] <- quote({
-  # capture normal prints, along with default prints to make sure that if we
-  # do try to wrap an atomic vector print it is very likely to be in a format
-  # we are familiar with and not affected by a non-default print method
-
-  dots <- list(...)
-  print.match <- try(
-    match.call(
-      get("print", envir=frame),
-      as.call(c(list(quote(print), x=NULL), dots)),
-      envir=frame
-  ) )
-  names(print.match)[[2L]] <- ""
-  tar.call <- cur.call <- print.match
-
-  if(length(dots)) {
-    tar.call[[2L]] <- tar.exp
-    cur.call[[2L]] <- cur.exp
-    tar.banner <- deparse(tar.call)[[1L]]
-    cur.banner <- deparse(cur.call)[[1L]]
-  } else {
-    tar.banner <- deparse(tar.exp)[[1L]]
-    cur.banner <- deparse(cur.exp)[[1L]]
-  }
-  tar.call[[2L]] <- target
-  cur.call[[2L]] <- current
-
-  tar.call.def <- tar.call
-  cur.call.def <- cur.call
-  tar.call.def[[1L]] <- cur.call.def[[1L]] <- base::print.default
-
-  both.at <- is.atomic(current) && is.atomic(target)
-  capt.width <- calc_width(disp.width, mode) - 2L
-  cur.capt <-
-    strip_hz_control(capt_call(cur.call, capt.width, frame), tab.stops)
-  cur.capt.def <- if(both.at)
-    strip_hz_control(capt_call(cur.call.def, capt.width, frame), tab.stops)
-  tar.capt <-
-    strip_hz_control(capt_call(tar.call, capt.width, frame), tab.stops)
-  tar.capt.def <- if(both.at)
-    strip_hz_control(capt_call(tar.call.def, capt.width, frame), tab.stops)
-
-  # For table-like objects always show first row
-  use.header <- length(dim(target)) == 2L && length(dim(current)) == 2L
-})
+diff_print <- function(
+  target, current, mode=getOption("diffobj.mode"),
+  context=getOption("diffobj.context"),
+  line.limit=getOption("diffobj.line.limit"),
+  settings=diffobj_settings(),
+  ...
+) {
+  diff_core(
+    call=sys.call(), capt=capt_print, target=target, current=current,
+    tar.exp=substitute(target), cur.exp=substitute(current),
+    mode=mode, line.limit=line.limit, settings=settings, ...
+  )
+}
 #' @rdname diff_obj
 #' @export
 
-diff_str <- diff_tpl; body(diff_str)[[13L]] <- quote({
+diff_str <- function(
+  target, current, mode=getOption("diffobj.mode"),
+  context=getOption("diffobj.context"),
+  line.limit=getOption("diffobj.line.limit"),
+  settings=diffobj_settings(),
+  ...
+) {
   # Match original call and managed dots, in particular wrt to the
   # `max.level` arg
 
-  dots <- list(...)
-  if("object" %in% names(dots))
-    err("You may not specify `object` as part of `...`")
-
-  str.match <- try(
-    match.call(
-      str_tpl,
-      call=as.call(c(list(quote(str), object=NULL), dots)), envir=frame
-  ) )
-  names(str.match)[[2L]] <- ""
-
-  # Utility function; defining in body so it has access to `err`
-
-  eval_try <- function(match.list, index, envir)
-    tryCatch(
-      eval(match.list[[index]], envir=envir),
-      error=function(e)
-        err("Error evaluating `", index, "` arg: ", conditionMessage(e))
-    )
-  # Setup / process extra args
-
-  auto.mode <- FALSE
-  max.level.supplied <- FALSE
-  if(
-    max.level.pos <- match("max.level", names(str.match), nomatch=0L)
-  ) {
-    # max.level specified in call; check for special 'auto' case
-    res <- eval_try(str.match, "max.level", par.frame)
-    if(identical(res, "auto")) {
-      auto.mode <- TRUE
-      str.match[["max.level"]] <- NA
-    } else {
-      max.level.supplied <- TRUE
-    }
-  } else {
-    str.match[["max.level"]] <- NA
-    auto.mode <- TRUE
-    max.level.pos <- length(str.match)
-    max.level.supplied <- FALSE
-  }
-  # Was wrap specified in strict width mode?
-
-  wrap <- FALSE
-  if("strict.width" %in% names(str.match)) {
-    res <- eval_try(str.match, "strict.width", par.frame)
-    wrap <- is.character(res) && length(res) == 1L && !is.na(res) &&
-      nzchar(res) && identical(res, substr("wrap", 1L, nchar(res)))
-  }
-  if(auto.mode) {
-    msg <-
-      "Specifying `%s` may cause `str` output level folding to be incorrect"
-    if("comp.str" %in% names(str.match)) warning(sprintf(msg, "comp.str"))
-    if("indent.str" %in% names(str.match)) warning(sprintf(msg, "indent.str"))
-  }
-  # don't want to evaluate target and current more than once, so can't eval
-  # tar.exp/cur.exp, so instead run call with actual object
-
-  tar.call <- cur.call <- str.match
-  tar.call[[2L]] <- target
-  cur.call[[2L]] <- current
-
-  # Run str
-
-  capt.width <- calc_width_pad(disp.width, mode)
-  has.diff <- has.diff.prev <- FALSE
-
-  tar.capt <- strip_hz_control(
-    capt_call(tar.call, capt.width, frame), tab.stops
+  diff_core(
+    call=sys.call(), capt=capt_str, target=target, current=current,
+    tar.exp=substitute(target), cur.exp=substitute(current),
+    mode=mode, line.limit=line.limit, settings=settings, ...
   )
-  tar.lvls <- str_levels(tar.capt, wrap=wrap)
-  cur.capt <- strip_hz_control(
-    capt_call(cur.call, capt.width, frame), tab.stops
-  )
-  cur.lvls <- str_levels(cur.capt, wrap=wrap)
-
-  # note list_depth for some mysterious reason doesn't quite line up with
-  # display of `str` when there are formulas as attributes, so just adding
-  # + 2L
-
-  prev.lvl.hi <- lvl <- max.depth <- max(tar.lvls, cur.lvls)
-  prev.lvl.lo <- 0L
-  first.loop <- TRUE
-  safety <- 0L
-  warn <- TRUE
-
-  repeat{
-    if((safety <- safety + 1L) > max.depth && !first.loop)
-      stop(
-        "Logic Error: exceeded list depth when comparing structures; contact ",
-        "maintainer."
-      )
-    tar.str <- tar.capt[tar.lvls <= lvl]
-    cur.str <- cur.capt[cur.lvls <= lvl]
-
-    diffs.str <- char_diff(
-      tar.str, cur.str, context=context,
-      ignore.white.space=ignore.white.space, mode=mode, hunk.limit=hunk.limit,
-      line.limit=line.limit, disp.width=disp.width, max.diffs=max.diffs,
-      tab.stops=tab.stops, diff.mode="line", warn=warn
-    )
-    if(diffs.str$hit.diffs.max) warn <- FALSE
-    has.diff <- any(
-      !vapply(
-        unlist(diffs.str$hunks, recursive=FALSE), "[[", logical(1L), "context"
-    ) )
-    if(first.loop) {
-      tar.str.max <- tar.str
-      cur.str.max <- cur.str
-      diffs.max <- diffs.str
-      first.loop <- FALSE
-
-      # If there are no differences reducing levels isn't going to help to
-      # find one; additionally, if not in auto.mode we should not be going
-      # through this process
-
-      if(!has.diff || !auto.mode) break
-    }
-    if(line.limit[[1L]] < 1L) break
-
-    line.len <- diff_line_len(diffs.str$hunks, mode, disp.width)
-
-    # We need a higher level if we don't have diffs
-
-    if(!has.diff && prev.lvl.hi - lvl > 1L) {
-      prev.lvl.lo <- lvl
-      lvl <- lvl + as.integer((prev.lvl.hi - lvl) / 2)
-      tar.call[[max.level.pos]] <- lvl
-      cur.call[[max.level.pos]] <- lvl
-      next
-    } else if(!has.diff) {
-      tar.str <- tar.str.max
-      cur.str <- cur.str.max
-      diffs.str <- diffs.max
-      break
-    }
-    # If we have diffs, need to check whether we should try to reduce lines
-    # to get under line limit
-
-    if(line.len <= line.limit[[1L]]) {
-      # We fit, nothing else to do
-      break
-    }
-    if(lvl - prev.lvl.lo > 1L) {
-      prev.lvl.hi <- lvl
-      lvl <- lvl - as.integer((lvl - prev.lvl.lo) / 2)
-      tar.call[[max.level.pos]] <- lvl
-      cur.call[[max.level.pos]] <- lvl
-      next
-    }
-    # Couldn't get under limit, so use first run results
-
-    tar.str <- tar.str.max
-    cur.str <- cur.str.max
-    diffs.str <- diffs.max
-    lvl <- NULL
-    break
-  }
-  diffs <- diffs.str
-  diffs$diffs.max <- count_diffs(diffs.max$hunks)
-
-  if(auto.mode) {
-    str.match[[max.level.pos]] <- lvl
-  } else if (!max.level.supplied) {
-    str.match[[max.level.pos]] <- NULL
-  }
-  tar.call <- cur.call <- str.match
-  tar.call[[2L]] <- tar.exp
-  cur.call[[2L]] <- cur.exp
-  if(is.null(tar.banner)) tar.banner <- deparse(tar.call)[[1L]]
-  if(is.null(cur.banner)) cur.banner <- deparse(cur.call)[[1L]]
-} )
+}
 #' @rdname diff_obj
 #' @export
 
-diff_chr <- diff_tpl; body(diff_chr)[[13L]] <- quote({
+diff_chr <- function(
+  target, current, mode=getOption("diffobj.mode"),
+  context=getOption("diffobj.context"),
+  line.limit=getOption("diffobj.line.limit"),
+  settings=diffobj_settings(),
+  ...
+)
   tar.capt <- strip_hz_control(
     if(!is.character(target)) as.character(target) else target, tab.stops
   )

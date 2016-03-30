@@ -67,6 +67,8 @@ setClass(
     frame="environment",
     silent="logical",
     tab.stops="integer",
+    tar.exp="ANY",
+    curiexp="ANY",
     tar.banner="charOrNULL",
     cur.banner="charOrNULL"
   )
@@ -121,11 +123,9 @@ setClass(
     target="ANY",                 # Actual object
     tar.capt="character",         # The captured representation
     tar.capt.def="charOrNULL",    # ^^, but using default print method
-    tar.banner="character",       # Banner to display
     current="ANY",
     cur.capt="character",
     cur.capt.def="charOrNULL",
-    cur.banner="character",
     diffs="list",
     trim.dat="list",              # result of trimmaxg
     capt.mode="character",        # whether in print or str mode
@@ -148,7 +148,28 @@ setClass(
       return("slot `trim.dat` in incorrect format")
     TRUE
 } )
-#' @rdname diffobj_s4method_doc
+setMethod("show", "diffObjDiff",
+  function(object) {
+    # Finalize stuff
+
+    res.chr <- as.character(obj@diffs)
+    slot(res.diff, "trim.dat") <- attr(res.chr, "meta")
+    if(is.na(screen.lines) || screen.lines < 1L) screen.lines <- 48L
+
+    if(length(res.chr) / screen.lines > 1.5) {
+      disp.f <- tempfile()
+      on.exit(add=TRUE, unlink(disp.f))
+      writeLines(res.chr, disp.f)
+      if(pager_is_less() && settings@use.ansi) {
+        old.less <- set_less_var("R")
+        on.exit(reset_less_var(old.less), add=TRUE)
+      }
+      file.show(disp.f)
+    } else cat(res.chr, sep="\n")
+
+    invisible(NULL)
+  }
+)
 
 setMethod("any", "diffObjDiff",
   function(x, ..., na.rm = FALSE) {

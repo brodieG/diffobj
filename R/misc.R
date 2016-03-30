@@ -113,7 +113,7 @@ calc_width_unpad <- function(capt.width, mode) {
 # run exclusively for side effects (throwing an error, or assigning value in
 # parent env of 'check_args').
 
-check_limit <- function(limit, type) {
+check_limit <- function(limit) {
   if(
     !is.numeric(limit) || any(is.na(limit)) ||
     !length(limit) %in% 1:2 ||
@@ -125,7 +125,7 @@ check_limit <- function(limit, type) {
       paste0(
         "Argument `%s` must be an integer vector of length 1 or 2 ",
         "and if length 2, with the first value larger than or equal to ",
-        "the second."
+        "the second%s"
   ) ) }
   limit <- as.integer(limit)
   if(length(limit) == 1L) limit <- rep(limit, 2L)
@@ -136,70 +136,61 @@ check_limit <- function(limit, type) {
 # Note: this will modify the value of some of the arguments in the parent
 # environment
 
-check_args <- function(env.to.check, call) {
-  # Define variables to check
+check_args <- function(
+  call, tar.exp, cur.exp, mode, context, line.limit, settings
+) {
+  err <- function(txt) stop(simpleError(txt, call=call))
 
-  limit.vars <- c("line.limit", "hunk.limit")
-  int1L.vars <- c(
-    "disp.width", "max.diffs", "max.diffs.in.hunk", "max.diffs.wrap"
-  )
-  chr1LorNULL.vars <- c("tar.banner", "cur.banner")
-
-  # check modes
-
-  val.modes <- c("unified", "context", "sidebyside")
-  if(
-    !is.character(env.to.check$mode) || length(env.to.check$mode) != 1L ||
-    is.na(env.to.check$mode) || !env.to.check$mode %in% val.modes
-  ) {
-    msg <- paste0(
-      "Argument `mode` must be character(1L) and in `", deparse(val.modes), "`."
-    )
-    stop(simpleError(msg, call=call))
-  }
-  # check limit.vars (has side effects)
-
-  for(i in limit.vars) env.to.check[[i]] <- check_limit(env.to.check[[i]], i)
-
-  # check integer 1L args
-
-  msg.base <- "Argument `%s` must be integer(1L) and not NA."
-  for(i in int1L.vars) env.to.check[[i]] <-
-    if(!is.int.1L(env.to.check[[i]])) {
-      stop(simpleError(sprintf(msg.base, i), call=call))
-    } else as.integer(env.to.check[[i]])
+  if(!is(settings, "diffObjSettings"))
+    err("Argument `settings` must be a `diffObjSettings` S4 object")
 
   msg.base <- paste0(
     "Argument `%s` must be integer(1L) and not NA, an object produced ",
     "by `auto_context`, or \"auto\"."
   )
   if(
-    !is.int.1L(env.to.check$context) &&
-    !is(env.to.check$context,"diffObjAutoContext") &&
-    !identical(env.to.check$context, "auto")
+    !is.int.1L(context) && !is(context,"diffObjAutoContext") &&
+    !identical(context, "auto")
   )
-    stop(simpleError(sprintf(msg.base, "context"), call=call))
+    err(sprintf(msg.base, "context"))
 
-  if(identical(env.to.check$context, "auto"))
-    env.to.check$context <- auto_context()
+  context <- if(identical(context, "auto")) auto_context() else
+    as.integer(context)
 
-  # check char 1L
+  # check line limit
 
-  msg.base <- "Argument `%s` must be character(1L) and not NA, or NULL"
-  lapply(
-    chr1LorNULL.vars,
-    function(x)
-      if(!is.chr.1L(env.to.check[[x]]) && !is.null(env.to.check[[x]]))
-        stop(simpleError(sprintf(msg.base, x), call=call))
-  )
-  # frame
+  if(
+    !identical(line.limit, "auto") && !is(line.limit, "diffObjAutoLineLimit")
+  ) {
+    if(!is.integer(ll.check <- check_limit(line.limit)))
+      err(
+        sprintf(
+          ll.check, "line.limit",
+          ", or \"auto\" or the result of calling `auto_line_limit`"
+      ) )
+    line.limit <- ll.check
+  } else if (identical(line.limit, "auto")) {
+    line.limit <- auto_line_limit()
+  }
+  # check modes
 
-  if(!is.environment(env.to.check$frame))
-    stop(simpleError("Argument `frame` must be an environment.", call=call))
+  val.modes <- c("unified", "context", "sidebyside")
+  if(
+    !is.character(mode) || length(mode) != 1L || is.na(mode) || 
+    !mode %in% val.modes
+  ) {
+    msg <- paste0(
+      "Argument `mode` must be character(1L) and in `", deparse(val.modes), "`."
+    )
+    stop(simpleError(msg, call=call))
+  }
+  # Update the settings object
 
-  # Function does not return as we modify env.to.check as needed
-
-  NULL
+  settings@line.limit <- line.limit
+  settings@context <- context
+  settings@mode <- mode
+  settings@tar.exp <- tar.exp
+  settings@cur.exp <- cur.exp
 }
 
 is.int.1L <- function(x)

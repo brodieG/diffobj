@@ -217,30 +217,25 @@ setMethod("summary", "diffObjMyersMbaSes",
 # warn is to allow us to suppress warnings after first hunk warning
 
 char_diff <- function(
-  x, y, context=-1L, ignore.white.space, mode, hunk.limit, line.limit,
-  disp.width, max.diffs, tab.stops, diff.mode, warn, use.header=FALSE
+  x, y, context=-1L, settings, diff.mode, warn, use.header=FALSE
 ) {
   stopifnot(
     diff.mode %in% c("line", "hunk", "wrap"),
     isTRUE(warn) || identical(warn, FALSE)
   )
-  if(ignore.white.space) {
+  if(settings@ignore.white.space) {
     sub.pat <- "(\t| )"
     pat.1 <- sprintf("^%s*|%s*$", sub.pat, sub.pat)
     pat.2 <- sprintf("%s+", sub.pat)
     x.w <- gsub(pat.2, " ", gsub(pat.1, "", x))
     y.w <- gsub(pat.2, " ", gsub(pat.1, "", y))
   }
-  diff <- diff_myers_mba(x.w, y.w, max.diffs)
-  if(ignore.white.space) {
+  diff <- diff_myers_mba(x.w, y.w, settings@max.diffs)
+  if(settings@ignore.white.space) {
     diff@a <- x
     diff@b <- y
   }
-  hunks <- as.hunks(
-    diff, context=context, mode=mode, hunk.limit=hunk.limit,
-    line.limit=line.limit, disp.width=disp.width, tab.stops=tab.stops,
-    use.header=use.header
-  )
+  hunks <- as.hunks(diff, settings=settings)
   hit.diffs.max <- FALSE
   if(diff@diffs < 0L) {
     hit.diffs.max <- TRUE
