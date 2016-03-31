@@ -266,7 +266,7 @@ char_diff <- function(
 
 line_diff <- function(
   target, current, tar.capt, cur.capt, context, settings, warn=TRUE,
-  strip=TRUE
+  strip=TRUE, use.header=FALSE
 ) {
   if(strip) {
     tar.capt <- strip_hz_control(tar.capt, stops=settings@tab.stops)

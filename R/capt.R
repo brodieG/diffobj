@@ -105,26 +105,20 @@ capt_print <- function(target, current, settings, err, ...){
 
   both.at <- is.atomic(current) && is.atomic(target)
   capt.width <- calc_width(disp.width, mode) - 2L
-  cur.capt <-
-    strip_hz_control(capt_call(cur.call, capt.width, frame), tab.stops)
-  cur.capt.def <- if(both.at)
-    strip_hz_control(capt_call(cur.call.def, capt.width, frame), tab.stops)
-  tar.capt <-
-    strip_hz_control(capt_call(tar.call, capt.width, frame), tab.stops)
-  tar.capt.def <- if(both.at)
-    strip_hz_control(capt_call(tar.call.def, capt.width, frame), tab.stops)
+  cur.capt <- capt_call(cur.call, capt.width, frame)
+  cur.capt.def <- if(both.at) capt_call(cur.call.def, capt.width, frame)
+  tar.capt <- capt_call(tar.call, capt.width, frame)
+  tar.capt.def <- if(both.at) capt_call(tar.call.def, capt.width, frame)
 
   use.header <- length(dim(target)) == 2L && length(dim(current)) == 2L
 
-  diffs <- char_diff(
-    tar.capt, cur.capt, settings=settings, diff.mode="line", warn=TRUE,
-    use.header=use.header
+  diff <- line_diff(
+    target, current, tar.capt, cur.capt, settings=settings, diff.mode="line",
+    warn=TRUE, use.header=use.header
   )
-  new(
-    "diffObjDiff", diffs=diffs, target=target, current=current,
-    tar.capt=tar.capt, cur.capt=cur.capt, tar.capt.def=tar.capt.def,
-    cur.capt.def=cur.capt.def, settings=settings
-  )
+  diff@tar.capt.def <- tar.capt.def
+  diff@cur.capt.def <- cur.capt.def
+  diff
 }
 # Tries various different `str` settings to get the best possible output
 
@@ -203,10 +197,6 @@ capt_str <- function(target, current, settings, err, ...){
   tar.lvls <- str_levels(tar.capt, wrap=wrap)
   cur.capt <- capt_call(cur.call, capt.width, frame)
   cur.lvls <- str_levels(cur.capt, wrap=wrap)
-
-  # note list_depth for some mysterious reason doesn't quite line up with
-  # display of `str` when there are formulas as attributes, so just adding
-  # + 2L
 
   prev.lvl.hi <- lvl <- max.depth <- max(tar.lvls, cur.lvls)
   prev.lvl.lo <- 0L
@@ -298,18 +288,12 @@ capt_str <- function(target, current, settings, err, ...){
   diff.obj
 }
 capt_chr <- function(target, current, settings, err, ...){
-  tar.capt <- strip_hz_control(
-    if(!is.character(target)) as.character(target) else target, 
-    settings@tab.stops
-  )
-  cur.capt <- strip_hz_control(
-    if(!is.character(current)) as.character(current) else current, 
-    settings@tab.stops
-  )
+  tar.capt <- if(!is.character(target)) as.character(target, ...) else target
+  cur.capt <- if(!is.character(current)) as.character(current, ...) else current
   line_diff(target, current, tar.capt, cur.capt, settings)
 }
 capt_dep <- function(target, current, settings, err, ...){
-  tar.capt <- strip_hz_control(deparse(target, ...), tab.stops)
-  cur.capt <- strip_hz_control(deparse(current, ...), tab.stops)
+  tar.capt <- deparse(target, ...)
+  cur.capt <- deparse(current, ...)
   line_diff(target, current, tar.capt, cur.capt, settings)
 }
