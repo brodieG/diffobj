@@ -259,14 +259,13 @@ diff_chr <- function(
   line.limit=getOption("diffobj.line.limit"),
   settings=diffobj_settings(),
   ...
-)
-  tar.capt <- strip_hz_control(
-    if(!is.character(target)) as.character(target) else target, tab.stops
+) {}
+  diff_core(
+    call=sys.call(), capt=capt_chr, target=target, current=current,
+    tar.exp=substitute(target), cur.exp=substitute(current),
+    mode=mode, line.limit=line.limit, settings=settings, ...
   )
-  cur.capt <- strip_hz_control(
-    if(!is.character(current)) as.character(current) else current, tab.stops
-  )
-})
+}
 #' @rdname diff_obj
 #' @export
 

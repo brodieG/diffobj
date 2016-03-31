@@ -1,7 +1,9 @@
 # Capture output of print/show/str; unfortunately doesn't have superb handling
 # of errors during print/show call, though hopefully these are rare
+#
+# x is a quoted call to evaluate
 
-capt_call <- function(x, capt.width, frame) {
+capture <- function(x, capt.width, frame, err) {
   width.old <- getOption("width")
   on.exit(options(width=width.old))
   width <- max(capt.width, 20L)
@@ -9,16 +11,14 @@ capt_call <- function(x, capt.width, frame) {
 
   res <- try(obj.out <- capture.output(eval(x, frame)))
   if(inherits(res, "try-error"))
-    stop(
-      simpleError(
-        paste0(
-          "Failed attempting to get text representation of object: ",
-          conditionMessage(attr(res, "condition"))
-        ),
-        call=sys.call(-1L)
-    ) )
+    err(
+      "Failed attempting to get text representation of object: ",
+      conditionMessage(attr(res, "condition"))
+    )
   res
 }
+# DEPRECATED?
+
 obj_capt <- function(
   obj, width=getOption("width"), frame=parent.frame(), mode="print",
   max.level=0L, default=FALSE, ...
@@ -199,13 +199,9 @@ capt_str <- function(target, current, settings, err, ...){
   capt.width <- calc_width_pad(settings@disp.width, settings@mode)
   has.diff <- has.diff.prev <- FALSE
 
-  tar.capt <- strip_hz_control(
-    capt_call(tar.call, capt.width, frame), tab.stops
-  )
+  tar.capt <- capt_call(tar.call, capt.width, frame)
   tar.lvls <- str_levels(tar.capt, wrap=wrap)
-  cur.capt <- strip_hz_control(
-    capt_call(cur.call, capt.width, frame), tab.stops
-  )
+  cur.capt <- capt_call(cur.call, capt.width, frame)
   cur.lvls <- str_levels(cur.capt, wrap=wrap)
 
   # note list_depth for some mysterious reason doesn't quite line up with
@@ -227,18 +223,18 @@ capt_str <- function(target, current, settings, err, ...){
     tar.str <- tar.capt[tar.lvls <= lvl]
     cur.str <- cur.capt[cur.lvls <= lvl]
 
-    diffs.str <- char_diff(
-      tar.str, cur.str, settings, diff.mode="line", warn=warn
+    diff.obj <- line_diff(
+      tar.str, cur.str, settings, warn=warn, strip=first.loop, as.object=FALSE
     )
+    diff.str <- diff.obj@diffs
+
     if(diffs.str$hit.diffs.max) warn <- FALSE
     has.diff <- any(
       !vapply(
         unlist(diffs.str$hunks, recursive=FALSE), "[[", logical(1L), "context"
     ) )
     if(first.loop) {
-      tar.str.max <- tar.str
-      cur.str.max <- cur.str
-      diffs.max <- diffs.str
+      diff.obj.first <- diff.obj
       first.loop <- FALSE
 
       # If there are no differences reducing levels isn't going to help to
@@ -261,9 +257,7 @@ capt_str <- function(target, current, settings, err, ...){
       cur.call[[max.level.pos]] <- lvl
       next
     } else if(!has.diff) {
-      tar.str <- tar.str.max
-      cur.str <- cur.str.max
-      diffs.str <- diffs.max
+      diff.obj <- diff.obj.first
       break
     }
     # If we have diffs, need to check whether we should try to reduce lines
@@ -282,14 +276,11 @@ capt_str <- function(target, current, settings, err, ...){
     }
     # Couldn't get under limit, so use first run results
 
-    tar.str <- tar.str.max
-    cur.str <- cur.str.max
-    diffs.str <- diffs.max
+    diff.obj <- diff.obj.first
     lvl <- NULL
     break
   }
-  diffs <- diffs.str
-  diffs$diffs.max <- count_diffs(diffs.max$hunks)
+  diff.obj@diffs$diffs.max <- count_diffs(diff.obj@diffs$hunks)
 
   if(auto.mode) {
     str.match[[max.level.pos]] <- lvl
@@ -300,14 +291,11 @@ capt_str <- function(target, current, settings, err, ...){
   tar.call[[2L]] <- tar.exp
   cur.call[[2L]] <- cur.exp
   if(is.null(settings@tar.banner))
-    settings@tar.banner <- deparse(tar.call)[[1L]]
+    diff.obj@settings@tar.banner <- deparse(tar.call)[[1L]]
   if(is.null(settings@cur.banner))
-    settings@cur.banner <- deparse(cur.call)[[1L]]
+    diff.obj@settings@cur.banner <- deparse(cur.call)[[1L]]
 
-  new(
-    "diffObjDiff", diffs=diffs, target=target, current=current,
-    tar.capt=tar.str, cur.capt=cur.str, settings=settings
-  )
+  diff.obj
 }
 capt_chr <- function(target, current, settings, err, ...){
   tar.capt <- strip_hz_control(
@@ -318,11 +306,10 @@ capt_chr <- function(target, current, settings, err, ...){
     if(!is.character(current)) as.character(current) else current, 
     settings@tab.stops
   )
-  diffs <- char_diff(
-    tar.capt, cur.capt, settings=settings, diff.mode="line", warn=TRUE
-  )
-  new(
-    "diffObjDiff", diffs=diffs, target=target, current=current,
-    tar.capt=tar.str, cur.capt=cur.str, settings=settings
-  )
+  line_diff(target, current, tar.capt, cur.capt, settings)
+}
+capt_dep <- function(target, current, settings, err, ...){
+  tar.capt <- strip_hz_control(deparse(target, ...), tab.stops)
+  cur.capt <- strip_hz_control(deparse(current, ...), tab.stops)
+  line_diff(target, current, tar.capt, cur.capt, settings)
 }

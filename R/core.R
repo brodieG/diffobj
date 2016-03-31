@@ -261,6 +261,25 @@ char_diff <- function(
     hit.diffs.max=hit.diffs.max
   )
 }
+# Variation on `char_diff` used for the overall diff where we don't need
+# to worry about overhead from creating the `diffObjDiff` object
+
+line_diff <- function(
+  target, current, tar.capt, cur.capt, context, settings, warn=TRUE,
+  strip=TRUE
+) {
+  if(strip) {
+    tar.capt <- strip_hz_control(tar.capt, stops=settings@tab.stops)
+    cur.capt <- strip_hz_control(cur.capt, stops=settings@tab.stops)
+  }
+  diffs <- char_diff(
+    tar.capt, cur.capt, settings=settings, diff.mode="line", warn=warn
+  )
+  new(
+    "diffObjDiff", diffs=diffs, target=target, current=current,
+    tar.capt=tar.str, cur.capt=cur.str, settings=settings
+  )
+}
 # Helper function encodes matches within mismatches so that we can later word
 # diff the mismatches
 
