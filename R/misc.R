@@ -157,21 +157,6 @@ check_args <- function(
   context <- if(identical(context, "auto")) auto_context() else
     as.integer(context)
 
-  # check line limit
-
-  if(
-    !identical(line.limit, "auto") && !is(line.limit, "diffObjAutoLineLimit")
-  ) {
-    if(!is.integer(ll.check <- check_limit(line.limit)))
-      err(
-        sprintf(
-          ll.check, "line.limit",
-          ", or \"auto\" or the result of calling `auto_line_limit`"
-      ) )
-    line.limit <- ll.check
-  } else if (identical(line.limit, "auto")) {
-    line.limit <- auto_line_limit()
-  }
   # check modes
 
   val.modes <- c("unified", "context", "sidebyside")
@@ -186,9 +171,8 @@ check_args <- function(
   }
   # Update the settings object
 
-  settings@line.limit <- line.limit
-  settings@context <- context
   settings@mode <- mode
+  settings@context <- context
   settings@tar.exp <- tar.exp
   settings@cur.exp <- cur.exp
 }
