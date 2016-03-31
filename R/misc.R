@@ -1,3 +1,8 @@
+# Generate a function that behaves like `stop` but with a specific reported
+# error call
+
+make_err_fun <- function(call)
+  function(...) stop(simpleError(do.call(paste0, list(...), call=call)))
 
 # Function used to match against `str` calls since the existing function
 # does not actually define `max.level`
@@ -132,14 +137,9 @@ check_limit <- function(limit) {
   limit
 }
 # Checks common arguments across functions
-#
-# Note: this will modify the value of some of the arguments in the parent
-# environment
 
-check_args <- function(
-  call, tar.exp, cur.exp, mode, context, line.limit, settings
-) {
-  err <- function(txt) stop(simpleError(txt, call=call))
+check_args <- function(call, tar.exp, cur.exp, mode, context, settings) {
+  err <- make_err_fun(call)
 
   if(!is(settings, "diffObjSettings"))
     err("Argument `settings` must be a `diffObjSettings` S4 object")
@@ -157,24 +157,27 @@ check_args <- function(
   context <- if(identical(context, "auto")) auto_context() else
     as.integer(context)
 
-  # check modes
+  # check modes: IMPORTANT: these values must be completely unambiguous at
+  # any 'substr' of them otherwise these checks fail
 
   val.modes <- c("unified", "context", "sidebyside")
-  if(
-    !is.character(mode) || length(mode) != 1L || is.na(mode) || 
-    !mode %in% val.modes
-  ) {
-    msg <- paste0(
+  fail.mode <- FALSE
+  if(!is.character(mode) || length(mode) != 1L || is.na(mode) || !nzchar(mode))
+    fail.mode <- TRUE
+  if(!fail.mode && !any(mode.eq <- substr(val.modes, 1, nchar(mode)) == mode))
+    fail.mode <- TRUE
+  if(fail.mode)
+    err(
       "Argument `mode` must be character(1L) and in `", deparse(val.modes), "`."
     )
-    stop(simpleError(msg, call=call))
-  }
+
   # Update the settings object
 
-  settings@mode <- mode
+  settings@mode <- val.modes[[mode.eq]]
   settings@context <- context
   settings@tar.exp <- tar.exp
   settings@cur.exp <- cur.exp
+  settings
 }
 
 is.int.1L <- function(x)
