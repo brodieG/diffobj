@@ -68,7 +68,7 @@ setClass(
     silent="logical",
     tab.stops="integer",
     tar.exp="ANY",
-    curiexp="ANY",
+    cur.exp="ANY",
     tar.banner="charOrNULL",
     cur.banner="charOrNULL"
   )

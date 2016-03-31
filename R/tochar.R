@@ -32,9 +32,11 @@ rng_as_chr <- function(range) {
 }
 # Convert a hunk group into text representation
 
-hunk_as_char <- function(
-  h.g, ranges.orig, mode, disp.width, ignore.white.space
-) {
+hunk_as_char <- function(h.g, ranges.orig, settings) {
+  mode <- settings@mode
+  disp.width <- settings@disp.width
+  ignore.white.space <- settings@ignore.white.space
+
   # First check that the hunk group hasn't been completely trimmed
 
   all.lines <- sum(
@@ -206,16 +208,16 @@ setMethod("as.character", "diffObjDiff",
     # checked earlier; here just in case we mess something up in devel or
     # testing
 
-    hunk.limit <- x@hunk.limit
-    line.limit <- x@line.limit
-    hunk.limit <- x@hunk.limit
-    disp.width <- x@disp.width
-    max.diffs <- x@max.diffs
-    max.diffs.in.hunk <- x@max.diffs.in.hunk
-    max.diffs.wrap <- x@max.diffs.wrap
-    mode <- x@mode
-    tab.stops <- x@tab.stops
-    ignore.white.space <- x@ignore.white.space
+    hunk.limit <- x@settings@hunk.limit
+    line.limit <- x@settings@line.limit
+    hunk.limit <- x@settings@hunk.limit
+    disp.width <- x@settings@disp.width
+    max.diffs <- x@settings@max.diffs
+    max.diffs.in.hunk <- x@settings@max.diffs.in.hunk
+    max.diffs.wrap <- x@settings@max.diffs.wrap
+    mode <- x@settings@mode
+    tab.stops <- x@settings@tab.stops
+    ignore.white.space <- x@settings@ignore.white.space
 
     len.max <- max(length(x@tar.capt), length(x@cur.capt))
     no.diffs <- if(!any(x)) {
@@ -238,16 +240,13 @@ setMethod("as.character", "diffObjDiff",
 
     # Trim hunks to the extent need to make sure we fit in lines
 
-    hunk.grps <- trim_hunks(
-      x@diffs$hunks, mode=mode, disp.width=disp.width, line.limit=line.limit.a,
-      hunk.limit=hunk.limit
-    )
+    hunk.grps <- trim_hunks(x@diffs$hunks, x@settings)
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
 
     # Make the object banner and compute more detailed widths post trim
 
-    banner.A <- paste0("--- ", x@tar.banner)
-    banner.B <- paste0("+++ ", x@cur.banner)
+    banner.A <- paste0("--- ", x@settings@tar.banner)
+    banner.B <- paste0("+++ ", x@settings@cur.banner)
 
     if(mode == "sidebyside") {
       # If side by side we want stuff close together if reasonable
