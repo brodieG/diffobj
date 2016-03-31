@@ -259,7 +259,7 @@ diff_chr <- function(
   line.limit=getOption("diffobj.line.limit"),
   settings=diffobj_settings(),
   ...
-) {}
+) {
   diff_core(
     call=sys.call(), capt=capt_chr, target=target, current=current,
     tar.exp=substitute(target), cur.exp=substitute(current),
@@ -269,8 +269,15 @@ diff_chr <- function(
 #' @rdname diff_obj
 #' @export
 
-diff_deparse <- diff_tpl; body(diff_deparse)[[13L]] <- quote({
-  tar.capt <- strip_hz_control(deparse(target, ...), tab.stops)
-  cur.capt <- strip_hz_control(deparse(current, ...), tab.stops)
-})
-
+diff_deparse <- function(
+  target, current, mode=getOption("diffobj.mode"),
+  context=getOption("diffobj.context"),
+  line.limit=getOption("diffobj.line.limit"),
+  settings=diffobj_settings(),
+  ...
+) {
+  diff_core(
+    call=sys.call(), capt=capt_deparse, target=target, current=current,
+    tar.exp=substitute(target), cur.exp=substitute(current),
+    mode=mode, line.limit=line.limit, settings=settings, ...
+  )

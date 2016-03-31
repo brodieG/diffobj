@@ -292,7 +292,7 @@ capt_chr <- function(target, current, settings, err, ...){
   cur.capt <- if(!is.character(current)) as.character(current, ...) else current
   line_diff(target, current, tar.capt, cur.capt, settings)
 }
-capt_dep <- function(target, current, settings, err, ...){
+capt_deparse <- function(target, current, settings, err, ...){
   tar.capt <- deparse(target, ...)
   cur.capt <- deparse(current, ...)
   line_diff(target, current, tar.capt, cur.capt, settings)
