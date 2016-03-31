@@ -131,40 +131,58 @@ NULL
 
 NULL
 
-# Because all these functions are so similar, we have constructed them in an
-# odd fashion:
-# - All the formals are defined in a separate dummy function `diff_tpl`
-# - We copy this dummy function for each of our actual functions, and change
-#   the bodies
+# Because all these functions are so similar, we have construct them with a
+# function factory.  This allows us to easily maintain consisten formals during
+# initial development process when they have not been set in stone yet.
 
-diff_core <- function(
-  call, capt, target, current, tar.exp, cur.exp, mode, context, line.limit,
-  settings, ...
-) {
-  settings <- check_args(
-    call=call, tar.exp=tar.exp, cur.exp=cur.exp, context=context,
-    line.limit=line.limit, settings=settings
-  )
-  # Force crayon to whatever ansi status we chose; note we must do this after
-  # touching vars in case someone passes `options(crayon.enabled=...)` as one
-  # of the arguments
+make_diff_fun <- function(capt_fun) {
+  function(
+    target, current, mode=getOption("diffobj.mode"),
+    context=getOption("diffobj.context"),
+    line.limit=getOption("diffobj.line.limit"),
+    settings=diffobj_settings(),
+    ...
+  ) {
+    settings <- check_args(
+      call=call, tar.exp=tar.exp, cur.exp=cur.exp, context=context,
+      line.limit=line.limit, settings=settings
+    )
+    # Force crayon to whatever ansi status we chose; note we must do this after
+    # touching vars in case someone passes `options(crayon.enabled=...)` as one
+    # of the arguments
 
-  old.crayon.opt <- options(crayon.enabled=settings@use.ansi)
-  on.exit(options(old.crayon.opt), add=TRUE)
-  err <- function(x) stop(simpleError(x, call=call))
-  capt(target, current, settings=settings, err=err, ...)
+    old.crayon.opt <- options(crayon.enabled=settings@use.ansi)
+    on.exit(options(old.crayon.opt), add=TRUE)
+    err <- function(x) stop(simpleError(x, call=sys.call))
+    capt_fun(target, current, settings=settings, err=err, ...)
+  }
 }
-# Note this one overwrites the entire body
 #' @rdname diff_obj
 #' @export
 
-diff_obj <- function(
-  target, current, mode=getOption("diffobj.mode"),
-  context=getOption("diffobj.context"),
-  line.limit=getOption("diffobj.line.limit"),
-  settings=diffobj_settings(),
-  ...
-) {
+diff_print <- make_diff_fun(capt_print)
+
+#' @rdname diff_obj
+#' @export
+
+diff_str <- make_diff_fun(capt_str)
+
+#' @rdname diff_obj
+#' @export
+
+diff_chr <- make_diff_fun(capt_chr)
+
+#' @rdname diff_obj
+#' @export
+
+diff_deparse <- make_diff_fun(capt_deparse)
+
+#' @rdname diff_obj
+#' @export
+
+diff_obj <- diff_print # we overwrite the body next
+
+body(diff_obj) <- quote({
   if(length(list(...))) {
     stop("`...` argument not supported in `diff_obj`")
   }
@@ -214,70 +232,4 @@ diff_obj <- function(
     if(p.score >= s.score) res.print else res.str
   }
   res
-}
-#' @rdname diff_obj
-#' @export
-
-diff_print <- function(
-  target, current, mode=getOption("diffobj.mode"),
-  context=getOption("diffobj.context"),
-  line.limit=getOption("diffobj.line.limit"),
-  settings=diffobj_settings(),
-  ...
-) {
-  diff_core(
-    call=sys.call(), capt=capt_print, target=target, current=current,
-    tar.exp=substitute(target), cur.exp=substitute(current),
-    mode=mode, line.limit=line.limit, settings=settings, ...
-  )
-}
-#' @rdname diff_obj
-#' @export
-
-diff_str <- function(
-  target, current, mode=getOption("diffobj.mode"),
-  context=getOption("diffobj.context"),
-  line.limit=getOption("diffobj.line.limit"),
-  settings=diffobj_settings(),
-  ...
-) {
-  # Match original call and managed dots, in particular wrt to the
-  # `max.level` arg
-
-  diff_core(
-    call=sys.call(), capt=capt_str, target=target, current=current,
-    tar.exp=substitute(target), cur.exp=substitute(current),
-    mode=mode, line.limit=line.limit, settings=settings, ...
-  )
-}
-#' @rdname diff_obj
-#' @export
-
-diff_chr <- function(
-  target, current, mode=getOption("diffobj.mode"),
-  context=getOption("diffobj.context"),
-  line.limit=getOption("diffobj.line.limit"),
-  settings=diffobj_settings(),
-  ...
-) {
-  diff_core(
-    call=sys.call(), capt=capt_chr, target=target, current=current,
-    tar.exp=substitute(target), cur.exp=substitute(current),
-    mode=mode, line.limit=line.limit, settings=settings, ...
-  )
-}
-#' @rdname diff_obj
-#' @export
-
-diff_deparse <- function(
-  target, current, mode=getOption("diffobj.mode"),
-  context=getOption("diffobj.context"),
-  line.limit=getOption("diffobj.line.limit"),
-  settings=diffobj_settings(),
-  ...
-) {
-  diff_core(
-    call=sys.call(), capt=capt_deparse, target=target, current=current,
-    tar.exp=substitute(target), cur.exp=substitute(current),
-    mode=mode, line.limit=line.limit, settings=settings, ...
-  )
+})
