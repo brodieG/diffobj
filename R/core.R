@@ -273,7 +273,8 @@ line_diff <- function(
     cur.capt <- strip_hz_control(cur.capt, stops=settings@tab.stops)
   }
   diffs <- char_diff(
-    tar.capt, cur.capt, settings=settings, diff.mode="line", warn=warn
+    tar.capt, cur.capt, settings=settings, diff.mode="line", warn=warn,
+    use.header=use.header
   )
   new(
     "diffObjDiff", diffs=diffs, target=target, current=current,
