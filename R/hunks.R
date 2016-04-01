@@ -95,11 +95,12 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
           context <- !!mtc.len
 
           A <- switch(
-            mode, context=tar, unified=c(tar, if(!context) cur), sidebyside=tar,
+            settings@mode, context=tar, 
+            unified=c(tar, if(!context) cur), sidebyside=tar,
             stop("Logic Error: unknown mode; contact maintainer.")
           )
           B <- switch(
-            mode, context=cur, unified=integer(), sidebyside=cur,
+            settings@mode, context=cur, unified=integer(), sidebyside=cur,
             stop("Logic Error: unknown mode; contact maintainer.")
           )
           # Retrieve the character values
@@ -134,16 +135,18 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
     # Definitely not very efficient since we re-run code multiple times we
     # probably don't need to.
 
-    if(is(context, "diffObjAutoContext")) {
+    context <- settings@context
+    line.limit <- settings@line.limit
+    ctx.val <- if(is(context, "diffObjAutoContext")) {
       len <- diff_line_len(
-        p_and_t_hunks(res.l, context=context@max, settings=settings),
+        p_and_t_hunks(res.l, ctx.val=context@max, settings=settings),
         settings=settings
       )
       len.min <- diff_line_len(
-        p_and_t_hunks(res.l, context=context@min, settings=settings),
+        p_and_t_hunks(res.l, ctx.val=context@min, settings=settings),
         settings=settings
       )
-      context <- if(len <= line.limit[[1L]] || line.limit[[1L]] < 0L) {
+      if(len <= line.limit[[1L]] || line.limit[[1L]] < 0L) {
         -1L
       } else if(len.min > line.limit[[1L]]) {
         context@min
@@ -182,21 +185,23 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
             break
           }
           len <- diff_line_len(
-            p_and_t_hunks(res.l, context=ctx, settings=settings),
+            p_and_t_hunks(res.l, ctx.val=ctx, settings=settings),
             settings=settings
           )
         }
         ctx
-    } }
-    res <- process_hunks(res.l, settings=settings)
+      } 
+    } else context
+
+    res <- process_hunks(res.l, ctx.val=ctx.val, use.header=settings@use.header)
     res
 } )
 # process the hunks and also drop off groups that exceed limit
 #
 # used exclusively when we are trying to auto-calculate context
 
-p_and_t_hunks <- function(hunks.raw, context, settings) {
-  c.all <- process_hunks(hunks.raw, settings)
+p_and_t_hunks <- function(hunks.raw, ctx.val, settings) {
+  c.all <- process_hunks(hunks.raw, ctx.val, settings@use.header)
   hunk.limit <- settings@hunk.limit
   if(hunk.limit[[1L]] >= 0L && length(c.all) > hunk.limit)
     c.all <- c.all[seq_along(hunk.limit[[2L]])]
@@ -246,9 +251,8 @@ hunk_sub <- function(hunk, op, n) {
 #
 # This will group atomic hunks into hunk groups
 
-process_hunks <- function(x, settings) {
-  context <- settings@context
-  use.heaser <- settings@use.header
+process_hunks <- function(x, ctx.val, use.header) {
+  context <- ctx.val
   ctx.vec <- vapply(x, "[[", logical(1L), "context")
   if(!all(abs(diff(ctx.vec)) == 1L))
     stop(

@@ -75,11 +75,11 @@ obj_capt <- function(
 
 capt_print <- function(target, current, settings, err, ...){
   dots <- list(...)
+  frame <- settings@frame
   print.match <- try(
     match.call(
-      get("print", envir=settings@frame),
-      as.call(c(list(quote(print), x=NULL), dots)),
-      envir=settings@frame
+      get("print", envir=frame), as.call(c(list(quote(print), x=NULL), dots)),
+      envir=frame
   ) )
   if(inherits(print.match, "try-error"))
     err("Unable to compose `print` call")
@@ -104,16 +104,16 @@ capt_print <- function(target, current, settings, err, ...){
   tar.call.def[[1L]] <- cur.call.def[[1L]] <- base::print.default
 
   both.at <- is.atomic(current) && is.atomic(target)
-  capt.width <- calc_width(disp.width, mode) - 2L
-  cur.capt <- capt_call(cur.call, capt.width, frame)
-  cur.capt.def <- if(both.at) capt_call(cur.call.def, capt.width, frame)
-  tar.capt <- capt_call(tar.call, capt.width, frame)
-  tar.capt.def <- if(both.at) capt_call(tar.call.def, capt.width, frame)
+  capt.width <- calc_width(settings@disp.width, settings@mode) - 2L
+  cur.capt <- capture(cur.call, capt.width, frame, err)
+  cur.capt.def <- if(both.at) capture(cur.call.def, capt.width, frame, err)
+  tar.capt <- capture(tar.call, capt.width, frame)
+  tar.capt.def <- if(both.at) capture(tar.call.def, capt.width, frame, err)
 
   use.header <- length(dim(target)) == 2L && length(dim(current)) == 2L
 
   diff <- line_diff(
-    target, current, tar.capt, cur.capt, settings=settings, diff.mode="line",
+    target, current, tar.capt, cur.capt, settings=settings, 
     warn=TRUE, use.header=use.header
   )
   diff@tar.capt.def <- tar.capt.def
@@ -125,6 +125,7 @@ capt_print <- function(target, current, settings, err, ...){
 capt_str <- function(target, current, settings, err, ...){
   # Match original call and managed dots, in particular wrt to the
   # `max.level` arg
+  frame <- settings@frame
   if("object" %in% names(dots))
     err("You may not specify `object` as part of `...`")
 
@@ -193,9 +194,9 @@ capt_str <- function(target, current, settings, err, ...){
   capt.width <- calc_width_pad(settings@disp.width, settings@mode)
   has.diff <- has.diff.prev <- FALSE
 
-  tar.capt <- capt_call(tar.call, capt.width, frame)
+  tar.capt <- capture(tar.call, capt.width, frame, err)
   tar.lvls <- str_levels(tar.capt, wrap=wrap)
-  cur.capt <- capt_call(cur.call, capt.width, frame)
+  cur.capt <- capture(cur.call, capt.width, frame, err)
   cur.lvls <- str_levels(cur.capt, wrap=wrap)
 
   prev.lvl.hi <- lvl <- max.depth <- max(tar.lvls, cur.lvls)

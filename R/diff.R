@@ -150,8 +150,8 @@ make_diff_fun <- function(capt_fun) {
     # Check args
 
     settings <- check_args(
-      call=call, tar.exp=tar.exp, cur.exp=cur.exp, context=context,
-      settings=settings
+      call=call, tar.exp=substitute(target), cur.exp=substitute(current),
+      mode=mode, context=context, settings=settings
     )
     # Force crayon to whatever ansi status we chose; note we must do this after
     # touching vars in case someone passes `options(crayon.enabled=...)` as one

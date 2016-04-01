@@ -29,6 +29,7 @@ Collate:
     'hunks.R'
     'myerssimple.R'
     'rdiff.R'
+    'set.R'
     'system.R'
     'text.R'
     'tochar.R'

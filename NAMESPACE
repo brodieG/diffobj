@@ -3,6 +3,8 @@
 export(Rdiff_chr)
 export(Rdiff_obj)
 export(auto_context)
+export(auto_line_limit)
+export(console_lines)
 export(diff_chr)
 export(diff_deparse)
 export(diff_obj)

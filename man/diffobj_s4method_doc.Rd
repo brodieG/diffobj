@@ -2,14 +2,11 @@
 % Please edit documentation in R/s4.R, R/tochar.R
 \docType{methods}
 \name{diffobj_s4method_doc}
-\alias{any,diffObjDiff-method}
 \alias{any,diffObjDiffDiffs-method}
 \alias{as.character,diffObjDiff-method}
 \alias{diffobj_s4method_doc}
 \title{Dummy Doc File for S4 Methods with Existing Generics}
 \usage{
-\S4method{any}{diffObjDiff}(x, ..., na.rm = FALSE)
-
 \S4method{any}{diffObjDiffDiffs}(x, ..., na.rm = FALSE)
 
 \S4method{as.character}{diffObjDiff}(x, ...)

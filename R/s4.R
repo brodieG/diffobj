@@ -70,8 +70,10 @@ setClass(
     tar.exp="ANY",
     cur.exp="ANY",
     tar.banner="charOrNULL",
-    cur.banner="charOrNULL"
-  )
+    cur.banner="charOrNULL",
+    use.header="logical"
+  ),
+  prototype=list(use.header=FALSE)
 )
 # Classes for tracking intermediate diff obj data
 #
@@ -150,10 +152,13 @@ setClass(
 } )
 setMethod("show", "diffObjDiff",
   function(object) {
+    browser()
     # Finalize stuff
 
-    res.chr <- as.character(obj@diffs)
-    slot(res.diff, "trim.dat") <- attr(res.chr, "meta")
+    res.chr <- as.character(object@diffs)
+    # slot(res.diff, "trim.dat") <- attr(res.chr, "meta")
+    
+    screen.lines <- as.integer(Sys.getenv("LINES"))[[1L]]
     if(is.na(screen.lines) || screen.lines < 1L) screen.lines <- 48L
 
     if(length(res.chr) / screen.lines > 1.5) {

@@ -2,7 +2,7 @@
 # error call
 
 make_err_fun <- function(call)
-  function(...) stop(simpleError(do.call(paste0, list(...), call=call)))
+  function(...) stop(simpleError(do.call(paste0, list(...)), call=call))
 
 # Function used to match against `str` calls since the existing function
 # does not actually define `max.level`
@@ -173,7 +173,7 @@ check_args <- function(call, tar.exp, cur.exp, mode, context, settings) {
 
   # Update the settings object
 
-  settings@mode <- val.modes[[mode.eq]]
+  settings@mode <- val.modes[[which(mode.eq)]]
   settings@context <- context
   settings@tar.exp <- tar.exp
   settings@cur.exp <- cur.exp

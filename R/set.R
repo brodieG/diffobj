@@ -47,7 +47,7 @@ diffobj_settings <- function(
   max.diffs.wrap=getOption("diffobj.max.diffs.wrap"),
   tab.stops=getOption("diffobj.tab.stops"),
   frame=parent.frame(),
-  tar.banner=NULL, cur.banner=NULL,
+  tar.banner=NULL, cur.banner=NULL
 ) {
   # Check arguments
 
@@ -81,7 +81,6 @@ diffobj_settings <- function(
   } else if (identical(line.limit, "auto")) {
     line.limit <- auto_line_limit()
   }
-
   # check T F args
 
   TF.vars <- c("use.ansi", "ignore.white.space", "silent")

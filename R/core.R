@@ -278,7 +278,7 @@ line_diff <- function(
   )
   new(
     "diffObjDiff", diffs=diffs, target=target, current=current,
-    tar.capt=tar.str, cur.capt=cur.str, settings=settings
+    tar.capt=tar.capt, cur.capt=cur.capt, settings=settings
   )
 }
 # Helper function encodes matches within mismatches so that we can later word
