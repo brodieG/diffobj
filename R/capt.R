@@ -298,10 +298,10 @@ capt_str <- function(target, current, settings, err, ...){
 capt_chr <- function(target, current, settings, err, ...){
   tar.capt <- if(!is.character(target)) as.character(target, ...) else target
   cur.capt <- if(!is.character(current)) as.character(current, ...) else current
-  line_diff(target, current, tar.capt, cur.capt, settings)
+  line_diff(target, current, tar.capt, cur.capt, settings=settings)
 }
 capt_deparse <- function(target, current, settings, err, ...){
   tar.capt <- deparse(target, ...)
   cur.capt <- deparse(current, ...)
-  line_diff(target, current, tar.capt, cur.capt, settings)
+  line_diff(target, current, tar.capt, cur.capt, settings=settings)
 }
