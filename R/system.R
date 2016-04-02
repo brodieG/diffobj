@@ -5,11 +5,9 @@
     diffobj.context.auto.min=1L,
     diffobj.context.auto.max=-1L,
     diffobj.ignore.white.space=TRUE,
-    diffobj.line.limit="auto",
-    diffobj.line.limit.auto.failover=-1L,
-    # see below, 0L: never, 1L: if > console_lines, 2L: always
-    diffobj.use.pager=NULL,
-    diffobj.pager.lines="auto",
+    diffobj.line.limit=-1L,
+    diffobj.pager.mode="threshold",
+    diffobj.pager.threshold=-1L,
     diffobj.less.flags="R",
     diffobj.hunk.limit=-1L,
     diffobj.use.ansi=crayon::has_color(),
@@ -22,11 +20,6 @@
   )
   existing.opts <- options()
   options(default.opts[setdiff(names(default.opts), names(existing.opts))])
-  if(is.null(getOption("diffobj.use.pager")))
-    options(
-      diffobj.use.pager=if(identical(getOption("diffobj.line.limit"), "auto"))
-        1L else 0L
-    )
 }
 #' Remove DLLs when package is unloaded
 

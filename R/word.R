@@ -83,8 +83,7 @@ diff_word <- function(
   if(is.null(tar.unsplit)) tar.unsplit <- character(0L)
   if(is.null(cur.unsplit)) cur.unsplit <- character(0L)
 
-  settings@line.limit <- auto_line_limit(limit=-1L, use.pager=0L)
-  settings@hunk.limit <- settings@context <- -1L
+  settings@line.limit <- settings@hunk.limit <- settings@context <- -1L
   settings@mode <- "context"
   diffs <- char_diff(
     tar.unsplit, cur.unsplit, settings=settings, diff.mode=diff.mode, warn=warn

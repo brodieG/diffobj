@@ -4,6 +4,8 @@
 #' \code{dfos} is just shorthand.
 #'
 #' @aliases dfos
+#' @export
+#' @export dfos
 #' @param hunk.limit integer(2L) how many sections of differences to show.
 #'   Behaves similarly to the \code{line.limit} parameter for
 #'   \code{link{diff_obj}} except it only supports numeric input (defaults to
@@ -40,6 +42,7 @@
 diffobj_settings <- dfos <- function(
   line.limit=getOption("diffobj.line.limit"),
   hunk.limit=getOption("diffobj.hunk.limit"),
+  pager=pager_settings(),
   ignore.white.space=getOption("diffobj.ignore.white.space"),
   use.ansi=getOption("diffobj.use.ansi"),
   disp.width=getOption("width"),
@@ -70,19 +73,12 @@ diffobj_settings <- dfos <- function(
 
   hunk.limit <- check_limit(hunk.limit)
   if(!is.integer(hunk.limit)) stop(sprintf(hunk.limit, "hunk.limit", "."))
-  if(
-    !identical(line.limit, "auto") && !is(line.limit, "diffObjAutoLineLimit")
-  ) {
-    if(!is.integer(ll.check <- check_limit(line.limit)))
-      err(
-        sprintf(
-          ll.check, "line.limit",
-          ", or \"auto\" or the result of calling `auto_line_limit`"
-      ) )
-    line.limit <- auto_line_limit(limit=ll.check, use.pager=0L)
-  } else if (identical(line.limit, "auto")) {
-    line.limit <- auto_line_limit()
-  }
+  if(!is.integer(line.limit <- check_limit(line.limit)))
+    err(
+      sprintf(
+        line.limit, "line.limit",
+        ", or \"auto\" or the result of calling `auto_line_limit`"
+    ) )
   # check T F args
 
   TF.vars <- c("use.ansi", "ignore.white.space", "silent")
@@ -136,63 +132,63 @@ console_lines <- function() {
   LINES <- as.integer(Sys.getenv("LINES"))
   if(length(lines) == 1L && !is.na(LINES) && LINES > 0L) LINES else 48L
 }
-#' Configure Automatic Parameter Calculations
+#' Configure Automatic Contextz Calculation
 #'
 #' Helper functions to help define parameters for selecting an appropriate
-#' \code{context} and \code{line.limit} values.
+#' \code{context} value.
 #'
 #' @export
-#' @aliases auto_line_limit
 #' @param min integer(1L), positive, set to zero to allow any context
 #' @param max integer(1L), set to negative to allow any context
-#' @param limit integer(2L), see documentation for \code{line.limit} parameter
-#'   for \code{link{diff_obj}}
-#' @param pager.lines integer(1L), number of lines above which output is
-#'   displayed with \code{\link{file.show}} instead of \code{cat}ed directly to
-#'   screen.  Set to negative to always use pager, zero to never use pager.
-#'   Defaults to \code{\link{console_lines} * 1.2}
-#' @param less.flags character(1L), what flags to set with the \code{LESS}
-#'   system environment variable.  This is only relevant if your system is
-#'   configured to use \code{less} as the pager.  You should only provide the
-#'   flag letters (e.g. \code{"RX"}, not \code{"-RX"}).  Defaults to \code{"R"}
-#'   if it appears that \code{less} is the system pager and the \code{use.ansi}
-#'   \code{\link{diff_settings}}
-#'   The system variable is only modified for the duration of the evaluation and
-#'   is reset / unset afterwards.
 #' @return S4 object containing configuration parameters, for use as the
-#'   \code{context} or \code{line_limit} parameters value in
-#'   \code{\link{diff_obj}} and related functions
+#'   \code{context} or parameter value in \code{\link{diff_obj}} and related
+#'   functions
 
 auto_context <- function(
   min=getOption("diffobj.context.auto.min"),
   max=getOption("diffobj.context.auto.max")
 ){
+  if(!is.int.1L(min) || min < 0L)
+    stop("Argument `min` must be integer(1L) and greater than zero")
+  if(!is.int.1L(max) || max < 0L)
+    stop("Argument `max` must be integer(1L) and greater than zero")
   new("diffObjAutoContext", min=as.integer(min), max=as.integer(max))
 }
+#' Control Under What Circumstances Output is Displayed Through Pager
+#'
+#' Pager is invoked via \code{\link{file.show}}.  This function is intended for
+#' use with the \code{pager} parameter for \code{\link{diffobj_settings}}.
+#'
 #' @export
+#' @param mode character(1L) one of \itemize{
+#'   \item threshold: use pager if output has more lines than \code{threshold}
+#'   \item always: always use pager
+#'   \item never: never use pager
+#' }
+#' @param threshold integer(1L) if in \code{mode} "threshold", number of lines
+#'   of output that triggers the use of the pager; negative values lead to
+#'   using \code{\link{console_lines}} + 1
+#' @param less.flags character(1L), what flags to set with the \code{LESS}
+#'   system environment variable.  This is only relevant if your system is
+#'   configured to use \code{less} as the pager.  You should only provide the
+#'   flag letters (e.g. \code{"RX"}, not \code{"-RX"}).  Defaults to \code{"R"}
+#'   if it appears that \code{less} is the system pager and the \code{use.ansi}
+#'   setting is TRUE.  The system variable is only modified for the duration of
+#'   the evaluation and is reset / unset afterwards.
+#' @return S4 object for use as the \code{pager} parameter to
+#'   \code{link{diffobj_settings}}
 
-auto_line_limit <- function(
-  limit=getOption("diffobj.line.limit.auto.failover"),
-  use.pager=getOption("diffobj.use.pager"),
-  pager.lines=getOption("diffobj.pager.lines"),
+pager_settings <- function(
+  mode=getOption("diffobj.pager.mode"),
+  threshold=getOption("diffobj.pager.threshold"),
   less.flags=getOption("diffobj.less.flags")
-){
-  if(identical(pager.lines, "auto"))
-    pager.lines <- as.integer(console_lines() * 1.2)
-  if(!is.integer(limit <- check_limit(limit)))
-    stop(sprintf(limit, "limit"))
-  if(!is.int.1L(use.pager) || !use.pager %in% 0:2)
-    stop("Argument `use.pager` must be in 0:2")
-  if(!is.int.1L(pager.lines) || pager.lines < 0)
-    stop("Argument `pager.lines` must be integer(1L), not NA, and positive")
-  if(!is.chr.1L(less.flags) || !grepl("^[[:alpha:]]*$", less.flags))
-    stop("Argument `less.flags` must be character(1L) containing only letters")
-
-  new(
-    "diffObjAutoLineLimit",
-    limit=as.integer(limit), pager.lines=as.integer(pager.lines),
-    use.pager=use.pager, less.flags=less.flags
+) {
+  if(!is.pager_mode(mode)) stop("Argument `mode` is not a valid pager mode")
+  if(!is.less_flags(less.flags)) stop("Argument `less.flags` is not valid")
+  if(!is.int.1L(threshold)) stop(
+    "Argument `threshold` should be integer(1L) and not NA"
   )
+  new("diffObjPager", mode=mode, threshold=threshold)
 }
 # Check whether system has less as pager; this is an approximation since we
 # do not check that the pager shell script actually calls $PAGER

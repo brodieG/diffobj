@@ -31,35 +31,22 @@ setClass(
 } )
 setClassUnion("doAutoCOrInt", c("diffObjAutoContext", "integer"))
 setClass(
-  "diffObjAutoLineLimit",
-  slots=c(
-    limit="integer",
-    use.pager="integer",
-    pager.lines="integer",
-    less.flags="character"
-  ),
+  "diffObjPager",
+  slots=c(mode="character", threshold="integer", less.flags="character"),
   validity=function(object) {
-    if(!is.int.1L(object@pager.lines) || object@pager.lines < 0L)
-      return("Slot `pager.lines` must be integer(1L), positive, and not NA")
-    if(!is.int.1L(object@use.pager) || !object@use.pager %in% 0:2)
-      return("Slot `use.pager` must be integer(1L) in 0:2")
-    if(!is.int.1L(object@limit) && !is.int.2L(object@limit))
-      return("Slot `limit` must be integer(2L), and not NA")
-    if(
-      !is.chr.1L(object@less.flags) &&
-      !isTRUE(grepl("^[[:alpha:]]$", object@less.flags))
-    )
-      return("Slot `less.flags` must be character(1L) and contain only letters")
+    if(!is.pager_mode(object@mode)) return("Invalid `mode` slot")
+    if(!is.less_flags(object@less.flags)) return("Invalid `less.flags` slot")
+    if(!is.int.1L(object@threshold)) return("Invalid `threshold` slot")
     TRUE
-} )
-setClassUnion("doAutoLLOrInt", c("diffObjAutoLineLimit", "integer"))
-
+  }
+)
 setClass(
   "diffObjSettings",
   slots=c(
     mode="character",             # diff output mode
     context="doAutoCOrInt",
-    line.limit="doAutoLLOrInt",
+    line.limit="integer",
+    pager="diffObjPager",
     hunk.limit="integer",
     disp.width="integer",
     use.ansi="logical",
@@ -159,12 +146,15 @@ setMethod("show", "diffObjDiff",
 
     res.chr <- as.character(object)
     # slot(res.diff, "trim.dat") <- attr(res.chr, "meta")
-    use.pager <- object@settings@line.limit@use.pager
+    use.pager <- object@settings@pager@mode
+    use.pager.thresh <- identical(use.pager, "threshold")
+    pager.thresh <- object@setting@pager@threshold
+    threshold <- if(use.pager.thresh && pager.thres == -1L)
+      console_lines() else object@setting@pager@threshold
 
     if(
-      identical(use.pager, 2L) || (
-        identical(use.pager, 1L) &&
-        object@settings@line.limit@pager.lines < length(res.chr)
+      identical(use.pager, "always") || (
+        use.pager.thresh && length(res.chr) > threshold
       )
     ){
       disp.f <- tempfile()

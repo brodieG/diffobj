@@ -209,7 +209,7 @@ setMethod("as.character", "diffObjDiff",
     # testing
 
     hunk.limit <- x@settings@hunk.limit
-    line.limit <- x@settings@line.limit@limit
+    line.limit <- x@settings@line.limit
     hunk.limit <- x@settings@hunk.limit
     disp.width <- x@settings@disp.width
     max.diffs <- x@settings@max.diffs
@@ -374,7 +374,7 @@ setMethod("as.character", "diffObjDiff",
         tar.r.h.txt <- regmatches(x@tar.capt[tar.head], tar.r.h)
 
         word.set <- x@settings
-        word.set@line.limit <- auto_line_limit(limit=-1L, use.pager=0L)
+        word.set@line.limit <- -1L
         word.set@mode <- "context"
 
         x.r.h <- new(
