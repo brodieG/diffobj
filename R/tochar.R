@@ -270,7 +270,7 @@ setMethod("as.character", "diffObjDiff",
       crayon_style(t.fun(banner.B, max.w), "green")
     )
     # Trim banner if exceeds line limit, and adjust line limit for banner size;
-    # note we add back 
+    # note we add back
 
     if(line.limit[[1L]] >= 0 && line.limit[[1L]] < banner.len)
       length(banner) <- line.limit[[2L]]
@@ -355,9 +355,8 @@ setMethod("as.character", "diffObjDiff",
         body.diff <- diff_word(
           regmatches(x@tar.capt[tar.head], tar.body),
           regmatches(x@cur.capt[cur.head], cur.body),
-          ignore.white.space=ignore.white.space,
-          match.quotes=is.character(x@target) && is.character(x@current),
-          max.diffs=max.diffs, tab.stops=tab.stops, diff.mode="wrap"
+          x@settings, diff.mode="wrap",
+          match.quotes=is.character(x@target) && is.character(x@current)
         )
         regmatches(x@tar.capt[tar.head], tar.body) <- body.diff$target
         regmatches(x@cur.capt[cur.head], cur.body) <- body.diff$current
@@ -370,13 +369,15 @@ setMethod("as.character", "diffObjDiff",
         cur.r.h.txt <- regmatches(x@cur.capt[cur.head], cur.r.h)
         tar.r.h.txt <- regmatches(x@tar.capt[tar.head], tar.r.h)
 
+        word.set <- x@settings
+        word.set@line.limit <- -1L
+        word.set@mode <- "context"
+
         x.r.h <- new(
           "diffObjDiff", tar.capt=tar.r.h.txt, cur.capt=cur.r.h.txt,
           diffs=char_diff(
-            tar.r.h.txt, cur.r.h.txt, ignore.white.space=ignore.white.space,
-            mode="context", hunk.limit=hunk.limit, line.limit=-1L,
-            disp.width=disp.width, max.diffs=max.diffs.wrap,
-            tab.stops=tab.stops, diff.mode="wrap", warn=TRUE
+            tar.r.h.txt, cur.r.h.txt, settings=word.set, diff.mode="wrap",
+            warn=TRUE
           )
         )
         x.r.h.color <- diff_color(x.r.h@diffs)
@@ -430,9 +431,8 @@ setMethod("as.character", "diffObjDiff",
           B.new <- c(h.a$A.chr[A.neg], h.a$B.chr[B.neg])
 
           new.diff <- diff_word(
-            A.new, B.new, ignore.white.space=ignore.white.space,
-            max.diffs=max.diffs.in.hunk, tab.stops=tab.stops,
-            diff.mode="hunk", warn=warn.hit.diffs.max
+            A.new, B.new, settings=x@settings, diff.mode="hunk",
+            warn=warn.hit.diffs.max
           )
           if(new.diff$hit.diffs.max) warn.hit.diffs.max <- FALSE
           h.a$A.chr[A.pos] <- new.diff$target[seq_along(A.pos)]
@@ -456,8 +456,7 @@ setMethod("as.character", "diffObjDiff",
     # Process the actual hunks into character
 
     out <- lapply(
-      hunk.grps, hunk_as_char, ranges.orig=ranges.orig,
-      mode=mode, disp.width=disp.width, ignore.white.space=ignore.white.space
+      hunk.grps, hunk_as_char, ranges.orig=ranges.orig, settings=x@settings
     )
     # Finalize
 

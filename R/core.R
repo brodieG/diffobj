@@ -223,6 +223,9 @@ char_diff <- function(
     diff.mode %in% c("line", "hunk", "wrap"),
     isTRUE(warn) || identical(warn, FALSE)
   )
+  diff.param <- c(
+    line="max.diffs", hunk="max.diffs.in.hunk", wrap="max.diffs.wrap"
+  )
   if(settings@ignore.white.space) {
     sub.pat <- "(\t| )"
     pat.1 <- sprintf("^%s*|%s*$", sub.pat, sub.pat)
@@ -230,7 +233,7 @@ char_diff <- function(
     x.w <- gsub(pat.2, " ", gsub(pat.1, "", x))
     y.w <- gsub(pat.2, " ", gsub(pat.1, "", y))
   }
-  diff <- diff_myers_mba(x.w, y.w, settings@max.diffs)
+  diff <- diff_myers_mba(x.w, y.w, slot(settings, diff.param[[diff.mode]]))
   if(settings@ignore.white.space) {
     diff@a <- x
     diff@b <- y
@@ -240,9 +243,6 @@ char_diff <- function(
   if(diff@diffs < 0L) {
     hit.diffs.max <- TRUE
     diff@diffs <- -diff@diffs
-    diff.param <- c(
-      line="max.diffs", hunk="max.diffs.in.hunk", wrap="max.diffs.wrap"
-    )
     diff.msg <- c(
       line="overall", hunk="in-hunk word", wrap="word"
     )

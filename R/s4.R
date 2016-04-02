@@ -152,10 +152,9 @@ setClass(
 } )
 setMethod("show", "diffObjDiff",
   function(object) {
-    browser()
     # Finalize stuff
 
-    res.chr <- as.character(object@diffs)
+    res.chr <- as.character(object)
     # slot(res.diff, "trim.dat") <- attr(res.chr, "meta")
     
     screen.lines <- as.integer(Sys.getenv("LINES"))[[1L]]

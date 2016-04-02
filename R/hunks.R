@@ -466,7 +466,7 @@ trim_hunks <- function(hunk.grps, settings) {
   hunk.grps.used <- min(hunk.grps.count, hunk.limit.act)
   hunk.grps <- hunk.grps[seq_len(hunk.grps.used)]
 
-  lines <- get_hunk_chr_lens(hunk.grps, mode, disp.width)
+  lines <- get_hunk_chr_lens(hunk.grps, settings)
   cum.len <- cumsum(abs(lines[, "len"]))
   cut.off <- -1L
   lines.omitted <- 0L
