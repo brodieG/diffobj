@@ -249,8 +249,8 @@ char_diff <- function(
     if(warn)
       warning(
         "Exceeded `", diff.param[diff.mode], "` limit during diff computation (",
-        diff@diffs, " vs. ", max.diffs, " allowed); ", diff.msg[diff.mode],
-        " diff is likely not optimal",
+        diff@diffs, " vs. ", diff.param[[diff.mode]], " allowed); ",
+        diff.msg[diff.mode], " diff is likely not optimal",
         call.=FALSE
       )
   }
