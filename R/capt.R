@@ -113,7 +113,7 @@ capt_print <- function(target, current, settings, err, ...){
   use.header <- length(dim(target)) == 2L && length(dim(current)) == 2L
 
   diff <- line_diff(
-    target, current, tar.capt, cur.capt, settings=settings, 
+    target, current, tar.capt, cur.capt, settings=settings,
     warn=TRUE, use.header=use.header
   )
   diff@tar.capt.def <- tar.capt.def
@@ -125,7 +125,9 @@ capt_print <- function(target, current, settings, err, ...){
 capt_str <- function(target, current, settings, err, ...){
   # Match original call and managed dots, in particular wrt to the
   # `max.level` arg
+  dots <- list(...)
   frame <- settings@frame
+  line.limit <- settings@line.limit
   if("object" %in% names(dots))
     err("You may not specify `object` as part of `...`")
 
@@ -194,9 +196,13 @@ capt_str <- function(target, current, settings, err, ...){
   capt.width <- calc_width_pad(settings@disp.width, settings@mode)
   has.diff <- has.diff.prev <- FALSE
 
-  tar.capt <- capture(tar.call, capt.width, frame, err)
+  tar.capt <- strip_hz_control(
+    capture(tar.call, capt.width, frame, err), stops=settings@tab.stops
+  )
   tar.lvls <- str_levels(tar.capt, wrap=wrap)
-  cur.capt <- capture(cur.call, capt.width, frame, err)
+  cur.capt <- strip_hz_control(
+    capture(cur.call, capt.width, frame, err), stops=settings@tab.stops
+  )
   cur.lvls <- str_levels(cur.capt, wrap=wrap)
 
   prev.lvl.hi <- lvl <- max.depth <- max(tar.lvls, cur.lvls)
@@ -215,9 +221,10 @@ capt_str <- function(target, current, settings, err, ...){
     cur.str <- cur.capt[cur.lvls <= lvl]
 
     diff.obj <- line_diff(
-      tar.str, cur.str, settings, warn=warn, strip=first.loop, as.object=FALSE
+      target, current, tar.str, cur.str, settings=settings, warn=warn,
+      strip=FALSE
     )
-    diff.str <- diff.obj@diffs
+    diffs.str <- diff.obj@diffs
 
     if(diffs.str$hit.diffs.max) warn <- FALSE
     has.diff <- any(
@@ -237,7 +244,7 @@ capt_str <- function(target, current, settings, err, ...){
     if(line.limit[[1L]] < 1L) break
 
     line.len <-
-      diff_line_len(diffs.str$hunks, settings@mode, settings@disp.width)
+      diff_line_len(diffs.str$hunks, settings=settings)
 
     # We need a higher level if we don't have diffs
 
@@ -279,8 +286,8 @@ capt_str <- function(target, current, settings, err, ...){
     str.match[[max.level.pos]] <- NULL
   }
   tar.call <- cur.call <- str.match
-  tar.call[[2L]] <- tar.exp
-  cur.call[[2L]] <- cur.exp
+  tar.call[[2L]] <- settings@tar.exp
+  cur.call[[2L]] <- settings@cur.exp
   if(is.null(settings@tar.banner))
     diff.obj@settings@tar.banner <- deparse(tar.call)[[1L]]
   if(is.null(settings@cur.banner))
