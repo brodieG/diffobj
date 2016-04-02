@@ -233,7 +233,8 @@ char_diff <- function(
     x.w <- gsub(pat.2, " ", gsub(pat.1, "", x))
     y.w <- gsub(pat.2, " ", gsub(pat.1, "", y))
   }
-  diff <- diff_myers_mba(x.w, y.w, slot(settings, diff.param[[diff.mode]]))
+  max.diffs <- slot(settings, diff.param[[diff.mode]])
+  diff <- diff_myers_mba(x.w, y.w, max.diffs)
   if(settings@ignore.white.space) {
     diff@a <- x
     diff@b <- y
@@ -249,7 +250,7 @@ char_diff <- function(
     if(warn)
       warning(
         "Exceeded `", diff.param[diff.mode], "` limit during diff computation (",
-        diff@diffs, " vs. ", diff.param[[diff.mode]], " allowed); ",
+        diff@diffs, " vs. ", max.diffs, " allowed); ",
         diff.msg[diff.mode], " diff is likely not optimal",
         call.=FALSE
       )
