@@ -200,8 +200,7 @@ strip_hz_control <- function(txt, stops=8L) {
   #   is.character(txt), !anyNA(txt),
   #   is.integer(stops), length(stops) >= 1L, !anyNA(stops), all(stops > 0L)
   # )
-  if(any(grepl("\n", txt)))
-    stop("Logic Error: input may not contain newlines; contact maintainer")
+  txt <- unlist(strsplit(txt, "\n"))
   use.ansi <- crayon_hascolor()
   has.ansi <- grepl(ansi_regex, txt, perl=TRUE) & use.ansi
   w.ansi <- which(has.ansi)
