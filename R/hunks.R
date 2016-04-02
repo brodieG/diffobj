@@ -136,7 +136,7 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
     # probably don't need to.
 
     context <- settings@context
-    line.limit <- settings@line.limit
+    line.limit <- settings@line.limit@limit
     ctx.val <- if(is(context, "diffObjAutoContext")) {
       len <- diff_line_len(
         p_and_t_hunks(res.l, ctx.val=context@max, settings=settings),
@@ -455,7 +455,7 @@ trim_hunks <- function(hunk.grps, settings) {
   mode <- settings@mode
   disp.width <- settings@disp.width
   hunk.limit <- settings@hunk.limit
-  line.limit <- settings@line.limit
+  line.limit <- settings@line.limit@limit
   diffs.orig <- count_diffs(hunk.grps)
 
   hunk.grps.count <- length(hunk.grps)

@@ -34,12 +34,15 @@ setClass(
   "diffObjAutoLineLimit",
   slots=c(
     limit="integer",
+    use.pager="integer",
     pager.lines="integer",
     less.flags="character"
   ),
   validity=function(object) {
-    if(!is.int.1L(object@pager.lines))
+    if(!is.int.1L(object@pager.lines) || object@pager.lines < 0L)
       return("Slot `pager.lines` must be integer(1L), positive, and not NA")
+    if(!is.int.1L(object@use.pager) || !object@use.pager %in% 0:2)
+      return("Slot `use.pager` must be integer(1L) in 0:2")
     if(!is.int.1L(object@limit) && !is.int.2L(object@limit))
       return("Slot `limit` must be integer(2L), and not NA")
     if(
@@ -156,15 +159,18 @@ setMethod("show", "diffObjDiff",
 
     res.chr <- as.character(object)
     # slot(res.diff, "trim.dat") <- attr(res.chr, "meta")
-    
-    screen.lines <- as.integer(Sys.getenv("LINES"))[[1L]]
-    if(is.na(screen.lines) || screen.lines < 1L) screen.lines <- 48L
+    use.pager <- object@settings@line.limit@use.pager
 
-    if(length(res.chr) / screen.lines > 1.5) {
+    if(
+      identical(use.pager, 2L) || (
+        identical(use.pager, 1L) &&
+        object@settings@line.limit@pager.lines < length(res.chr)
+      )
+    ){
       disp.f <- tempfile()
       on.exit(add=TRUE, unlink(disp.f))
       writeLines(res.chr, disp.f)
-      if(pager_is_less() && settings@use.ansi) {
+      if(pager_is_less() && object@settings@use.ansi) {
         old.less <- set_less_var("R")
         on.exit(reset_less_var(old.less), add=TRUE)
       }

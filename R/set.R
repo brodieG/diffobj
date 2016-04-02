@@ -1,7 +1,9 @@
 #' Generate a \code{diffobj} Setting Object
 #'
 #' Used for more fine grained control on the \code{diff_obj} family of functions.
+#' \code{dfos} is just shorthand.
 #'
+#' @aliases dfos
 #' @param hunk.limit integer(2L) how many sections of differences to show.
 #'   Behaves similarly to the \code{line.limit} parameter for
 #'   \code{link{diff_obj}} except it only supports numeric input (defaults to
@@ -35,7 +37,7 @@
 #' @param cur.banner character(1L) like \code{tar.banner}, but for \code{current}
 #' @return a \code{diffObjSettings} S4 object
 
-diffobj_settings <- function(
+diffobj_settings <- dfos <- function(
   line.limit=getOption("diffobj.line.limit"),
   hunk.limit=getOption("diffobj.hunk.limit"),
   ignore.white.space=getOption("diffobj.ignore.white.space"),
@@ -77,7 +79,7 @@ diffobj_settings <- function(
           ll.check, "line.limit",
           ", or \"auto\" or the result of calling `auto_line_limit`"
       ) )
-    line.limit <- ll.check
+    line.limit <- auto_line_limit(limit=ll.check, use.pager=0L)
   } else if (identical(line.limit, "auto")) {
     line.limit <- auto_line_limit()
   }
@@ -164,21 +166,32 @@ console_lines <- function() {
 auto_context <- function(
   min=getOption("diffobj.context.auto.min"),
   max=getOption("diffobj.context.auto.max")
-) {
+){
   new("diffObjAutoContext", min=as.integer(min), max=as.integer(max))
 }
 #' @export
 
 auto_line_limit <- function(
-  limit=getOption("diffobj.line.limit"),
+  limit=getOption("diffobj.line.limit.auto.failover"),
+  use.pager=getOption("diffobj.use.pager"),
   pager.lines=getOption("diffobj.pager.lines"),
   less.flags=getOption("diffobj.less.flags")
 ){
-  if(identical(pager.lines, "auto")) pager.lines <- console_lines() * 1.2
+  if(identical(pager.lines, "auto"))
+    pager.lines <- as.integer(console_lines() * 1.2)
+  if(!is.integer(limit <- check_limit(limit)))
+    stop(sprintf(limit, "limit"))
+  if(!is.int.1L(use.pager) || !use.pager %in% 0:2)
+    stop("Argument `use.pager` must be in 0:2")
+  if(!is.int.1L(pager.lines) || pager.lines < 0)
+    stop("Argument `pager.lines` must be integer(1L), not NA, and positive")
+  if(!is.chr.1L(less.flags) || !grepl("^[[:alpha:]]*$", less.flags))
+    stop("Argument `less.flags` must be character(1L) containing only letters")
+
   new(
     "diffObjAutoLineLimit",
     limit=as.integer(limit), pager.lines=as.integer(pager.lines),
-    less.flags=less.flags
+    use.pager=use.pager, less.flags=less.flags
   )
 }
 # Check whether system has less as pager; this is an approximation since we

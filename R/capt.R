@@ -124,7 +124,7 @@ capt_str <- function(target, current, settings, err, ...){
   # `max.level` arg
   dots <- list(...)
   frame <- settings@frame
-  line.limit <- settings@line.limit
+  line.limit <- settings@line.limit@limit
   if("object" %in% names(dots))
     err("You may not specify `object` as part of `...`")
 

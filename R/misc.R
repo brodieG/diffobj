@@ -113,10 +113,8 @@ calc_width_unpad <- function(capt.width, mode) {
   )
   capt.width + .pad[[mode]]
 }
-# for checking the limits
-#
-# run exclusively for side effects (throwing an error, or assigning value in
-# parent env of 'check_args').
+# for checking the limits, if successful returns an integer(2L) vector,
+# otherwise a character vector to sprintf as an error
 
 check_limit <- function(limit) {
   if(
