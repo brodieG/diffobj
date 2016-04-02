@@ -245,8 +245,12 @@ setMethod("as.character", "diffObjDiff",
 
     # Make the object banner and compute more detailed widths post trim
 
-    banner.A <- paste0("--- ", x@settings@tar.banner)
-    banner.B <- paste0("+++ ", x@settings@cur.banner)
+    tar.banner <- if(!is.null(x@settings@tar.banner)) x@settings@tar.banner else
+      deparse(x@settings@tar.exp)[[1L]]
+    cur.banner <- if(!is.null(x@settings@cur.banner)) x@settings@cur.banner else
+      deparse(x@settings@cur.exp)[[1L]]
+    banner.A <- paste0("--- ", tar.banner)
+    banner.B <- paste0("+++ ", cur.banner)
 
     if(mode == "sidebyside") {
       # If side by side we want stuff close together if reasonable

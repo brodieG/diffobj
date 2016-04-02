@@ -92,10 +92,7 @@ capt_print <- function(target, current, settings, err, ...){
     cur.call[[2L]] <- settings@cur.exp
     settings@tar.banner <- deparse(tar.call)[[1L]]
     settings@cur.banner <- deparse(cur.call)[[1L]]
-  } else {
-    settings@tar.banner <- deparse(settings@tar.exp)[[1L]]
-    settings@cur.banner <- deparse(settings@cur.exp)[[1L]]
-  }
+  } 
   tar.call[[2L]] <- target
   cur.call[[2L]] <- current
 
