@@ -217,7 +217,7 @@ setMethod("summary", "diffObjMyersMbaSes",
 # warn is to allow us to suppress warnings after first hunk warning
 
 char_diff <- function(
-  x, y, context=-1L, settings, diff.mode, warn, use.header=FALSE
+  x, y, context=-1L, etc, diff.mode, warn, use.header=FALSE
 ) {
   stopifnot(
     diff.mode %in% c("line", "hunk", "wrap"),
@@ -226,20 +226,20 @@ char_diff <- function(
   diff.param <- c(
     line="max.diffs", hunk="max.diffs.in.hunk", wrap="max.diffs.wrap"
   )
-  if(settings@ignore.white.space) {
+  if(etc@ignore.white.space) {
     sub.pat <- "(\t| )"
     pat.1 <- sprintf("^%s*|%s*$", sub.pat, sub.pat)
     pat.2 <- sprintf("%s+", sub.pat)
     x.w <- gsub(pat.2, " ", gsub(pat.1, "", x))
     y.w <- gsub(pat.2, " ", gsub(pat.1, "", y))
   }
-  max.diffs <- slot(settings, diff.param[[diff.mode]])
+  max.diffs <- slot(etc, diff.param[[diff.mode]])
   diff <- diff_myers_mba(x.w, y.w, max.diffs)
-  if(settings@ignore.white.space) {
+  if(etc@ignore.white.space) {
     diff@a <- x
     diff@b <- y
   }
-  hunks <- as.hunks(diff, settings=settings)
+  hunks <- as.hunks(diff, etc=etc)
   hit.diffs.max <- FALSE
   if(diff@diffs < 0L) {
     hit.diffs.max <- TRUE
@@ -266,20 +266,20 @@ char_diff <- function(
 # to worry about overhead from creating the `diffObjDiff` object
 
 line_diff <- function(
-  target, current, tar.capt, cur.capt, context, settings, warn=TRUE,
+  target, current, tar.capt, cur.capt, context, etc, warn=TRUE,
   strip=TRUE, use.header=FALSE
 ) {
   if(strip) {
-    tar.capt <- strip_hz_control(tar.capt, stops=settings@tab.stops)
-    cur.capt <- strip_hz_control(cur.capt, stops=settings@tab.stops)
+    tar.capt <- strip_hz_control(tar.capt, stops=etc@tab.stops)
+    cur.capt <- strip_hz_control(cur.capt, stops=etc@tab.stops)
   }
   diffs <- char_diff(
-    tar.capt, cur.capt, settings=settings, diff.mode="line", warn=warn,
+    tar.capt, cur.capt, etc=etc, diff.mode="line", warn=warn,
     use.header=use.header
   )
   new(
     "diffObjDiff", diffs=diffs, target=target, current=current,
-    tar.capt=tar.capt, cur.capt=cur.capt, settings=settings
+    tar.capt=tar.capt, cur.capt=cur.capt, etc=etc
   )
 }
 # Helper function encodes matches within mismatches so that we can later word

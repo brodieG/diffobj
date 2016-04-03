@@ -1,27 +1,37 @@
-#' Generate a \code{diffobj} Setting Object
+#' Generate a \code{diffobj} Settings Object
 #'
-#' Used for more fine grained control on the \code{diff_obj} family of functions.
-#' \code{dfos} is just shorthand.
+#' Used for more fine grained control on the \code{diff_obj} family of
+#' functions by generating a settings object to pass as the \code{etc}
+#' parameter.
 #'
-#' @aliases dfos
 #' @export
-#' @export dfos
-#' @param hunk.limit integer(2L) how many sections of differences to show.
-#'   Behaves similarly to the \code{line.limit} parameter for
-#'   \code{link{diff_obj}} except it only supports numeric input (defaults to
-#'   -1L, i.e. unlimited)
+#' @param line.limit integer(2L) or integer(1L), if length 1 how many lines of
+#'   output to show, where \code{-1} means no limit.  If length 2, the first
+#'   value indicates the threshold of screen lines to begin truncating output,
+#'   and the second the number of lines to truncate to, which should be fewer
+#'   than the threshold.
+#' @param hunk.limit integer(2L) or integer (1L), how many diff hunks to show.
+#'   Behaves similarly to the \code{line.limit}.  How many hunks are in a
+#'   particular diff is a function of how many differences, and also how much
+#'   \code{context} is used since context can cause two hunks to bleed into
+#'   each other and become one.
 #' @param use.ansi TRUE or FALSE, whether to use ANSI escape sequences to color
 #'   differences (TRUE by default if we detect that your terminal supports it)
-#' @param white.space TRUE or FALSE, whether to consider differences in
+#' @param ignore.white.space TRUE or FALSE, whether to consider differences in
 #'   horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
 #'   FALSE)
+#' @param convert.hz.whitespace TRUE or FALSE, whether modify input strings
+#'   that contain tabs and carriage returns in such a way that they display as
+#'   they would \bold{with} those characters, but without using those
+#'   characters.  If your console uses tab stops that are not eight characters
+#'   appart you may specify them with \code{tab.stops}.
+#' @param tab.stops integer, what tab stops to use when converting hard tabs to
+#'   spaces.  If not integer will be coerced to integer (defaults to 8L).
 #' @param disp.width integer(1L) number of display columns to take up; note that
 #'   in \dQuote{sidebyside} mode the effective display width is half this number
 #' @param frame environment the evaluation frame for the \code{print/show/str},
 #'   calls, allows user to ensure correct methods are used, not used by
 #'   \code{\link{diff_chr}} or \code{\link{diff_deparse}}.
-#' @param silent TRUE or FALSE, whether to suppress display the diff (FALSE by
-#'   default).
 #' @param max.diffs integer(1L), number of differences after which we abandon
 #'   the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
 #'   \code{-1L} to always stick to the original algorithm (defaults to 10000L).
@@ -31,15 +41,19 @@
 #' @param max.diffs.wrap integer(1L), like \code{max.diffs}, but used when
 #'   computing word diffs on atomic vectors (defaults to 10000L), see
 #'   \dQuote{Atomic Vectors} for \code{\link{diff_print}}.
-#' @param tab.stops integer, what tab stops to use when converting hard tabs to
-#'   spaces.  If not integer will be coerced to integer.
-#' @param tar.banner character(1L) or NULL, used to clarify the symbology of the
-#'   diff output (see the \dQuote{Output} section in the docs), if NULL will be
+#' @param tar.banner character(1L) or NULL, text to display ahead of the diff
+#'   section representing the target output.  If NULL will be
 #'   inferred from \code{target} and \code{current} expressions.
-#' @param cur.banner character(1L) like \code{tar.banner}, but for \code{current}
-#' @return a \code{diffObjSettings} S4 object
+#' @param cur.banner character(1L) like \code{tar.banner}, but for
+#'   \code{current}
+#' @return a \code{diffObjSettings} S4 object for use with the
+#'   \code{\link{diff_obj}} family of functions
+#' @examples
+#' mx1 <- mx2 <- matrix(1:80, 20)
+#' mx2[sample(1:80, 5)] <- 99
+#' diff_print(mx1, mx2, etc=etc(line.limit=10))
 
-diffobj_settings <- dfos <- function(
+etc <- function(
   line.limit=getOption("diffobj.line.limit"),
   hunk.limit=getOption("diffobj.hunk.limit"),
   pager=pager_settings(),
@@ -50,6 +64,7 @@ diffobj_settings <- dfos <- function(
   max.diffs=getOption("diffobj.max.diffs"),
   max.diffs.in.hunk=getOption("diffobj.max.diffs.in.hunk"),
   max.diffs.wrap=getOption("diffobj.max.diffs.wrap"),
+  convert.hz.white.space=getOption("diffobj.convert.hz.white.space"),
   tab.stops=getOption("diffobj.tab.stops"),
   frame=parent.frame(),
   tar.banner=NULL, cur.banner=NULL
@@ -74,20 +89,18 @@ diffobj_settings <- dfos <- function(
   hunk.limit <- check_limit(hunk.limit)
   if(!is.integer(hunk.limit)) stop(sprintf(hunk.limit, "hunk.limit", "."))
   if(!is.integer(line.limit <- check_limit(line.limit)))
-    err(
+    stop(
       sprintf(
         line.limit, "line.limit",
         ", or \"auto\" or the result of calling `auto_line_limit`"
     ) )
   # check T F args
 
-  TF.vars <- c("use.ansi", "ignore.white.space", "silent")
+  TF.vars <- c("use.ansi", "ignore.white.space", "convert.hz.white.space")
   msg.base <- "Argument `%s` must be TRUE or FALSE."
   lapply(
     TF.vars,
-    function(x)
-      if(!is.TF(this.env[[x]]))
-        stop(simpleError(sprintf(msg.base, x), call=call))
+    function(x) if(!is.TF(this.env[[x]])) stop(sprintf(msg.base, x))
   )
   # int 1L vars
 
@@ -108,7 +121,7 @@ diffobj_settings <- dfos <- function(
     chr1LorNULL.vars,
     function(x)
       if(!is.chr.1L(this.env[[x]]) && !is.null(this.env[[x]]))
-        stop(simpleError(sprintf(msg.base, x), call=call))
+        stop(sprintf(msg.base, x))
   )
   # instantiate settings object
 

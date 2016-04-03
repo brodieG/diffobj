@@ -121,7 +121,7 @@ setClass(
     diffs="list",
     trim.dat="list",              # result of trimmaxg
     capt.mode="character",        # whether in print or str mode
-    settings="diffObjSettings"
+    etc="diffObjSettings"
   ),
   prototype=list(
     capt.mode="print",
@@ -146,11 +146,11 @@ setMethod("show", "diffObjDiff",
 
     res.chr <- as.character(object)
     # slot(res.diff, "trim.dat") <- attr(res.chr, "meta")
-    use.pager <- object@settings@pager@mode
+    use.pager <- object@etc@pager@mode
     use.pager.thresh <- identical(use.pager, "threshold")
-    pager.thresh <- object@settings@pager@threshold
+    pager.thresh <- object@etc@pager@threshold
     threshold <- if(use.pager.thresh && pager.thresh == -1L)
-      console_lines() else object@settings@pager@threshold
+      console_lines() else object@etc@pager@threshold
 
     if(
       identical(use.pager, "always") || (
@@ -160,7 +160,7 @@ setMethod("show", "diffObjDiff",
       disp.f <- tempfile()
       on.exit(add=TRUE, unlink(disp.f))
       writeLines(res.chr, disp.f)
-      if(pager_is_less() && object@settings@use.ansi) {
+      if(pager_is_less() && object@etc@use.ansi) {
         old.less <- set_less_var("R")
         on.exit(reset_less_var(old.less), add=TRUE)
       }

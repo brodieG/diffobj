@@ -73,9 +73,9 @@ obj_capt <- function(
 # do try to wrap an atomic vector print it is very likely to be in a format
 # we are familiar with and not affected by a non-default print method
 
-capt_print <- function(target, current, settings, err, ...){
+capt_print <- function(target, current, etc, err, ...){
   dots <- list(...)
-  frame <- settings@frame
+  frame <- etc@frame
   print.match <- try(
     match.call(
       get("print", envir=frame), as.call(c(list(quote(print), x=NULL), dots)),
@@ -88,10 +88,10 @@ capt_print <- function(target, current, settings, err, ...){
   tar.call <- cur.call <- print.match
 
   if(length(dots)) {
-    tar.call[[2L]] <- settings@tar.exp
-    cur.call[[2L]] <- settings@cur.exp
-    settings@tar.banner <- deparse(tar.call)[[1L]]
-    settings@cur.banner <- deparse(cur.call)[[1L]]
+    tar.call[[2L]] <- etc@tar.exp
+    cur.call[[2L]] <- etc@cur.exp
+    etc@tar.banner <- deparse(tar.call)[[1L]]
+    etc@cur.banner <- deparse(cur.call)[[1L]]
   } 
   tar.call[[2L]] <- target
   cur.call[[2L]] <- current
@@ -101,7 +101,7 @@ capt_print <- function(target, current, settings, err, ...){
   tar.call.def[[1L]] <- cur.call.def[[1L]] <- base::print.default
 
   both.at <- is.atomic(current) && is.atomic(target)
-  capt.width <- calc_width(settings@disp.width, settings@mode) - 2L
+  capt.width <- calc_width(etc@disp.width, etc@mode) - 2L
   cur.capt <- capture(cur.call, capt.width, frame, err)
   cur.capt.def <- if(both.at) capture(cur.call.def, capt.width, frame, err)
   tar.capt <- capture(tar.call, capt.width, frame)
@@ -110,7 +110,7 @@ capt_print <- function(target, current, settings, err, ...){
   use.header <- length(dim(target)) == 2L && length(dim(current)) == 2L
 
   diff <- line_diff(
-    target, current, tar.capt, cur.capt, settings=settings,
+    target, current, tar.capt, cur.capt, etc=etc,
     warn=TRUE, use.header=use.header
   )
   diff@tar.capt.def <- tar.capt.def
@@ -119,12 +119,12 @@ capt_print <- function(target, current, settings, err, ...){
 }
 # Tries various different `str` settings to get the best possible output
 
-capt_str <- function(target, current, settings, err, ...){
+capt_str <- function(target, current, etc, err, ...){
   # Match original call and managed dots, in particular wrt to the
   # `max.level` arg
   dots <- list(...)
-  frame <- settings@frame
-  line.limit <- settings@line.limit
+  frame <- etc@frame
+  line.limit <- etc@line.limit
   if("object" %in% names(dots))
     err("You may not specify `object` as part of `...`")
 
@@ -154,7 +154,7 @@ capt_str <- function(target, current, settings, err, ...){
     max.level.pos <- match("max.level", names(str.match), nomatch=0L)
   ) {
     # max.level specified in call; check for special 'auto' case
-    res <- eval_try(str.match, "max.level", settings@frame)
+    res <- eval_try(str.match, "max.level", etc@frame)
     if(identical(res, "auto")) {
       auto.mode <- TRUE
       str.match[["max.level"]] <- NA
@@ -171,7 +171,7 @@ capt_str <- function(target, current, settings, err, ...){
 
   wrap <- FALSE
   if("strict.width" %in% names(str.match)) {
-    res <- eval_try(str.match, "strict.width", settings@frame)
+    res <- eval_try(str.match, "strict.width", etc@frame)
     wrap <- is.character(res) && length(res) == 1L && !is.na(res) &&
       nzchar(res) && identical(res, substr("wrap", 1L, nchar(res)))
   }
@@ -190,15 +190,15 @@ capt_str <- function(target, current, settings, err, ...){
 
   # Run str
 
-  capt.width <- calc_width_pad(settings@disp.width, settings@mode)
+  capt.width <- calc_width_pad(etc@disp.width, etc@mode)
   has.diff <- has.diff.prev <- FALSE
 
   tar.capt <- strip_hz_control(
-    capture(tar.call, capt.width, frame, err), stops=settings@tab.stops
+    capture(tar.call, capt.width, frame, err), stops=etc@tab.stops
   )
   tar.lvls <- str_levels(tar.capt, wrap=wrap)
   cur.capt <- strip_hz_control(
-    capture(cur.call, capt.width, frame, err), stops=settings@tab.stops
+    capture(cur.call, capt.width, frame, err), stops=etc@tab.stops
   )
   cur.lvls <- str_levels(cur.capt, wrap=wrap)
 
@@ -218,7 +218,7 @@ capt_str <- function(target, current, settings, err, ...){
     cur.str <- cur.capt[cur.lvls <= lvl]
 
     diff.obj <- line_diff(
-      target, current, tar.str, cur.str, settings=settings, warn=warn,
+      target, current, tar.str, cur.str, etc=etc, warn=warn,
       strip=FALSE
     )
     diffs.str <- diff.obj@diffs
@@ -241,7 +241,7 @@ capt_str <- function(target, current, settings, err, ...){
     if(line.limit[[1L]] < 1L) break
 
     line.len <-
-      diff_line_len(diffs.str$hunks, settings=settings)
+      diff_line_len(diffs.str$hunks, etc=etc)
 
     # We need a higher level if we don't have diffs
 
@@ -283,22 +283,22 @@ capt_str <- function(target, current, settings, err, ...){
     str.match[[max.level.pos]] <- NULL
   }
   tar.call <- cur.call <- str.match
-  tar.call[[2L]] <- settings@tar.exp
-  cur.call[[2L]] <- settings@cur.exp
-  if(is.null(settings@tar.banner))
-    diff.obj@settings@tar.banner <- deparse(tar.call)[[1L]]
-  if(is.null(settings@cur.banner))
-    diff.obj@settings@cur.banner <- deparse(cur.call)[[1L]]
+  tar.call[[2L]] <- etc@tar.exp
+  cur.call[[2L]] <- etc@cur.exp
+  if(is.null(etc@tar.banner))
+    diff.obj@etc@tar.banner <- deparse(tar.call)[[1L]]
+  if(is.null(etc@cur.banner))
+    diff.obj@etc@cur.banner <- deparse(cur.call)[[1L]]
 
   diff.obj
 }
-capt_chr <- function(target, current, settings, err, ...){
+capt_chr <- function(target, current, etc, err, ...){
   tar.capt <- if(!is.character(target)) as.character(target, ...) else target
   cur.capt <- if(!is.character(current)) as.character(current, ...) else current
-  line_diff(target, current, tar.capt, cur.capt, settings=settings)
+  line_diff(target, current, tar.capt, cur.capt, etc=etc)
 }
-capt_deparse <- function(target, current, settings, err, ...){
+capt_deparse <- function(target, current, etc, err, ...){
   tar.capt <- deparse(target, ...)
   cur.capt <- deparse(current, ...)
-  line_diff(target, current, tar.capt, cur.capt, settings=settings)
+  line_diff(target, current, tar.capt, cur.capt, etc=etc)
 }

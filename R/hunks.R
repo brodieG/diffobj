@@ -30,10 +30,10 @@
 #      mode we no longer have the actual context strings from the `current`
 #      vector.
 
-setGeneric("as.hunks", function(x, settings, ...) standardGeneric("as.hunks"))
+setGeneric("as.hunks", function(x, etc, ...) standardGeneric("as.hunks"))
 setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
   function(
-    x, settings, ...
+    x, etc, ...
   ) {
     # Split our data into sections that have either deletes/inserts or matches
 
@@ -95,12 +95,12 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
           context <- !!mtc.len
 
           A <- switch(
-            settings@mode, context=tar, 
+            etc@mode, context=tar, 
             unified=c(tar, if(!context) cur), sidebyside=tar,
             stop("Logic Error: unknown mode; contact maintainer.")
           )
           B <- switch(
-            settings@mode, context=cur, unified=integer(), sidebyside=cur,
+            etc@mode, context=cur, unified=integer(), sidebyside=cur,
             stop("Logic Error: unknown mode; contact maintainer.")
           )
           # Retrieve the character values
@@ -135,16 +135,16 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
     # Definitely not very efficient since we re-run code multiple times we
     # probably don't need to.
 
-    context <- settings@context
-    line.limit <- settings@line.limit
+    context <- etc@context
+    line.limit <- etc@line.limit
     ctx.val <- if(is(context, "diffObjAutoContext")) {
       len <- diff_line_len(
-        p_and_t_hunks(res.l, ctx.val=context@max, settings=settings),
-        settings=settings
+        p_and_t_hunks(res.l, ctx.val=context@max, etc=etc),
+        etc=etc
       )
       len.min <- diff_line_len(
-        p_and_t_hunks(res.l, ctx.val=context@min, settings=settings),
-        settings=settings
+        p_and_t_hunks(res.l, ctx.val=context@min, etc=etc),
+        etc=etc
       )
       if(len <= line.limit[[1L]] || line.limit[[1L]] < 0L) {
         -1L
@@ -185,24 +185,24 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
             break
           }
           len <- diff_line_len(
-            p_and_t_hunks(res.l, ctx.val=ctx, settings=settings),
-            settings=settings
+            p_and_t_hunks(res.l, ctx.val=ctx, etc=etc),
+            etc=etc
           )
         }
         ctx
       } 
     } else context
 
-    res <- process_hunks(res.l, ctx.val=ctx.val, use.header=settings@use.header)
+    res <- process_hunks(res.l, ctx.val=ctx.val, use.header=etc@use.header)
     res
 } )
 # process the hunks and also drop off groups that exceed limit
 #
 # used exclusively when we are trying to auto-calculate context
 
-p_and_t_hunks <- function(hunks.raw, ctx.val, settings) {
-  c.all <- process_hunks(hunks.raw, ctx.val, settings@use.header)
-  hunk.limit <- settings@hunk.limit
+p_and_t_hunks <- function(hunks.raw, ctx.val, etc) {
+  c.all <- process_hunks(hunks.raw, ctx.val, etc@use.header)
+  hunk.limit <- etc@hunk.limit
   if(hunk.limit[[1L]] >= 0L && length(c.all) > hunk.limit)
     c.all <- c.all[seq_along(hunk.limit[[2L]])]
   c.all
@@ -339,9 +339,9 @@ process_hunks <- function(x, ctx.val, use.header) {
 # hunks off; note that "negative" lengths indicate the lines being counted
 # originated from the B hunk in context mode
 
-get_hunk_chr_lens <- function(hunk.grps, settings) {
-  mode <- settings@mode
-  disp.width <- settings@disp.width
+get_hunk_chr_lens <- function(hunk.grps, etc) {
+  mode <- etc@mode
+  disp.width <- etc@disp.width
   # Account for overhead / side by sideness in width calculations
   # Internal funs
 
@@ -413,11 +413,11 @@ get_hunk_chr_lens <- function(hunk.grps, settings) {
 }
 # Compute total diff length in lines
 
-diff_line_len <- function(hunk.grps, settings) {
+diff_line_len <- function(hunk.grps, etc) {
   max(
     0L,
-    cumsum(get_hunk_chr_lens(hunk.grps, settings)[, "len"])
-  ) + banner_len(settings@mode)
+    cumsum(get_hunk_chr_lens(hunk.grps, etc)[, "len"])
+  ) + banner_len(etc@mode)
 }
 # Return which of the values in the data vectors within an atomic hunk are
 # in the post trim range of the hunk
@@ -451,11 +451,11 @@ trim_hunk <- function(hunk, type, line.id) {
   }
   hunk
 }
-trim_hunks <- function(hunk.grps, settings) {
-  mode <- settings@mode
-  disp.width <- settings@disp.width
-  hunk.limit <- settings@hunk.limit
-  line.limit <- settings@line.limit
+trim_hunks <- function(hunk.grps, etc) {
+  mode <- etc@mode
+  disp.width <- etc@disp.width
+  hunk.limit <- etc@hunk.limit
+  line.limit <- etc@line.limit
   diffs.orig <- count_diffs(hunk.grps)
 
   hunk.grps.count <- length(hunk.grps)
@@ -466,7 +466,7 @@ trim_hunks <- function(hunk.grps, settings) {
   hunk.grps.used <- min(hunk.grps.count, hunk.limit.act)
   hunk.grps <- hunk.grps[seq_len(hunk.grps.used)]
 
-  lines <- get_hunk_chr_lens(hunk.grps, settings)
+  lines <- get_hunk_chr_lens(hunk.grps, etc)
   cum.len <- cumsum(abs(lines[, "len"]))
   cut.off <- -1L
   lines.omitted <- 0L

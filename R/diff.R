@@ -139,7 +139,7 @@ make_diff_fun <- function(capt_fun) {
   function(
     target, current, mode=getOption("diffobj.mode"),
     context=getOption("diffobj.context"),
-    settings=diffobj_settings(),
+    etc=diffobj_etc(),
     ...
   ) {
     # Force evaluation of dots to make sure user doesn't mess us up with
@@ -149,18 +149,18 @@ make_diff_fun <- function(capt_fun) {
 
     # Check args
 
-    settings <- check_args(
+    etc <- check_args(
       call=call, tar.exp=substitute(target), cur.exp=substitute(current),
-      mode=mode, context=context, settings=settings
+      mode=mode, context=context, etc=etc
     )
     # Force crayon to whatever ansi status we chose; note we must do this after
     # touching vars in case someone passes `options(crayon.enabled=...)` as one
     # of the arguments
 
-    old.crayon.opt <- options(crayon.enabled=settings@use.ansi)
+    old.crayon.opt <- options(crayon.enabled=etc@use.ansi)
     on.exit(options(old.crayon.opt), add=TRUE)
     err <- make_err_fun(sys.call())
-    capt_fun(target, current, settings=settings, err=err, ...)
+    capt_fun(target, current, etc=etc, err=err, ...)
   }
 }
 #' @rdname diff_obj

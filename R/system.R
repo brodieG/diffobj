@@ -5,6 +5,7 @@
     diffobj.context.auto.min=1L,
     diffobj.context.auto.max=-1L,
     diffobj.ignore.white.space=TRUE,
+    diffobj.convert.hz.white.space=TRUE,
     diffobj.line.limit=-1L,
     diffobj.pager.mode="threshold",
     diffobj.pager.threshold=-1L,

@@ -136,11 +136,11 @@ check_limit <- function(limit) {
 }
 # Checks common arguments across functions
 
-check_args <- function(call, tar.exp, cur.exp, mode, context, settings) {
+check_args <- function(call, tar.exp, cur.exp, mode, context, etc) {
   err <- make_err_fun(call)
 
-  if(!is(settings, "diffObjSettings"))
-    err("Argument `settings` must be a `diffObjSettings` S4 object")
+  if(!is(etc, "diffObjSettings"))
+    err("Argument `etc` must be a `diffObjSettings` S4 object")
 
   msg.base <- paste0(
     "Argument `%s` must be integer(1L) and not NA, an object produced ",
@@ -169,13 +169,13 @@ check_args <- function(call, tar.exp, cur.exp, mode, context, settings) {
       "Argument `mode` must be character(1L) and in `", deparse(val.modes), "`."
     )
 
-  # Update the settings object
+  # Update the etc object
 
-  settings@mode <- val.modes[[which(mode.eq)]]
-  settings@context <- context
-  settings@tar.exp <- tar.exp
-  settings@cur.exp <- cur.exp
-  settings
+  etc@mode <- val.modes[[which(mode.eq)]]
+  etc@context <- context
+  etc@tar.exp <- tar.exp
+  etc@cur.exp <- cur.exp
+  etc
 }
 
 is.int.1L <- function(x)

@@ -32,10 +32,10 @@ rng_as_chr <- function(range) {
 }
 # Convert a hunk group into text representation
 
-hunk_as_char <- function(h.g, ranges.orig, settings) {
-  mode <- settings@mode
-  disp.width <- settings@disp.width
-  ignore.white.space <- settings@ignore.white.space
+hunk_as_char <- function(h.g, ranges.orig, etc) {
+  mode <- etc@mode
+  disp.width <- etc@disp.width
+  ignore.white.space <- etc@ignore.white.space
 
   # First check that the hunk group hasn't been completely trimmed
 
@@ -208,16 +208,16 @@ setMethod("as.character", "diffObjDiff",
     # checked earlier; here just in case we mess something up in devel or
     # testing
 
-    hunk.limit <- x@settings@hunk.limit
-    line.limit <- x@settings@line.limit
-    hunk.limit <- x@settings@hunk.limit
-    disp.width <- x@settings@disp.width
-    max.diffs <- x@settings@max.diffs
-    max.diffs.in.hunk <- x@settings@max.diffs.in.hunk
-    max.diffs.wrap <- x@settings@max.diffs.wrap
-    mode <- x@settings@mode
-    tab.stops <- x@settings@tab.stops
-    ignore.white.space <- x@settings@ignore.white.space
+    hunk.limit <- x@etc@hunk.limit
+    line.limit <- x@etc@line.limit
+    hunk.limit <- x@etc@hunk.limit
+    disp.width <- x@etc@disp.width
+    max.diffs <- x@etc@max.diffs
+    max.diffs.in.hunk <- x@etc@max.diffs.in.hunk
+    max.diffs.wrap <- x@etc@max.diffs.wrap
+    mode <- x@etc@mode
+    tab.stops <- x@etc@tab.stops
+    ignore.white.space <- x@etc@ignore.white.space
 
     len.max <- max(length(x@tar.capt), length(x@cur.capt))
     no.diffs <- if(!any(x)) {
@@ -240,15 +240,15 @@ setMethod("as.character", "diffObjDiff",
 
     # Trim hunks to the extent need to make sure we fit in lines
 
-    hunk.grps <- trim_hunks(x@diffs$hunks, x@settings)
+    hunk.grps <- trim_hunks(x@diffs$hunks, x@etc)
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
 
     # Make the object banner and compute more detailed widths post trim
 
-    tar.banner <- if(!is.null(x@settings@tar.banner)) x@settings@tar.banner else
-      deparse(x@settings@tar.exp)[[1L]]
-    cur.banner <- if(!is.null(x@settings@cur.banner)) x@settings@cur.banner else
-      deparse(x@settings@cur.exp)[[1L]]
+    tar.banner <- if(!is.null(x@etc@tar.banner)) x@etc@tar.banner else
+      deparse(x@etc@tar.exp)[[1L]]
+    cur.banner <- if(!is.null(x@etc@cur.banner)) x@etc@cur.banner else
+      deparse(x@etc@cur.exp)[[1L]]
     banner.A <- paste0("--- ", tar.banner)
     banner.B <- paste0("+++ ", cur.banner)
 
@@ -359,7 +359,7 @@ setMethod("as.character", "diffObjDiff",
         body.diff <- diff_word(
           regmatches(x@tar.capt[tar.head], tar.body),
           regmatches(x@cur.capt[cur.head], cur.body),
-          x@settings, diff.mode="wrap",
+          x@etc, diff.mode="wrap",
           match.quotes=is.character(x@target) && is.character(x@current)
         )
         regmatches(x@tar.capt[tar.head], tar.body) <- body.diff$target
@@ -373,14 +373,14 @@ setMethod("as.character", "diffObjDiff",
         cur.r.h.txt <- regmatches(x@cur.capt[cur.head], cur.r.h)
         tar.r.h.txt <- regmatches(x@tar.capt[tar.head], tar.r.h)
 
-        word.set <- x@settings
+        word.set <- x@etc
         word.set@line.limit <- -1L
         word.set@mode <- "context"
 
         x.r.h <- new(
           "diffObjDiff", tar.capt=tar.r.h.txt, cur.capt=cur.r.h.txt,
           diffs=char_diff(
-            tar.r.h.txt, cur.r.h.txt, settings=word.set, diff.mode="wrap",
+            tar.r.h.txt, cur.r.h.txt, etc=word.set, diff.mode="wrap",
             warn=TRUE
           )
         )
@@ -435,7 +435,7 @@ setMethod("as.character", "diffObjDiff",
           B.new <- c(h.a$A.chr[A.neg], h.a$B.chr[B.neg])
 
           new.diff <- diff_word(
-            A.new, B.new, settings=x@settings, diff.mode="hunk",
+            A.new, B.new, etc=x@etc, diff.mode="hunk",
             warn=warn.hit.diffs.max
           )
           if(new.diff$hit.diffs.max) warn.hit.diffs.max <- FALSE
@@ -460,7 +460,7 @@ setMethod("as.character", "diffObjDiff",
     # Process the actual hunks into character
 
     out <- lapply(
-      hunk.grps, hunk_as_char, ranges.orig=ranges.orig, settings=x@settings
+      hunk.grps, hunk_as_char, ranges.orig=ranges.orig, etc=x@etc
     )
     # Finalize
 

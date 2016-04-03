@@ -41,7 +41,7 @@ find_brackets <- function(x) {
 # can better match deparsed things and so on
 
 diff_word <- function(
-  target, current, settings, match.quotes=FALSE, diff.mode, warn=TRUE
+  target, current, etc, match.quotes=FALSE, diff.mode, warn=TRUE
 ) {
   stopifnot(
     is.character(target), is.character(current),
@@ -83,10 +83,10 @@ diff_word <- function(
   if(is.null(tar.unsplit)) tar.unsplit <- character(0L)
   if(is.null(cur.unsplit)) cur.unsplit <- character(0L)
 
-  settings@line.limit <- settings@hunk.limit <- settings@context <- -1L
-  settings@mode <- "context"
+  etc@line.limit <- etc@hunk.limit <- etc@context <- -1L
+  etc@mode <- "context"
   diffs <- char_diff(
-    tar.unsplit, cur.unsplit, settings=settings, diff.mode=diff.mode, warn=warn
+    tar.unsplit, cur.unsplit, etc=etc, diff.mode=diff.mode, warn=warn
   )
   # Color
 

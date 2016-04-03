@@ -12,24 +12,19 @@
 \title{Show Diffs Between the Screen Display Versions of Two Objects}
 \usage{
 diff_print(target, current, mode = getOption("diffobj.mode"),
-  context = getOption("diffobj.context"), settings = diffobj_settings(),
-  ...)
+  context = getOption("diffobj.context"), etc = diffobj_etc(), ...)
 
 diff_str(target, current, mode = getOption("diffobj.mode"),
-  context = getOption("diffobj.context"), settings = diffobj_settings(),
-  ...)
+  context = getOption("diffobj.context"), etc = diffobj_etc(), ...)
 
 diff_chr(target, current, mode = getOption("diffobj.mode"),
-  context = getOption("diffobj.context"), settings = diffobj_settings(),
-  ...)
+  context = getOption("diffobj.context"), etc = diffobj_etc(), ...)
 
 diff_deparse(target, current, mode = getOption("diffobj.mode"),
-  context = getOption("diffobj.context"), settings = diffobj_settings(),
-  ...)
+  context = getOption("diffobj.context"), etc = diffobj_etc(), ...)
 
 diff_obj(target, current, mode = getOption("diffobj.mode"),
-  context = getOption("diffobj.context"), settings = diffobj_settings(),
-  ...)
+  context = getOption("diffobj.context"), etc = diffobj_etc(), ...)
 }
 \arguments{
 \item{target}{the reference object}
