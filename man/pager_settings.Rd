@@ -29,10 +29,10 @@ the evaluation and is reset / unset afterwards.}
 }
 \value{
 S4 object for use as the \code{pager} parameter to
-  \code{link{diffobj_settings}}
+  \code{link{etc}}
 }
 \description{
 Pager is invoked via \code{\link{file.show}}.  This function is intended for
-use with the \code{pager} parameter for \code{\link{diffobj_settings}}.
+use with the \code{pager} parameter for \code{\link{etc}}.
 }
 

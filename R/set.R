@@ -23,12 +23,13 @@
 #' @param convert.hz.whitespace TRUE or FALSE, whether modify input strings
 #'   that contain tabs and carriage returns in such a way that they display as
 #'   they would \bold{with} those characters, but without using those
-#'   characters.  If your console uses tab stops that are not eight characters
-#'   appart you may specify them with \code{tab.stops}.
+#'   characters (defaults to TRUE).  If your console uses tab stops that are not
+#'   eight characters apart you may specify them with \code{tab.stops}.
 #' @param tab.stops integer, what tab stops to use when converting hard tabs to
 #'   spaces.  If not integer will be coerced to integer (defaults to 8L).
 #' @param disp.width integer(1L) number of display columns to take up; note that
-#'   in \dQuote{sidebyside} mode the effective display width is half this number
+#'   in \dQuote{sidebyside} mode the effective display width is half this
+#'   number (defaults to \code{getOption("width")}.
 #' @param frame environment the evaluation frame for the \code{print/show/str},
 #'   calls, allows user to ensure correct methods are used, not used by
 #'   \code{\link{diff_chr}} or \code{\link{diff_deparse}}.
@@ -170,7 +171,7 @@ auto_context <- function(
 #' Control Under What Circumstances Output is Displayed Through Pager
 #'
 #' Pager is invoked via \code{\link{file.show}}.  This function is intended for
-#' use with the \code{pager} parameter for \code{\link{diffobj_settings}}.
+#' use with the \code{pager} parameter for \code{\link{etc}}.
 #'
 #' @export
 #' @param mode character(1L) one of \itemize{
@@ -189,7 +190,7 @@ auto_context <- function(
 #'   setting is TRUE.  The system variable is only modified for the duration of
 #'   the evaluation and is reset / unset afterwards.
 #' @return S4 object for use as the \code{pager} parameter to
-#'   \code{link{diffobj_settings}}
+#'   \code{link{etc}}
 
 pager_settings <- function(
   mode=getOption("diffobj.pager.mode"),

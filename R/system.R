@@ -3,7 +3,7 @@
   default.opts <- list(
     diffobj.context="auto",
     diffobj.context.auto.min=1L,
-    diffobj.context.auto.max=-1L,
+    diffobj.context.auto.max=10L,
     diffobj.ignore.white.space=TRUE,
     diffobj.convert.hz.white.space=TRUE,
     diffobj.line.limit=-1L,
