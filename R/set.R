@@ -61,7 +61,6 @@ etc <- function(
   ignore.white.space=getOption("diffobj.ignore.white.space"),
   use.ansi=getOption("diffobj.use.ansi"),
   disp.width=getOption("width"),
-  silent=getOption("diffobj.silent"),
   max.diffs=getOption("diffobj.max.diffs"),
   max.diffs.in.hunk=getOption("diffobj.max.diffs.in.hunk"),
   max.diffs.wrap=getOption("diffobj.max.diffs.wrap"),
@@ -146,7 +145,7 @@ console_lines <- function() {
   LINES <- as.integer(Sys.getenv("LINES"))
   if(length(lines) == 1L && !is.na(LINES) && LINES > 0L) LINES else 48L
 }
-#' Configure Automatic Contextz Calculation
+#' Configure Automatic Context Calculation
 #'
 #' Helper functions to help define parameters for selecting an appropriate
 #' \code{context} value.

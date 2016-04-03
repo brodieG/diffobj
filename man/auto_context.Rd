@@ -2,7 +2,7 @@
 % Please edit documentation in R/set.R
 \name{auto_context}
 \alias{auto_context}
-\title{Configure Automatic Contextz Calculation}
+\title{Configure Automatic Context Calculation}
 \usage{
 auto_context(min = getOption("diffobj.context.auto.min"),
   max = getOption("diffobj.context.auto.max"))
