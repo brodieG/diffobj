@@ -114,10 +114,12 @@ setMethod("as.data.frame", "diffObjMyersMbaSes",
     )
     dat
 } )
-#' Produce Shortest Edit Script
+#' Shortest Edit Script
 #'
-#' Intended primarily for debugging or for other applications that understand
-#' that particular format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}
+#' Computes shortest edit script to convert \code{a} into \code{b} by removing
+#' elements from \code{a} and adding elements from \code{b}.  Intended primarily
+#' for debugging or for other applications that understand that particular
+#' format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}
 #' for how to interpret the symbols.
 #'
 #' @export
@@ -125,7 +127,7 @@ setMethod("as.data.frame", "diffObjMyersMbaSes",
 #' @param b character
 #' @return character
 
-diff_ses <- function(a, b) as.character(diff_myers_mba(a, b))
+ses <- function(a, b) as.character(diff_myers_mba(a, b))
 
 #' Diff two character vectors
 #'
@@ -163,12 +165,15 @@ diff_myers_mba <- function(a, b, max.diffs=0L) {
     )
   res.s4
 }
-#' Print Method for Shortest Edit Path
-#'
-#' Bare bones display of shortest edit path using GNU diff conventions
-#'
-#' @param object object to display
-#' @return character the shortest edit path character representation, invisibly
+# Print Method for Shortest Edit Path
+#
+# Bare bones display of shortest edit path using GNU diff conventions
+#
+# @param object object to display
+# @return character the shortest edit path character representation, invisibly
+# @rdname diffobj_s4method_doc
+
+#' @rdname diffobj_s4method_doc
 
 setMethod("show", "diffObjMyersMbaSes",
   function(object) {
@@ -176,18 +181,21 @@ setMethod("show", "diffObjMyersMbaSes",
     cat(res, sep="\n")
     invisible(res)
 } )
-#' Summary Method for Shortest Edit Path
-#'
-#' Displays the data required to generate the shortest edit path for comparison
-#' between two strings.
-#'
-#' @param object the \code{diff_myers_mba} object to display
-#' @param with.match logical(1L) whether to show what text the edit command
-#'   refers to
-#' @param ... forwarded to the data frame print method used to actually display
-#'   the data
-#' @return whatever the data frame print method returns
-#' @export
+
+# Summary Method for Shortest Edit Path
+#
+# Displays the data required to generate the shortest edit path for comparison
+# between two strings.
+#
+# @param object the \code{diff_myers_mba} object to display
+# @param with.match logical(1L) whether to show what text the edit command
+#   refers to
+# @param ... forwarded to the data frame print method used to actually display
+#   the data
+# @return whatever the data frame print method returns
+# @export
+
+#' @rdname diffobj_s4method_doc
 
 setMethod("summary", "diffObjMyersMbaSes",
   function(object, with.match=FALSE, ...) {
