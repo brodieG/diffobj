@@ -148,9 +148,9 @@ setMethod("show", "diffObjDiff",
     # slot(res.diff, "trim.dat") <- attr(res.chr, "meta")
     use.pager <- object@settings@pager@mode
     use.pager.thresh <- identical(use.pager, "threshold")
-    pager.thresh <- object@setting@pager@threshold
-    threshold <- if(use.pager.thresh && pager.thres == -1L)
-      console_lines() else object@setting@pager@threshold
+    pager.thresh <- object@settings@pager@threshold
+    threshold <- if(use.pager.thresh && pager.thresh == -1L)
+      console_lines() else object@settings@pager@threshold
 
     if(
       identical(use.pager, "always") || (

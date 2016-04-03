@@ -150,8 +150,8 @@ auto_context <- function(
 ){
   if(!is.int.1L(min) || min < 0L)
     stop("Argument `min` must be integer(1L) and greater than zero")
-  if(!is.int.1L(max) || max < 0L)
-    stop("Argument `max` must be integer(1L) and greater than zero")
+  if(!is.int.1L(max))
+    stop("Argument `max` must be integer(1L) and not NA")
   new("diffObjAutoContext", min=as.integer(min), max=as.integer(max))
 }
 #' Control Under What Circumstances Output is Displayed Through Pager
@@ -188,7 +188,7 @@ pager_settings <- function(
   if(!is.int.1L(threshold)) stop(
     "Argument `threshold` should be integer(1L) and not NA"
   )
-  new("diffObjPager", mode=mode, threshold=threshold)
+  new("diffObjPager", mode=mode, threshold=threshold, less.flags=less.flags)
 }
 # Check whether system has less as pager; this is an approximation since we
 # do not check that the pager shell script actually calls $PAGER
