@@ -129,6 +129,10 @@ local({
     diff_obj(iris, iris.3)
     diff_obj(iris, iris.3, mode="sidebyside")
 
+    diff_str(cars, mtcars)
+
+    diff_print(iris, iris[-2])
+
     mdl1 <- lm(Sepal.Length ~ Sepal.Width, iris)
     mdl2 <- lm(Sepal.Length ~ Sepal.Width + Species, iris.3)
     diff_str(mdl1, mdl2, mode="sidebyside")

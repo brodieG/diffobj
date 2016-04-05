@@ -32,8 +32,16 @@ align_eq <- function(A, B, A.eq, B.eq, ignore.white.space=FALSE) {
   A.eq <- c("<match>", if(ignore.white.space) gsub("\\s+", "", A.eq) else A.eq)
   B.eq <- c("<match>", if(ignore.white.space) gsub("\\s+", "", B.eq) else B.eq)
 
-  align <- match(A.eq, B.eq, nomatch=0L)
-  align[align < cummax(align)] <- 0L
+  # Need to match each element in A.eq to B.eq, though each match consumes the
+  # match so we can't use `match`; unfortunately this is slow
+
+  min.match <- 0L
+  align <- integer(length(A.eq))
+  B.len <- length(B.eq)
+  for(i in seq_along(A.eq)) {
+    B.match <- which(A.eq[[i]] == B.eq & seq_along(B.eq) > min.match)
+    if(length(B.match)) align[[i]] <- min.match <- B.match[[1L]]
+  }
   A.splits <- cumsum(!!align)
 
   B.align <- c(align[!!align], length(B.eq) + 1L)
@@ -192,8 +200,7 @@ strip_hz_control <- function(txt, stops=8L) {
   #   is.character(txt), !anyNA(txt),
   #   is.integer(stops), length(stops) >= 1L, !anyNA(stops), all(stops > 0L)
   # )
-  if(any(grepl("\n", txt)))
-    stop("Logic Error: input may not contain newlines; contact maintainer")
+  txt <- unlist(strsplit(txt, "\n"))
   use.ansi <- crayon_hascolor()
   has.ansi <- grepl(ansi_regex, txt, perl=TRUE) & use.ansi
   w.ansi <- which(has.ansi)

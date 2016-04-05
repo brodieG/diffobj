@@ -32,9 +32,11 @@ rng_as_chr <- function(range) {
 }
 # Convert a hunk group into text representation
 
-hunk_as_char <- function(
-  h.g, ranges.orig, mode, disp.width, ignore.white.space
-) {
+hunk_as_char <- function(h.g, ranges.orig, etc) {
+  mode <- etc@mode
+  disp.width <- etc@disp.width
+  ignore.white.space <- etc@ignore.white.space
+
   # First check that the hunk group hasn't been completely trimmed
 
   all.lines <- sum(
@@ -206,16 +208,16 @@ setMethod("as.character", "diffObjDiff",
     # checked earlier; here just in case we mess something up in devel or
     # testing
 
-    hunk.limit <- x@hunk.limit
-    line.limit <- x@line.limit
-    hunk.limit <- x@hunk.limit
-    disp.width <- x@disp.width
-    max.diffs <- x@max.diffs
-    max.diffs.in.hunk <- x@max.diffs.in.hunk
-    max.diffs.wrap <- x@max.diffs.wrap
-    mode <- x@mode
-    tab.stops <- x@tab.stops
-    ignore.white.space <- x@ignore.white.space
+    hunk.limit <- x@etc@hunk.limit
+    line.limit <- x@etc@line.limit
+    hunk.limit <- x@etc@hunk.limit
+    disp.width <- x@etc@disp.width
+    max.diffs <- x@etc@max.diffs
+    max.diffs.in.hunk <- x@etc@max.diffs.in.hunk
+    max.diffs.wrap <- x@etc@max.diffs.wrap
+    mode <- x@etc@mode
+    tab.stops <- x@etc@tab.stops
+    ignore.white.space <- x@etc@ignore.white.space
 
     len.max <- max(length(x@tar.capt), length(x@cur.capt))
     no.diffs <- if(!any(x)) {
@@ -238,16 +240,17 @@ setMethod("as.character", "diffObjDiff",
 
     # Trim hunks to the extent need to make sure we fit in lines
 
-    hunk.grps <- trim_hunks(
-      x@diffs$hunks, mode=mode, disp.width=disp.width, line.limit=line.limit.a,
-      hunk.limit=hunk.limit
-    )
+    hunk.grps <- trim_hunks(x@diffs$hunks, x@etc)
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
 
     # Make the object banner and compute more detailed widths post trim
 
-    banner.A <- paste0("--- ", x@tar.banner)
-    banner.B <- paste0("+++ ", x@cur.banner)
+    tar.banner <- if(!is.null(x@etc@tar.banner)) x@etc@tar.banner else
+      deparse(x@etc@tar.exp)[[1L]]
+    cur.banner <- if(!is.null(x@etc@cur.banner)) x@etc@cur.banner else
+      deparse(x@etc@cur.exp)[[1L]]
+    banner.A <- paste0("--- ", tar.banner)
+    banner.B <- paste0("+++ ", cur.banner)
 
     if(mode == "sidebyside") {
       # If side by side we want stuff close together if reasonable
@@ -271,7 +274,7 @@ setMethod("as.character", "diffObjDiff",
       crayon_style(t.fun(banner.B, max.w), "green")
     )
     # Trim banner if exceeds line limit, and adjust line limit for banner size;
-    # note we add back 
+    # note we add back
 
     if(line.limit[[1L]] >= 0 && line.limit[[1L]] < banner.len)
       length(banner) <- line.limit[[2L]]
@@ -356,9 +359,8 @@ setMethod("as.character", "diffObjDiff",
         body.diff <- diff_word(
           regmatches(x@tar.capt[tar.head], tar.body),
           regmatches(x@cur.capt[cur.head], cur.body),
-          ignore.white.space=ignore.white.space,
-          match.quotes=is.character(x@target) && is.character(x@current),
-          max.diffs=max.diffs, tab.stops=tab.stops, diff.mode="wrap"
+          x@etc, diff.mode="wrap",
+          match.quotes=is.character(x@target) && is.character(x@current)
         )
         regmatches(x@tar.capt[tar.head], tar.body) <- body.diff$target
         regmatches(x@cur.capt[cur.head], cur.body) <- body.diff$current
@@ -371,13 +373,15 @@ setMethod("as.character", "diffObjDiff",
         cur.r.h.txt <- regmatches(x@cur.capt[cur.head], cur.r.h)
         tar.r.h.txt <- regmatches(x@tar.capt[tar.head], tar.r.h)
 
+        word.set <- x@etc
+        word.set@line.limit <- -1L
+        word.set@mode <- "context"
+
         x.r.h <- new(
           "diffObjDiff", tar.capt=tar.r.h.txt, cur.capt=cur.r.h.txt,
           diffs=char_diff(
-            tar.r.h.txt, cur.r.h.txt, ignore.white.space=ignore.white.space,
-            mode="context", hunk.limit=hunk.limit, line.limit=-1L,
-            disp.width=disp.width, max.diffs=max.diffs.wrap,
-            tab.stops=tab.stops, diff.mode="wrap", warn=TRUE
+            tar.r.h.txt, cur.r.h.txt, etc=word.set, diff.mode="wrap",
+            warn=TRUE
           )
         )
         x.r.h.color <- diff_color(x.r.h@diffs)
@@ -431,9 +435,8 @@ setMethod("as.character", "diffObjDiff",
           B.new <- c(h.a$A.chr[A.neg], h.a$B.chr[B.neg])
 
           new.diff <- diff_word(
-            A.new, B.new, ignore.white.space=ignore.white.space,
-            max.diffs=max.diffs.in.hunk, tab.stops=tab.stops,
-            diff.mode="hunk", warn=warn.hit.diffs.max
+            A.new, B.new, etc=x@etc, diff.mode="hunk",
+            warn=warn.hit.diffs.max
           )
           if(new.diff$hit.diffs.max) warn.hit.diffs.max <- FALSE
           h.a$A.chr[A.pos] <- new.diff$target[seq_along(A.pos)]
@@ -457,8 +460,7 @@ setMethod("as.character", "diffObjDiff",
     # Process the actual hunks into character
 
     out <- lapply(
-      hunk.grps, hunk_as_char, ranges.orig=ranges.orig,
-      mode=mode, disp.width=disp.width, ignore.white.space=ignore.white.space
+      hunk.grps, hunk_as_char, ranges.orig=ranges.orig, etc=x@etc
     )
     # Finalize
 

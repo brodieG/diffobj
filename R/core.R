@@ -2,12 +2,12 @@
 
 NULL
 
-#' Generate a character representation of Shortest Edit Sequence
-#'
-#' @seealso \code{\link{diff_ses}}
-#' @param x S4 object of class \code{diffObjMyersMbaSes}
-#' @param ... unused
-#' @return character vector
+# Generate a character representation of Shortest Edit Sequence
+#
+# @seealso \code{\link{diff_ses}}
+# @param x S4 object of class \code{diffObjMyersMbaSes}
+# @param ... unused
+# @return character vector
 
 setMethod("as.character", "diffObjMyersMbaSes",
   function(x, ...) {
@@ -114,10 +114,12 @@ setMethod("as.data.frame", "diffObjMyersMbaSes",
     )
     dat
 } )
-#' Produce Shortest Edit Script
+#' Shortest Edit Script
 #'
-#' Intended primarily for debugging or for other applications that understand
-#' that particular format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}
+#' Computes shortest edit script to convert \code{a} into \code{b} by removing
+#' elements from \code{a} and adding elements from \code{b}.  Intended primarily
+#' for debugging or for other applications that understand that particular
+#' format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}
 #' for how to interpret the symbols.
 #'
 #' @export
@@ -125,7 +127,7 @@ setMethod("as.data.frame", "diffObjMyersMbaSes",
 #' @param b character
 #' @return character
 
-diff_ses <- function(a, b) as.character(diff_myers_mba(a, b))
+ses <- function(a, b) as.character(diff_myers_mba(a, b))
 
 #' Diff two character vectors
 #'
@@ -163,12 +165,15 @@ diff_myers_mba <- function(a, b, max.diffs=0L) {
     )
   res.s4
 }
-#' Print Method for Shortest Edit Path
-#'
-#' Bare bones display of shortest edit path using GNU diff conventions
-#'
-#' @param object object to display
-#' @return character the shortest edit path character representation, invisibly
+# Print Method for Shortest Edit Path
+#
+# Bare bones display of shortest edit path using GNU diff conventions
+#
+# @param object object to display
+# @return character the shortest edit path character representation, invisibly
+# @rdname diffobj_s4method_doc
+
+#' @rdname diffobj_s4method_doc
 
 setMethod("show", "diffObjMyersMbaSes",
   function(object) {
@@ -176,18 +181,21 @@ setMethod("show", "diffObjMyersMbaSes",
     cat(res, sep="\n")
     invisible(res)
 } )
-#' Summary Method for Shortest Edit Path
-#'
-#' Displays the data required to generate the shortest edit path for comparison
-#' between two strings.
-#'
-#' @param object the \code{diff_myers_mba} object to display
-#' @param with.match logical(1L) whether to show what text the edit command
-#'   refers to
-#' @param ... forwarded to the data frame print method used to actually display
-#'   the data
-#' @return whatever the data frame print method returns
-#' @export
+
+# Summary Method for Shortest Edit Path
+#
+# Displays the data required to generate the shortest edit path for comparison
+# between two strings.
+#
+# @param object the \code{diff_myers_mba} object to display
+# @param with.match logical(1L) whether to show what text the edit command
+#   refers to
+# @param ... forwarded to the data frame print method used to actually display
+#   the data
+# @return whatever the data frame print method returns
+# @export
+
+#' @rdname diffobj_s4method_doc
 
 setMethod("summary", "diffObjMyersMbaSes",
   function(object, with.match=FALSE, ...) {
@@ -217,45 +225,41 @@ setMethod("summary", "diffObjMyersMbaSes",
 # warn is to allow us to suppress warnings after first hunk warning
 
 char_diff <- function(
-  x, y, context=-1L, ignore.white.space, mode, hunk.limit, line.limit,
-  disp.width, max.diffs, tab.stops, diff.mode, warn, use.header=FALSE
+  x, y, context=-1L, etc, diff.mode, warn, use.header=FALSE
 ) {
   stopifnot(
     diff.mode %in% c("line", "hunk", "wrap"),
     isTRUE(warn) || identical(warn, FALSE)
   )
-  if(ignore.white.space) {
+  diff.param <- c(
+    line="max.diffs", hunk="max.diffs.in.hunk", wrap="max.diffs.wrap"
+  )
+  if(etc@ignore.white.space) {
     sub.pat <- "(\t| )"
     pat.1 <- sprintf("^%s*|%s*$", sub.pat, sub.pat)
     pat.2 <- sprintf("%s+", sub.pat)
     x.w <- gsub(pat.2, " ", gsub(pat.1, "", x))
     y.w <- gsub(pat.2, " ", gsub(pat.1, "", y))
   }
+  max.diffs <- slot(etc, diff.param[[diff.mode]])
   diff <- diff_myers_mba(x.w, y.w, max.diffs)
-  if(ignore.white.space) {
+  if(etc@ignore.white.space) {
     diff@a <- x
     diff@b <- y
   }
-  hunks <- as.hunks(
-    diff, context=context, mode=mode, hunk.limit=hunk.limit,
-    line.limit=line.limit, disp.width=disp.width, tab.stops=tab.stops,
-    use.header=use.header
-  )
+  hunks <- as.hunks(diff, etc=etc)
   hit.diffs.max <- FALSE
   if(diff@diffs < 0L) {
     hit.diffs.max <- TRUE
     diff@diffs <- -diff@diffs
-    diff.param <- c(
-      line="max.diffs", hunk="max.diffs.in.hunk", wrap="max.diffs.wrap"
-    )
     diff.msg <- c(
       line="overall", hunk="in-hunk word", wrap="word"
     )
     if(warn)
       warning(
         "Exceeded `", diff.param[diff.mode], "` limit during diff computation (",
-        diff@diffs, " vs. ", max.diffs, " allowed); ", diff.msg[diff.mode],
-        " diff is likely not optimal",
+        diff@diffs, " vs. ", max.diffs, " allowed); ",
+        diff.msg[diff.mode], " diff is likely not optimal",
         call.=FALSE
       )
   }
@@ -264,6 +268,26 @@ char_diff <- function(
   list(
     hunks=hunks, diffs=count_diffs(hunks), diffs.max=0L,
     hit.diffs.max=hit.diffs.max
+  )
+}
+# Variation on `char_diff` used for the overall diff where we don't need
+# to worry about overhead from creating the `diffObjDiff` object
+
+line_diff <- function(
+  target, current, tar.capt, cur.capt, context, etc, warn=TRUE,
+  strip=TRUE, use.header=FALSE
+) {
+  if(strip) {
+    tar.capt <- strip_hz_control(tar.capt, stops=etc@tab.stops)
+    cur.capt <- strip_hz_control(cur.capt, stops=etc@tab.stops)
+  }
+  diffs <- char_diff(
+    tar.capt, cur.capt, etc=etc, diff.mode="line", warn=warn,
+    use.header=use.header
+  )
+  new(
+    "diffObjDiff", diffs=diffs, target=target, current=current,
+    tar.capt=tar.capt, cur.capt=cur.capt, etc=etc
   )
 }
 # Helper function encodes matches within mismatches so that we can later word

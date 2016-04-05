@@ -14,24 +14,6 @@ setClassUnion("charOrNULL", c("character", "NULL"))
 
 NULL
 
-#' Configure Automatic Context Calculation
-#'
-#' Defines parameters for selecting an appropriate context value when using
-#' \code{\link{diff_obj}} and related functions.
-#'
-#' @export
-#' @param min integer(1L), positive, set to zero to allow any context
-#' @param max integer(1L), set to negative to allow any context
-#' @return S4 object containing configuration parameters, for use as the
-#'   \code{context} parameter value in \code{\link{diff_obj}} and related
-#'   functions
-
-auto_context <- function(
-  min=getOption("diffobj.context.auto.min"),
-  max=getOption("diffobj.context.auto.max")
-) {
-  new("diffObjAutoContext", min=as.integer(min), max=as.integer(max))
-}
 setClass(
   "diffObjAutoContext",
   slots=c(
@@ -47,8 +29,42 @@ setClass(
       return("Slot `max` must be negative, or greater than slot `min`")
     TRUE
 } )
-setClassUnion("doacOrInt", c("diffObjAutoContext", "integer"))
-
+setClassUnion("doAutoCOrInt", c("diffObjAutoContext", "integer"))
+setClass(
+  "diffObjPager",
+  slots=c(mode="character", threshold="integer", less.flags="character"),
+  validity=function(object) {
+    if(!is.pager_mode(object@mode)) return("Invalid `mode` slot")
+    if(!is.less_flags(object@less.flags)) return("Invalid `less.flags` slot")
+    if(!is.int.1L(object@threshold)) return("Invalid `threshold` slot")
+    TRUE
+  }
+)
+setClass(
+  "diffObjSettings",
+  slots=c(
+    mode="character",             # diff output mode
+    context="doAutoCOrInt",
+    line.limit="integer",
+    pager="diffObjPager",
+    hunk.limit="integer",
+    disp.width="integer",
+    use.ansi="logical",
+    max.diffs="integer",
+    max.diffs.in.hunk="integer",
+    max.diffs.wrap="integer",
+    ignore.white.space="logical",
+    frame="environment",
+    silent="logical",
+    tab.stops="integer",
+    tar.exp="ANY",
+    cur.exp="ANY",
+    tar.banner="charOrNULL",
+    cur.banner="charOrNULL",
+    use.header="logical"
+  ),
+  prototype=list(use.header=FALSE)
+)
 # Classes for tracking intermediate diff obj data
 #
 # DiffDiffs contains a slot corresponding to each of target and current where
@@ -99,28 +115,13 @@ setClass(
     target="ANY",                 # Actual object
     tar.capt="character",         # The captured representation
     tar.capt.def="charOrNULL",    # ^^, but using default print method
-    tar.banner="character",       # Banner to display
     current="ANY",
     cur.capt="character",
     cur.capt.def="charOrNULL",
-    cur.banner="character",
-    mode="character",             # diff output mode
-    context="doacOrInt",
-    hunk.limit="integer",
-    line.limit="integer",
-    disp.width="integer",
-    use.ansi="logical",
-    max.diffs="integer",          # after how many differences should we give up
-    max.diffs.in.hunk="integer",  # give up threshold for hunk-hunk comparison
-    # give up threshold for word diff on wrapped atomic
-    max.diffs.wrap="integer",
-    ignore.white.space="logical",
-    capt.mode="character",        # whether in print or str mode
-    frame="environment",
-    silent="logical",
     diffs="list",
-    tab.stops="integer",
-    trim.dat="list"               # result of trimmaxg
+    trim.dat="list",              # result of trimmaxg
+    capt.mode="character",        # whether in print or str mode
+    etc="diffObjSettings"
   ),
   prototype=list(
     capt.mode="print",
@@ -139,7 +140,36 @@ setClass(
       return("slot `trim.dat` in incorrect format")
     TRUE
 } )
-#' @rdname diffobj_s4method_doc
+setMethod("show", "diffObjDiff",
+  function(object) {
+    # Finalize stuff
+
+    res.chr <- as.character(object)
+    # slot(res.diff, "trim.dat") <- attr(res.chr, "meta")
+    use.pager <- object@etc@pager@mode
+    use.pager.thresh <- identical(use.pager, "threshold")
+    pager.thresh <- object@etc@pager@threshold
+    threshold <- if(use.pager.thresh && pager.thresh == -1L)
+      console_lines() else object@etc@pager@threshold
+
+    if(
+      identical(use.pager, "always") || (
+        use.pager.thresh && length(res.chr) > threshold
+      )
+    ){
+      disp.f <- tempfile()
+      on.exit(add=TRUE, unlink(disp.f))
+      writeLines(res.chr, disp.f)
+      if(pager_is_less() && object@etc@use.ansi) {
+        old.less <- set_less_var("R")
+        on.exit(reset_less_var(old.less), add=TRUE)
+      }
+      file.show(disp.f)
+    } else cat(res.chr, sep="\n")
+
+    invisible(NULL)
+  }
+)
 
 setMethod("any", "diffObjDiff",
   function(x, ..., na.rm = FALSE) {
