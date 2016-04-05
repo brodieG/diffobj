@@ -55,6 +55,7 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
         list(
           id=2L, A=integer(0L), B=integer(0L), A.chr=character(0L),
           B.chr=character(0L), A.eq.chr=character(0L), B.eq.chr=character(0L),
+          A.raw.chr=character(0L), B.raw.chr=character(0L),
           context=FALSE, header=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
           tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
           tar.rng.trim=integer(2L), cur.rng.trim=integer(2L)
@@ -124,6 +125,7 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
           list(
             id=i + 1L, A=A, B=B, A.chr=A.chr, B.chr=B.chr,
             A.eq.chr=A.chr, B.eq.chr=B.chr,
+            A.raw.chr=A.chr, B.raw.chr=B.chr,
             context=context, header=FALSE,
             tar.rng=tar.rng, cur.rng=cur.rng,
             tar.rng.sub=tar.rng, cur.rng.sub=cur.rng,

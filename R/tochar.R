@@ -72,13 +72,16 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
     # Get trimmed character ranges; positives are originally from target, and
     # negatives from current
 
-    get_chrs <- function(h.a, mode, eq=FALSE) {
-      stopifnot(mode %in% LETTERS[1:2], length(mode) == 1L, is.TF(eq))
+    get_chrs <- function(h.a, mode, sub) {
+      stopifnot(
+        mode %in% LETTERS[1:2], length(mode) == 1L,
+        is.chr.1L(sub), sub %in% c("", "eq", "raw")
+      )
       rng <- c(
         seq(h.a$tar.rng.trim[[1L]], h.a$tar.rng.trim[[2L]]),
         -seq(h.a$cur.rng.trim[[1L]], h.a$cur.rng.trim[[2L]])
       )
-      chr.ind <- sprintf("%s%s.chr", mode, if(eq) ".eq" else "")
+      chr.ind <- sprintf("%s%s.chr", mode, paste0(if(nzchar(sub)) ".", sub))
       h.a[[chr.ind]][match(rng, h.a[[mode]], nomatch=0L)]
     }
     # Output varies by mode
@@ -118,16 +121,20 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
             i.h <- in_hunk(h.a, "A")
             pos <- (h.a$A > 0L)[i.h]
             neg <- (h.a$A < 0L)[i.h]
-            A.out <- wrap(get_chrs(h.a, mode="A"), capt.width)
+            A.out <- wrap(get_chrs(h.a, mode="A", sub=""), capt.width)
 
             if(!h.a$context) {
-              A.eq <- get_chrs(h.a, "A", TRUE)
               A.pos <- sign_pad(A.out[pos], 3L)
               A.neg <- sign_pad(A.out[neg], 2L)
+              A.eq <- get_chrs(h.a, "A", sub="eq")
               A.eq.p <- A.eq[pos]
               A.eq.n <- A.eq[neg]
+              A.raw <- get_chrs(h.a, "A", sub="raw")
+              A.raw.p <- A.raw[pos]
+              A.raw.n <- A.raw[neg]
               A.p.n.aligned <- align_eq(
-                A.pos, A.neg, A.eq.p, A.eq.n, ignore.white.space
+                A=A.pos, B=A.neg, A.eq=A.eq.p, B.eq=A.eq.n,
+                A.raw=A.raw.p, B.raw=A.raw.n, ignore.white.space
               )
               # Intersperse the pos and neg chunks, starting with negs
 
@@ -145,8 +152,8 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
           function(h.a) {
             # Ensure same number of elements in A and B
 
-            A.out <- get_chrs(h.a, "A")
-            B.out <- get_chrs(h.a, "B")
+            A.out <- get_chrs(h.a, "A", sub="")
+            B.out <- get_chrs(h.a, "B", sub="")
             A.present <- rep(TRUE, length(A.out))
             B.present <- rep(TRUE, length(B.out))
             len.diff <- length(A.out) - length(B.out)
@@ -165,11 +172,14 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
               # Match up the "equal" versions of the strings; we want to split
               # in chunks that start with a match and end in mismatches
 
-              A.eq <- get_chrs(h.a, "A", TRUE)
-              B.eq <- get_chrs(h.a, "B", TRUE)
+              A.eq <- get_chrs(h.a, "A", sub="eq")
+              B.eq <- get_chrs(h.a, "B", sub="eq")
+
+              A.raw <- get_chrs(h.a, "A", sub="raw")
+              B.raw <- get_chrs(h.a, "B", sub="raw")
 
               AB.aligned <- align_eq(
-                A.w.pad, B.w.pad, A.eq, B.eq, ignore.white.space
+                A.w.pad, B.w.pad, A.eq, B.eq, A.raw, B.raw, ignore.white.space
               )
               A.chunks <- AB.aligned$A
               B.chunks <- AB.aligned$B

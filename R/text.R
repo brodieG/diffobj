@@ -12,26 +12,47 @@ ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
                      "(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])",
                      "|\\x{001b}[A-M]")
 
+# Helper function for align_eq; splits up a list into matched elements and
+# interstitial elements, including possibly empty interstitial elements when
+# two matches are abutting
+
+align_split <- function(l, m) {
+  res.len <- sum(!!m) * 2L + 1L
+  splits <- cumsum(
+    c(1L, (!!diff(m) < 0L & !tail(m, -1L)) | (head(m, -1L) & tail(m, -1L)))
+  )
+  m.all <- m
+  m.all[!m] <- -ave(m, splits, FUN=max)[!m]
+  m.all[!m.all] <- -res.len  # trailing zeros
+  m.fin <- ifelse(m.all < 0, -m.all * 2 - 1, m.all * 2)
+  res <- replicate(res.len, list(character(0L)), simplify=FALSE)
+  res[m.fin] <- unname(split(l, m.fin))
+  res
+}
 # Align to vectors based on the values of two other vectors
 #
 # This will group mismatches with the first match preceding them.  There will
 # be as many groups as there are matches.  The matches are assessed on
 # `A.eq` and `B.eq`
 
-align_eq <- function(A, B, A.eq, B.eq, ignore.white.space=FALSE) {
+align_eq <- function(
+  A, B, A.eq, B.eq, A.raw, B.raw, ignore.white.space=FALSE, threshold=0.25
+) {
   stopifnot(
     is.character(A.eq), is.character(B.eq), !anyNA(A.eq), !anyNA(B.eq),
     length(A) == length(A.eq), length(B) == length(B.eq),
-    is.TF(ignore.white.space)
+    is.TF(ignore.white.space),
+    is.numeric(threshold), length(threshold) == 1L, !is.na(threshold),
+    threshold >= 0 && threshold <= 1
   )
-  # to simplify logic, force the first value to match
+  # Remove whitespaces if needed
 
-  A.l <- c("<match>", A)
-  B.l <- c("<match>", B)
-
-  A.eq <- c("<match>", if(ignore.white.space) gsub("\\s+", "", A.eq) else A.eq)
-  B.eq <- c("<match>", if(ignore.white.space) gsub("\\s+", "", B.eq) else B.eq)
-
+  if(ignore.white.space) {
+    A.raw <- gsub("\\s+", "", A.raw)
+    B.raw <- gsub("\\s+", "", B.raw)
+    A.eq <- gsub("\\s+", "", A.eq)
+    B.eq <- gsub("\\s+", "", B.eq)
+  }
   # Need to match each element in A.eq to B.eq, though each match consumes the
   # match so we can't use `match`; unfortunately this is slow
 
@@ -42,18 +63,20 @@ align_eq <- function(A, B, A.eq, B.eq, ignore.white.space=FALSE) {
     B.match <- which(A.eq[[i]] == B.eq & seq_along(B.eq) > min.match)
     if(length(B.match)) align[[i]] <- min.match <- B.match[[1L]]
   }
-  A.splits <- cumsum(!!align)
+  # Disallow empty matches or matches that account for a very small portion of
+  # the possible characters and could be spurious; we should probably do this
+  # ahead of the for loop since we could probably save some iterations
 
-  B.align <- c(align[!!align], length(B.eq) + 1L)
-  B.splits <-
-    rep(seq_len(length(B.align) - 1L), tail(B.align, -1L) - head(B.align, -1L))
+  align[!nzchar(A.eq) | nchar(A.eq) / nchar(A.raw) < threshold] <- 0L
 
-  # now chunk; we need to drop the first match from splits since we added it
+  # Group elements together; only one match per group, mismatches are put
+  # in interstitial buckets.  We number the interstitial buckest as the
+  # negative of the next match
 
-  A.chunks <- unname(split(A.l, A.splits))
-  B.chunks <- unname(split(B.l, B.splits))
-  A.chunks[[1L]] <- tail(A.chunks[[1L]], -1L)
-  B.chunks[[1L]] <- tail(B.chunks[[1L]], -1L)
+  align.b <- seq_along(B.eq)
+  align.b[!align.b %in% align] <- 0L
+  A.chunks <- align_split(A, align)
+  B.chunks <- align_split(B, align.b)
 
   if(length(A.chunks) != length(B.chunks))
     stop("Logic Error: aligned chunks unequal length; contact maintainer.")
