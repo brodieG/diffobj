@@ -2,12 +2,12 @@
 
 NULL
 
-#' Generate a character representation of Shortest Edit Sequence
-#'
-#' @seealso \code{\link{diff_ses}}
-#' @param x S4 object of class \code{diffObjMyersMbaSes}
-#' @param ... unused
-#' @return character vector
+# Generate a character representation of Shortest Edit Sequence
+#
+# @seealso \code{\link{diff_ses}}
+# @param x S4 object of class \code{diffObjMyersMbaSes}
+# @param ... unused
+# @return character vector
 
 setMethod("as.character", "diffObjMyersMbaSes",
   function(x, ...) {

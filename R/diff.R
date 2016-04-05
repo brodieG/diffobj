@@ -132,8 +132,22 @@ diff_str <- make_diff_fun(capt_str)
 
 diff_chr <- make_diff_fun(capt_chr)
 
-#' @rdname diff_obj
+#' Diff Deparsed Objects
+#'
+#' Perform diff on the character vectors produced by \code{\link{deparse}}ing
+#' the objects.
+#'
 #' @export
+#' @inheritParams diff_print
+#' @seealso \code{\link{diff_obj}} for details on output and diff algorithm,
+#'   \code{\link{etc}} for more detailed control of diff settings,
+#'   \code{\link{diff_print}}, \code{\link{diff_str}},
+#'   \code{\link{diff_chr}} to compare character vectors directly
+#' @return a \code{\link{diffObjDiff}} object; this object has a \code{show}
+#'   method that will display the diff to screen
+#' @export
+#' @examples
+#' diff_deparse(matrix(1:9, 3), 1:9)
 
 diff_deparse <- make_diff_fun(capt_deparse)
 
