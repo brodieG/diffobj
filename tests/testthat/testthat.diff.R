@@ -133,6 +133,7 @@ local({
 
     diff_print(iris, iris[-2])
     diff_print(list(1, 2, 3), matrix(1:9, 3))
+    diff_print(list(25, 2, 3), matrix(1:9, 3))
     diff_print(list(c(1, 4, 7), c(2, 5, 8), c(3, 6, 9)), matrix(1:9, 3))
 
     mdl1 <- lm(Sepal.Length ~ Sepal.Width, iris)
