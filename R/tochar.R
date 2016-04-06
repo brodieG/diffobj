@@ -274,7 +274,7 @@ setMethod("as.character", "diffObjDiff",
       )
       max.w <- if(max.col.w < max.w) max(.min.width, max.col.w) else max.w
       # future calculations should assume narrower display
-      disp.width <- max.w * 2L + 2L
+      x@etc@disp.width <- disp.width <- max.w * 2L + 2L
       comb.fun <- paste0
       t.fun <- rpadt
     } else {

@@ -57,6 +57,7 @@ local({
     mx.3 <- mx.2
     mx.3[31, 2] <- 111L
 
+    diff_print(mx2, mx3, mode="sidebyside")
     lst.1 <- list(
       NULL,
       z=list(
@@ -123,7 +124,6 @@ local({
 
     diff_print(iris, iris.2) # no round
     diff_print(iris, iris.c)
-    diff_obj(iris, iris.c)
     diff_obj(iris, iris.c)
     diff_obj(iris, iris.2)
     diff_obj(iris, iris.3)
