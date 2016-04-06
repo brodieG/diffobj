@@ -129,6 +129,14 @@ etc <- function(
       if(!is.chr.1L(this.env[[x]]) && !is.null(this.env[[x]]))
         stop(sprintf(msg.base, x))
   )
+  # 0-1 vars
+
+  if(
+    !is.numeric(diff.align.threshold) || length(diff.align.threshold) != 1L ||
+    !diff.align.threshold >= 0 || !diff.align.threshold <= 1
+  )
+    stop("Argument `diff.align.threshold` must be between 0 and 1")
+
   # instantiate settings object
 
   set.vars <- as.list(this.env)

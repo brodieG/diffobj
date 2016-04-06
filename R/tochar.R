@@ -134,7 +134,9 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
               A.raw.n <- A.raw[neg]
               A.p.n.aligned <- align_eq(
                 A=A.pos, B=A.neg, A.eq=A.eq.p, B.eq=A.eq.n,
-                A.raw=A.raw.p, B.raw=A.raw.n, ignore.white.space
+                A.raw=A.raw.p, B.raw=A.raw.n,
+                ignore.white.space=ignore.white.space,
+                threshold=etc@diff.align.threshold
               )
               # Intersperse the pos and neg chunks, starting with negs
 
@@ -179,7 +181,8 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
               B.raw <- get_chrs(h.a, "B", sub="raw")
 
               AB.aligned <- align_eq(
-                A.w.pad, B.w.pad, A.eq, B.eq, A.raw, B.raw, ignore.white.space
+                A.w.pad, B.w.pad, A.eq, B.eq, A.raw, B.raw, ignore.white.space,
+                threshold=etc@diff.align.threshold
               )
               A.chunks <- AB.aligned$A
               B.chunks <- AB.aligned$B

@@ -145,15 +145,18 @@ test_that("strip hz whitespace", {
 })
 test_that("align mismatches", {
   # Use case differences as the differences
-  A <- letters[1:10]
-  B <- LETTERS[2:13]
+  A <- as.list(letters[1:10])
+  B <- as.list(LETTERS[2:13])
   AB.diffs <- c(1, 3:4, 6, 10)
   B[AB.diffs] <- paste(B[AB.diffs], LETTERS[AB.diffs])
-  A.eq <- tolower(A)
-  B.eq <- tolower(B)
+  A.eq <- tolower(unlist(A))
+  B.eq <- tolower(unlist(B))
 
   expect_identical(
-    unname(diffobj:::align_eq(A, B, A.eq, B.eq)),
+    unname(
+      diffobj:::align_eq(
+        A, B, A.eq, B.eq, A.eq, B.eq, ignore.white.space=FALSE, threshold=1
+    ) ),
     list(
       list(c("a", "b"), c("c", "d", "e"), c("f", "g"), "h", "i", "j"), 
       list("B A", c("C", "D C", "E D"), c("F", "G F"), "H", "I", c("J", "K J", "L", "M"))
@@ -161,7 +164,7 @@ test_that("align mismatches", {
   )
   A1 <- A1.eq <- letters[2:11]  # now match first char
   expect_identical(
-    unname(diffobj:::align_eq(A1, B, A1.eq, B.eq)),
+    unname(diffobj:::align_eq(A1, B, A1.eq, B.eq, ignore.white.space=FALSE)),
     list(
       list("b", c("c", "d", "e"), c("f", "g"), "h", "i", c("j", "k")),
       list("B A", c("C", "D C", "E D"), c("F", "G F"), "H", "I", c("J", "K J", "L", "M"))
@@ -169,7 +172,7 @@ test_that("align mismatches", {
   # edge cases
   abc <- letters[1:3]
   expect_identical(
-    unname(diffobj:::align_eq(character(), abc, character(), abc)),
+    unname(diffobj:::align_eq(character(), abc, character(), abc, ignore.white.space=FALSE)),
     list(list(character(0)), list(c("a", "b", "c")))
   )
   expect_identical(

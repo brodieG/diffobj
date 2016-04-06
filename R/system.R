@@ -17,6 +17,7 @@
     diffobj.max.diffs=10000L,
     diffobj.max.diffs.in.hunk=100L,
     diffobj.max.diffs.wrap=10000L,
+    diffobj.align.threshold=0.25,
     diffobj.tab.stops=8L
   )
   existing.opts <- options()

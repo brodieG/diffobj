@@ -17,13 +17,14 @@ ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
 # two matches are abutting
 
 align_split <- function(l, m) {
-  res.len <- sum(!!m) * 2L + 1L
+  match.len <- sum(!!m)
+  res.len <- match.len * 2L + 1L
   splits <- cumsum(
     c(1L, (!!diff(m) < 0L & !tail(m, -1L)) | (head(m, -1L) & tail(m, -1L)))
   )
-  m.all <- m
-  m.all[!m] <- -ave(m, splits, FUN=max)[!m]
-  m.all[!m.all] <- -res.len  # trailing zeros
+  m.all <- match(m, sort(unique(m[!!m])), nomatch=0L)  # normalize
+  m.all[!m.all] <- -ave(m.all, splits, FUN=max)[!m.all]
+  m.all[!m.all] <- -match.len - 1L  # trailing zeros
   m.fin <- ifelse(m.all < 0, -m.all * 2 - 1, m.all * 2)
   if(any(diff(m.fin) < 0L))
     stop("Logic Error: non monotonic alignments; contact maintainer")
@@ -36,11 +37,14 @@ align_split <- function(l, m) {
 # This will group mismatches with the first match preceding them.  There will
 # be as many groups as there are matches.  The matches are assessed on
 # `A.eq` and `B.eq`
+#
+# A and B should be lists
 
 align_eq <- function(
-  A, B, A.eq, B.eq, A.raw, B.raw, ignore.white.space=FALSE, threshold=0.25
+  A, B, A.eq, B.eq, A.raw, B.raw, ignore.white.space, threshold
 ) {
   stopifnot(
+    is.list(A), is.list(B),
     is.character(A.eq), is.character(B.eq), !anyNA(A.eq), !anyNA(B.eq),
     length(A) == length(A.eq), length(B) == length(B.eq),
     is.TF(ignore.white.space),

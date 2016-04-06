@@ -53,6 +53,7 @@ setClass(
     max.diffs="integer",
     max.diffs.in.hunk="integer",
     max.diffs.wrap="integer",
+    diff.align.threshold="numeric",
     ignore.white.space="logical",
     frame="environment",
     silent="logical",
