@@ -155,40 +155,119 @@ test_that("align mismatches", {
   expect_identical(
     unname(
       diffobj:::align_eq(
-        A, B, A.eq, B.eq, A.eq, B.eq, ignore.white.space=FALSE, threshold=1
+        A, B, A.eq, B.eq, A.eq, B.eq, ignore.white.space=FALSE, threshold=0
     ) ),
     list(
-      list(c("a", "b"), c("c", "d", "e"), c("f", "g"), "h", "i", "j"), 
-      list("B A", c("C", "D C", "E D"), c("F", "G F"), "H", "I", c("J", "K J", "L", "M"))
+      list(list("a", "b"), list("c"), list("d", "e"), list("f"), list("g"), list("h"), list(character(0)), list("i"), list(character(0)), list("j"), list(character(0))),
+      list(list("B A"), list("C"), list("D C", "E D"), list("F"), list("G F"), list("H"), list(character(0)), list("I"), list(character(0)), list("J"), list("K J", "L", "M"))
     )
   )
-  A1 <- A1.eq <- letters[2:11]  # now match first char
+  A1.eq <- letters[2:11]  # now match first char
+  A1 <- as.list(A1.eq)
   expect_identical(
-    unname(diffobj:::align_eq(A1, B, A1.eq, B.eq, ignore.white.space=FALSE)),
+    unname(
+      diffobj:::align_eq(
+        A1, B, A1.eq, B.eq, A1.eq, B.eq, ignore.white.space=FALSE, threshold=0
+    ) ),
     list(
-      list("b", c("c", "d", "e"), c("f", "g"), "h", "i", c("j", "k")),
-      list("B A", c("C", "D C", "E D"), c("F", "G F"), "H", "I", c("J", "K J", "L", "M"))
-  ) )
+      list(list("b"), list("c"), list("d", "e"), list("f"), list("g"), list("h"), list(character(0)), list("i"), list(character(0)), list("j"), list("k")),
+      list(list("B A"), list("C"), list("D C", "E D"), list("F"), list("G F"), list("H"), list(character(0)), list("I"), list(character(0)), list("J"), list("K J", "L", "M"))
+    )
+  )
   # edge cases
+  empty <- character(0L)
   abc <- letters[1:3]
+  empty.l <- as.list(empty)
+  abc.l <- as.list(abc)
   expect_identical(
-    unname(diffobj:::align_eq(character(), abc, character(), abc, ignore.white.space=FALSE)),
-    list(list(character(0)), list(c("a", "b", "c")))
+    unname(
+      diffobj:::align_eq(
+        empty.l, abc.l, empty, abc, empty, abc, ignore.white.space=FALSE,
+        threshold=0
+    ) ),
+    list(list(list(character(0))), list(list("a", "b", "c")))
   )
   expect_identical(
-    unname(diffobj:::align_eq(abc, character(), abc, character())),
-    list(list(c("a", "b", "c")), list(character(0)))
+    unname(
+      diffobj:::align_eq(
+        abc.l, empty.l, abc, empty, abc, empty, ignore.white.space=FALSE,
+        threshold=0
+    ) ),
+    list(list(list("a", "b", "c")), list(list(character(0))))
   )
   expect_identical(
-    unname(diffobj:::align_eq(character(), character(), character(), character())),
-    list(list(character(0)), list(character(0)))
+    unname(
+      diffobj:::align_eq(
+        empty.l, empty.l, empty, empty, empty, empty, ignore.white.space=FALSE,
+        threshold=0
+    ) ),
+    list(list(list(character(0))), list(list(character(0))))
   )
   # empty first match
   A2 <- letters[2:4]
   B2 <- letters[1:4]
   expect_identical(
-    unname(diffobj:::align_eq(A2, B2, A2, B2)),
-    list(list(character(0), "b", "c", "d"), list("a", "b", "c", "d"))
+    unname(
+      diffobj:::align_eq(
+        as.list(A2), as.list(B2), A2, B2, A2, B2,
+        ignore.white.space=FALSE, threshold=0
+    ) ),
+    list(
+      list(list(character(0)), list("b"), list(character(0)), list("c"), list(character(0)), list("d"), list(character(0))),
+      list(list("a"), list("b"), list(character(0)), list("c"), list(character(0)), list("d"), list(character(0)))
+    )
+  )
+})
+test_that("align threshold", {
+  A <- c("ab cd e f", "xy CD e f", "ab cd e f")
+  B <- c("molly wolly", "ab cd e G", "ZZ cd e H", "xy CD e K")
+  A.l <- as.list(A)
+  B.l <- as.list(B)
+  A.eq <- substr(A, 1, 7)
+  B.eq <- substr(B, 1, 7)
+  expect_identical(
+    unname(
+      diffobj:::align_eq(
+        A.l, B.l, A.eq, B.eq, A, B, ignore.white.space=FALSE, threshold=0
+    ) ),
+    list(
+      list(list(character(0)), list("ab cd e f"), list(character(0)), list("xy CD e f"), list("ab cd e f")),
+      list(list("molly wolly"), list("ab cd e G"), list("ZZ cd e H"), list("xy CD e K"), list(character(0)))
+    )
+  )
+  expect_identical(
+    unname(
+      diffobj:::align_eq(
+        A.l, B.l, A.eq, B.eq, A, B, ignore.white.space=FALSE, threshold=0.75
+    ) ),
+    list(
+      list(list(character(0)), list("ab cd e f"), list(character(0)), list("xy CD e f"), list("ab cd e f")),
+      list(list("molly wolly"), list("ab cd e G"), list("ZZ cd e H"), list("xy CD e K"), list(character(0)))
+    )
+  )
+  # Increase threshold causes failure
+
+  expect_identical(
+    unname(
+      diffobj:::align_eq(
+        A.l, B.l, A.eq, B.eq, A, B, ignore.white.space=FALSE, threshold=0.8
+    ) ),
+    list(
+      list(list("ab cd e f", "xy CD e f", "ab cd e f")),
+      list(list("molly wolly", "ab cd e G", "ZZ cd e H", "xy CD e K"))
+    )
+  )
+  # Ignoring whitespace works at higher threshold
+
+  expect_identical(
+    unname(
+      diffobj:::align_eq(
+        A.l, B.l, A.eq, B.eq, A, B, ignore.white.space=TRUE, threshold=0.8
+    ) ),
+    list(
+      list(list(character(0)), list("ab cd e f"), list(character(0)), list("xy CD e f"), list("ab cd e f")),
+      list(list("molly wolly"), list("ab cd e G"), list("ZZ cd e H"), list("xy CD e K"), list(character(0)))
+    )
   )
 })
 
