@@ -20,8 +20,10 @@ align_split <- function(l, m) {
   match.len <- sum(!!m)
   res.len <- match.len * 2L + 1L
   splits <- cumsum(
-    c(1L, (!!diff(m) < 0L & !tail(m, -1L)) | (head(m, -1L) & tail(m, -1L)))
-  )
+    c(
+      if(length(m)) 1L,
+      (!!diff(m) < 0L & !tail(m, -1L)) | (head(m, -1L) & tail(m, -1L))
+  ) )
   m.all <- match(m, sort(unique(m[!!m])), nomatch=0L)  # normalize
   m.all[!m.all] <- -ave(m.all, splits, FUN=max)[!m.all]
   m.all[!m.all] <- -match.len - 1L  # trailing zeros
