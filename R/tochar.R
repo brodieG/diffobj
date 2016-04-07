@@ -217,6 +217,9 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
 
 setMethod("as.character", "diffObjDiff",
   function(x, ...) {
+    old.crayon.opt <- options(crayon.enabled=x@etc@use.ansi)
+    on.exit(options(old.crayon.opt), add=TRUE)
+
     # These checks should never fail since presumably the inputs have been
     # checked earlier; here just in case we mess something up in devel or
     # testing
