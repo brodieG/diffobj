@@ -68,8 +68,12 @@ align_eq <- function(
   align <- integer(length(A.eq))
   B.len <- length(B.eq)
   for(i in seq_along(A.eq)) {
-    B.match <- which(A.eq[[i]] == B.eq & seq_along(B.eq) > min.match)
-    if(length(B.match)) align[[i]] <- min.match <- B.match[[1L]]
+    if(min.match >= B.len) break
+    B.match <-
+      which(A.eq[[i]] == if(min.match) tail(B.eq, -min.match) else B.eq)
+    if(length(B.match)) {
+      align[[i]] <- min.match <- B.match[[1L]] + min.match
+    }
   }
   # Disallow empty matches or matches that account for a very small portion of
   # the possible characters and could be spurious; we should probably do this
