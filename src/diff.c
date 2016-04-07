@@ -175,6 +175,8 @@ _find_faux_snake(
     int x_f = FV(k);
     int f_dist = x_f - abs(k);
 
+    if(x_f > n || x_f - k > m) continue;
+
     if(f_dist > x_max_f - abs(k_max_f)) {
       x_max_f = x_f;
       k_max_f = k;
@@ -202,6 +204,18 @@ _find_faux_snake(
   for (int k = -d; k <= k_max_f - delta; k += 2) {
     int x_r = RV(k);
     int r_dist = n - x_r - abs(k);
+    /* skip reverse snakes that overshoot our forward snake
+     * ---\
+     *     \
+     *   \
+     *    \
+     *     \---
+     * where there should be a decent path we can use, but because we are only
+     * tracking the last coordinates we don't really have a way connecting this
+     * type of path so we just go straight to the origin even though that is
+     * even more sub-optinal; not even sure if this is a possible scenario
+     */
+    if(x_r < x_f || x_r - k - delta < y_f) continue;
 
     /* since buffer is init to zero, an x_r value of zero means nothing, and
      * not all the way to the left of the graph; also, in reverse snakes the
@@ -212,13 +226,15 @@ _find_faux_snake(
       k_max_r = k;
     }
   }
-  /* didn't find a path so use origin */
-  if(x_max_r > n) {
+  if(x_max_r >= n) {
     x_r = n; y_r = m; k_r = 0;
   } else {
     k_r = k_max_r;
     x_r = x_max_r;
-    y_r = x_r - k_max_r;
+    /* not 100% sure about this one; seems like k_max_r is relative to the
+     * bottom right origin, so maybe this should be x_r - k_max_r - delta?
+     */
+    y_r = x_r - k_max_r - delta;
   }
   /*
    * attempt to connect the two paths we found.  We need to store this
@@ -239,6 +255,9 @@ _find_faux_snake(
   diff_op * faux_snake_tmp = (diff_op*) R_alloc(max_steps, sizeof(diff_op));
   for(int i = 0; i < max_steps; i++) *(faux_snake_tmp + i) = DIFF_NULL;
 
+  /* we have a further reaching reverse snake:
+   * not entirely sure if this should happen, but it seems it does
+   */
   while(x_sn < x_r || y_sn < y_r) {
     if(x_sn > x_r || y_sn > y_r) {
       error("Logic Error: Exceeded buffer for finding fake snake; contact maintainer.");
