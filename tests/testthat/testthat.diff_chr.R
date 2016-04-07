@@ -14,9 +14,9 @@ B2 <- c("A", "Y", "B")
 diff_chr(A2, B2)
 
 set.seed(1)
-X <- do.call(paste0, expand.grid(LETTERS, LETTERS, LETTERS))
+X <- do.call(paste0, expand.grid(LETTERS, LETTERS, LETTERS, LETTERS))
 
 diff_chr(X[1:2000], X[2001:4000])
-diff_chr(X[1:5000], X[5001:10000])
+res <- diff_chr(X[1:25000], X[10001:50000], etc=etc(max.diffs=65000, max.diffs.in.hunk=65000)
 
 diff_chr(letters[1:10], LETTERS[1:10])

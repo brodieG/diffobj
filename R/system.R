@@ -14,9 +14,9 @@
     diffobj.use.ansi=crayon::has_color(),
     diffobj.mode="unified",
     diffobj.silent=FALSE,
-    diffobj.max.diffs=10000L,
-    diffobj.max.diffs.in.hunk=100L,
-    diffobj.max.diffs.wrap=10000L,
+    diffobj.max.diffs=50000L,
+    diffobj.max.diffs.in.hunk=50000L,
+    diffobj.max.diffs.wrap=50000L,
     diffobj.align.threshold=0.25,
     diffobj.tab.stops=8L
   )
