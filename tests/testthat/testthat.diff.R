@@ -57,7 +57,7 @@ local({
     mx.3 <- mx.2
     mx.3[31, 2] <- 111L
 
-    diff_print(mx2, mx3, mode="sidebyside")
+    diff_print(mx.2, mx.3, mode="sidebyside")
     lst.1 <- list(
       NULL,
       z=list(
@@ -155,7 +155,7 @@ local({
     diff_print(Puromycin, Puromycin2, line.limit=15, mode="context")
 
     # line limit issues
-    diff_print(Puromycin, Puromycin2, line.limit=6)
+    diff_print(Puromycin, Puromycin2, etc=etc(line.limit=6))
     diff_print(Puromycin, Puromycin2, line.limit=6, mode="sidebyside")
     diff_print(Puromycin, Puromycin2, line.limit=6, mode="context")
 

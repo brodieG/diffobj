@@ -79,7 +79,10 @@ align_eq <- function(
   # the possible characters and could be spurious; we should probably do this
   # ahead of the for loop since we could probably save some iterations
 
-  align[!nzchar(A.eq) | nchar(A.eq) / nchar(A.raw) < threshold] <- 0L
+  align[
+    !nzchar(A.eq) | nchar(A.eq) / nchar(A.raw) < threshold |
+    ifelse(align, nchar(B.eq[align]) / nchar(B.raw[align]), 1) < threshold
+  ] <- 0L
 
   # Group elements together; only one match per group, mismatches are put
   # in interstitial buckets.  We number the interstitial buckest as the
