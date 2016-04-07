@@ -279,21 +279,25 @@ rpadt <- function(text, width, pad.chr=" ")
 
 # Breaks long character vectors into vectors of length width
 #
-# Right pads them to full length if requested
+# Right pads them to full length if requested.  Only attempt to wrap if
+# longer than width since wrapping is pretty expensive
 #
 # Returns a list of split vectors
 
 wrap_int <- function(txt, width, sub_fun, nc_fun) {
-  lapply(
-    seq_along(txt),
+  nchars <- nc_fun(txt)
+  res <- as.list(txt)
+  too.wide <- which(nchars > width)
+  res[too.wide] <- lapply(
+    too.wide,
     function(i) {
-      nchars <- nc_fun(txt[[i]])
       split.end <- seq(
-        from=width, by=width, length.out=ceiling(nchars / width)
+        from=width, by=width, length.out=ceiling(nchars[[i]] / width)
       )
       split.start <- split.end - width + 1L
       sub_fun(rep(txt[[i]], length(split.start)), split.start, split.end)
   } )
+  res
 }
 wrap <- function(txt, width, pad=FALSE) {
   if(length(grep("\n", txt, fixed=TRUE)))
