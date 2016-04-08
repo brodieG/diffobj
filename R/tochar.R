@@ -136,7 +136,7 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
                 A=A.pos, B=A.neg, A.eq=A.eq.p, B.eq=A.eq.n,
                 A.raw=A.raw.p, B.raw=A.raw.n,
                 ignore.white.space=ignore.white.space,
-                threshold=etc@diff.align.threshold
+                threshold=etc@align.threshold
               )
               # Intersperse the pos and neg chunks, starting with negs
 
@@ -182,7 +182,7 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
 
               AB.aligned <- align_eq(
                 A.w.pad, B.w.pad, A.eq, B.eq, A.raw, B.raw, ignore.white.space,
-                threshold=etc@diff.align.threshold
+                threshold=etc@align.threshold
               )
               A.chunks <- AB.aligned$A
               B.chunks <- AB.aligned$B

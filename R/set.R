@@ -43,7 +43,7 @@
 #' @param max.diffs.wrap integer(1L), like \code{max.diffs}, but used when
 #'   computing word diffs on atomic vectors (defaults to 10000L), see
 #'   \dQuote{Atomic Vectors} for \code{\link{diff_print}}.
-#' @param diff.align.threshold numeric(1L) between 0 and 1, proportion of
+#' @param align.threshold numeric(1L) between 0 and 1, proportion of
 #'   characters in a line of \code{target} that must be matched in a line of
 #'   \code{current} in the same hunk for those lines to be paired up when
 #'   displayed (defaults to 0.25).
@@ -69,7 +69,7 @@ etc <- function(
   max.diffs=getOption("diffobj.max.diffs"),
   max.diffs.in.hunk=getOption("diffobj.max.diffs.in.hunk"),
   max.diffs.wrap=getOption("diffobj.max.diffs.wrap"),
-  diff.align.threshold=getOption("diffobj.align.threshold"),
+  align.threshold=getOption("diffobj.align.threshold"),
   convert.hz.white.space=getOption("diffobj.convert.hz.white.space"),
   tab.stops=getOption("diffobj.tab.stops"),
   frame=parent.frame(),
@@ -132,10 +132,10 @@ etc <- function(
   # 0-1 vars
 
   if(
-    !is.numeric(diff.align.threshold) || length(diff.align.threshold) != 1L ||
-    !diff.align.threshold >= 0 || !diff.align.threshold <= 1
+    !is.numeric(align.threshold) || length(align.threshold) != 1L ||
+    !align.threshold >= 0 || !align.threshold <= 1
   )
-    stop("Argument `diff.align.threshold` must be between 0 and 1")
+    stop("Argument `align.threshold` must be between 0 and 1")
 
   # instantiate settings object
 
