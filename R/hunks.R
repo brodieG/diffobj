@@ -96,7 +96,7 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
           context <- !!mtc.len
 
           A <- switch(
-            etc@mode, context=tar, 
+            etc@mode, context=tar,
             unified=c(tar, if(!context) cur), sidebyside=tar,
             stop("Logic Error: unknown mode; contact maintainer.")
           )
@@ -192,7 +192,7 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
           )
         }
         ctx
-      } 
+      }
     } else context
 
     res <- process_hunks(res.l, ctx.val=ctx.val, use.header=etc@use.header)
@@ -600,3 +600,6 @@ count_diffs <- function(x) {
       } },
       integer(1L)
 ) ) }
+
+count_diff_hunks <- function(x)
+  sum(!vapply(unlist(x, recursive=FALSE), "[[", logical(1L), "context"))

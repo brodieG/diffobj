@@ -192,8 +192,15 @@ body(diff_obj) <- quote({
   res.print <- eval(call.print, parent.frame())
   res.str <- eval(call.str, parent.frame())
 
-  diff.p <- count_diffs(res.print@diffs$hunks)
-  diff.s <- count_diffs(res.str@diffs$hunks)
+  diff.p <- count_diff_hunks(res.print@diffs$hunks)
+  diff.s <- count_diff_hunks(res.str@diffs$hunks)
+  diff.l.p <- diff_line_len(res.print@diffs$hunks, res.print@etc)
+  diff.l.s <- diff_line_len(res.str@diffs$hunks, res.str@etc)
+
+  # How many lines of the input are in the diffs, vs how many lines of input
+
+  diff.line.ratio.p <- lineCoverage(res.print)
+  diff.line.ratio.s <- lineCoverage(res.str)
 
   # Only show the one with differences
 
@@ -215,12 +222,8 @@ body(diff_obj) <- quote({
     res.print
   # Calculate the trade offs between the two options
   } else {
-    s.score <- with(res.str@trim.dat, {
-      diff(lines) - lines[[1L]] + diff(diffs)
-    })
-    p.score <- with(res.print@trim.dat, {
-      diff(lines) - .5 * lines[[1L]] + diff(diffs)
-    })
+    s.score <- diff.s / diff.l.s * diff.line.ratio.s
+    p.score <- diff.p / diff.l.p * diff.line.ratio.p
     if(p.score >= s.score) res.print else res.str
   }
   res

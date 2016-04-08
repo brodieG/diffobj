@@ -53,7 +53,7 @@ setClass(
     max.diffs="integer",
     max.diffs.in.hunk="integer",
     max.diffs.wrap="integer",
-    diff.align.threshold="numeric",
+    align.threshold="numeric",
     ignore.white.space="logical",
     frame="environment",
     silent="logical",
@@ -171,7 +171,24 @@ setMethod("show", "diffObjDiff",
     invisible(NULL)
   }
 )
+# Compute what fraction of the lines in target and current actually end up
+# in the diff; some of the complexity is driven by repeated context hunks
 
+setGeneric("lineCoverage", function(x) standardGeneric("lineCoverage"))
+setMethod("lineCoverage", "diffObjDiff",
+  function(x) {
+    lines_in_hunk <- function(z, ind)
+      if(z[[ind]][[1L]]) z[[ind]][[1L]]:z[[ind]][[2L]]
+    hunks.f <- unlist(x@diffs$hunks, recursive=FALSE)
+    lines.tar <- length(
+      unique(unlist(lapply(hunks.f, lines_in_hunk, "tar.rng.sub")))
+    )
+    lines.cur <- length(
+      unique(unlist(lapply(hunks.f, lines_in_hunk, "cur.rng.sub")))
+    )
+    min(1, (lines.tar + lines.cur) / (length(x@tar.capt) + length(x@cur.capt)))
+  }
+)
 setMethod("any", "diffObjDiff",
   function(x, ..., na.rm = FALSE) {
     dots <- list(...)
