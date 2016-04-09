@@ -89,8 +89,8 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
     diff.txt <- if(mode == "context") {
       # Need to get all the A data and the B data
 
-      A.chrs <- lapply(h.g, get_hunk_dat, mode="A", sub=".chr")
-      B.chrs <- lapply(h.g, get_hunk_dat, mode="B", sub=".chr")
+      A.chrs <- lapply(h.g, get_hunk_dat, mode="A", sub="chr")
+      B.chrs <- lapply(h.g, get_hunk_dat, mode="B", sub="chr")
       A <- wrap(unlist(A.chrs), width=capt.width)
       B <- wrap(unlist(B.chrs), width=capt.width)
       A.ctx <- unlist(
@@ -121,7 +121,7 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
             i.h <- in_hunk(h.a, "A")
             pos <- (h.a$A > 0L)[i.h]
             neg <- (h.a$A < 0L)[i.h]
-            A.out <- wrap(get_hunk_dat(h.a, mode="A", sub="chr"), capt.width)
+            A.out <- get_hunk_dat(h.a, mode="A", sub="chr")
 
             if(!h.a$context) {
               A.pos <- A.out[pos]
@@ -132,17 +132,14 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
               A.raw <- get_hunk_dat(h.a, "A", sub="raw.chr")
               A.raw.p <- A.raw[pos]
               A.raw.n <- A.raw[neg]
+              A.ratio <- get_hunk_dat(h.a, "A", sub="tok.ratio")
+              A.ratio.p <- A.ratio[pos]
+              A.ratio.n <- A.ratio[neg]
 
-              A.match.ratio <- with(
-                h.a, ifelse(A.toks[pos], A.eq.toks[pos] / A.toks[pos], 0)
-              )
-              B.match.ratio <- with(
-                h.a, ifelse(A.toks[neg], A.eq.toks[neg] / A.toks[neg], 0)
-              )
               A.p.n.aligned <- align_eq(
                 A=A.pos, B=A.neg, A.eq=A.eq.p, B.eq=A.eq.n,
                 A.raw=A.raw.p, B.raw=A.raw.n,
-                A.match.ratio=A.match.ratio, B.match.ratio=B.match.ratio,
+                A.match.ratio=A.ratio.p, B.match.ratio=A.ratio.n,
                 threshold=etc@align.threshold,
                 ignore.white.space=etc@ignore.white.space
               )
