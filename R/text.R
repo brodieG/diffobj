@@ -46,8 +46,12 @@ align_eq <- function(
   stopifnot(
     is.character(A), is.character(B),
     is.character(A.eq), is.character(B.eq), !anyNA(A.eq), !anyNA(B.eq),
-    length(A) == length(A.eq) == length(A.raw) == length(A.match.ratio),
-    length(B) == length(B.eq) == length(B.raw) == length(B.match.ratio),
+    length(
+      unique(length(A), length(A.eq), length(A.raw), length(A.match.ratio))
+    ) == 1L,
+    length(
+      unique(length(B), length(B.eq), length(B.raw), length(B.match.ratio))
+    ) == 1L,
     is.numeric(threshold), length(threshold) == 1L, !is.na(threshold),
     threshold >= 0 && threshold <= 1,
     is.numeric(A.match.ratio), is.numeric(B.match.ratio),

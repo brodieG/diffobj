@@ -292,9 +292,9 @@ in_hunk_diffs <- function(hunk.grps, etc, tar.to.wd, cur.to.wd) {
         # tar/cur back to A/B
 
         ind.sub <- c("chr", "eq.chr", "tok.ratio")
-        for(k in seq_along(to.up.h)) {
+        for(k in seq_along(ind.sub)) {
           h.a <- update_hunk_atom(
-            h.a, new.diff, A.pos, A.neg, B.pos, B.neg, ind.sub[[i]]
+            h.a, new.diff, A.pos, A.neg, B.pos, B.neg, ind.sub[[k]]
         ) }
         # Update the hunk group with the modified hunk atom
 

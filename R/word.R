@@ -141,8 +141,8 @@ diff_word <- function(
   list(
     tar.chr=tar.cpy, cur.chr=cur.cpy,
     tar.eq.chr=tar.cpy.eq, cur.eq.chr=cur.cpy.eq,
-    tar.tok.ratio=ifelse(tar.lens, tar.eq.toks / tar.lens, 0),
-    cur.tok.ratio=ifelse(cur.lens, cur.eq.toks / cur.lens, 0),
+    tar.tok.ratio=ifelse(tar.lens, tar.toks.eq / tar.lens, 0),
+    cur.tok.ratio=ifelse(cur.lens, cur.toks.eq / cur.lens, 0),
     hit.diffs.max=diffs$hit.diffs.max
   )
 }
