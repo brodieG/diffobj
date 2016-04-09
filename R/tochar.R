@@ -75,13 +75,13 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
     get_hunk_dat <- function(h.a, mode, sub) {
       stopifnot(
         mode %in% LETTERS[1:2], length(mode) == 1L,
-        is.chr.1L(sub), sub %in% c("chr", "chr.eq", "chr.raw", "tok.ratio")
+        is.chr.1L(sub), sub %in% c("chr", "eq.chr", "raw.chr", "tok.ratio")
       )
       rng <- c(
         seq(h.a$tar.rng.trim[[1L]], h.a$tar.rng.trim[[2L]]),
         -seq(h.a$cur.rng.trim[[1L]], h.a$cur.rng.trim[[2L]])
       )
-      chr.ind <- sprintf("%s%s", mode, sub)
+      chr.ind <- sprintf("%s.%s", mode, sub)
       h.a[[chr.ind]][match(rng, h.a[[mode]], nomatch=0L)]
     }
     # Output varies by mode
@@ -173,15 +173,7 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
 
             if(length(A.out) || length(B.out)) {
 
-              A.present <- rep(TRUE, length(A.out))
-              B.present <- rep(TRUE, length(B.out))
               len.diff <- length(A.out) - length(B.out)
-
-              A.w <- wrap(A.out, capt.width, pad=TRUE)
-              B.w <- wrap(B.out, capt.width, pad=TRUE)
-
-              A.w.pad <- sign_pad(A.w, ifelse(!h.a$context & A.present, 3L, 1L))
-              B.w.pad <- sign_pad(B.w, ifelse(!h.a$context & B.present, 2L, 1L))
 
               blanks <- paste0(rep(" ", max.w), collapse="")
 
@@ -196,14 +188,16 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
               B.tok.rat <- get_hunk_dat(h.a, "B", sub="tok.ratio")
 
               AB.aligned <- align_eq(
-                A.w.pad, B.w.pad, A.eq, B.eq, A.raw, B.raw,
+                A.out, B.out, A.eq, B.eq, A.raw, B.raw,
                 A.tok.rat, B.tok.rat, threshold=etc@align.threshold
               )
               A.chunks <- wrap_and_sign_pad(
-                AB.aligned$A, capt.width, if(!h.a$context) 3L else 1L, pad=TRUE
+                AB.aligned$A, capt.width, if(!h.a$context) 3L else 1L,
+                wrap.pad=TRUE
               )
               B.chunks <- wrap_and_sign_pad(
-                AB.aligned$B, capt.width, if(!h.a$context) 2L else 1L, pad=TRUE
+                AB.aligned$B, capt.width, if(!h.a$context) 2L else 1L,
+                wrap.pad=TRUE
               )
               # Make everything same length by adding blanks as needed
 

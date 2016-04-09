@@ -88,7 +88,7 @@ align_eq <- function(
 
   A.fin <- A.raw
   B.fin <- B.raw
-  A.fin[which(align)] <- A[which(align)]
+  A.fin[which(!!align)] <- A[which(!!align)]
   B.fin[align] <- B[align]
 
   # Group elements together; only one match per group, mismatches are put
@@ -383,4 +383,4 @@ sign_pad <- function(txt, pad, rev=FALSE) {
 # combine wrap and sign_pad
 
 wrap_and_sign_pad <- function(l, width, pad.type, wrap.pad=FALSE)
-  lapply(l, function(x) sign_pad(wrap(x, width, pad), pad.type))
+  lapply(l, function(x) sign_pad(wrap(x, width, wrap.pad), pad.type))
