@@ -12,11 +12,11 @@ ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
                      "(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])",
                      "|\\x{001b}[A-M]")
 
-# Helper function for align_eq; splits up a list into matched elements and
+# Helper function for align_eq; splits up a vector into matched elements and
 # interstitial elements, including possibly empty interstitial elements when
 # two matches are abutting
 
-align_split <- function(l, m) {
+align_split <- function(v, m) {
   match.len <- sum(!!m)
   res.len <- match.len * 2L + 1L
   splits <- cumsum(
@@ -31,36 +31,31 @@ align_split <- function(l, m) {
   if(any(diff(m.fin) < 0L))
     stop("Logic Error: non monotonic alignments; contact maintainer")
   res <- replicate(res.len, list(character(0L)), simplify=FALSE)
-  res[unique(m.fin)] <- unname(split(l, m.fin))
+  res[unique(m.fin)] <- unname(split(v, m.fin))
   res
 }
-# Align to vectors based on the values of two other vectors
+# Align lists based on equalities on other vectors
 #
-# This will group mismatches with the first match preceding them.  There will
-# be as many groups as there are matches.  The matches are assessed on
-# `A.eq` and `B.eq`
-#
-# A and B should be lists
+# The A/B vecs  will be split up into matchd elements, and non-matched elements.
+# Each matching element will be surrounding by (possibly empty) non-matching
+# elements.
 
 align_eq <- function(
-  A, B, A.eq, B.eq, A.raw, B.raw, ignore.white.space, threshold
+  A, B, A.eq, B.eq, A.raw, B.raw, A.match.ratio, B.match.ratio, threshold
 ) {
   stopifnot(
-    is.list(A), is.list(B),
+    is.character(A), is.character(B),
     is.character(A.eq), is.character(B.eq), !anyNA(A.eq), !anyNA(B.eq),
-    length(A) == length(A.eq), length(B) == length(B.eq),
-    is.TF(ignore.white.space),
+    length(A) == length(A.eq) == length(A.raw) == length(A.match.ratio),
+    length(B) == length(B.eq) == length(B.raw) == length(B.match.ratio),
     is.numeric(threshold), length(threshold) == 1L, !is.na(threshold),
-    threshold >= 0 && threshold <= 1
+    threshold >= 0 && threshold <= 1,
+    is.numeric(A.match.ratio), is.numeric(B.match.ratio),
+    all(
+      c(A.match.ratio, B.match.ratio) >= 0 &
+      c(A.match.ratio, B.match.ratio) <= 1
+    )
   )
-  # Remove whitespaces if needed
-
-  if(ignore.white.space) {
-    A.raw <- gsub("\\s+", "", A.raw)
-    B.raw <- gsub("\\s+", "", B.raw)
-    A.eq <- gsub("\\s+", "", A.eq)
-    B.eq <- gsub("\\s+", "", B.eq)
-  }
   # Need to match each element in A.eq to B.eq, though each match consumes the
   # match so we can't use `match`; unfortunately this is slow
 
@@ -76,13 +71,21 @@ align_eq <- function(
     }
   }
   # Disallow empty matches or matches that account for a very small portion of
-  # the possible characters and could be spurious; we should probably do this
+  # the possible tokens and could be spurious; we should probably do this
   # ahead of the for loop since we could probably save some iterations
 
-  align[
-    !nzchar(A.eq) | nchar(A.eq) / nchar(A.raw) < threshold |
-    ifelse(align, nchar(B.eq[align]) / nchar(B.raw[align]), 1) < threshold
-  ] <- 0L
+  disallow.match <- !nzchar(A.eq) | A.match.ratio < threshold |
+    ifelse(align, B.match.ratio[align], 1L) < threshold
+  align[disallow.match] <- 0L
+
+  # A and B are word colored, but we don't want to keep those if if they don't
+  # qualify to be aligned; this is not super efficient since we're undoing the
+  # word coloring instead of not doing it, but pita to do properly
+
+  A.fin <- A.raw
+  B.fin <- B.raw
+  A.fin[which(align)] <- A[which(align)]
+  B.fin[align] <- B[align]
 
   # Group elements together; only one match per group, mismatches are put
   # in interstitial buckets.  We number the interstitial buckest as the
@@ -90,8 +93,8 @@ align_eq <- function(
 
   align.b <- seq_along(B.eq)
   align.b[!align.b %in% align] <- 0L
-  A.chunks <- align_split(A, align)
-  B.chunks <- align_split(B, align.b)
+  A.chunks <- align_split(A.fin, align)
+  B.chunks <- align_split(B.fin, align.b)
 
   if(length(A.chunks) != length(B.chunks))
     stop("Logic Error: aligned chunks unequal length; contact maintainer.")
@@ -373,3 +376,7 @@ sign_pad <- function(txt, pad, rev=FALSE) {
   } } )
   Map(paste0, if(rev) txt else pad.out, if(!rev) txt else pad.out)
 }
+# combine wrap and sign_pad
+
+wrap_and_sign_pad <- function(l, width, pad.type, wrap.pad=FALSE)
+  lapply(l, function(x) sign_pad(wrap(x, width, pad), pad.type))

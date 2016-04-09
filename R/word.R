@@ -135,12 +135,14 @@ diff_word <- function(
   cur.toks.eq <- vapply(cur.fin.eq, function(x) sum(nzchar(x)), integer(1L))
 
   # Record info; a lot of the extra stuff is so we can then align lines in
-  # hunks
+  # hunks.  tar/cur.tok.ratio what proportion of the tokens in a line is
+  # matched
 
   list(
     tar.chr=tar.cpy, cur.chr=cur.cpy,
     tar.eq.chr=tar.cpy.eq, cur.eq.chr=cur.cpy.eq,
-    tar.toks=tar.lens, cur.toks=cur.lens, tar.eq.toks=tar.eq.toks,
-    cur.eq.toks=cur.eq.toks, hit.diffs.max=diffs$hit.diffs.max
+    tar.tok.ratio=ifelse(tar.lens, tar.eq.toks / tar.lens, 0),
+    cur.tok.ratio=ifelse(cur.lens, cur.eq.toks / cur.lens, 0),
+    hit.diffs.max=diffs$hit.diffs.max
   )
 }

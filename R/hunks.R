@@ -18,6 +18,8 @@
 #   In addition to the indices referencing the original character vectors, the
 #   actual character values are also retained, though these may be modified
 #   over the course of processing by being wrapped, having colors added, etc.
+#   The tok.ratio entries indicate the ratio of matching tokens out of total
+#   tokens in any given line after a word diff.
 #
 #   Important: context atomic hunks are duplicated anytime there is enough
 #   context that we only show part of the context hunk.
@@ -56,11 +58,10 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
           id=2L, A=integer(0L), B=integer(0L), A.chr=character(0L),
           B.chr=character(0L), A.eq.chr=character(0L), B.eq.chr=character(0L),
           A.raw.chr=character(0L), B.raw.chr=character(0L),
+          A.tok.ratio=numeric(0L), B.tok.ratio=numeric(0L),
           context=FALSE, header=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
           tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
-          tar.rng.trim=integer(2L), cur.rng.trim=integer(2L),
-          A.toks=integer(0L), B.toks=integer(0L),
-          A.eq.toks=integer(0L), B.eq.toks=integer(0L)
+          tar.rng.trim=integer(2L), cur.rng.trim=integer(2L)
         )
       )
     } else {
@@ -128,12 +129,11 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
             id=i + 1L, A=A, B=B, A.chr=A.chr, B.chr=B.chr,
             A.eq.chr=A.chr, B.eq.chr=B.chr,
             A.raw.chr=A.chr, B.raw.chr=B.chr,
+            A.tok.ratio=numeric(length(A)), B.tok.ratio=numeric(length(B)),
             context=context, header=FALSE,
             tar.rng=tar.rng, cur.rng=cur.rng,
             tar.rng.sub=tar.rng, cur.rng.sub=cur.rng,
-            tar.rng.trim=tar.rng, cur.rng.trim=cur.rng,
-            A.toks=integer(length(A)), B.toks=integer(length(B)),
-            A.eq.toks=integer(length(A)), B.eq.toks=integer(length(B))
+            tar.rng.trim=tar.rng, cur.rng.trim=cur.rng
           )
     } ) }
     # Group hunks together based on context, in "auto" mode we find the context

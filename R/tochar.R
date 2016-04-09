@@ -72,16 +72,16 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
     # Get trimmed character ranges; positives are originally from target, and
     # negatives from current
 
-    get_chrs <- function(h.a, mode, sub) {
+    get_hunk_dat <- function(h.a, mode, sub) {
       stopifnot(
         mode %in% LETTERS[1:2], length(mode) == 1L,
-        is.chr.1L(sub), sub %in% c("", "eq", "raw")
+        is.chr.1L(sub), sub %in% c("chr", "chr.eq", "chr.raw", "tok.ratio")
       )
       rng <- c(
         seq(h.a$tar.rng.trim[[1L]], h.a$tar.rng.trim[[2L]]),
         -seq(h.a$cur.rng.trim[[1L]], h.a$cur.rng.trim[[2L]])
       )
-      chr.ind <- sprintf("%s%s.chr", mode, paste0(if(nzchar(sub)) ".", sub))
+      chr.ind <- sprintf("%s%s", mode, sub)
       h.a[[chr.ind]][match(rng, h.a[[mode]], nomatch=0L)]
     }
     # Output varies by mode
@@ -89,8 +89,8 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
     diff.txt <- if(mode == "context") {
       # Need to get all the A data and the B data
 
-      A.chrs <- lapply(h.g, get_chrs, mode="A", sub="")
-      B.chrs <- lapply(h.g, get_chrs, mode="B", sub="")
+      A.chrs <- lapply(h.g, get_hunk_dat, mode="A", sub=".chr")
+      B.chrs <- lapply(h.g, get_hunk_dat, mode="B", sub=".chr")
       A <- wrap(unlist(A.chrs), width=capt.width)
       B <- wrap(unlist(B.chrs), width=capt.width)
       A.ctx <- unlist(
@@ -121,30 +121,43 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
             i.h <- in_hunk(h.a, "A")
             pos <- (h.a$A > 0L)[i.h]
             neg <- (h.a$A < 0L)[i.h]
-            A.out <- wrap(get_chrs(h.a, mode="A", sub=""), capt.width)
+            A.out <- wrap(get_hunk_dat(h.a, mode="A", sub="chr"), capt.width)
 
             if(!h.a$context) {
-              A.pos <- sign_pad(A.out[pos], 3L)
-              A.neg <- sign_pad(A.out[neg], 2L)
-              A.eq <- get_chrs(h.a, "A", sub="eq")
+              A.pos <- A.out[pos]
+              A.neg <- A.out[neg]
+              A.eq <- get_hunk_dat(h.a, "A", sub="eq.chr")
               A.eq.p <- A.eq[pos]
               A.eq.n <- A.eq[neg]
-              A.raw <- get_chrs(h.a, "A", sub="raw")
+              A.raw <- get_hunk_dat(h.a, "A", sub="raw.chr")
               A.raw.p <- A.raw[pos]
               A.raw.n <- A.raw[neg]
+
+              A.match.ratio <- with(
+                h.a, ifelse(A.toks[pos], A.eq.toks[pos] / A.toks[pos], 0)
+              )
+              B.match.ratio <- with(
+                h.a, ifelse(A.toks[neg], A.eq.toks[neg] / A.toks[neg], 0)
+              )
               A.p.n.aligned <- align_eq(
                 A=A.pos, B=A.neg, A.eq=A.eq.p, B.eq=A.eq.n,
                 A.raw=A.raw.p, B.raw=A.raw.n,
-                ignore.white.space=ignore.white.space,
+                A.match.ratio=A.match.ratio, B.match.ratio=B.match.ratio,
                 threshold=etc@align.threshold
               )
+              # Wrap and pad; may not be super efficient to call wrap on each
+              # chunk, but simplifies code a lot
+
+              A.pos.out <- wrap_and_sign_pad(A.p.n.aligned$A, capt.width, 3L)
+              A.neg.out <- wrap_and_sign_pad(A.p.n.aligned$B, capt.width, 2L)
+
               # Intersperse the pos and neg chunks, starting with negs
 
-              A.out <- c(A.p.n.aligned$A, A.p.n.aligned$B)[
-                order(unlist(lapply(A.p.n.aligned, seq_along)))
+              A.out <- c(A.pos.out, A.neg.out)[
+                order(c(seq_along(A.pos.out), seq_along(A.neg.out)))
               ]
             } else {
-              A.out <- sign_pad(A.out, 1L)
+              A.out <- sign_pad(wrap(A.out, capt.width), 1L)
             }
             A.out
       } ) )
@@ -154,18 +167,19 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
           function(h.a) {
             # Ensure same number of elements in A and B
 
-            A.out <- get_chrs(h.a, "A", sub="")
-            B.out <- get_chrs(h.a, "B", sub="")
-            A.present <- rep(TRUE, length(A.out))
-            B.present <- rep(TRUE, length(B.out))
-            len.diff <- length(A.out) - length(B.out)
-
-            A.w <- wrap(A.out, capt.width, pad=TRUE)
-            B.w <- wrap(B.out, capt.width, pad=TRUE)
-
+            A.out <- get_hunk_dat(h.a, "A", sub="chr")
+            B.out <- get_hunk_dat(h.a, "B", sub="chr")
             # Same number of els post wrap
 
-            if(length(unlist(A.w)) || length(unlist(B.w))) {
+            if(length(A.out) || length(B.out)) {
+
+              A.present <- rep(TRUE, length(A.out))
+              B.present <- rep(TRUE, length(B.out))
+              len.diff <- length(A.out) - length(B.out)
+
+              A.w <- wrap(A.out, capt.width, pad=TRUE)
+              B.w <- wrap(B.out, capt.width, pad=TRUE)
+
               A.w.pad <- sign_pad(A.w, ifelse(!h.a$context & A.present, 3L, 1L))
               B.w.pad <- sign_pad(B.w, ifelse(!h.a$context & B.present, 2L, 1L))
 
@@ -174,19 +188,23 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
               # Match up the "equal" versions of the strings; we want to split
               # in chunks that start with a match and end in mismatches
 
-              A.eq <- get_chrs(h.a, "A", sub="eq")
-              B.eq <- get_chrs(h.a, "B", sub="eq")
-
-              A.raw <- get_chrs(h.a, "A", sub="raw")
-              B.raw <- get_chrs(h.a, "B", sub="raw")
+              A.eq <- get_hunk_dat(h.a, "A", sub="eq.chr")
+              B.eq <- get_hunk_dat(h.a, "B", sub="eq.chr")
+              A.raw <- get_hunk_dat(h.a, "A", sub="raw.chr")
+              B.raw <- get_hunk_dat(h.a, "B", sub="raw.chr")
+              A.tok.rat <- get_hunk_dat(h.a, "A", sub="tok.ratio")
+              B.tok.rat <- get_hunk_dat(h.a, "B", sub="tok.ratio")
 
               AB.aligned <- align_eq(
-                A.w.pad, B.w.pad, A.eq, B.eq, A.raw, B.raw, ignore.white.space,
-                threshold=etc@align.threshold
+                A.w.pad, B.w.pad, A.eq, B.eq, A.raw, B.raw,
+                A.tok.rat, B.tok.rat, threshold=etc@align.threshold
               )
-              A.chunks <- AB.aligned$A
-              B.chunks <- AB.aligned$B
-
+              A.chunks <- wrap_and_sign_pad(
+                AB.aligned$A, capt.width, if(!h.a$context) 3L else 1L, pad=TRUE
+              )
+              B.chunks <- wrap_and_sign_pad(
+                AB.aligned$B, capt.width, if(!h.a$context) 2L else 1L, pad=TRUE
+              )
               # Make everything same length by adding blanks as needed
 
               for(i in seq_along(A.chunks)) {
@@ -273,7 +291,7 @@ in_hunk_diffs <- function(hunk.grps, etc, tar.to.wd, cur.to.wd) {
         # Update hunk atom with the word diff info; we need to remap from
         # tar/cur back to A/B
 
-        ind.sub <- c("chr", "eq.chr", "toks", "eq.toks")
+        ind.sub <- c("chr", "eq.chr", "tok.ratio")
         for(k in seq_along(to.up.h)) {
           h.a <- update_hunk_atom(
             h.a, new.diff, A.pos, A.neg, B.pos, B.neg, ind.sub[[i]]
