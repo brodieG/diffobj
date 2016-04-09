@@ -143,7 +143,8 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
                 A=A.pos, B=A.neg, A.eq=A.eq.p, B.eq=A.eq.n,
                 A.raw=A.raw.p, B.raw=A.raw.n,
                 A.match.ratio=A.match.ratio, B.match.ratio=B.match.ratio,
-                threshold=etc@align.threshold
+                threshold=etc@align.threshold,
+                ignore.white.space=etc@ignore.white.space
               )
               # Wrap and pad; may not be super efficient to call wrap on each
               # chunk, but simplifies code a lot
@@ -189,7 +190,8 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
 
               AB.aligned <- align_eq(
                 A.out, B.out, A.eq, B.eq, A.raw, B.raw,
-                A.tok.rat, B.tok.rat, threshold=etc@align.threshold
+                A.tok.rat, B.tok.rat, threshold=etc@align.threshold,
+                ignore.white.space=etc@ignore.white.space
               )
               A.chunks <- wrap_and_sign_pad(
                 AB.aligned$A, capt.width, if(!h.a$context) 3L else 1L,

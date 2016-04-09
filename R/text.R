@@ -41,7 +41,8 @@ align_split <- function(v, m) {
 # elements.
 
 align_eq <- function(
-  A, B, A.eq, B.eq, A.raw, B.raw, A.match.ratio, B.match.ratio, threshold
+  A, B, A.eq, B.eq, A.raw, B.raw, A.match.ratio, B.match.ratio, threshold,
+  ignore.white.space
 ) {
   stopifnot(
     is.character(A), is.character(B),
@@ -60,6 +61,10 @@ align_eq <- function(
       c(A.match.ratio, B.match.ratio) <= 1
     )
   )
+  if(ignore.white.space) {
+    A.eq <- gsub("\\s+", " ", A.eq)
+    B.eq <- gsub("\\s+", " ", B.eq)
+  }
   # Need to match each element in A.eq to B.eq, though each match consumes the
   # match so we can't use `match`; unfortunately this is slow
 
