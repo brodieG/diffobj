@@ -58,7 +58,9 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
           A.raw.chr=character(0L), B.raw.chr=character(0L),
           context=FALSE, header=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
           tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
-          tar.rng.trim=integer(2L), cur.rng.trim=integer(2L)
+          tar.rng.trim=integer(2L), cur.rng.trim=integer(2L),
+          A.toks=integer(0L), B.toks=integer(0L),
+          A.eq.toks=integer(0L), B.eq.toks=integer(0L)
         )
       )
     } else {
@@ -129,7 +131,9 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
             context=context, header=FALSE,
             tar.rng=tar.rng, cur.rng=cur.rng,
             tar.rng.sub=tar.rng, cur.rng.sub=cur.rng,
-            tar.rng.trim=tar.rng, cur.rng.trim=cur.rng
+            tar.rng.trim=tar.rng, cur.rng.trim=cur.rng,
+            A.toks=integer(length(A)), B.toks=integer(length(B)),
+            A.eq.toks=integer(length(A)), B.eq.toks=integer(length(B))
           )
     } ) }
     # Group hunks together based on context, in "auto" mode we find the context

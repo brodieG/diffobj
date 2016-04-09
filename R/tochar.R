@@ -89,8 +89,8 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
     diff.txt <- if(mode == "context") {
       # Need to get all the A data and the B data
 
-      A.chrs <- lapply(h.g, get_chrs, mode="A")
-      B.chrs <- lapply(h.g, get_chrs, mode="B")
+      A.chrs <- lapply(h.g, get_chrs, mode="A", sub="")
+      B.chrs <- lapply(h.g, get_chrs, mode="B", sub="")
       A <- wrap(unlist(A.chrs), width=capt.width)
       B <- wrap(unlist(B.chrs), width=capt.width)
       A.ctx <- unlist(
@@ -213,6 +213,77 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
     c(hunk.head, diff.txt)
   }
 }
+# helper for in_hunk_diffs
+#
+# `nd` stands for new.diff.  Here we are just remapping the word diff data
+# from tar/cur to our A/B data.
+
+update_hunk_atom <- function(h.a, new.diff, A.pos, A.neg, B.pos, B.neg, ind) {
+  A.ind <- sprintf("A.%s", ind)
+  B.ind <- sprintf("B.%s", ind)
+  tar.ind <- sprintf("tar.%s", ind)
+  cur.ind <- sprintf("cur.%s", ind)
+
+  h.a[[A.ind]][A.pos] <- new.diff[[tar.ind]][seq_along(A.pos)]
+  h.a[[A.ind]][A.neg] <- new.diff[[cur.ind]][seq_along(A.neg)]
+
+  h.a[[B.ind]][B.pos] <- new.diff[[tar.ind]][seq_along(B.pos)]
+  h.a[[B.ind]][B.neg] <- new.diff[[cur.ind]][seq_along(B.neg)]
+
+  h.a
+}
+# Compute diffs in hunks
+
+in_hunk_diffs <- function(hunk.grps, etc, tar.to.wd, cur.to.wd) {
+  if(length(tar.to.wd) || length(cur.to.wd)) {
+    wd.max <- min(head(tar.to.wd, 1L), head(cur.to.wd, 1L), 0L)
+    warn.hit.diffs.max <- TRUE
+
+    # We need to compare the +s to the -s, and then reconstruct back into
+    # the original A and B vectors
+
+    for(i in seq_along(hunk.grps)) {
+      for(j in seq_along(hunk.grps[[i]])) {
+        h.a <- hunk.grps[[i]][[j]]
+        # Skip context or those that have been wrap diffed or non-context
+        # hunks that are being trimmed
+        if(
+          h.a$id < wd.max || h.a$context ||
+          (!length(h.a$A) && !length(h.a$B))
+        ) next
+        # Do word diff on each non-context hunk; real messy because the
+        # stuff from `tar` and `cur` are mixed in in A and B (well, really
+        # only in unified mode) so we have to separate it back out before
+        # we do the diff
+
+        A.pos <- which(h.a$A > 0L)
+        B.pos <- which(h.a$B > 0L)
+        A.neg <- which(h.a$A < 0L)
+        B.neg <- which(h.a$B < 0L)
+
+        A.new <- c(h.a$A.chr[A.pos], h.a$B.chr[B.pos])
+        B.new <- c(h.a$A.chr[A.neg], h.a$B.chr[B.neg])
+
+        new.diff <- diff_word(
+          A.new, B.new, etc=etc, diff.mode="hunk",
+          warn=warn.hit.diffs.max
+        )
+        if(new.diff$hit.diffs.max) warn.hit.diffs.max <- FALSE
+
+        # Update hunk atom with the word diff info; we need to remap from
+        # tar/cur back to A/B
+
+        ind.sub <- c("chr", "eq.chr", "toks", "eq.toks")
+        for(k in seq_along(to.up.h)) {
+          h.a <- update_hunk_atom(
+            h.a, new.diff, A.pos, A.neg, B.pos, B.neg, ind.sub[[i]]
+        ) }
+        # Update the hunk group with the modified hunk atom
+
+        hunk.grps[[i]][[j]] <- h.a
+  } } }
+  hunk.grps
+}
 #' @rdname diffobj_s4method_doc
 
 setMethod("as.character", "diffObjDiff",
@@ -319,7 +390,6 @@ setMethod("as.character", "diffObjDiff",
           "Logic Error: should not be str folding when limited; contact ",
           "maintainer."
         )
-
       }
       crayon_style(
         paste0(
@@ -420,59 +490,9 @@ setMethod("as.character", "diffObjDiff",
 
     tar.to.wd <- which(ranges[1L,] %in% tar.rest)
     cur.to.wd <- which(ranges[3L,] %in% cur.rest)
+    hunk.grps <-
+      in_hunk_diffs(hunk.grps=hunk.grps, etc=x@etc, tar.to.wd, cur.to.wd)
 
-    if(length(tar.to.wd) || length(cur.to.wd)) {
-      wd.max <- min(head(tar.to.wd, 1L), head(cur.to.wd, 1L), 0L)
-      warn.hit.diffs.max <- TRUE
-
-      # We need to compare the +s to the -s, and then reconstruct back into
-      # the original A and B vectors
-
-      for(i in seq_along(hunk.grps)) {
-        for(j in seq_along(hunk.grps[[i]])) {
-          h.a <- hunk.grps[[i]][[j]]
-          # Skip context or those that have been wrap diffed or non-context
-          # hunks that are being trimmed
-          if(
-            h.a$id < wd.max || h.a$context ||
-            (!length(h.a$A) && !length(h.a$B))
-          ) next
-          # Do word diff on each non-context hunk; real messy because the
-          # stuff from `tar` and `cur` are mixed in in A and B (well, really
-          # only in unified mode) so we have to separate it back out before
-          # we do the diff
-
-          A.pos <- which(h.a$A > 0L)
-          B.pos <- which(h.a$B > 0L)
-          A.neg <- which(h.a$A < 0L)
-          B.neg <- which(h.a$B < 0L)
-
-          A.new <- c(h.a$A.chr[A.pos], h.a$B.chr[B.pos])
-          B.new <- c(h.a$A.chr[A.neg], h.a$B.chr[B.neg])
-
-          new.diff <- diff_word(
-            A.new, B.new, etc=x@etc, diff.mode="hunk",
-            warn=warn.hit.diffs.max
-          )
-          if(new.diff$hit.diffs.max) warn.hit.diffs.max <- FALSE
-          h.a$A.chr[A.pos] <- new.diff$target[seq_along(A.pos)]
-          h.a$A.chr[A.neg] <- new.diff$current[seq_along(A.neg)]
-          h.a$B.chr[B.pos] <- new.diff$target[seq_along(B.pos) + length(A.pos)]
-          h.a$B.chr[B.neg] <- new.diff$current[seq_along(B.neg) + length(A.neg)]
-
-          # Do the same with the versions with all differences removed
-
-          h.a$A.eq.chr[A.pos] <- new.diff$tar.eq[seq_along(A.pos)]
-          h.a$A.eq.chr[A.neg] <- new.diff$cur.eq[seq_along(A.neg)]
-          h.a$B.eq.chr[B.pos] <-
-            new.diff$tar.eq[seq_along(B.pos) + length(A.pos)]
-          h.a$B.eq.chr[B.neg] <-
-            new.diff$cur.eq[seq_along(B.neg) + length(A.neg)]
-
-          # Update the hunk
-
-          hunk.grps[[i]][[j]] <- h.a
-    } } }
     # Process the actual hunks into character
 
     out <- lapply(
