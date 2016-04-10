@@ -71,42 +71,51 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
     ) }
     # Generate hunk contents
 
-    diff.txt <- unlist(
-      lapply(h.g,
-        function(h.a) {
-          if(mode=="context") {
-            ghd.mode.1 <- "A"
-            ghd.mode.2 <- "B"
-            ghd.type.1 <- ghd.type.2 <- "both"
-            fin_fun <- fin_fun_context
-          } else if(mode == "unified") {
-            ghd.mode.1 <- ghd.mode.2 <-"A"
-            ghd.type.1 <- "pos"
-            ghd.type.2 <- "neg"
-            fin_fun <- fin_fun_unified
-          } else if(mode == "sidebyside") {
-            ghd.mode.1 <- "A"
-            ghd.mode.2 <- "B"
-            ghd.type.1 <- "pos"
-            ghd.type.2 <- "neg"
-            fin_fun <- fin_fun_sidebyside
-          }
-          A.dat <- get_hunk_dat(h.a, mode=ghd.mode.1, ghd.type.1)
-          B.dat <- get_hunk_dat(h.a, mode=ghd.mode.2, ghd.type.2)
-          dat.align <- align_eq(
-            A.dat, B.dat, ignore.white.space=etc@ignore.white.space,
-            threshold=etc@align.threshold
-          )
-          A.fin <- wrap_and_sign_pad(
-            dat.align$A, capt.width, if(h.a$context) 1L else 3L
-          )
-          B.fin <- wrap_and_sign_pad(
-            dat.align$B, capt.width, if(h.a$context) 1L else 2L
-          )
-          fin_fun(A.fin, B.fin)
-    } ) )
-    c(hunk.head, diff.txt)
+    diff.list <- lapply(h.g,
+      function(h.a) {
+        if(mode=="context") {
+          ghd.mode.1 <- "A"
+          ghd.mode.2 <- "B"
+          ghd.type.1 <- ghd.type.2 <- "both"
+          fin_fun <- fin_fun_context
+        } else if(mode == "unified") {
+          ghd.mode.1 <- ghd.mode.2 <-"A"
+          ghd.type.1 <- "pos"
+          ghd.type.2 <- "neg"
+          fin_fun <- fin_fun_unified
+        } else if(mode == "sidebyside") {
+          ghd.mode.1 <- "A"
+          ghd.mode.2 <- "B"
+          ghd.type.1 <- "pos"
+          ghd.type.2 <- "neg"
+          fin_fun <- fin_fun_sidebyside
+        }
+        A.dat <- get_hunk_dat(h.a, mode=ghd.mode.1, ghd.type.1)
+        B.dat <- get_hunk_dat(h.a, mode=ghd.mode.2, ghd.type.2)
+        dat.align <- align_eq(
+          A.dat, B.dat, ignore.white.space=etc@ignore.white.space,
+          threshold=etc@align.threshold
+        )
+        A.fin <- wrap_and_sign_pad(
+          dat.align$A, capt.width, if(h.a$context) 1L else 3L
+        )
+        B.fin <- wrap_and_sign_pad(
+          dat.align$B, capt.width, if(h.a$context) 1L else 2L
+        )
+        fin_fun(A.fin, B.fin)
+    } )
   }
+  # Context mode is a bit weird because we need to re-order across atomic hunks
+  # unlike with the other modes
+
+  res <- if(mode == "context") {
+    ctx.A <- unlist(lapply(diff.list, "[[", 1L))
+    ctx.B <- unlist(lapply(diff.list, "[[", 2L))
+    unlist(c(ctx.A, if(length(ctx.B)) crayon_style("~~~~", "silver"), ctx.B))
+  } else {
+    unlist(diff.list)
+  }
+  c(hunk.head, res)
 }
 # helper for in_hunk_diffs
 #
@@ -204,8 +213,7 @@ get_hunk_dat <- function(h.a, mode, type="both", sub=.valid_sub) {
     sub
   )
 }
-fin_fun_context <- function(A, B)
-  c(A, if(length(B)) crayon_style("~~~~", "silver"), B)
+fin_fun_context <- function(A, B) list(A, B)
 
 fin_fun_unified <- function(A, B) c(A, B)[order(c(seq_along(A), seq_along(B)))]
 
