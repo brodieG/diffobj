@@ -40,27 +40,20 @@ align_split <- function(v, m) {
 # Each matching element will be surrounding by (possibly empty) non-matching
 # elements.
 
-align_eq <- function(
-  A, B, A.eq, B.eq, A.raw, B.raw, A.match.ratio, B.match.ratio, threshold,
-  ignore.white.space
-) {
+align_eq <- function(A, B, threshold, ignore.white.space) {
   stopifnot(
-    is.character(A), is.character(B),
-    is.character(A.eq), is.character(B.eq), !anyNA(A.eq), !anyNA(B.eq),
-    length(
-      unique(length(A), length(A.eq), length(A.raw), length(A.match.ratio))
-    ) == 1L,
-    length(
-      unique(length(B), length(B.eq), length(B.raw), length(B.match.ratio))
-    ) == 1L,
-    is.numeric(threshold), length(threshold) == 1L, !is.na(threshold),
-    threshold >= 0 && threshold <= 1,
-    is.numeric(A.match.ratio), is.numeric(B.match.ratio),
-    all(
-      c(A.match.ratio, B.match.ratio) >= 0 &
-      c(A.match.ratio, B.match.ratio) <= 1
-    )
+    is.list(A), is.list(B), length(A) == length(B),
+    identical(names(B), names(A)), identical(names(A), .valid_sub),
+    length(unique(vapply(A, length, integer(1L)))) == 1L,
+    length(unique(vapply(B, length, integer(1L)))) == 1L,
+    !anyNA(unlist(c(A, B))),
+    all(vapply(c(A[1:3], B[1:3]), is.character, logical(1L))),
+    is.numeric(nums <- c(A[[4]], B[[4]])),
+    all(nums >= 0 & nums <= 1)
   )
+  A.eq <- A$eq.chr
+  B.eq <- B$eq.chr
+
   if(ignore.white.space) {
     A.eq <- gsub("\\s+", " ", A.eq)
     B.eq <- gsub("\\s+", " ", B.eq)
@@ -83,18 +76,18 @@ align_eq <- function(
   # the possible tokens and could be spurious; we should probably do this
   # ahead of the for loop since we could probably save some iterations
 
-  disallow.match <- !nzchar(A.eq) | A.match.ratio < threshold |
-    ifelse(align, B.match.ratio[align], 1L) < threshold
+  disallow.match <- !nzchar(A.eq) | A$tok.ratio < threshold |
+    ifelse(align, B$tok.ratio[align], 1L) < threshold
   align[disallow.match] <- 0L
 
   # A and B are word colored, but we don't want to keep those if if they don't
   # qualify to be aligned; this is not super efficient since we're undoing the
   # word coloring instead of not doing it, but pita to do properly
 
-  A.fin <- A.raw
-  B.fin <- B.raw
-  A.fin[which(!!align)] <- A[which(!!align)]
-  B.fin[align] <- B[align]
+  A.fin <- A$raw.chr
+  B.fin <- B$raw.chr
+  A.fin[which(!!align)] <- A$chr[which(!!align)]
+  B.fin[align] <- B$chr[align]
 
   # Group elements together; only one match per group, mismatches are put
   # in interstitial buckets.  We number the interstitial buckest as the

@@ -54,15 +54,6 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
       # code in the lapply...
 
       list(
-        list(
-          id=2L, A=integer(0L), B=integer(0L), A.chr=character(0L),
-          B.chr=character(0L), A.eq.chr=character(0L), B.eq.chr=character(0L),
-          A.raw.chr=character(0L), B.raw.chr=character(0L),
-          A.tok.ratio=numeric(0L), B.tok.ratio=numeric(0L),
-          context=FALSE, header=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
-          tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
-          tar.rng.trim=integer(2L), cur.rng.trim=integer(2L)
-        )
       )
     } else {
       lapply(
@@ -202,6 +193,16 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
     res <- process_hunks(res.l, ctx.val=ctx.val, use.header=etc@use.header)
     res
 } )
+empty_hunk <- function()
+  list(
+    id=2L, A=integer(0L), B=integer(0L), A.chr=character(0L),
+    B.chr=character(0L), A.eq.chr=character(0L), B.eq.chr=character(0L),
+    A.raw.chr=character(0L), B.raw.chr=character(0L),
+    A.tok.ratio=numeric(0L), B.tok.ratio=numeric(0L),
+    context=FALSE, header=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
+    tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
+    tar.rng.trim=integer(2L), cur.rng.trim=integer(2L)
+  )
 # process the hunks and also drop off groups that exceed limit
 #
 # used exclusively when we are trying to auto-calculate context
