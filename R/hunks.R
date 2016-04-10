@@ -54,6 +54,15 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
       # code in the lapply...
 
       list(
+        list(
+          id=2L, A=integer(0L), B=integer(0L), A.chr=character(0L),
+          B.chr=character(0L), A.eq.chr=character(0L), B.eq.chr=character(0L),
+          A.raw.chr=character(0L), B.raw.chr=character(0L),
+          A.tok.ratio=numeric(0L), B.tok.ratio=numeric(0L),
+          context=FALSE, header=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
+          tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
+          tar.rng.trim=integer(2L), cur.rng.trim=integer(2L)
+        )
       )
     } else {
       lapply(
@@ -143,21 +152,22 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
         p_and_t_hunks(res.l, ctx.val=context@min, etc=etc),
         etc=etc
       )
-      if(len <= line.limit[[1L]] || line.limit[[1L]] < 0L) {
-        -1L
+      if(line.limit[[1L]] < 0L) {
+        context@max
       } else if(len.min > line.limit[[1L]]) {
         context@min
       } else {
         # compute max context size
 
-        ctx.max <- ctx.hi <- ctx <- as.integer(
-          ceiling(
-            max(
-              vapply(
-                res.l,
-                function(x) if(x$context) length(x$A.chr) else 0L, integer(1L)
-            ) ) / 2L
-        ) )
+        # ctx.max <- ctx.hi <- ctx <- as.integer(
+        #   ceiling(
+        #     max(
+        #       vapply(
+        #         res.l,
+        #         function(x) if(x$context) length(x$A.chr) else 0L, integer(1L)
+        #     ) ) / 2L
+        # ) )
+        ctx.max <- ctx.hi <- ctx <- context@max
         ctx.lo <- context@min
         safety <- 0L
 
@@ -193,16 +203,6 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
     res <- process_hunks(res.l, ctx.val=ctx.val, use.header=etc@use.header)
     res
 } )
-empty_hunk <- function()
-  list(
-    id=2L, A=integer(0L), B=integer(0L), A.chr=character(0L),
-    B.chr=character(0L), A.eq.chr=character(0L), B.eq.chr=character(0L),
-    A.raw.chr=character(0L), B.raw.chr=character(0L),
-    A.tok.ratio=numeric(0L), B.tok.ratio=numeric(0L),
-    context=FALSE, header=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
-    tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
-    tar.rng.trim=integer(2L), cur.rng.trim=integer(2L)
-  )
 # process the hunks and also drop off groups that exceed limit
 #
 # used exclusively when we are trying to auto-calculate context
@@ -227,7 +227,10 @@ hunk_sub <- function(hunk, op, n) {
   hunk.len <- diff(hunk$tar.rng) + 1L
   len.diff <- hunk.len - n
   if(len.diff >= 0) {
-    nm <- c("A", "B", "A.chr", "B.chr", "A.eq.chr", "B.eq.chr")
+    nm <- c(
+      "A", "B", "A.chr", "B.chr", "A.eq.chr", "B.eq.chr",
+      "A.raw.chr", "B.raw.chr"
+    )
     hunk[nm] <- lapply(hunk[nm], op, n)
 
     # Need to recompute ranges
