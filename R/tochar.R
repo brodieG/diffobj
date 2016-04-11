@@ -97,10 +97,12 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
           threshold=etc@align.threshold, context=h.a$context
         )
         A.fin <- wrap_and_sign_pad(
-          dat.align$A, capt.width, if(h.a$context) 1L else 3L
+          dat.align$A, capt.width, if(h.a$context) 1L else 3L,
+          wrap.pad=mode == "sidebyside"
         )
         B.fin <- wrap_and_sign_pad(
-          dat.align$B, capt.width, if(h.a$context) 1L else 2L
+          dat.align$B, capt.width, if(h.a$context) 1L else 2L,
+          wrap.pad=mode == "sidebyside"
         )
         fin_fun(A.fin, B.fin, max.w)
     } )
