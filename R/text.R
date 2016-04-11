@@ -39,8 +39,10 @@ align_split <- function(v, m) {
 # The A/B vecs  will be split up into matchd elements, and non-matched elements.
 # Each matching element will be surrounding by (possibly empty) non-matching
 # elements.
+#
+# Will also apply colors to fully mismatching lines
 
-align_eq <- function(A, B, threshold, ignore.white.space) {
+align_eq <- function(A, B, threshold, ignore.white.space, context) {
   stopifnot(
     is.list(A), is.list(B), length(A) == length(B),
     identical(names(B), names(A)), identical(names(A), .valid_sub),
@@ -49,7 +51,8 @@ align_eq <- function(A, B, threshold, ignore.white.space) {
     !anyNA(unlist(c(A, B))),
     all(vapply(c(A[1:3], B[1:3]), is.character, logical(1L))),
     is.numeric(nums <- c(A[[4]], B[[4]])),
-    all(nums >= 0 & nums <= 1)
+    all(nums >= 0 & nums <= 1),
+    is.TF(context)
   )
   A.eq <- A$eq.chr
   B.eq <- B$eq.chr
@@ -84,8 +87,9 @@ align_eq <- function(A, B, threshold, ignore.white.space) {
   # qualify to be aligned; this is not super efficient since we're undoing the
   # word coloring instead of not doing it, but pita to do properly
 
-  A.fin <- A$raw.chr
-  B.fin <- B$raw.chr
+  use.ansi <- crayon_hascolor()
+  A.fin <- if(!context && use.ansi) red(A$raw.chr) else A$raw.chr
+  B.fin <- if(!context && use.ansi) green(B$raw.chr) else B$raw.chr
   A.fin[which(!!align)] <- A$chr[which(!!align)]
   B.fin[align] <- B$chr[align]
 

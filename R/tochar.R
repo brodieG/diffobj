@@ -94,7 +94,7 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
         B.dat <- get_hunk_dat(h.a, mode=ghd.mode.2, ghd.type.2)
         dat.align <- align_eq(
           A.dat, B.dat, ignore.white.space=etc@ignore.white.space,
-          threshold=etc@align.threshold
+          threshold=etc@align.threshold, context=h.a$context
         )
         A.fin <- wrap_and_sign_pad(
           dat.align$A, capt.width, if(h.a$context) 1L else 3L
@@ -102,7 +102,7 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
         B.fin <- wrap_and_sign_pad(
           dat.align$B, capt.width, if(h.a$context) 1L else 2L
         )
-        fin_fun(A.fin, B.fin)
+        fin_fun(A.fin, B.fin, max.w)
     } )
   }
   # Context mode is a bit weird because we need to re-order across atomic hunks
@@ -213,11 +213,12 @@ get_hunk_dat <- function(h.a, mode, type="both", sub=.valid_sub) {
     sub
   )
 }
-fin_fun_context <- function(A, B) list(A, B)
+fin_fun_context <- function(A, B, max.w) list(A, B)
 
-fin_fun_unified <- function(A, B) c(A, B)[order(c(seq_along(A), seq_along(B)))]
+fin_fun_unified <- function(A, B, max.w)
+  c(A, B)[order(c(seq_along(A), seq_along(B)))]
 
-fin_fun_sidebyside <- function(A, B) {
+fin_fun_sidebyside <- function(A, B, max.w) {
   for(i in seq_along(A)) {
     A.ch <- A[[i]]
     B.ch <- B[[i]]
@@ -225,6 +226,7 @@ fin_fun_sidebyside <- function(A, B) {
     B.l <- length(B.ch)
     max.l <- max(A.l, B.l)
     length(A.ch) <- length(B.ch) <- max.l
+    blanks <- paste0(rep(" ", max.w), collapse="")
 
     for(j in seq_along(A.ch)) {
       l.diff <- length(A.ch[[j]]) - length(B.ch[[j]])
