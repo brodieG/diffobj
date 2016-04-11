@@ -75,6 +75,7 @@ local({
     diff_print(lst.1, lst.3)
     diff_print(lst.1, lst.3, mode="sidebyside")
     diff_obj(lst.1, lst.3)
+    diff_obj(lst.1, lst.2)
     chr.1 <- c(
       "hello world",
       "I ran into a rather bizarre bug involving memoise that made it impossible to forget the cached version of crayon:::i_num_colors. Somehow, the binary version of crayon on CRAN has a corrupted copy of the memoised crayon:::i_num_colors function",
@@ -151,14 +152,14 @@ local({
     set.seed(1)
     Puromycin2$conc[c(8, 15:19, 22)] <- round(runif(7), 2)
     Puromycin2$state[17] <- "treated"
-    diff_print(Puromycin, Puromycin2, line.limit=15)
-    diff_print(Puromycin, Puromycin2, line.limit=15, mode="sidebyside")
-    diff_print(Puromycin, Puromycin2, line.limit=15, mode="context")
+    diff_print(Puromycin, Puromycin2, etc=etc(line.limit=15))
+    diff_print(Puromycin, Puromycin2, etc=etc(line.limit=15), mode="sidebyside")
+    diff_print(Puromycin, Puromycin2, etc=etc(line.limit=15), mode="context")
 
     # line limit issues
     diff_print(Puromycin, Puromycin2, etc=etc(line.limit=6))
-    diff_print(Puromycin, Puromycin2, line.limit=6, mode="sidebyside")
-    diff_print(Puromycin, Puromycin2, line.limit=6, mode="context")
+    diff_print(Puromycin, Puromycin2, etc=etc(line.limit=6), mode="sidebyside")
+    STJKUdiff_print(Puromycin, Puromycin2, line.limit=6, mode="context")
 
     diff_print(Puromycin, Puromycin2, line.limit=3)
     diff_print(Puromycin, Puromycin2, line.limit=3)

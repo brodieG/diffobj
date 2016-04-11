@@ -43,8 +43,8 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
     unlist(
       lapply(h.g, function(h.a) unlist(h.a[c("tar.rng.trim", "cur.rng.trim")]))
   ) )
-  if(!all.lines) {
-    character(0L)
+  diff.list <- if(!all.lines) {
+    list()
   } else {
     max.w <- calc_width(disp.width, mode)
     capt.width <- calc_width_pad(disp.width, mode)
@@ -71,7 +71,7 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
     ) }
     # Generate hunk contents
 
-    diff.list <- lapply(h.g,
+    hunk.res <- lapply(h.g,
       function(h.a) {
         if(mode=="context") {
           ghd.mode.1 <- "A"
@@ -106,6 +106,7 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
         )
         fin_fun(A.fin, B.fin, max.w)
     } )
+    c(hunk.head, hunk.res)
   }
   # Context mode is a bit weird because we need to re-order across atomic hunks
   # unlike with the other modes
@@ -117,7 +118,7 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
   } else {
     unlist(diff.list)
   }
-  c(hunk.head, res)
+  res
 }
 # helper for in_hunk_diffs
 #
