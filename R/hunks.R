@@ -303,7 +303,10 @@ process_hunks <- function(x, ctx.val, use.header) {
         # Hunks bleed into next hunk due to context; note that i + 1L will always
         # be a context hunk, so $A is fully representative
 
-        while(i < hunk.len && length(x[[i + 1L]]$A) <= context * 2) {
+        while(
+          i < hunk.len && length(x[[i + 1L]]$A) <= context * 2 &&
+          i + 1L < length(x)
+        ) {
           res.l[[j]] <- append(res.l[[j]], x[i + 1L])
           if(i < hunk.len - 1L)
             res.l[[j]] <- append(res.l[[j]], x[i + 2L])
