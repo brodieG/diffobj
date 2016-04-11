@@ -55,8 +55,8 @@ align_eq <- function(A, B, threshold, ignore.white.space) {
   B.eq <- B$eq.chr
 
   if(ignore.white.space) {
-    A.eq <- gsub("\\s+", " ", A.eq)
-    B.eq <- gsub("\\s+", " ", B.eq)
+    A.eq <- normalize_whitespace(A.eq)
+    B.eq <- normalize_whitespace(B.eq)
   }
   # Need to match each element in A.eq to B.eq, though each match consumes the
   # match so we can't use `match`; unfortunately this is slow
@@ -261,7 +261,10 @@ strip_hz_control <- function(txt, stops=8L) {
   )
   res
 }
+# Normalize strings so whitespace differences don't show up as differences
 
+normalize_whitespace <- function(txt)
+  gsub("(\t| )+", " ", gsub("^(\t| )*|(\t| )*$", "", txt))
 
 # Simple text manip functions
 
