@@ -407,8 +407,8 @@ setMethod("as.character", "diffObjDiff",
           x@etc, diff.mode="wrap",
           match.quotes=is.character(x@target) && is.character(x@current)
         )
-        regmatches(x@tar.capt[tar.head], tar.body) <- body.diff$target
-        regmatches(x@cur.capt[cur.head], cur.body) <- body.diff$current
+        regmatches(x@tar.capt[tar.head], tar.body) <- body.diff$tar.chr
+        regmatches(x@cur.capt[cur.head], cur.body) <- body.diff$cur.chr
 
         # We also need to diff the row headers
 
