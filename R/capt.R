@@ -92,7 +92,7 @@ capt_print <- function(target, current, etc, err, ...){
     cur.call[[2L]] <- etc@cur.exp
     etc@tar.banner <- deparse(tar.call)[[1L]]
     etc@cur.banner <- deparse(cur.call)[[1L]]
-  } 
+  }
   tar.call[[2L]] <- target
   cur.call[[2L]] <- current
 

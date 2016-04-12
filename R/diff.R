@@ -162,51 +162,6 @@ diff_deparse <- make_diff_fun(capt_deparse)
 #' \code{\link{diff_print}} or \code{\link{diff_str}} if you require one or the
 #' other output.
 #'
-#' @section Output:
-#'
-#' The result of the diff provides the information necessary to transform the
-#' \code{target} object into the \code{current} object.  This involves deletions
-#' from and additions to \code{target}.  The deletions and additions are done
-#' linewise.  Each deleted line will have \code{- } prepended to it, and each
-#' added line will have \code{+ } prepended to it.  If your terminal supports
-#' ANSI escape sequences the additions and deletions will be color coded.
-#'
-#' The first lines of output clarify the coding convention by showing the
-#' \code{target} object with the deletion symbology, and the \code{current}
-#' object with the addition symbology.  After these lines you will see the
-#' first and possibly only hunk header.  The format will be \code{@@ x,y z,w @@}
-#' where \code{x} and \code{z} indicate the starting line of the text in
-#' the \code{target} and \code{current} objects that is shown after the hunk
-#' header.  \code{y} and \code{w} indicate how many lines from each of those
-#' objects are being shown.
-#'
-#' In addition to the primary line diff, hunks are themselves word-diffed within
-#' each hunk to help quickly identify small differences.  Just keep in mind that
-#' the \code{+-} symbols always relate to the original line diff.  The
-#' word-diff is indicated only by the ANSI escape sequence styling and will not
-#' be visible if your terminal does not support them or if you disable them.
-#'
-#' The output format used here is loosely based on the \code{git diff} format.
-#'
-#' @section Diff Algorithm:
-#'
-#' The diff algorithm is Myer's solution to the shortest edit script /
-#' longest common sequence problem with the Hirschberg linear space refinement
-#' as described in:
-#' \cite{
-#' E. Myers, \dQuote{An O(ND) Difference Algorithm and Its Variations},
-#' Algorithmica 1, 2 (1986), 251-266.
-#' \url{http://www.cs.arizona.edu/people/gene/PAPERS/diff.ps}
-#' }
-#' and should be the same algorithm used by GNU diff.  The implementation
-#' used here is an adaptation of Michael B. Allen's diff program from the
-#' \href{
-#'    http://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz
-#' }{\code{libmba}} \code{C} library.
-#'
-#' This algorithm scales with the \bold{square} of the number of differences
-#' between compared objects so is most effective when comparing objects
-#' that are mostly similar.
 #'
 #' @inheritParams diff_print
 #' @seealso \code{\link{etc}} for more detailed control of diff settings,
@@ -237,8 +192,15 @@ body(diff_obj) <- quote({
   res.print <- eval(call.print, parent.frame())
   res.str <- eval(call.str, parent.frame())
 
-  diff.p <- count_diffs(res.print@diffs$hunks)
-  diff.s <- count_diffs(res.str@diffs$hunks)
+  diff.p <- count_diff_hunks(res.print@diffs$hunks)
+  diff.s <- count_diff_hunks(res.str@diffs$hunks)
+  diff.l.p <- diff_line_len(res.print@diffs$hunks, res.print@etc)
+  diff.l.s <- diff_line_len(res.str@diffs$hunks, res.str@etc)
+
+  # How many lines of the input are in the diffs, vs how many lines of input
+
+  diff.line.ratio.p <- lineCoverage(res.print)
+  diff.line.ratio.s <- lineCoverage(res.str)
 
   # Only show the one with differences
 
@@ -260,12 +222,8 @@ body(diff_obj) <- quote({
     res.print
   # Calculate the trade offs between the two options
   } else {
-    s.score <- with(res.str@trim.dat, {
-      diff(lines) - lines[[1L]] + diff(diffs)
-    })
-    p.score <- with(res.print@trim.dat, {
-      diff(lines) - .5 * lines[[1L]] + diff(diffs)
-    })
+    s.score <- diff.s / diff.l.s * diff.line.ratio.s
+    p.score <- diff.p / diff.l.p * diff.line.ratio.p
     if(p.score >= s.score) res.print else res.str
   }
   res

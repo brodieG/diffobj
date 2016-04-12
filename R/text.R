@@ -12,26 +12,55 @@ ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
                      "(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])",
                      "|\\x{001b}[A-M]")
 
-# Align to vectors based on the values of two other vectors
+# Helper function for align_eq; splits up a vector into matched elements and
+# interstitial elements, including possibly empty interstitial elements when
+# two matches are abutting
+
+align_split <- function(v, m) {
+  match.len <- sum(!!m)
+  res.len <- match.len * 2L + 1L
+  splits <- cumsum(
+    c(
+      if(length(m)) 1L,
+      (!!diff(m) < 0L & !tail(m, -1L)) | (head(m, -1L) & tail(m, -1L))
+  ) )
+  m.all <- match(m, sort(unique(m[!!m])), nomatch=0L)  # normalize
+  m.all[!m.all] <- -ave(m.all, splits, FUN=max)[!m.all]
+  m.all[!m.all] <- -match.len - 1L  # trailing zeros
+  m.fin <- ifelse(m.all < 0, -m.all * 2 - 1, m.all * 2)
+  if(any(diff(m.fin) < 0L))
+    stop("Logic Error: non monotonic alignments; contact maintainer")
+  res <- replicate(res.len, list(character(0L)), simplify=FALSE)
+  res[unique(m.fin)] <- unname(split(v, m.fin))
+  res
+}
+# Align lists based on equalities on other vectors
 #
-# This will group mismatches with the first match preceding them.  There will
-# be as many groups as there are matches.  The matches are assessed on
-# `A.eq` and `B.eq`
+# The A/B vecs  will be split up into matchd elements, and non-matched elements.
+# Each matching element will be surrounding by (possibly empty) non-matching
+# elements.
+#
+# Will also apply colors to fully mismatching lines
 
-align_eq <- function(A, B, A.eq, B.eq, ignore.white.space=FALSE) {
+align_eq <- function(A, B, threshold, ignore.white.space, context) {
   stopifnot(
-    is.character(A.eq), is.character(B.eq), !anyNA(A.eq), !anyNA(B.eq),
-    length(A) == length(A.eq), length(B) == length(B.eq),
-    is.TF(ignore.white.space)
+    is.list(A), is.list(B), length(A) == length(B),
+    identical(names(B), names(A)), identical(names(A), .valid_sub),
+    length(unique(vapply(A, length, integer(1L)))) == 1L,
+    length(unique(vapply(B, length, integer(1L)))) == 1L,
+    !anyNA(unlist(c(A, B))),
+    all(vapply(c(A[1:3], B[1:3]), is.character, logical(1L))),
+    is.numeric(nums <- c(A[[4]], B[[4]])),
+    all(nums >= 0 & nums <= 1),
+    is.TF(context)
   )
-  # to simplify logic, force the first value to match
+  A.eq <- A$eq.chr
+  B.eq <- B$eq.chr
 
-  A.l <- c("<match>", A)
-  B.l <- c("<match>", B)
-
-  A.eq <- c("<match>", if(ignore.white.space) gsub("\\s+", "", A.eq) else A.eq)
-  B.eq <- c("<match>", if(ignore.white.space) gsub("\\s+", "", B.eq) else B.eq)
-
+  if(ignore.white.space) {
+    A.eq <- normalize_whitespace(A.eq)
+    B.eq <- normalize_whitespace(B.eq)
+  }
   # Need to match each element in A.eq to B.eq, though each match consumes the
   # match so we can't use `match`; unfortunately this is slow
 
@@ -39,21 +68,39 @@ align_eq <- function(A, B, A.eq, B.eq, ignore.white.space=FALSE) {
   align <- integer(length(A.eq))
   B.len <- length(B.eq)
   for(i in seq_along(A.eq)) {
-    B.match <- which(A.eq[[i]] == B.eq & seq_along(B.eq) > min.match)
-    if(length(B.match)) align[[i]] <- min.match <- B.match[[1L]]
+    if(min.match >= B.len) break
+    B.match <-
+      which(A.eq[[i]] == if(min.match) tail(B.eq, -min.match) else B.eq)
+    if(length(B.match)) {
+      align[[i]] <- min.match <- B.match[[1L]] + min.match
+    }
   }
-  A.splits <- cumsum(!!align)
+  # Disallow empty matches or matches that account for a very small portion of
+  # the possible tokens and could be spurious; we should probably do this
+  # ahead of the for loop since we could probably save some iterations
 
-  B.align <- c(align[!!align], length(B.eq) + 1L)
-  B.splits <-
-    rep(seq_len(length(B.align) - 1L), tail(B.align, -1L) - head(B.align, -1L))
+  disallow.match <- !nzchar(A.eq) | A$tok.ratio < threshold |
+    ifelse(align, B$tok.ratio[align], 1L) < threshold
+  align[disallow.match] <- 0L
 
-  # now chunk; we need to drop the first match from splits since we added it
+  # A and B are word colored, but we don't want to keep those if if they don't
+  # qualify to be aligned; this is not super efficient since we're undoing the
+  # word coloring instead of not doing it, but pita to do properly
 
-  A.chunks <- unname(split(A.l, A.splits))
-  B.chunks <- unname(split(B.l, B.splits))
-  A.chunks[[1L]] <- tail(A.chunks[[1L]], -1L)
-  B.chunks[[1L]] <- tail(B.chunks[[1L]], -1L)
+  use.ansi <- crayon_hascolor()
+  A.fin <- if(!context && use.ansi) red(A$raw.chr) else A$raw.chr
+  B.fin <- if(!context && use.ansi) green(B$raw.chr) else B$raw.chr
+  A.fin[which(!!align)] <- A$chr[which(!!align)]
+  B.fin[align] <- B$chr[align]
+
+  # Group elements together; only one match per group, mismatches are put
+  # in interstitial buckets.  We number the interstitial buckest as the
+  # negative of the next match
+
+  align.b <- seq_along(B.eq)
+  align.b[!align.b %in% align] <- 0L
+  A.chunks <- align_split(A.fin, align)
+  B.chunks <- align_split(B.fin, align.b)
 
   if(length(A.chunks) != length(B.chunks))
     stop("Logic Error: aligned chunks unequal length; contact maintainer.")
@@ -218,7 +265,10 @@ strip_hz_control <- function(txt, stops=8L) {
   )
   res
 }
+# Normalize strings so whitespace differences don't show up as differences
 
+normalize_whitespace <- function(txt)
+  gsub("(\t| )+", " ", gsub("^(\t| )*|(\t| )*$", "", txt))
 
 # Simple text manip functions
 
@@ -248,21 +298,25 @@ rpadt <- function(text, width, pad.chr=" ")
 
 # Breaks long character vectors into vectors of length width
 #
-# Right pads them to full length if requested
+# Right pads them to full length if requested.  Only attempt to wrap if
+# longer than width since wrapping is pretty expensive
 #
 # Returns a list of split vectors
 
 wrap_int <- function(txt, width, sub_fun, nc_fun) {
-  lapply(
-    seq_along(txt),
+  nchars <- nc_fun(txt)
+  res <- as.list(txt)
+  too.wide <- which(nchars > width)
+  res[too.wide] <- lapply(
+    too.wide,
     function(i) {
-      nchars <- nc_fun(txt[[i]])
       split.end <- seq(
-        from=width, by=width, length.out=ceiling(nchars / width)
+        from=width, by=width, length.out=ceiling(nchars[[i]] / width)
       )
       split.start <- split.end - width + 1L
       sub_fun(rep(txt[[i]], length(split.start)), split.start, split.end)
   } )
+  res
 }
 wrap <- function(txt, width, pad=FALSE) {
   if(length(grep("\n", txt, fixed=TRUE)))
@@ -331,3 +385,7 @@ sign_pad <- function(txt, pad, rev=FALSE) {
   } } )
   Map(paste0, if(rev) txt else pad.out, if(!rev) txt else pad.out)
 }
+# combine wrap and sign_pad
+
+wrap_and_sign_pad <- function(l, width, pad.type, wrap.pad=FALSE)
+  lapply(l, function(x) sign_pad(wrap(x, width, wrap.pad), pad.type))

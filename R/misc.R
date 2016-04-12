@@ -152,10 +152,10 @@ check_args <- function(call, tar.exp, cur.exp, mode, context, etc) {
   )
     err(sprintf(msg.base, "context"))
 
-  context <- if(identical(context, "auto")) auto_context() else
-    as.integer(context)
-
-  # check modes: IMPORTANT: these values must be completely unambiguous at
+  if(!is(context, "diffObjAutoContext")) {
+    context <- if(identical(context, "auto")) auto_context() else
+      auto_context(as.integer(context), as.integer(context))
+  }
   # any 'substr' of them otherwise these checks fail
 
   val.modes <- c("unified", "context", "sidebyside")

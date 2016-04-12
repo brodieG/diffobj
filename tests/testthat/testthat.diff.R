@@ -57,6 +57,7 @@ local({
     mx.3 <- mx.2
     mx.3[31, 2] <- 111L
 
+    diff_print(mx.2, mx.3, mode="sidebyside")
     lst.1 <- list(
       NULL,
       z=list(
@@ -73,6 +74,8 @@ local({
 
     diff_print(lst.1, lst.3)
     diff_print(lst.1, lst.3, mode="sidebyside")
+    diff_obj(lst.1, lst.3)
+    diff_obj(lst.1, lst.2)
     chr.1 <- c(
       "hello world",
       "I ran into a rather bizarre bug involving memoise that made it impossible to forget the cached version of crayon:::i_num_colors. Somehow, the binary version of crayon on CRAN has a corrupted copy of the memoised crayon:::i_num_colors function",
@@ -124,7 +127,6 @@ local({
     diff_print(iris, iris.2) # no round
     diff_print(iris, iris.c)
     diff_obj(iris, iris.c)
-    diff_obj(iris, iris.c)
     diff_obj(iris, iris.2)
     diff_obj(iris, iris.3)
     diff_obj(iris, iris.3, mode="sidebyside")
@@ -132,6 +134,9 @@ local({
     diff_str(cars, mtcars)
 
     diff_print(iris, iris[-2])
+    diff_print(list(1, 2, 3), matrix(1:9, 3))
+    diff_print(list(25, 2, 3), matrix(1:9, 3))
+    diff_print(list(c(1, 4, 7), c(2, 5, 8), c(3, 6, 9)), matrix(1:9, 3))
 
     mdl1 <- lm(Sepal.Length ~ Sepal.Width, iris)
     mdl2 <- lm(Sepal.Length ~ Sepal.Width + Species, iris.3)
@@ -147,14 +152,14 @@ local({
     set.seed(1)
     Puromycin2$conc[c(8, 15:19, 22)] <- round(runif(7), 2)
     Puromycin2$state[17] <- "treated"
-    diff_print(Puromycin, Puromycin2, line.limit=15)
-    diff_print(Puromycin, Puromycin2, line.limit=15, mode="sidebyside")
-    diff_print(Puromycin, Puromycin2, line.limit=15, mode="context")
+    diff_print(Puromycin, Puromycin2, etc=etc(line.limit=15))
+    diff_print(Puromycin, Puromycin2, etc=etc(line.limit=15), mode="sidebyside")
+    diff_print(Puromycin, Puromycin2, etc=etc(line.limit=15), mode="context")
 
     # line limit issues
-    diff_print(Puromycin, Puromycin2, line.limit=6)
-    diff_print(Puromycin, Puromycin2, line.limit=6, mode="sidebyside")
-    diff_print(Puromycin, Puromycin2, line.limit=6, mode="context")
+    diff_print(Puromycin, Puromycin2, etc=etc(line.limit=6))
+    diff_print(Puromycin, Puromycin2, etc=etc(line.limit=6), mode="sidebyside")
+    STJKUdiff_print(Puromycin, Puromycin2, line.limit=6, mode="context")
 
     diff_print(Puromycin, Puromycin2, line.limit=3)
     diff_print(Puromycin, Puromycin2, line.limit=3)

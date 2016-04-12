@@ -18,6 +18,8 @@
 #   In addition to the indices referencing the original character vectors, the
 #   actual character values are also retained, though these may be modified
 #   over the course of processing by being wrapped, having colors added, etc.
+#   The tok.ratio entries indicate the ratio of matching tokens out of total
+#   tokens in any given line after a word diff.
 #
 #   Important: context atomic hunks are duplicated anytime there is enough
 #   context that we only show part of the context hunk.
@@ -55,6 +57,8 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
         list(
           id=2L, A=integer(0L), B=integer(0L), A.chr=character(0L),
           B.chr=character(0L), A.eq.chr=character(0L), B.eq.chr=character(0L),
+          A.raw.chr=character(0L), B.raw.chr=character(0L),
+          A.tok.ratio=numeric(0L), B.tok.ratio=numeric(0L),
           context=FALSE, header=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
           tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
           tar.rng.trim=integer(2L), cur.rng.trim=integer(2L)
@@ -95,7 +99,7 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
           context <- !!mtc.len
 
           A <- switch(
-            etc@mode, context=tar, 
+            etc@mode, context=tar,
             unified=c(tar, if(!context) cur), sidebyside=tar,
             stop("Logic Error: unknown mode; contact maintainer.")
           )
@@ -124,6 +128,8 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
           list(
             id=i + 1L, A=A, B=B, A.chr=A.chr, B.chr=B.chr,
             A.eq.chr=A.chr, B.eq.chr=B.chr,
+            A.raw.chr=A.chr, B.raw.chr=B.chr,
+            A.tok.ratio=numeric(length(A)), B.tok.ratio=numeric(length(B)),
             context=context, header=FALSE,
             tar.rng=tar.rng, cur.rng=cur.rng,
             tar.rng.sub=tar.rng, cur.rng.sub=cur.rng,
@@ -146,21 +152,22 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
         p_and_t_hunks(res.l, ctx.val=context@min, etc=etc),
         etc=etc
       )
-      if(len <= line.limit[[1L]] || line.limit[[1L]] < 0L) {
-        -1L
+      if(line.limit[[1L]] < 0L) {
+        context@max
       } else if(len.min > line.limit[[1L]]) {
         context@min
       } else {
         # compute max context size
 
-        ctx.max <- ctx.hi <- ctx <- as.integer(
-          ceiling(
-            max(
-              vapply(
-                res.l,
-                function(x) if(x$context) length(x$A.chr) else 0L, integer(1L)
-            ) ) / 2L
-        ) )
+        # ctx.max <- ctx.hi <- ctx <- as.integer(
+        #   ceiling(
+        #     max(
+        #       vapply(
+        #         res.l,
+        #         function(x) if(x$context) length(x$A.chr) else 0L, integer(1L)
+        #     ) ) / 2L
+        # ) )
+        ctx.max <- ctx.hi <- ctx <- context@max
         ctx.lo <- context@min
         safety <- 0L
 
@@ -190,7 +197,7 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
           )
         }
         ctx
-      } 
+      }
     } else context
 
     res <- process_hunks(res.l, ctx.val=ctx.val, use.header=etc@use.header)
@@ -220,7 +227,10 @@ hunk_sub <- function(hunk, op, n) {
   hunk.len <- diff(hunk$tar.rng) + 1L
   len.diff <- hunk.len - n
   if(len.diff >= 0) {
-    nm <- c("A", "B", "A.chr", "B.chr", "A.eq.chr", "B.eq.chr")
+    nm <- c(
+      "A", "B", "A.chr", "B.chr", "A.eq.chr", "B.eq.chr",
+      "A.raw.chr", "B.raw.chr"
+    )
     hunk[nm] <- lapply(hunk[nm], op, n)
 
     # Need to recompute ranges
@@ -293,7 +303,10 @@ process_hunks <- function(x, ctx.val, use.header) {
         # Hunks bleed into next hunk due to context; note that i + 1L will always
         # be a context hunk, so $A is fully representative
 
-        while(i < hunk.len && length(x[[i + 1L]]$A) <= context * 2) {
+        while(
+          i < hunk.len && length(x[[i + 1L]]$A) <= context * 2 &&
+          i + 1L < length(x)
+        ) {
           res.l[[j]] <- append(res.l[[j]], x[i + 1L])
           if(i < hunk.len - 1L)
             res.l[[j]] <- append(res.l[[j]], x[i + 2L])
@@ -598,3 +611,6 @@ count_diffs <- function(x) {
       } },
       integer(1L)
 ) ) }
+
+count_diff_hunks <- function(x)
+  sum(!vapply(unlist(x, recursive=FALSE), "[[", logical(1L), "context"))

@@ -2,7 +2,8 @@
 #'
 #' Used for more fine grained control on the \code{diff_obj} family of
 #' functions by generating a settings object to pass as the \code{etc}
-#' parameter.
+#' parameter.  Most arguments take default values from options so that you may
+#' customize the behavior of these functions to your liking.
 #'
 #' @export
 #' @param line.limit integer(2L) or integer(1L), if length 1 how many lines of
@@ -42,6 +43,10 @@
 #' @param max.diffs.wrap integer(1L), like \code{max.diffs}, but used when
 #'   computing word diffs on atomic vectors (defaults to 10000L), see
 #'   \dQuote{Atomic Vectors} for \code{\link{diff_print}}.
+#' @param align.threshold numeric(1L) between 0 and 1, proportion of
+#'   characters in a line of \code{target} that must be matched in a line of
+#'   \code{current} in the same hunk for those lines to be paired up when
+#'   displayed (defaults to 0.25).
 #' @param tar.banner character(1L) or NULL, text to display ahead of the diff
 #'   section representing the target output.  If NULL will be
 #'   inferred from \code{target} and \code{current} expressions.
@@ -64,6 +69,7 @@ etc <- function(
   max.diffs=getOption("diffobj.max.diffs"),
   max.diffs.in.hunk=getOption("diffobj.max.diffs.in.hunk"),
   max.diffs.wrap=getOption("diffobj.max.diffs.wrap"),
+  align.threshold=getOption("diffobj.align.threshold"),
   convert.hz.white.space=getOption("diffobj.convert.hz.white.space"),
   tab.stops=getOption("diffobj.tab.stops"),
   frame=parent.frame(),
@@ -123,6 +129,14 @@ etc <- function(
       if(!is.chr.1L(this.env[[x]]) && !is.null(this.env[[x]]))
         stop(sprintf(msg.base, x))
   )
+  # 0-1 vars
+
+  if(
+    !is.numeric(align.threshold) || length(align.threshold) != 1L ||
+    !align.threshold >= 0 || !align.threshold <= 1
+  )
+    stop("Argument `align.threshold` must be between 0 and 1")
+
   # instantiate settings object
 
   set.vars <- as.list(this.env)

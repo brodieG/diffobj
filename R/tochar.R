@@ -43,8 +43,8 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
     unlist(
       lapply(h.g, function(h.a) unlist(h.a[c("tar.rng.trim", "cur.rng.trim")]))
   ) )
-  if(!all.lines) {
-    character(0L)
+  diff.list <- if(!all.lines) {
+    list()
   } else {
     max.w <- calc_width(disp.width, mode)
     capt.width <- calc_width_pad(disp.width, mode)
@@ -69,141 +69,188 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
         },
         "cyan"
     ) }
-    # Get trimmed character ranges; positives are originally from target, and
-    # negatives from current
+    # Generate hunk contents
 
-    get_chrs <- function(h.a, mode, eq=FALSE) {
-      stopifnot(mode %in% LETTERS[1:2], length(mode) == 1L, is.TF(eq))
-      rng <- c(
-        seq(h.a$tar.rng.trim[[1L]], h.a$tar.rng.trim[[2L]]),
-        -seq(h.a$cur.rng.trim[[1L]], h.a$cur.rng.trim[[2L]])
-      )
-      chr.ind <- sprintf("%s%s.chr", mode, if(eq) ".eq" else "")
-      h.a[[chr.ind]][match(rng, h.a[[mode]], nomatch=0L)]
-    }
-    # Output varies by mode
-
-    diff.txt <- if(mode == "context") {
-      # Need to get all the A data and the B data
-
-      A.chrs <- lapply(h.g, get_chrs, mode="A")
-      B.chrs <- lapply(h.g, get_chrs, mode="B")
-      A <- wrap(unlist(A.chrs), width=capt.width)
-      B <- wrap(unlist(B.chrs), width=capt.width)
-      A.ctx <- unlist(
-        lapply(
-          seq_along(h.g),
-          function(i) rep(h.g[[i]]$context, length(A.chrs[[i]]))
-      ) )
-      B.ctx <- unlist(
-        lapply(
-          seq_along(h.g),
-          function(i) rep(h.g[[i]]$context, length(B.chrs[[i]]))
-      ) )
-      A[!A.ctx] <- sign_pad(A[!A.ctx], 3L)
-      B[!B.ctx] <- sign_pad(B[!B.ctx], 2L)
-      A[A.ctx] <- sign_pad(A[A.ctx], 1L)
-      B[B.ctx] <- sign_pad(B[B.ctx], 1L)
-      if(h.g[[1L]]$header) B <- NULL  # don't show B for header
-      unlist(
-        c(
-          A,
-          if(length(B)) crayon_style("~~~~", "silver"),
-          B
-      ) )
-    } else if(mode == "unified") {
-      unlist(
-        lapply(h.g,
-          function(h.a) {
-            i.h <- in_hunk(h.a, "A")
-            pos <- (h.a$A > 0L)[i.h]
-            neg <- (h.a$A < 0L)[i.h]
-            A.out <- wrap(get_chrs(h.a, mode="A"), capt.width)
-
-            if(!h.a$context) {
-              A.eq <- get_chrs(h.a, "A", TRUE)
-              A.pos <- sign_pad(A.out[pos], 3L)
-              A.neg <- sign_pad(A.out[neg], 2L)
-              A.eq.p <- A.eq[pos]
-              A.eq.n <- A.eq[neg]
-              A.p.n.aligned <- align_eq(
-                A.pos, A.neg, A.eq.p, A.eq.n, ignore.white.space
-              )
-              # Intersperse the pos and neg chunks, starting with negs
-
-              A.out <- c(A.p.n.aligned$A, A.p.n.aligned$B)[
-                order(unlist(lapply(A.p.n.aligned, seq_along)))
-              ]
-            } else {
-              A.out <- sign_pad(A.out, 1L)
-            }
-            A.out
-      } ) )
-    } else if(mode == "sidebyside") {
-      unlist(
-        lapply(h.g,
-          function(h.a) {
-            # Ensure same number of elements in A and B
-
-            A.out <- get_chrs(h.a, "A")
-            B.out <- get_chrs(h.a, "B")
-            A.present <- rep(TRUE, length(A.out))
-            B.present <- rep(TRUE, length(B.out))
-            len.diff <- length(A.out) - length(B.out)
-
-            A.w <- wrap(A.out, capt.width, pad=TRUE)
-            B.w <- wrap(B.out, capt.width, pad=TRUE)
-
-            # Same number of els post wrap
-
-            if(length(unlist(A.w)) || length(unlist(B.w))) {
-              A.w.pad <- sign_pad(A.w, ifelse(!h.a$context & A.present, 3L, 1L))
-              B.w.pad <- sign_pad(B.w, ifelse(!h.a$context & B.present, 2L, 1L))
-
-              blanks <- paste0(rep(" ", max.w), collapse="")
-
-              # Match up the "equal" versions of the strings; we want to split
-              # in chunks that start with a match and end in mismatches
-
-              A.eq <- get_chrs(h.a, "A", TRUE)
-              B.eq <- get_chrs(h.a, "B", TRUE)
-
-              AB.aligned <- align_eq(
-                A.w.pad, B.w.pad, A.eq, B.eq, ignore.white.space
-              )
-              A.chunks <- AB.aligned$A
-              B.chunks <- AB.aligned$B
-
-              # Make everything same length by adding blanks as needed
-
-              for(i in seq_along(A.chunks)) {
-                A.ch <- A.chunks[[i]]
-                B.ch <- B.chunks[[i]]
-                A.l <- length(A.ch)
-                B.l <- length(B.ch)
-                max.l <- max(A.l, B.l)
-                length(A.ch) <- length(B.ch) <- max.l
-
-                for(j in seq_along(A.ch)) {
-                    l.diff <- length(A.ch[[j]]) - length(B.ch[[j]])
-                    if(l.diff < 0L)
-                      A.ch[[j]] <- c(A.ch[[j]], rep(blanks, abs(l.diff)))
-                    if(l.diff > 0L)
-                      B.ch[[j]] <- c(B.ch[[j]], rep(blanks, l.diff))
-                }
-                A.chunks[[i]] <- A.ch
-                B.chunks[[i]] <- B.ch
-              }
-              paste0(unlist(A.chunks), "  ", unlist(B.chunks))
-            }
-    } ) ) }
-    c(hunk.head, diff.txt)
+    hunk.res <- lapply(h.g,
+      function(h.a) {
+        if(mode=="context") {
+          ghd.mode.1 <- "A"
+          ghd.mode.2 <- "B"
+          ghd.type.1 <- ghd.type.2 <- "both"
+          fin_fun <- fin_fun_context
+        } else if(mode == "unified") {
+          ghd.mode.1 <- ghd.mode.2 <-"A"
+          ghd.type.1 <- "pos"
+          ghd.type.2 <- "neg"
+          fin_fun <- fin_fun_unified
+        } else if(mode == "sidebyside") {
+          ghd.mode.1 <- "A"
+          ghd.mode.2 <- "B"
+          ghd.type.1 <- "pos"
+          ghd.type.2 <- "neg"
+          fin_fun <- fin_fun_sidebyside
+        }
+        A.dat <- get_hunk_dat(h.a, mode=ghd.mode.1, ghd.type.1)
+        B.dat <- get_hunk_dat(h.a, mode=ghd.mode.2, ghd.type.2)
+        dat.align <- align_eq(
+          A.dat, B.dat, ignore.white.space=etc@ignore.white.space,
+          threshold=etc@align.threshold, context=h.a$context
+        )
+        A.fin <- wrap_and_sign_pad(
+          dat.align$A, capt.width, if(h.a$context) 1L else 3L,
+          wrap.pad=mode == "sidebyside"
+        )
+        B.fin <- wrap_and_sign_pad(
+          dat.align$B, capt.width, if(h.a$context) 1L else 2L,
+          wrap.pad=mode == "sidebyside"
+        )
+        fin_fun(A.fin, B.fin, max.w)
+    } )
+    c(hunk.head, hunk.res)
   }
+  # Context mode is a bit weird because we need to re-order across atomic hunks
+  # unlike with the other modes
+
+  res <- if(mode == "context") {
+    ctx.A <- unlist(lapply(diff.list, "[[", 1L))
+    ctx.B <- unlist(lapply(diff.list, "[[", 2L))
+    unlist(c(ctx.A, if(length(ctx.B)) crayon_style("~~~~", "silver"), ctx.B))
+  } else {
+    unlist(diff.list)
+  }
+  res
 }
+# helper for in_hunk_diffs
+#
+# `nd` stands for new.diff.  Here we are just remapping the word diff data
+# from tar/cur to our A/B data.
+
+update_hunk_atom <- function(h.a, new.diff, A.pos, A.neg, B.pos, B.neg, ind) {
+  A.ind <- sprintf("A.%s", ind)
+  B.ind <- sprintf("B.%s", ind)
+  tar.ind <- sprintf("tar.%s", ind)
+  cur.ind <- sprintf("cur.%s", ind)
+
+  h.a[[A.ind]][A.pos] <- new.diff[[tar.ind]][seq_along(A.pos)]
+  h.a[[A.ind]][A.neg] <- new.diff[[cur.ind]][seq_along(A.neg)]
+
+  h.a[[B.ind]][B.pos] <- new.diff[[tar.ind]][seq_along(B.pos)]
+  h.a[[B.ind]][B.neg] <- new.diff[[cur.ind]][seq_along(B.neg)]
+
+  h.a
+}
+# Compute diffs in hunks
+
+in_hunk_diffs <- function(hunk.grps, etc, tar.to.wd, cur.to.wd) {
+  if(length(tar.to.wd) || length(cur.to.wd)) {
+    wd.max <- min(head(tar.to.wd, 1L), head(cur.to.wd, 1L), 0L)
+    warn.hit.diffs.max <- TRUE
+
+    # We need to compare the +s to the -s, and then reconstruct back into
+    # the original A and B vectors
+
+    for(i in seq_along(hunk.grps)) {
+      for(j in seq_along(hunk.grps[[i]])) {
+        h.a <- hunk.grps[[i]][[j]]
+        # Skip context or those that have been wrap diffed or non-context
+        # hunks that are being trimmed
+        if(
+          h.a$id < wd.max || h.a$context ||
+          (!length(h.a$A) && !length(h.a$B))
+        ) next
+        # Do word diff on each non-context hunk; real messy because the
+        # stuff from `tar` and `cur` are mixed in in A and B (well, really
+        # only in unified mode) so we have to separate it back out before
+        # we do the diff
+
+        A.pos <- which(h.a$A > 0L)
+        B.pos <- which(h.a$B > 0L)
+        A.neg <- which(h.a$A < 0L)
+        B.neg <- which(h.a$B < 0L)
+
+        A.new <- c(h.a$A.chr[A.pos], h.a$B.chr[B.pos])
+        B.new <- c(h.a$A.chr[A.neg], h.a$B.chr[B.neg])
+
+        new.diff <- diff_word(
+          A.new, B.new, etc=etc, diff.mode="hunk",
+          warn=warn.hit.diffs.max
+        )
+        if(new.diff$hit.diffs.max) warn.hit.diffs.max <- FALSE
+
+        # Update hunk atom with the word diff info; we need to remap from
+        # tar/cur back to A/B
+
+        ind.sub <- c("chr", "eq.chr", "tok.ratio")
+        for(k in seq_along(ind.sub)) {
+          h.a <- update_hunk_atom(
+            h.a, new.diff, A.pos, A.neg, B.pos, B.neg, ind.sub[[k]]
+        ) }
+        # Update the hunk group with the modified hunk atom
+
+        hunk.grps[[i]][[j]] <- h.a
+  } } }
+  hunk.grps
+}
+# Helper functions for 'as.character'
+
+# Get trimmed character ranges; positives are originally from target, and
+# negatives from current
+
+.valid_sub <- c("chr", "eq.chr", "raw.chr", "tok.ratio")
+get_hunk_dat <- function(h.a, mode, type="both", sub=.valid_sub) {
+  stopifnot(
+    mode %in% LETTERS[1:2], length(mode) == 1L,
+    is.character(sub), !anyNA(sub),
+    all(sub %in% .valid_sub),
+    is.chr.1L(type), type %in% c("both", "pos", "neg")
+  )
+  rng <- c(
+    if(type %in% c("pos", "both"))
+      seq(h.a$tar.rng.trim[[1L]], h.a$tar.rng.trim[[2L]]),
+    if(type %in% c("neg", "both"))
+      -seq(h.a$cur.rng.trim[[1L]], h.a$cur.rng.trim[[2L]])
+  )
+  chr.ind <- sprintf("%s.%s", mode, sub)
+  setNames(
+    lapply(h.a[chr.ind], function(x) x[match(rng, h.a[[mode]], nomatch=0L)]),
+    sub
+  )
+}
+fin_fun_context <- function(A, B, max.w) list(A, B)
+
+fin_fun_unified <- function(A, B, max.w)
+  c(A, B)[order(c(seq_along(A), seq_along(B)))]
+
+fin_fun_sidebyside <- function(A, B, max.w) {
+  for(i in seq_along(A)) {
+    A.ch <- A[[i]]
+    B.ch <- B[[i]]
+    A.l <- length(A.ch)
+    B.l <- length(B.ch)
+    max.l <- max(A.l, B.l)
+    length(A.ch) <- length(B.ch) <- max.l
+    blanks <- paste0(rep(" ", max.w), collapse="")
+
+    for(j in seq_along(A.ch)) {
+      l.diff <- length(A.ch[[j]]) - length(B.ch[[j]])
+      if(l.diff < 0L)
+      A.ch[[j]] <- c(A.ch[[j]], rep(blanks, abs(l.diff)))
+      if(l.diff > 0L)
+      B.ch[[j]] <- c(B.ch[[j]], rep(blanks, l.diff))
+    }
+    A[[i]] <- A.ch
+    B[[i]] <- B.ch
+  }
+  paste0(unlist(A), "  ", unlist(B))
+}
+
 #' @rdname diffobj_s4method_doc
 
 setMethod("as.character", "diffObjDiff",
   function(x, ...) {
+    old.crayon.opt <- options(crayon.enabled=x@etc@use.ansi)
+    on.exit(options(old.crayon.opt), add=TRUE)
+
     # These checks should never fail since presumably the inputs have been
     # checked earlier; here just in case we mess something up in devel or
     # testing
@@ -261,7 +308,7 @@ setMethod("as.character", "diffObjDiff",
       )
       max.w <- if(max.col.w < max.w) max(.min.width, max.col.w) else max.w
       # future calculations should assume narrower display
-      disp.width <- max.w * 2L + 2L
+      x@etc@disp.width <- disp.width <- max.w * 2L + 2L
       comb.fun <- paste0
       t.fun <- rpadt
     } else {
@@ -303,7 +350,6 @@ setMethod("as.character", "diffObjDiff",
           "Logic Error: should not be str folding when limited; contact ",
           "maintainer."
         )
-
       }
       crayon_style(
         paste0(
@@ -362,8 +408,8 @@ setMethod("as.character", "diffObjDiff",
           x@etc, diff.mode="wrap",
           match.quotes=is.character(x@target) && is.character(x@current)
         )
-        regmatches(x@tar.capt[tar.head], tar.body) <- body.diff$target
-        regmatches(x@cur.capt[cur.head], cur.body) <- body.diff$current
+        regmatches(x@tar.capt[tar.head], tar.body) <- body.diff$tar.chr
+        regmatches(x@cur.capt[cur.head], cur.body) <- body.diff$cur.chr
 
         # We also need to diff the row headers
 
@@ -404,59 +450,9 @@ setMethod("as.character", "diffObjDiff",
 
     tar.to.wd <- which(ranges[1L,] %in% tar.rest)
     cur.to.wd <- which(ranges[3L,] %in% cur.rest)
+    hunk.grps <-
+      in_hunk_diffs(hunk.grps=hunk.grps, etc=x@etc, tar.to.wd, cur.to.wd)
 
-    if(length(tar.to.wd) || length(cur.to.wd)) {
-      wd.max <- min(head(tar.to.wd, 1L), head(cur.to.wd, 1L), 0L)
-      warn.hit.diffs.max <- TRUE
-
-      # We need to compare the +s to the -s, and then reconstruct back into
-      # the original A and B vectors
-
-      for(i in seq_along(hunk.grps)) {
-        for(j in seq_along(hunk.grps[[i]])) {
-          h.a <- hunk.grps[[i]][[j]]
-          # Skip context or those that have been wrap diffed or non-context
-          # hunks that are being trimmed
-          if(
-            h.a$id < wd.max || h.a$context ||
-            (!length(h.a$A) && !length(h.a$B))
-          ) next
-          # Do word diff on each non-context hunk; real messy because the
-          # stuff from `tar` and `cur` are mixed in in A and B (well, really
-          # only in unified mode) so we have to separate it back out before
-          # we do the diff
-
-          A.pos <- which(h.a$A > 0L)
-          B.pos <- which(h.a$B > 0L)
-          A.neg <- which(h.a$A < 0L)
-          B.neg <- which(h.a$B < 0L)
-
-          A.new <- c(h.a$A.chr[A.pos], h.a$B.chr[B.pos])
-          B.new <- c(h.a$A.chr[A.neg], h.a$B.chr[B.neg])
-
-          new.diff <- diff_word(
-            A.new, B.new, etc=x@etc, diff.mode="hunk",
-            warn=warn.hit.diffs.max
-          )
-          if(new.diff$hit.diffs.max) warn.hit.diffs.max <- FALSE
-          h.a$A.chr[A.pos] <- new.diff$target[seq_along(A.pos)]
-          h.a$A.chr[A.neg] <- new.diff$current[seq_along(A.neg)]
-          h.a$B.chr[B.pos] <- new.diff$target[seq_along(B.pos) + length(A.pos)]
-          h.a$B.chr[B.neg] <- new.diff$current[seq_along(B.neg) + length(A.neg)]
-
-          # Do the same with the versions with all differences removed
-
-          h.a$A.eq.chr[A.pos] <- new.diff$tar.eq[seq_along(A.pos)]
-          h.a$A.eq.chr[A.neg] <- new.diff$cur.eq[seq_along(A.neg)]
-          h.a$B.eq.chr[B.pos] <-
-            new.diff$tar.eq[seq_along(B.pos) + length(A.pos)]
-          h.a$B.eq.chr[B.neg] <-
-            new.diff$cur.eq[seq_along(B.neg) + length(A.neg)]
-
-          # Update the hunk
-
-          hunk.grps[[i]][[j]] <- h.a
-    } } }
     # Process the actual hunks into character
 
     out <- lapply(

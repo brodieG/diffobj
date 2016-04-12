@@ -235,11 +235,11 @@ char_diff <- function(
     line="max.diffs", hunk="max.diffs.in.hunk", wrap="max.diffs.wrap"
   )
   if(etc@ignore.white.space) {
-    sub.pat <- "(\t| )"
-    pat.1 <- sprintf("^%s*|%s*$", sub.pat, sub.pat)
-    pat.2 <- sprintf("%s+", sub.pat)
-    x.w <- gsub(pat.2, " ", gsub(pat.1, "", x))
-    y.w <- gsub(pat.2, " ", gsub(pat.1, "", y))
+    x.w <- normalize_whitespace(x)
+    y.w <- normalize_whitespace(y)
+  } else {
+    x.w <- x
+    y.w <- y
   }
   max.diffs <- slot(etc, diff.param[[diff.mode]])
   diff <- diff_myers_mba(x.w, y.w, max.diffs)

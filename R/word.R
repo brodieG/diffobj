@@ -41,11 +41,11 @@ find_brackets <- function(x) {
 # can better match deparsed things and so on
 
 diff_word <- function(
-  target, current, etc, match.quotes=FALSE, diff.mode, warn=TRUE
+  tar.chr, cur.chr, etc, match.quotes=FALSE, diff.mode, warn=TRUE
 ) {
   stopifnot(
-    is.character(target), is.character(current),
-    all(!is.na(target)), all(!is.na(current)),
+    is.character(tar.chr), is.character(cur.chr),
+    all(!is.na(tar.chr)), all(!is.na(cur.chr)),
     is.TF(match.quotes), is.TF(warn)
   )
   # Compute the char by char diffs for each line
@@ -66,11 +66,11 @@ diff_word <- function(
     # known valid quote structures
     "\""
   )
-  tar.reg <- gregexpr(reg, target, perl=TRUE)
-  cur.reg <- gregexpr(reg, current, perl=TRUE)
+  tar.reg <- gregexpr(reg, tar.chr, perl=TRUE)
+  cur.reg <- gregexpr(reg, cur.chr, perl=TRUE)
 
-  tar.split <- regmatches(target, tar.reg)
-  cur.split <- regmatches(current, cur.reg)
+  tar.split <- regmatches(tar.chr, tar.reg)
+  cur.split <- regmatches(cur.chr, cur.reg)
 
   # Collapse into one line if to do the diff across lines, but record
   # item counts so we can reconstitute the lines at the end
@@ -98,8 +98,8 @@ diff_word <- function(
 
   # Reconstitute lines, but careful since some lines may be empty
 
-  tar.fin <- tar.fin.eq <- replicate(length(target), character(0L))
-  cur.fin <- cur.fin.eq <- replicate(length(current), character(0L))
+  tar.fin <- tar.fin.eq <- replicate(length(tar.chr), character(0L))
+  cur.fin <- cur.fin.eq <- replicate(length(cur.chr), character(0L))
 
   tar.w.len <- tar.lens[tar.lens > 0]
   cur.w.len <- cur.lens[cur.lens > 0]
@@ -118,15 +118,31 @@ diff_word <- function(
 
   # Merge back into original
 
-  tar.cpy <- tar.cpy.eq <- target
-  cur.cpy <- cur.cpy.eq <- current
+  tar.cpy <- tar.cpy.eq <- tar.chr
+  cur.cpy <- cur.cpy.eq <- cur.chr
   if(length(tar.colored)) regmatches(tar.cpy, tar.reg) <- tar.fin
   if(length(cur.colored)) regmatches(cur.cpy, cur.reg) <- cur.fin
   if(length(tar.colored)) regmatches(tar.cpy.eq, tar.reg) <- tar.fin.eq
   if(length(cur.colored)) regmatches(cur.cpy.eq, cur.reg) <- cur.fin.eq
 
+  # Compute token counts; this allows us to check how close to a match a line
+  # with word differences is
+
+  tar.toks <- vapply(tar.split, function(x) sum(nzchar(x)), integer(1L))
+  cur.toks <- vapply(cur.split, function(x) sum(nzchar(x)), integer(1L))
+
+  tar.toks.eq <- vapply(tar.fin.eq, function(x) sum(nzchar(x)), integer(1L))
+  cur.toks.eq <- vapply(cur.fin.eq, function(x) sum(nzchar(x)), integer(1L))
+
+  # Record info; a lot of the extra stuff is so we can then align lines in
+  # hunks.  tar/cur.tok.ratio what proportion of the tokens in a line is
+  # matched
+
   list(
-    target=tar.cpy, current=cur.cpy, hit.diffs.max=diffs$hit.diffs.max,
-    tar.eq=tar.cpy.eq, cur.eq=cur.cpy.eq
+    tar.chr=tar.cpy, cur.chr=cur.cpy,
+    tar.eq.chr=tar.cpy.eq, cur.eq.chr=cur.cpy.eq,
+    tar.tok.ratio=ifelse(tar.lens, tar.toks.eq / tar.lens, 0),
+    cur.tok.ratio=ifelse(cur.lens, cur.toks.eq / cur.lens, 0),
+    hit.diffs.max=diffs$hit.diffs.max
   )
 }
