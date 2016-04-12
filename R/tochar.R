@@ -380,82 +380,15 @@ setMethod("as.character", "diffObjDiff",
     tar.max <- max(ranges[2L, ], 0L)
     cur.max <- max(ranges[4L, ], 0L)
 
-    # Detect whether we should attempt to deal with wrapping objects, if so
-    # overwrite cur/tar.body/rest variables with the color diffed wrap word
-    # diffs; note that if the tar/cur.capt.def is not NULL then the objects
-    # being compared must be atomic vectors
-
     cur.body <- tar.body <- character(0L)
     cur.rest <- show.range.cur <- seq_len(cur.max)
     tar.rest <- show.range.tar <- seq_len(tar.max)
 
-    if(
-      identical(x@capt.mode, "print") &&
-      identical(x@tar.capt, x@tar.capt.def) &&
-      identical(x@cur.capt, x@cur.capt.def)
-    ) {
-      # Separate out the stuff that can wrap (starts with index headers vs. not),
-      # and for that stuff only, apply the color word diff
-
-      cur.head.raw <- find_brackets(x@cur.capt)
-      tar.head.raw <- find_brackets(x@tar.capt)
-
-      cur.head <- cur.head.raw[cur.head.raw %in% show.range.cur]
-      tar.head <- tar.head.raw[tar.head.raw %in% show.range.tar]
-
-      if(length(cur.head) && length(tar.head)) {
-        # note we modify `x` here so that subsequent steps can re-use `x` with
-        # modifications
-
-        pat <- sprintf("%s\\K.*", .brack.pat)
-        cur.body <- regexpr(pat, x@cur.capt[cur.head], perl=TRUE)
-        tar.body <- regexpr(pat, x@tar.capt[tar.head], perl=TRUE)
-
-        body.diff <- diff_word(
-          regmatches(x@tar.capt[tar.head], tar.body),
-          regmatches(x@cur.capt[cur.head], cur.body),
-          x@etc, diff.mode="wrap",
-          match.quotes=is.character(x@target) && is.character(x@current)
-        )
-        regmatches(x@tar.capt[tar.head], tar.body) <- body.diff$tar.chr
-        regmatches(x@cur.capt[cur.head], cur.body) <- body.diff$cur.chr
-
-        # We also need to diff the row headers
-
-        cur.r.h <- regexpr(.brack.pat, x@cur.capt[cur.head], perl=TRUE)
-        tar.r.h <- regexpr(.brack.pat, x@tar.capt[tar.head], perl=TRUE)
-
-        cur.r.h.txt <- regmatches(x@cur.capt[cur.head], cur.r.h)
-        tar.r.h.txt <- regmatches(x@tar.capt[tar.head], tar.r.h)
-
-        word.set <- x@etc
-        word.set@line.limit <- -1L
-        word.set@mode <- "context"
-
-        x.r.h <- new(
-          "diffObjDiff", tar.capt=tar.r.h.txt, cur.capt=cur.r.h.txt,
-          diffs=char_diff(
-            tar.r.h.txt, cur.r.h.txt, etc=word.set, diff.mode="wrap",
-            warn=TRUE
-          )
-        )
-        x.r.h.color <- diff_color(x.r.h@diffs)
-        regmatches(x@tar.capt[tar.head], tar.r.h) <- x.r.h.color$A
-        regmatches(x@cur.capt[cur.head], cur.r.h) <- x.r.h.color$B
-
-        # Update the character values in the hunks proper
-
-        hunk.grps <- update_hunks(hunk.grps, x@tar.capt, x@cur.capt)
-
-        # Everything else gets a normal hunk by hunk word diff
-
-        cur.rest <- show.range.cur[!show.range.cur %in% cur.head]
-        tar.rest <- show.range.tar[!show.range.tar %in% tar.head]
-      }
-    }
     # Figure out which hunks are still eligible to be word diffed; note we
     # will word-diff even if other hunk is completely missing (most commonly
-    # in context mode where we line.limit and the B portion is lost)
+    # in context mode where we line.limit and the B portion is lost); this is
+    # legacy from when we used to do the wrap diff and can probably be
+    # simplified since we will do this for every hunk
 
     tar.to.wd <- which(ranges[1L,] %in% tar.rest)
     cur.to.wd <- which(ranges[3L,] %in% cur.rest)
