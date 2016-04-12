@@ -379,13 +379,14 @@ sign_pad <- function(txt, pad, rev=FALSE) {
         color <- pad[[x]] > 1L
         extras <- rep(if(color) pad.ex else "  ", len - 1L)
         res <- c(pads[pad[[x]]], extras)
-        if(use.ansi && color) {
-          crayon_style(res, if(pad[[x]] == 2L) "green" else "red")
-        } else res
+        res
   } } )
   Map(paste0, if(rev) txt else pad.out, if(!rev) txt else pad.out)
 }
 # combine wrap and sign_pad
 
-wrap_and_sign_pad <- function(l, width, pad.type, wrap.pad=FALSE)
-  lapply(l, function(x) sign_pad(wrap(x, width, wrap.pad), pad.type))
+wrap_and_sign_pad <- function(l, width, pad.type, wrap.pad=FALSE, style)
+  lapply(
+    l,
+    function(x) lapply(sign_pad(wrap(x, width, wrap.pad), pad.type), style)
+  )

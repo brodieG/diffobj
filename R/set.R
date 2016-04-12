@@ -62,6 +62,7 @@
 etc <- function(
   line.limit=getOption("diffobj.line.limit"),
   hunk.limit=getOption("diffobj.hunk.limit"),
+  style=diff_style_theme("default"),
   pager=pager_settings(),
   ignore.white.space=getOption("diffobj.ignore.white.space"),
   use.ansi=getOption("diffobj.use.ansi"),
@@ -255,4 +256,71 @@ reset_less_var <- function(LESS.old) {
   if(is.na(LESS.old)) {
     Sys.unsetenv("LESS")
   } else Sys.setenv(LESS=LESS.old)
+}
+#' Specify Styles to Use in Diffs
+#'
+#' Styles should be functions that require a single character argument and
+#' return a character vector the same length as the input.  The intended use
+#' case is to pass \code{crayon} functions such as \code{\link{crayon::red}},
+#' although you may pass any function of your liking that behaves as described.
+#'
+#' Every component that is styled differently is exposed through this function.
+#' the \code{line} style will wrap every line (note that each row in a
+#' side-by-side diff contains two lines).  Each \code{line.*} style will wrap
+#' around all \code{gutter} and \code{word} styles.
+#'
+#' @export
+#' @param line.ins style for every line that exists in \code{current} and not in
+#'   \code{target}
+#' @param line.del style for every line that exists in \code{target} and not in
+#'   \code{current}
+#' @param line outermost style for every line
+#' @param gutter.ins style for every gutter element corresponding to an insertion
+#' @param gutter.del style for every gutter element corresponding to a deletion
+#' @param gutter style for every gutter element
+#' @param word.ins style for every word that exists in \code{current} and not in
+#'   \code{target} when a line is eligble for word diffing
+#' @param word.del style for every word that exists in \code{target} and not in
+#'   \code{current} when a line is eligble for word diffing
+#' @param banner style around entire banner
+#' @param banner.ins style around insertion portion of the banner
+#' @param banner.del style around deletion portion of the banner
+#' @param hunk.header style around each hunk header
+#' @param meta style around meta information lines
+
+diff_style <- function(
+  line.ins=identity, line.del=identity, line.match=identity, line=identity,
+  gutter=identity, gutter.ins=identity, gutter.del=identity,
+  word.ins=identity, word.del=identity,
+  banner=identity, banner.ins=identity, banner.del=identity,
+  hunk.header=identity,
+  meta=identity
+) {
+  args <- as.list(environment())
+  for(i in names(args)) {
+    if(!is.function(args[[i]]))
+      stop("Argument `", i,"` must be a function.")
+  }
+  do.call(new, c("diffObjStyle", args))
+}
+.valid_themes <- c("default", "text")
+#' @export
+
+diff_style_theme <- function(theme="default") {
+  if(!is.chr.1L(theme) || !theme %in% .valid_themes)
+    stop("Argument `theme` is not a valid theme")
+
+  if(theme == "default") {
+    diff_style(
+      line.ins=crayon::green, line.del=crayon::red,
+      word.ins=crayon::inverse, word.del=crayon::inverse,
+      banner.ins=crayon::green, banner.del=crayon::red,
+      hunk.header=crayon::cyan, meta=crayon::silver
+    )
+  } else if(theme == "text") {
+    diff_style(
+      word.ins=function(x) paste0(">", x, ">"),
+      word.del=function(x) paste0("<", x, "<")
+    )
+  }
 }

@@ -96,13 +96,22 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
           A.dat, B.dat, ignore.white.space=etc@ignore.white.space,
           threshold=etc@align.threshold, context=h.a$context
         )
+        del.fun <- function(x) etc@style@line(etc@style@line.del(x))
+        ins.fun <- function(x) etc@style@line(etc@style@line.ins(x))
+
+        # Wrap, add gutters, and style lines
+
         A.fin <- wrap_and_sign_pad(
-          dat.align$A, capt.width, if(h.a$context) 1L else 3L,
-          wrap.pad=mode == "sidebyside"
+          dat.align$A, capt.width,
+          pad.type=if(h.a$context) 1L else 3L,
+          wrap.pad=mode == "sidebyside",
+          style=if(h.a$context) etc@style@line else del.fun
         )
         B.fin <- wrap_and_sign_pad(
-          dat.align$B, capt.width, if(h.a$context) 1L else 2L,
-          wrap.pad=mode == "sidebyside"
+          dat.align$B, capt.width,
+          pad.type=if(h.a$context) 1L else 2L,
+          wrap.pad=mode == "sidebyside",
+          style=if(h.a$context) etc@style@line else ins.fun
         )
         fin_fun(A.fin, B.fin, max.w)
     } )

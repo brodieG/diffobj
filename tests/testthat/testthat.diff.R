@@ -159,7 +159,7 @@ local({
     # line limit issues
     diff_print(Puromycin, Puromycin2, etc=etc(line.limit=6))
     diff_print(Puromycin, Puromycin2, etc=etc(line.limit=6), mode="sidebyside")
-    STJKUdiff_print(Puromycin, Puromycin2, line.limit=6, mode="context")
+    diff_print(Puromycin, Puromycin2, line.limit=6, mode="context")
 
     diff_print(Puromycin, Puromycin2, line.limit=3)
     diff_print(Puromycin, Puromycin2, line.limit=3)
