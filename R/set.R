@@ -303,7 +303,10 @@ diff_style <- function(
   }
   do.call(new, c("diffObjStyle", args))
 }
-.valid_themes <- c("default", "text", "stripes")
+.valid_themes <- c(
+  "default", "text", "stripes", "stripes.light", "checkers.light",
+  "checkers.dark"
+)
 #' @export
 
 diff_style_theme <- function(theme="default") {
@@ -327,8 +330,57 @@ diff_style_theme <- function(theme="default") {
     diff_style(
       line.ins=ins,
       line.del=del,
+      word.ins=word.ins.fg,
+      word.del=word.del.fg,
+      banner.ins=crayon::green,
+      banner.del=crayon::red,
+      hunk.header=crayon::cyan,
+      meta=crayon::silver
+    )
+  } else if(theme == "stripes.light") {
+    ins <- crayon::make_style(rgb(4, 5, 4, maxColorValue=5), bg=TRUE)
+    word.ins.fg <- crayon::make_style(rgb(0, 3, 0, maxColorValue=5))
+    word.ins <- function(x) crayon::bold(word.ins.fg(x))
+    del <- crayon::make_style(rgb(5, 4, 4, maxColorValue=5), bg=TRUE)
+    word.del.fg <- crayon::make_style(rgb(3, 0, 0, maxColorValue=5))
+    word.del <- function(x) crayon::bold(word.del.fg(x))
+    diff_style(
+      line.ins=ins,
+      line.del=del,
       word.ins=word.ins,
       word.del=word.del,
+      banner.ins=crayon::green,
+      banner.del=crayon::red,
+      hunk.header=crayon::cyan,
+      meta=crayon::silver
+    )
+  } else if(theme == "checkers.light") {
+    ins <- crayon::make_style(rgb(4, 5, 4, maxColorValue=5), bg=TRUE)
+    word.ins <- crayon::make_style(rgb(2, 4, 2, maxColorValue=5), bg=TRUE)
+    del <- crayon::make_style(rgb(5, 4, 4, maxColorValue=5), bg=TRUE)
+    word.del <- crayon::make_style(rgb(4, 2, 2, maxColorValue=5), bg=TRUE)
+    diff_style(
+      line.ins=ins,
+      line.del=del,
+      word.ins=word.ins,
+      word.del=word.del,
+      banner.ins=crayon::green,
+      banner.del=crayon::red,
+      hunk.header=crayon::cyan,
+      meta=crayon::silver
+    )
+  } else if(theme == "checkers.dark") {
+    ins <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
+    word.ins <- crayon::make_style(rgb(1, 4, 1, maxColorValue=5), bg=TRUE)
+    word.ins.fg <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5))
+    del <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
+    word.del <- crayon::make_style(rgb(4, 1, 1, maxColorValue=5), bg=TRUE)
+    word.del.fg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5))
+    diff_style(
+      line.ins=ins,
+      line.del=del,
+      word.ins=function(x) word.ins(word.ins.fg(x)),
+      word.del=function(x) word.del(word.del.fg(x)),
       banner.ins=crayon::green,
       banner.del=crayon::red,
       hunk.header=crayon::cyan,
