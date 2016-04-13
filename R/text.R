@@ -87,11 +87,16 @@ align_eq <- function(A, B, threshold, ignore.white.space, context) {
   # qualify to be aligned; this is not super efficient since we're undoing the
   # word coloring instead of not doing it, but pita to do properly
 
+  # Actually, now testing allowing the word coloring now that we have color
+  # schemes for lines and words
+
   use.ansi <- crayon_hascolor()
-  A.fin <- if(!context && use.ansi) red(A$raw.chr) else A$raw.chr
-  B.fin <- if(!context && use.ansi) green(B$raw.chr) else B$raw.chr
-  A.fin[which(!!align)] <- A$chr[which(!!align)]
-  B.fin[align] <- B$chr[align]
+  # A.fin <- A$raw.chr
+  # B.fin <- B$raw.chr
+  # A.fin[which(!!align)] <- A$chr[which(!!align)]
+  # B.fin[align] <- B$chr[align]
+  A.fin <- A$chr
+  B.fin <- B$chr
 
   # Group elements together; only one match per group, mismatches are put
   # in interstitial buckets.  We number the interstitial buckest as the
