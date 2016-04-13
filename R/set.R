@@ -303,7 +303,7 @@ diff_style <- function(
   }
   do.call(new, c("diffObjStyle", args))
 }
-.valid_themes <- c("default", "text")
+.valid_themes <- c("default", "text", "stripes")
 #' @export
 
 diff_style_theme <- function(theme="default") {
@@ -317,10 +317,27 @@ diff_style_theme <- function(theme="default") {
       banner.ins=crayon::green, banner.del=crayon::red,
       hunk.header=crayon::cyan, meta=crayon::silver
     )
+  } else if(theme == "stripes") {
+    ins <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
+    word.ins.fg <- crayon::make_style(rgb(0, 5, 0, maxColorValue=5))
+    word.ins <- function(x) crayon::bold(word.ins.fg(x))
+    del <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
+    word.del.fg <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
+    word.del <- function(x) crayon::bold(word.del.fg(x))
+    diff_style(
+      line.ins=ins,
+      line.del=del,
+      word.ins=word.ins,
+      word.del=word.del,
+      banner.ins=crayon::green,
+      banner.del=crayon::red,
+      hunk.header=crayon::cyan,
+      meta=crayon::silver
+    )
   } else if(theme == "text") {
     diff_style(
-      word.ins=function(x) paste0(">", x, ">"),
-      word.del=function(x) paste0("<", x, "<")
+      word.ins=function(x) paste0(">|", x, "|>"),
+      word.del=function(x) paste0("<|", x, "|<")
     )
   }
 }

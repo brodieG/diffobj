@@ -40,6 +40,34 @@ setClass(
     TRUE
   }
 )
+# maybe this shouldn't be an S4 class since the function slot doesn't work
+# for classed functions (e.g. the ones produced by crayon)
+
+setClass(
+  "diffObjStyle",
+  slots=c(
+    line="ANY",
+    line.ins="ANY",
+    line.del="ANY",
+    line.match="ANY",
+    gutter="ANY", gutter.ins="ANY", gutter.del="ANY",
+    word.ins="ANY", word.del="ANY",
+    banner="ANY", banner.ins="ANY", banner.del="ANY",
+    hunk.header="ANY",
+    meta="ANY"
+  ),
+  prototype=list(
+    line=identity,
+    line.ins=identity,
+    line.del=identity,
+    line.match=identity,
+    gutter=identity, gutter.ins=identity, gutter.del=identity,
+    word.ins=identity, word.del=identity,
+    banner=identity, banner.ins=identity, banner.del=identity,
+    hunk.header=identity,
+    meta=identity
+  )
+)
 setClass(
   "diffObjSettings",
   slots=c(
@@ -244,33 +272,4 @@ setClass(
       return("Slot `diffs` must be integer(1L) and not NA")
     TRUE
   }
-)
-# maybe this shouldn't be an S4 class since the function slot doesn't work
-# for classed functions (e.g. the ones produced by crayon)
-
-setClass(
-  "diffObjStyle",
-  slots=c(
-    line="ANY",
-    line.ins="ANY",
-    line.del="ANY",
-    line.match="ANY",
-    gutter="ANY", gutter.ins="ANY", gutter.del="ANY",
-    word.ins="ANY", word.del="ANY",
-    banner="ANY", banner.ins="ANY", banner.del="ANY",
-    hunk.header="ANY",
-    meta="ANY"
-  ),
-  prototype=list(
-    line=identity,
-    line.ins=identity,
-    line.del=identity,
-    line.match=identity,
-    gutter=identity, gutter.ins=identity, gutter.del=identity,
-    word.ins=identity, word.del=identity,
-    banner=identity, banner.ins=identity, banner.del=identity,
-    hunk.header=identity,
-    meta=identity
-  )
-
 )

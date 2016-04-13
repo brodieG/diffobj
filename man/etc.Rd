@@ -5,12 +5,14 @@
 \title{Generate a \code{diffobj} Settings Object}
 \usage{
 etc(line.limit = getOption("diffobj.line.limit"),
-  hunk.limit = getOption("diffobj.hunk.limit"), pager = pager_settings(),
+  hunk.limit = getOption("diffobj.hunk.limit"),
+  style = diff_style_theme("default"), pager = pager_settings(),
   ignore.white.space = getOption("diffobj.ignore.white.space"),
   use.ansi = getOption("diffobj.use.ansi"), disp.width = getOption("width"),
   max.diffs = getOption("diffobj.max.diffs"),
   max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
   max.diffs.wrap = getOption("diffobj.max.diffs.wrap"),
+  align.threshold = getOption("diffobj.align.threshold"),
   convert.hz.white.space = getOption("diffobj.convert.hz.white.space"),
   tab.stops = getOption("diffobj.tab.stops"), frame = parent.frame(),
   tar.banner = NULL, cur.banner = NULL)
@@ -51,6 +53,11 @@ to zero to turn off in-hunk word diff.}
 computing word diffs on atomic vectors (defaults to 10000L), see
 \dQuote{Atomic Vectors} for \code{\link{diff_print}}.}
 
+\item{align.threshold}{numeric(1L) between 0 and 1, proportion of
+characters in a line of \code{target} that must be matched in a line of
+\code{current} in the same hunk for those lines to be paired up when
+displayed (defaults to 0.25).}
+
 \item{tab.stops}{integer, what tab stops to use when converting hard tabs to
 spaces.  If not integer will be coerced to integer (defaults to 8L).}
 
@@ -78,7 +85,8 @@ a \code{diffObjSettings} S4 object for use with the
 \description{
 Used for more fine grained control on the \code{diff_obj} family of
 functions by generating a settings object to pass as the \code{etc}
-parameter.
+parameter.  Most arguments take default values from options so that you may
+customize the behavior of these functions to your liking.
 }
 \examples{
 mx1 <- mx2 <- matrix(1:80, 20)
