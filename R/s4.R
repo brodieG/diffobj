@@ -51,12 +51,11 @@ setClass(
 #' \code{\link{crayon::red}}, although you may pass any function of your liking
 #' that behaves as described.
 #'
-#' Since diff components the functions you specify here will be applied
-#' sequentially with the function corresponding to the innermost element applied
-#' first.  A schematic of the various component that represent an inserted line
-#' follows:
-#' \preformat{
-#' +- line ----------------------------------------+
+#' The visual representation of the diff has many nested components.  The
+#' functions you specify here will be applied with the function corresponding to
+#' the innermost element applied first.  A schematic of the various component
+#' that represent an inserted line follows:
+#' \preformatted{+- line ----------------------------------------+
 #' |+- line.ins ----------------------------------+|
 #' ||+- gutter ---------+ +- text ---------------+||
 #' |||+- gutter.ins ---+| |+- text.ins ---------+|||
@@ -72,7 +71,7 @@ setClass(
 #' functions.  \code{gutter.ins.txt} represents the text to use in the gutter
 #' and is not a function. \code{DIFF TEXT HERE} is text from the objects being
 #' diffed, with the portion that has different words inside the \code{word.ins}
-#' box, and is obviously not a function either.
+#' box provided word diff is enabled, and is obviously not a function either.
 #'
 #' Most of the functions defined here default to \code{\link{identity}}, but
 #' you are given the flexibility to fully format the diff.

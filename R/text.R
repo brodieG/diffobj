@@ -42,7 +42,7 @@ align_split <- function(v, m) {
 #
 # Will also apply colors to fully mismatching lines
 
-align_eq <- function(A, B, threshold, ignore.white.space, context) {
+align_eq <- function(A, B, threshold, ignore.white.space) {
   stopifnot(
     is.list(A), is.list(B), length(A) == length(B),
     identical(names(B), names(A)), identical(names(A), .valid_sub),
@@ -51,8 +51,7 @@ align_eq <- function(A, B, threshold, ignore.white.space, context) {
     !anyNA(unlist(c(A, B))),
     all(vapply(c(A[1:3], B[1:3]), is.character, logical(1L))),
     is.numeric(nums <- c(A[[4]], B[[4]])),
-    all(nums >= 0 & nums <= 1),
-    is.TF(context)
+    all(nums >= 0 & nums <= 1)
   )
   A.eq <- A$eq.chr
   B.eq <- B$eq.chr
@@ -83,18 +82,9 @@ align_eq <- function(A, B, threshold, ignore.white.space, context) {
     ifelse(align, B$tok.ratio[align], 1L) < threshold
   align[disallow.match] <- 0L
 
-  # A and B are word colored, but we don't want to keep those if if they don't
-  # qualify to be aligned; this is not super efficient since we're undoing the
-  # word coloring instead of not doing it, but pita to do properly
-
   # Actually, now testing allowing the word coloring now that we have color
   # schemes for lines and words
 
-  use.ansi <- crayon_hascolor()
-  # A.fin <- A$raw.chr
-  # B.fin <- B$raw.chr
-  # A.fin[which(!!align)] <- A$chr[which(!!align)]
-  # B.fin[align] <- B$chr[align]
   A.fin <- A$chr
   B.fin <- B$chr
 

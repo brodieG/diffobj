@@ -30,6 +30,65 @@ rng_as_chr <- function(range) {
     paste0(",", if(range[[2L]]) diff(range) + 1L else 0)
   paste0(a, b)
 }
+# Finalization function should return a list with two character vectors for
+# diff contents, and two factor vectors denoting the type of content for
+# each of the character vectors where valid data types are ins, del, mtc, hdr,
+# ctx; chrt is just a helper function to generate factors with those possible
+# values
+
+chrt <- function(...)
+  factor(c(...), levels=c("ins", "del", "mtc", "hdr", "ctx"))
+hunkl <- function(col.1=NULL, col.2=NULL, type.1=NULL, type.2=NULL)
+  list(col.1=col.1, col.2=col.2, type.1=type.1, type.2=type.2)
+
+
+fin_fun_context <- function(A, B) {
+  A.ul <- unlist(A)
+  B.ul <- unlist(B)
+  hunkl(
+    col.1=c(A.ul, NA, B.ul),
+    type.1=chrt(rep("del", length(A.ul)), "ctx", rep("ins", length(B.ul))),
+  )
+}
+
+fin_fun_unified <- function(A, B) {
+  ord <- order(c(seq_along(A), seq_along(B)))
+  hunkl(
+    col.1=unlist(c(A, B))[ord],
+    type.1=
+      chrt(rep("del", length(unlist(A))), rep("ins", length(unlist(B))))[ord],
+  )
+}
+
+fin_fun_sidebyside <- function(A, B) {
+  for(i in seq_along(A)) {
+    A.ch <- A[[i]]
+    B.ch <- B[[i]]
+    A.l <- length(A.ch)
+    B.l <- length(B.ch)
+    max.l <- max(A.l, B.l)
+    length(A.ch) <- length(B.ch) <- max.l
+    blanks <- paste0(rep(" ", max.w), collapse="")
+
+    for(j in seq_along(A.ch)) {
+      l.diff <- length(A.ch[[j]]) - length(B.ch[[j]])
+      if(l.diff < 0L)
+      A.ch[[j]] <- c(A.ch[[j]], rep(blanks, abs(l.diff)))
+      if(l.diff > 0L)
+      B.ch[[j]] <- c(B.ch[[j]], rep(blanks, l.diff))
+    }
+    A[[i]] <- A.ch
+    B[[i]] <- B.ch
+  }
+  A.ul <- unlist(A)
+  B.ul <- unlist(B)
+  hunkl(
+    col.1=A.ul,
+    col.2=B.ul,
+    type.1=chrt(rep("del", length(A.ul))),
+    type.2=chrt(rep("del", length(B.ul)))
+  )
+}
 # Convert a hunk group into text representation
 
 hunk_as_char <- function(h.g, ranges.orig, etc) {
@@ -44,7 +103,7 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
       lapply(h.g, function(h.a) unlist(h.a[c("tar.rng.trim", "cur.rng.trim")]))
   ) )
   diff.list <- if(!all.lines) {
-    list()
+    hunkl()
   } else {
     max.w <- calc_width(disp.width, mode)
     capt.width <- calc_width_pad(disp.width, mode)
@@ -56,20 +115,16 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
     hh.b <- paste0("+", rng_as_chr(cur.rng))
 
     hunk.head <- if(!h.g[[1L]]$header) {
-      crayon_style(
-        if(mode == "sidebyside") {
-          paste0(
-            rpadt(sprintf("@@ %s @@", hh.a), max.w),
-            "  ",
-            rpadt(sprintf("@@ %s @@", hh.b), max.w),
-            collapse=""
-          )
-        } else {
-          sprintf("@@ %s %s @@", hh.a, hh.b)
-        },
-        "cyan"
-    ) }
-    # Generate hunk contents
+      if(mode == "sidebyside") {
+        hunkl(
+          col.1=sprintf("@@ %s @@", hh.a), col.2=sprintf("@@ %s @@", hh.b),
+          type.1=chrt("hdr"), type.2=chrt("hdr")
+        )
+      } else {
+        hunkl(col.1=sprintf("@@ %s %s @@", hh.a, hh.b), type.1=chrt("hdr"))
+    } }
+    # Generate hunk contents in pre-rendered form.  These will be lists with
+    # four vectors.
 
     hunk.res <- lapply(h.g,
       function(h.a) {
@@ -92,29 +147,19 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
         }
         A.dat <- get_hunk_dat(h.a, mode=ghd.mode.1, ghd.type.1)
         B.dat <- get_hunk_dat(h.a, mode=ghd.mode.2, ghd.type.2)
+
+        # Align the lines accounting for partial matching post word-diff,
+        # each diff style has a different finalization function
+
         dat.align <- align_eq(
           A.dat, B.dat, ignore.white.space=etc@ignore.white.space,
           threshold=etc@align.threshold, context=h.a$context
         )
-        del.fun <- function(x) etc@style@line(etc@style@line.del(x))
-        ins.fun <- function(x) etc@style@line(etc@style@line.ins(x))
-
-        # Wrap, add gutters, and style lines
-
-        A.fin <- wrap_and_sign_pad(
-          dat.align$A, capt.width,
-          pad.type=if(h.a$context) 1L else 3L,
-          wrap.pad=mode == "sidebyside",
-          style=if(h.a$context) etc@style@line else del.fun
-        )
-        B.fin <- wrap_and_sign_pad(
-          dat.align$B, capt.width,
-          pad.type=if(h.a$context) 1L else 2L,
-          wrap.pad=mode == "sidebyside",
-          style=if(h.a$context) etc@style@line else ins.fun
-        )
-        fin_fun(A.fin, B.fin, max.w)
+        fin_fun(A.dat$chr[dat.align$A], B.dat$chr[dat.align$B])
     } )
+    # Add header and return; this a list of lists, though all sub-lists should
+    # have same format
+
     c(hunk.head, hunk.res)
   }
   # Context mode is a bit weird because we need to re-order across atomic hunks
@@ -225,34 +270,6 @@ get_hunk_dat <- function(h.a, mode, type="both", sub=.valid_sub) {
     sub
   )
 }
-fin_fun_context <- function(A, B, max.w) list(A, B)
-
-fin_fun_unified <- function(A, B, max.w)
-  c(A, B)[order(c(seq_along(A), seq_along(B)))]
-
-fin_fun_sidebyside <- function(A, B, max.w) {
-  for(i in seq_along(A)) {
-    A.ch <- A[[i]]
-    B.ch <- B[[i]]
-    A.l <- length(A.ch)
-    B.l <- length(B.ch)
-    max.l <- max(A.l, B.l)
-    length(A.ch) <- length(B.ch) <- max.l
-    blanks <- paste0(rep(" ", max.w), collapse="")
-
-    for(j in seq_along(A.ch)) {
-      l.diff <- length(A.ch[[j]]) - length(B.ch[[j]])
-      if(l.diff < 0L)
-      A.ch[[j]] <- c(A.ch[[j]], rep(blanks, abs(l.diff)))
-      if(l.diff > 0L)
-      B.ch[[j]] <- c(B.ch[[j]], rep(blanks, l.diff))
-    }
-    A[[i]] <- A.ch
-    B[[i]] <- B.ch
-  }
-  paste0(unlist(A), "  ", unlist(B))
-}
-
 #' @rdname diffobj_s4method_doc
 
 setMethod("as.character", "diffObjDiff",
@@ -395,11 +412,18 @@ setMethod("as.character", "diffObjDiff",
     hunk.grps <-
       in_hunk_diffs(hunk.grps=hunk.grps, etc=x@etc, tar.to.wd, cur.to.wd)
 
-    # Process the actual hunks into character
+    # Generate the pre-rendered hunk data
 
-    out <- lapply(
+    pre.render.raw <- lapply(
       hunk.grps, hunk_as_char, ranges.orig=ranges.orig, etc=x@etc
     )
+    browser()
+    pre.render <- do.call(Map, list(f=c, pre.render.raw))
+
+    # Apply formatting
+
+    # Apply layout
+
     # Finalize
 
     fin <- c(banner, unlist(out), limit.out, str.fold.out, no.diffs)
