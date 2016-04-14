@@ -305,7 +305,7 @@ diff_style <- function(
 }
 .valid_themes <- c(
   "default", "text", "stripes", "stripes.light", "checkers.light",
-  "checkers.dark"
+  "checkers.dark", "git", "git.2", "git.3"
 )
 #' @export
 
@@ -319,6 +319,69 @@ diff_style_theme <- function(theme="default") {
       word.ins=crayon::inverse, word.del=crayon::inverse,
       banner.ins=crayon::green, banner.del=crayon::red,
       hunk.header=crayon::cyan, meta=crayon::silver
+    )
+  } else if(theme == "git") {
+    ins <- crayon::make_style(rgb(0, 5, 0, maxColorValue=5))
+    word.ins.fg <- identity
+    word.ins.bg <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
+    word.ins <- function(x) word.ins.bg(word.ins.fg(x))
+
+    del <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
+    word.del.fg <- identity
+    word.del.bg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
+    word.del <- function(x) word.del.bg(word.del.fg(x))
+
+    diff_style(
+      line.ins=ins,
+      line.del=del,
+      word.ins=word.ins,
+      word.del=word.del,
+      banner.ins=crayon::green,
+      banner.del=crayon::red,
+      hunk.header=crayon::cyan,
+      meta=crayon::silver
+    )
+  } else if(theme == "git.2") {
+    ins <- crayon::make_style(rgb(0, 5, 0, maxColorValue=5))
+    word.ins.fg <- crayon::reset
+    word.ins.bg <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
+    word.ins <- function(x) word.ins.fg(word.ins.bg(x))
+
+    del <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
+    word.del.fg <- crayon::reset
+    word.del.bg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
+    word.del <- function(x) word.del.fg(word.del.bg(x))
+
+    diff_style(
+      line.ins=ins,
+      line.del=del,
+      word.ins=word.ins,
+      word.del=word.del,
+      banner.ins=crayon::green,
+      banner.del=crayon::red,
+      hunk.header=crayon::cyan,
+      meta=crayon::silver
+    )
+  } else if(theme == "git.3") {
+    ins <- crayon::make_style(rgb(0, 5, 0, maxColorValue=5))
+    word.ins.fg <- crayon::reset
+    word.ins.bg <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
+    word.ins <- crayon::green
+
+    del <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
+    word.del.fg <- crayon::reset
+    word.del.bg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
+    word.del <- crayon::red
+
+    diff_style(
+      line.ins=identity,
+      line.del=identity,
+      word.ins=word.ins,
+      word.del=word.del,
+      banner.ins=crayon::green,
+      banner.del=crayon::red,
+      hunk.header=crayon::cyan,
+      meta=crayon::silver
     )
   } else if(theme == "stripes") {
     ins <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
