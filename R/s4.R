@@ -43,30 +43,123 @@ setClass(
 # maybe this shouldn't be an S4 class since the function slot doesn't work
 # for classed functions (e.g. the ones produced by crayon)
 
-setClass(
+#' Customize Appearance of Diff
+#'
+#' Most of the customization is done by specifying functions that operate on
+#' character vectors and return a modified character vector of the same length.
+#' The intended use case is to pass \code{crayon} functions such as
+#' \code{\link{crayon::red}}, although you may pass any function of your liking
+#' that behaves as described.
+#'
+#' Since diff components the functions you specify here will be applied
+#' sequentially with the function corresponding to the innermost element applied
+#' first.  A schematic of the various component that represent an inserted line
+#' follows:
+#' \preformat{
+#' +- line ----------------------------------------+
+#' |+- line.ins ----------------------------------+|
+#' ||+- gutter ---------+ +- text ---------------+||
+#' |||+- gutter.ins ---+| |+- text.ins ---------+|||
+#' ||||                || ||      +- word.ins -+||||
+#' |||| gutter.ins.txt || || DIFF | TEXT HERE  |||||
+#' ||||                || ||      +------------+||||
+#' |||+----------------+| |+--------------------+|||
+#' ||+------------------+ +----------------------+||
+#' |+---------------------------------------------+|
+#' +-----------------------------------------------+
+#' }
+#' A similar model applies to deleted and matching lines.  The boxes represent
+#' functions.  \code{gutter.ins.txt} represents the text to use in the gutter
+#' and is not a function. \code{DIFF TEXT HERE} is text from the objects being
+#' diffed, with the portion that has different words inside the \code{word.ins}
+#' box, and is obviously not a function either.
+#'
+#' Most of the functions defined here default to \code{\link{identity}}, but
+#' you are given the flexibility to fully format the diff.
+#'
+#' @note in \dQuote{sidebyside} there are two lines per row of text, one showing
+#'   deletions and one showing additions.
+#' @param line function
+#' @param line.ins function
+#' @param line.del function
+#' @param line.match function
+#' @param text function
+#' @param text.ins function
+#' @param text.del function
+#' @param text.match function
+#' @param gutter function
+#' @param gutter.ins function
+#' @param gutter.del function
+#' @param gutter.match function
+#' @param hunk.header function to format each hunk header with
+#' @param banner.ins function to format insertion banner
+#' @param banner.del function to format deletion banner
+#' @param banner function to format entire banner
+#' @param meta function format meta information lines
+#' @param gutter.ins.txt character(1L) text to use as visual cue to indicate
+#'   whether a diff line is an insertion, defaults to \dQuote{> }
+#' @param gutter.ins.txt.ctd character(1L) if a diff line is wrapped, the
+#'   visual cue shifts to this character to indicate wrapping occured
+#' @param gutter.del.txt character(1L) see \code{gutter.ins.txt} above
+#' @param gutter.del.txt.ctd character(1L) see \code{gutter.ins.txt.ctd} above
+#' @param gutter.match.txt character(1L) see \code{gutter.ins.txt} above
+#' @param gutter.match.txt.ctd character(1L) see \code{gutter.ins.txt.ctd} above
+#' @return diffObjStyle S4 object
+#' @export diffObjStyle
+#' @exportClass diffObjStyle
+
+diffObjStyle <- setClass(
   "diffObjStyle",
   slots=c(
-    line="ANY",
-    line.ins="ANY",
-    line.del="ANY",
-    line.match="ANY",
-    gutter="ANY", gutter.ins="ANY", gutter.del="ANY",
+    line="ANY", line.ins="ANY", line.del="ANY", line.match="ANY",
+    text="ANY", text.ins="ANY", text.del="ANY", text.match="ANY",
+    gutter="ANY", gutter.ins="ANY", gutter.del="ANY", gutter.match="ANY",
     word.ins="ANY", word.del="ANY",
     banner="ANY", banner.ins="ANY", banner.del="ANY",
     hunk.header="ANY",
-    meta="ANY"
+    meta="ANY",
+    gutter.ins.txt="character", gutter.ins.txt.ctd="character",
+    gutter.del.txt="character", gutter.del.txt.ctd="character",
+    gutter.match.txt="character", gutter.match.txt.ctd="character"
   ),
   prototype=list(
-    line=identity,
-    line.ins=identity,
-    line.del=identity,
-    line.match=identity,
+    line=identity, line.ins=identity, line.del=identity, line.match=identity,
+    text=identity, text.ins=identity, text.del=identity, text.match=identity,
     gutter=identity, gutter.ins=identity, gutter.del=identity,
     word.ins=identity, word.del=identity,
     banner=identity, banner.ins=identity, banner.del=identity,
     hunk.header=identity,
-    meta=identity
-  )
+    meta=identity,
+    gutter.ins.txt="> ", gutter.ins.txt.ctd=": ",
+    gutter.del.txt="< ", gutter.del.txt.ctd=": ",
+    gutter.match.txt="  ", gutter.match.txt.ctd="  "
+  ),
+  validity=function(object){
+    char.slots.pat <- "^gutter\\..*\\.txt"
+    slots <- slotNames(object)
+    char.slots <- grepl(char.slots.pat, slots)
+    slots.fun <- slots[!char.slots]
+    for(i in slots.fun) {
+      if(!is.function(slot(object, i)))
+        return(paste0("Argument `", i, "` should be a function."))
+      frm <- formals(slot(object, i))
+      non.def <- vapply(
+        names(frm),
+        function(x)
+          is.name(frm[[x]]) && !nzchar(as.character(frm[[x]])) && x != "...",
+        logical(1L)
+      )
+      if(sum(non.def) > 1L)
+        return(
+         paste0(
+          "Argument `", i,
+          "` may not have more than one non-default formal argument"
+        ) )
+    }
+    for(i in char.slots) if(!is.chr.1L(slot(object, i)))
+      return(paste0("Argument `", i, "` must be character(1L) and not NA."))
+    TRUE
+  }
 )
 setClass(
   "diffObjSettings",

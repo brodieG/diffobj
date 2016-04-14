@@ -257,52 +257,6 @@ reset_less_var <- function(LESS.old) {
     Sys.unsetenv("LESS")
   } else Sys.setenv(LESS=LESS.old)
 }
-#' Specify Styles to Use in Diffs
-#'
-#' Styles should be functions that require a single character argument and
-#' return a character vector the same length as the input.  The intended use
-#' case is to pass \code{crayon} functions such as \code{\link{crayon::red}},
-#' although you may pass any function of your liking that behaves as described.
-#'
-#' Every component that is styled differently is exposed through this function.
-#' the \code{line} style will wrap every line (note that each row in a
-#' side-by-side diff contains two lines).  Each \code{line.*} style will wrap
-#' around all \code{gutter} and \code{word} styles.
-#'
-#' @export
-#' @param line.ins style for every line that exists in \code{current} and not in
-#'   \code{target}
-#' @param line.del style for every line that exists in \code{target} and not in
-#'   \code{current}
-#' @param line outermost style for every line
-#' @param gutter.ins style for every gutter element corresponding to an insertion
-#' @param gutter.del style for every gutter element corresponding to a deletion
-#' @param gutter style for every gutter element
-#' @param word.ins style for every word that exists in \code{current} and not in
-#'   \code{target} when a line is eligble for word diffing
-#' @param word.del style for every word that exists in \code{target} and not in
-#'   \code{current} when a line is eligble for word diffing
-#' @param banner style around entire banner
-#' @param banner.ins style around insertion portion of the banner
-#' @param banner.del style around deletion portion of the banner
-#' @param hunk.header style around each hunk header
-#' @param meta style around meta information lines
-
-diff_style <- function(
-  line.ins=identity, line.del=identity, line.match=identity, line=identity,
-  gutter=identity, gutter.ins=identity, gutter.del=identity,
-  word.ins=identity, word.del=identity,
-  banner=identity, banner.ins=identity, banner.del=identity,
-  hunk.header=identity,
-  meta=identity
-) {
-  args <- as.list(environment())
-  for(i in names(args)) {
-    if(!is.function(args[[i]]))
-      stop("Argument `", i,"` must be a function.")
-  }
-  do.call(new, c("diffObjStyle", args))
-}
 .valid_themes <- c(
   "default", "text", "stripes", "stripes.light", "checkers.light",
   "checkers.dark", "git", "git.2", "git.3"
@@ -314,7 +268,7 @@ diff_style_theme <- function(theme="default") {
     stop("Argument `theme` is not a valid theme")
 
   if(theme == "default") {
-    diff_style(
+    diffObjStyle(
       line.ins=crayon::green, line.del=crayon::red,
       word.ins=crayon::inverse, word.del=crayon::inverse,
       banner.ins=crayon::green, banner.del=crayon::red,
@@ -331,7 +285,7 @@ diff_style_theme <- function(theme="default") {
     word.del.bg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
     word.del <- function(x) word.del.bg(word.del.fg(x))
 
-    diff_style(
+    diffObjStyle(
       line.ins=ins,
       line.del=del,
       word.ins=word.ins,
@@ -352,7 +306,7 @@ diff_style_theme <- function(theme="default") {
     word.del.bg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
     word.del <- function(x) word.del.fg(word.del.bg(x))
 
-    diff_style(
+    diffObjStyle(
       line.ins=ins,
       line.del=del,
       word.ins=word.ins,
@@ -373,7 +327,7 @@ diff_style_theme <- function(theme="default") {
     word.del.bg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
     word.del <- crayon::red
 
-    diff_style(
+    diffObjStyle(
       line.ins=identity,
       line.del=identity,
       word.ins=word.ins,
@@ -390,7 +344,7 @@ diff_style_theme <- function(theme="default") {
     del <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
     word.del.fg <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
     word.del <- function(x) crayon::bold(word.del.fg(x))
-    diff_style(
+    diffObjStyle(
       line.ins=ins,
       line.del=del,
       word.ins=word.ins.fg,
@@ -407,7 +361,7 @@ diff_style_theme <- function(theme="default") {
     del <- crayon::make_style(rgb(5, 4, 4, maxColorValue=5), bg=TRUE)
     word.del.fg <- crayon::make_style(rgb(3, 0, 0, maxColorValue=5))
     word.del <- function(x) crayon::bold(word.del.fg(x))
-    diff_style(
+    diffObjStyle(
       line.ins=ins,
       line.del=del,
       word.ins=word.ins,
@@ -422,7 +376,7 @@ diff_style_theme <- function(theme="default") {
     word.ins <- crayon::make_style(rgb(2, 4, 2, maxColorValue=5), bg=TRUE)
     del <- crayon::make_style(rgb(5, 4, 4, maxColorValue=5), bg=TRUE)
     word.del <- crayon::make_style(rgb(4, 2, 2, maxColorValue=5), bg=TRUE)
-    diff_style(
+    diffObjStyle(
       line.ins=ins,
       line.del=del,
       word.ins=word.ins,
@@ -439,7 +393,7 @@ diff_style_theme <- function(theme="default") {
     del <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
     word.del <- crayon::make_style(rgb(4, 1, 1, maxColorValue=5), bg=TRUE)
     word.del.fg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5))
-    diff_style(
+    diffObjStyle(
       line.ins=ins,
       line.del=del,
       word.ins=function(x) word.ins(word.ins.fg(x)),
@@ -450,7 +404,7 @@ diff_style_theme <- function(theme="default") {
       meta=crayon::silver
     )
   } else if(theme == "text") {
-    diff_style(
+    diffObjStyle(
       word.ins=function(x) paste0(">|", x, "|>"),
       word.del=function(x) paste0("<|", x, "|<")
     )
