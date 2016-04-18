@@ -40,6 +40,18 @@ setClass(
     TRUE
   }
 )
+# pre-computed gutter data
+
+setClass(
+  "diffObjGutter",
+  slots= c(
+    insert="character", insert.ctd="character",
+    delete="character", delete.ctd="character",
+    match="character", match.ctd="character",
+    pad="character",
+    width="integer"
+  )
+)
 # maybe this shouldn't be an S4 class since the function slot doesn't work
 # for classed functions (e.g. the ones produced by crayon)
 
@@ -110,31 +122,44 @@ setClass(
 diffObjStyle <- setClass(
   "diffObjStyle",
   slots=c(
-    line="ANY", line.ins="ANY", line.del="ANY", line.match="ANY",
-    text="ANY", text.ins="ANY", text.del="ANY", text.match="ANY",
-    gutter="ANY", gutter.ins="ANY", gutter.del="ANY", gutter.match="ANY",
-    word.ins="ANY", word.del="ANY",
-    banner="ANY", banner.ins="ANY", banner.del="ANY",
-    hunk.header="ANY",
-    meta="ANY",
-    gutter.ins.txt="character", gutter.ins.txt.ctd="character",
-    gutter.del.txt="character", gutter.del.txt.ctd="character",
-    gutter.match.txt="character", gutter.match.txt.ctd="character"
+    line="ANY", line.insert="ANY", line.delete="ANY", line.match="ANY",
+    text="ANY", text.insert="ANY", text.delete="ANY", text.match="ANY",
+    gutter="ANY",
+    gutter.insert="ANY", gutter.insert.ctd="ANY",
+    gutter.delete="ANY", gutter.delete.ctd="ANY",
+    gutter.match="ANY", gutter.match.ctd="ANY",
+    gutter.pad="ANY",
+    word.insert="ANY", word.delete="ANY",
+    banner="ANY", banner.insert="ANY", banner.delete="ANY",
+    context.sep="ANY", header="ANY", meta="ANY",
+    gutter.insert.txt="character", gutter.insert.ctd.txt="character",
+    gutter.delete.txt="character", gutter.delete.ctd.txt="character",
+    gutter.match.txt="character", gutter.match.ctd.txt="character",
+    gutter.pad.txt="character",
+    context.sep.txt="character"
   ),
   prototype=list(
-    line=identity, line.ins=identity, line.del=identity, line.match=identity,
-    text=identity, text.ins=identity, text.del=identity, text.match=identity,
-    gutter=identity, gutter.ins=identity, gutter.del=identity,
-    word.ins=identity, word.del=identity,
-    banner=identity, banner.ins=identity, banner.del=identity,
-    hunk.header=identity,
+    line=identity,
+    line.insert=identity, line.delete=identity, line.match=identity,
+    text=identity,
+    text.insert=identity, text.delete=identity, text.match=identity,
+    gutter=identity, gutter.pad=identity,
+    gutter.insert=identity, gutter.insert.ctd=identity,
+    gutter.delete=identity, gutter.delete.ctd=identity,
+    gutter.match=identity, gutter.match.ctd=identity,
+    word.insert=identity, word.delete=identity,
+    banner=identity, banner.insert=identity, banner.delete=identity,
+    header=identity,
+    context.sep=identity,
     meta=identity,
-    gutter.ins.txt="> ", gutter.ins.txt.ctd=": ",
-    gutter.del.txt="< ", gutter.del.txt.ctd=": ",
-    gutter.match.txt="  ", gutter.match.txt.ctd="  "
+    gutter.insert.txt=">", gutter.insert.ctd.txt=":",
+    gutter.delete.txt="<", gutter.delete.ctd.txt=":",
+    gutter.match.txt=" ", gutter.match.ctd.txt=" ",
+    gutter.pad.txt=" ",
+    context.sep.txt="~~~~~"
   ),
   validity=function(object){
-    char.slots.pat <- "^gutter\\..*\\.txt"
+    char.slots.pat <- "\\.txt$"
     slots <- slotNames(object)
     char.slots <- grepl(char.slots.pat, slots)
     slots.fun <- slots[!char.slots]
@@ -155,7 +180,7 @@ diffObjStyle <- setClass(
           "` may not have more than one non-default formal argument"
         ) )
     }
-    for(i in char.slots) if(!is.chr.1L(slot(object, i)))
+    for(i in slots[char.slots]) if(!is.chr.1L(slot(object, i)))
       return(paste0("Argument `", i, "` must be character(1L) and not NA."))
     TRUE
   }
@@ -169,7 +194,9 @@ setClass(
     style="diffObjStyle",
     pager="diffObjPager",
     hunk.limit="integer",
-    disp.width="integer",
+    disp.width="integer",         # what options(width) returns
+    text.width="integer",         # non-gutter width
+    line.width="integer",         # like disp, but half for sidebyside
     use.ansi="logical",
     max.diffs="integer",
     max.diffs.in.hunk="integer",
@@ -183,7 +210,8 @@ setClass(
     cur.exp="ANY",
     tar.banner="charOrNULL",
     cur.banner="charOrNULL",
-    use.header="logical"
+    use.header="logical",
+    gutter="diffObjGutter"
   ),
   prototype=list(use.header=FALSE)
 )

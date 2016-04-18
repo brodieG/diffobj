@@ -225,7 +225,7 @@ test_that("align threshold", {
   B.eq <- substr(B, 1, 7)
   A.tok.ratio <- c(1, 1, 0)
   B.tok.ratio <- c(0, 1, 0, 1)
-
+I
   A.l <- list(chr=A, eq.chr=A.eq, raw.chr=character(3L), tok.ratio=A.tok.ratio)
   B.l <- list(chr=B, eq.chr=B.eq, raw.chr=character(4L), tok.ratio=B.tok.ratio)
 

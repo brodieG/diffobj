@@ -91,7 +91,7 @@ diff_word <- function(
   # Color
 
   diff.colored <- diff_color(
-    diffs, ins.fun=etc@style@word.ins, del.fun=etc@style@word.del
+    diffs, ins.fun=etc@style@word.insert, del.fun=etc@style@word.delete
   )
   tar.colored <- diff.colored$A
   cur.colored <- diff.colored$B

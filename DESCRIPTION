@@ -28,6 +28,7 @@ Collate:
     'core.R'
     'diff.R'
     'hunks.R'
+    'layout.R'
     'myerssimple.R'
     'rdiff.R'
     'set.R'

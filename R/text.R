@@ -30,7 +30,7 @@ align_split <- function(v, m) {
   m.fin <- ifelse(m.all < 0, -m.all * 2 - 1, m.all * 2)
   if(any(diff(m.fin) < 0L))
     stop("Logic Error: non monotonic alignments; contact maintainer")
-  res <- replicate(res.len, list(character(0L)), simplify=FALSE)
+  res <- replicate(res.len, character(0L), simplify=FALSE)
   res[unique(m.fin)] <- unname(split(v, m.fin))
   res
 }

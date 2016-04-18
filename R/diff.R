@@ -40,6 +40,21 @@ make_diff_fun <- function(capt_fun) {
     old.crayon.opt <- options(crayon.enabled=etc.proc@use.ansi)
     on.exit(options(old.crayon.opt), add=TRUE)
     err <- make_err_fun(sys.call())
+
+    # Compute gutter values so that we know correct widths to use for capture,
+    # etc. Will need to update in HTML mode...
+
+    etc.proc@gutter <- gutter_dat(etc.proc)
+    etc.proc@line.width  <- max(
+      if(mode == "sidebyside") {
+        floor(etc.proc@disp.width / 2)
+      } else etc.proc@disp.width,
+      .min.width + etc.proc@gutter@width
+    )
+    etc.proc@text.width <- etc.proc@line.width - etc.proc@gutter@width
+
+    # Capture
+
     capt_fun(target, current, etc=etc.proc, err=err, ...)
   }
 }

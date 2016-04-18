@@ -6,8 +6,7 @@
 capture <- function(x, capt.width, frame, err) {
   width.old <- getOption("width")
   on.exit(options(width=width.old))
-  width <- max(capt.width, 20L)
-  options(width=width)
+  options(width=capt.width)
 
   res <- try(obj.out <- capture.output(eval(x, frame)))
   if(inherits(res, "try-error"))
@@ -101,7 +100,7 @@ capt_print <- function(target, current, etc, err, ...){
   tar.call.def[[1L]] <- cur.call.def[[1L]] <- base::print.default
 
   both.at <- is.atomic(current) && is.atomic(target)
-  capt.width <- calc_width(etc@disp.width, etc@mode) - 2L
+  capt.width <- etc@text.width
   cur.capt <- capture(cur.call, capt.width, frame, err)
   cur.capt.def <- if(both.at) capture(cur.call.def, capt.width, frame, err)
   tar.capt <- capture(tar.call, capt.width, frame)
@@ -190,7 +189,7 @@ capt_str <- function(target, current, etc, err, ...){
 
   # Run str
 
-  capt.width <- calc_width_pad(etc@disp.width, etc@mode)
+  capt.width <- etc@text.width
   has.diff <- has.diff.prev <- FALSE
 
   tar.capt <- strip_hz_control(
