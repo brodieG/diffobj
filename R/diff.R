@@ -45,12 +45,13 @@ make_diff_fun <- function(capt_fun) {
     # etc. Will need to update in HTML mode...
 
     etc.proc@gutter <- gutter_dat(etc.proc)
-    etc.proc@line.width  <- max(
-      if(mode == "sidebyside") {
-        floor(etc.proc@disp.width / 2)
-      } else etc.proc@disp.width,
-      .min.width + etc.proc@gutter@width
-    )
+    etc.proc@line.width  <- as.integer(
+      max(
+        if(mode == "sidebyside") {
+          floor(etc.proc@disp.width / 2)
+        } else etc.proc@disp.width,
+        .min.width + etc.proc@gutter@width
+    ) )
     etc.proc@text.width <- etc.proc@line.width - etc.proc@gutter@width
 
     # Capture

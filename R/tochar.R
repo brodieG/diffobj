@@ -335,7 +335,7 @@ setMethod("as.character", "diffObjDiff",
 
       # future calculations should assume narrower display
 
-      x@etc@disp.width <- disp.width <- 2 * max.w
+      x@etc@disp.width <- disp.width <- 2L * max.w
       x@etc@line.width <- max.w
       x@etc@text.width <- max.w - gutter.dat@width
     }
