@@ -460,13 +460,15 @@ setMethod("as.character", "diffObjDiff",
 
     if(mode == "sidebyside") {
       line.lens.max <- do.call(pmax, line.lens)
-      pre.render.w <- Map(
-        function(dat, len) {
-          length(dat) <- len
-          dat
-        },
-        pre.render.w, line.lens.max
-    ) }
+      pre.render.w <- lapply(
+        pre.render.w, function(y) {
+          Map(
+            function(dat, len) {
+              length(dat) <- len
+              dat
+            },
+            y, line.lens.max
+    ) } ) }
     # Compute gutter, padding, and continuations
 
     pads <- lapply(
