@@ -47,7 +47,7 @@ hunkl <- function(col.1=NULL, col.2=NULL, type.1=NULL, type.2=NULL)
     if(!is.null(col.2)) list(list(dat=col.2, type=type.2))
   )
 
-fin_fun_context <- function(A, B, context) {
+fin_fun_context <- function(A, B, context, max.w) {
   A.ul <- unlist(A)
   B.ul <- unlist(B)
   hunkl(
@@ -59,7 +59,7 @@ fin_fun_context <- function(A, B, context) {
   )
 }
 
-fin_fun_unified <- function(A, B, context) {
+fin_fun_unified <- function(A, B, context, max.w) {
   ord <- order(c(seq_along(A), seq_along(B)))
   types <- c(
     lapply(A, function(x) rep(if(context) "match" else "delete", length(x))),
@@ -70,7 +70,7 @@ fin_fun_unified <- function(A, B, context) {
     type.1=chrt(unlist(types[ord]))
   )
 }
-fin_fun_sidebyside <- function(A, B, context) {
+fin_fun_sidebyside <- function(A, B, context, max.w) {
   for(i in seq_along(A)) {
     A.ch <- A[[i]]
     B.ch <- B[[i]]
@@ -129,7 +129,7 @@ hunk_atom_as_char <- function(h.a, mode, etc) {
     A.dat, B.dat, ignore.white.space=etc@ignore.white.space,
     threshold=etc@align.threshold
   )
-  fin_fun(dat.align$A, dat.align$B, h.a$context)
+  fin_fun(dat.align$A, dat.align$B, h.a$context, max.w=etc@disp.width)
 }
 
 hunk_as_char <- function(h.g, ranges.orig, etc) {
