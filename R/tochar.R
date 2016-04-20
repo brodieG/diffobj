@@ -78,25 +78,18 @@ fin_fun_sidebyside <- function(A, B, context, max.w) {
     B.l <- length(B.ch)
     max.l <- max(A.l, B.l)
     length(A.ch) <- length(B.ch) <- max.l
-    blanks <- paste0(rep(" ", max.w), collapse="")
 
-    for(j in seq_along(A.ch)) {
-      l.diff <- length(A.ch[[j]]) - length(B.ch[[j]])
-      if(l.diff < 0L)
-      A.ch[[j]] <- c(A.ch[[j]], rep(blanks, abs(l.diff)))
-      if(l.diff > 0L)
-      B.ch[[j]] <- c(B.ch[[j]], rep(blanks, l.diff))
-    }
     A[[i]] <- A.ch
     B[[i]] <- B.ch
   }
   A.ul <- unlist(A)
   B.ul <- unlist(B)
+  blank <- paste0(rep(" ", max.w), collapse="")
   hunkl(
-    col.1=A.ul,
-    col.2=B.ul,
-    type.1=chrt(rep(if(context) "match" else "delete", length(A.ul))),
-    type.2=chrt(rep(if(context) "match" else "insert", length(B.ul)))
+    col.1=ifelse(is.na(A.ul), blank, A.ul),
+    col.2=ifelse(is.na(B.ul), blank, B.ul),
+    type.1=chrt(ifelse(context | is.na(A.ul), "match", "delete")),
+    type.2=chrt(ifelse(context | is.na(B.ul), "match", "insert"))
   )
 }
 # Convert a hunk group into text representation
@@ -129,7 +122,7 @@ hunk_atom_as_char <- function(h.a, mode, etc) {
     A.dat, B.dat, ignore.white.space=etc@ignore.white.space,
     threshold=etc@align.threshold
   )
-  fin_fun(dat.align$A, dat.align$B, h.a$context, max.w=etc@disp.width)
+  fin_fun(dat.align$A, dat.align$B, h.a$context, max.w=etc@text.width)
 }
 
 hunk_as_char <- function(h.g, ranges.orig, etc) {

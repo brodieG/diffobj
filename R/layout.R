@@ -55,7 +55,7 @@ cols_ascii <- function(gutter, pad, col, type, etc) {
   gutt.ul <- unlist(gutter)
   col.txt <- paste0(
     gutt.ul, ifelse(nchar(gutt.ul), unlist(pad), ""), unlist(col)
- )
+  )
   es <- etc@style
 
   col.txt[type.r == "insert"] <-
