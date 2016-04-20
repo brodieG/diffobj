@@ -322,9 +322,10 @@ wrap <- function(txt, width, pad=FALSE) {
   # vector
 
   use.ansi <- crayon_hascolor()
-  has.chars <- nzchar(txt)
+  has.na <- is.na(txt)
+  has.chars <- nzchar(txt) & !has.na
   w.chars <- which(has.chars)
-  wo.chars <- which(!has.chars)
+  wo.chars <- which(!has.chars & !has.na)
 
   txt.sub <- txt[has.chars]
   w.ansi.log <- grepl(ansi_regex, txt.sub, perl=TRUE) & use.ansi
@@ -335,6 +336,7 @@ wrap <- function(txt, width, pad=FALSE) {
   # length char elements
 
   res.l <- vector("list", length(txt))
+  res.l[has.na] <- NA_character_
   res.l[wo.chars] <- ""
   res.l[w.chars][w.ansi] <-
     wrap_int(txt.sub[w.ansi], width, crayon_substr, crayon_nchar)
@@ -343,7 +345,8 @@ wrap <- function(txt, width, pad=FALSE) {
 
   # pad if requested
 
-  if(pad) lapply(res.l, rpad, width=width) else res.l
+  if(pad) res.l[!has.na] <- lapply(res.l[!has.na], rpad, width=width)
+  res.l
 }
 # Add the +/- in front of a text line and color accordingly
 #
