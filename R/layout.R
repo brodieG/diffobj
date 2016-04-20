@@ -14,10 +14,10 @@ gutter_dat <- function(etc) {
   gutt.pad <- es@gutter(es@gutter.pad(es@gutter.pad.txt))
 
   gutt.max.w <- max(
-    nchar(
+    nchar(gutt.pad) + nchar(
       c(
         gutt.insert, gutt.insert.ctd, gutt.delete, gutt.delete.ctd, gutt.match,
-        gutt.match.ctd, gutt.pad
+        gutt.match.ctd
   ) ) )
   new(
     "diffObjGutter",
