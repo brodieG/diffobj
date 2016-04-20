@@ -72,6 +72,16 @@ cols_ascii <- function(gutter, pad, col, type, etc) {
 table_ascii <- function(
   banner.ins, banner.del, gutters, pads, cols, types, etc
 ) {
+  if(etc@mode == "sidebyside") {
+    banner.del <- rpad(banner.del, etc@text.width)
+    banner.ins <- rpad(banner.ins, etc@text.width)
+  }
+  banner.del <- cols_ascii(
+    etc@gutter@delete, etc@gutter@pad, banner.del, type="delete", etc
+  )
+  banner.ins <- cols_ascii(
+    etc@gutter@insert, etc@gutter@pad, banner.ins, type="insert", etc
+  )
   cols.proc <- Map(
     cols_ascii, gutters, pads, cols, types, MoreArgs=list(etc=etc)
   )

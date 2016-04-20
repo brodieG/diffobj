@@ -338,8 +338,8 @@ setMethod("as.character", "diffObjDiff",
       deparse(x@etc@tar.exp)[[1L]]
     cur.banner <- if(!is.null(x@etc@cur.banner)) x@etc@cur.banner else
       deparse(x@etc@cur.exp)[[1L]]
-    banner.A <- chr_trim(paste0("--- ", tar.banner), max.w)
-    banner.B <- chr_trim(paste0("+++ ", cur.banner), max.w)
+    banner.A <- chr_trim(tar.banner, x@etc@text.width)
+    banner.B <- chr_trim(cur.banner, x@etc@text.width)
 
     # Trim banner if exceeds line limit, currently we're implicitly assuming
     # that each banner line does not exceed 1 in length; may change in future
@@ -445,9 +445,18 @@ setMethod("as.character", "diffObjDiff",
     # Generate wrapped version of the text; if in sidebyside, make sure that
     # all elements are same length
 
-    pre.render.w <- lapply(
-      pre.render.s, wrap, width=x@etc@text.width, pad=mode == "sidebyside"
+    pre.render.w <- replicate(
+      2L, vector("list", length(pre.render.s[[1L]])), simplify=FALSE
     )
+    for(i in seq_along(pre.render.s)) {
+      hdr <- pre.render[[i]]$type == "header"
+      pre.render.w[[i]][hdr] <- wrap(
+        pre.render.s[[i]][hdr], x@etc@line.width, pad=mode == "sidebyside"
+      )
+      pre.render.w[[i]][!hdr] <- wrap(
+        pre.render.s[[i]][!hdr], x@etc@text.width, pad=mode == "sidebyside"
+      )
+    }
     line.lens <- lapply(pre.render.w, vapply, length, integer(1L))
     types <- lapply(pre.render, "[[", "type")
 
