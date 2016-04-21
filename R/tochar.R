@@ -51,14 +51,14 @@ fin_fun_context <- function(A, B, context, max.w) {
   A.ul <- unlist(A)
   B.ul <- unlist(B)
   hunkl(
-    col.1=c(A.ul, NA, B.ul),
+    col.1=c(A.ul, if(context) NA, B.ul),
     type.1=chrt(
       rep(if(context) "match" else "delete", length(A.ul)),
-      "context.sep", rep(if(context) "mtch" else "insert", length(B.ul))
+      if(context) "context.sep",
+      rep(if(context) "match" else "insert", length(B.ul))
     ),
   )
 }
-
 fin_fun_unified <- function(A, B, context, max.w) {
   ord <- order(c(seq_along(A), seq_along(B)))
   types <- c(
@@ -403,14 +403,14 @@ setMethod("as.character", "diffObjDiff",
 
     tar.to.wd <- which(ranges[1L,] %in% tar.rest)
     cur.to.wd <- which(ranges[3L,] %in% cur.rest)
-    hunk.grps <-
+    hunk.grps.d <-
       in_hunk_diffs(hunk.grps=hunk.grps, etc=x@etc, tar.to.wd, cur.to.wd)
 
     # Generate the pre-rendered hunk data as text columns; a bit complicated
     # as we need to unnest stuff; use rbind to make it a little easier.
 
     pre.render.raw <- unlist(
-      lapply(hunk.grps, hunk_as_char, ranges.orig=ranges.orig, etc=x@etc),
+      lapply(hunk.grps.d, hunk_as_char, ranges.orig=ranges.orig, etc=x@etc),
       recursive=FALSE
     )
     pre.render.mx <- do.call(rbind, pre.render.raw)
@@ -436,7 +436,7 @@ setMethod("as.character", "diffObjDiff",
           es@text(es@text.match(z$dat[z$type == "match"]))
         res[z$type == "header"] <- es@header(z$dat[z$type == "header"])
         if(mode == "context") {
-          ctx.sep <- es@context(es@context.sep.txt)
+          ctx.sep <- es@context.sep(es@context.sep.txt)
           res[z$type == "context.sep"] <- ctx.sep
         }
         res
