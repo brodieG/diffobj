@@ -421,37 +421,18 @@ setMethod("as.character", "diffObjDiff",
         dat=unlist(mx[, 1L]),
         type=unlist(mx[, 2L], recursive=FALSE)
     ) )
-    # Apply text level styles
-
-    es <- x@etc@style
-    pre.render.s <- lapply(
-      pre.render,
-      function(z) {
-        res <- character(length(z$dat))
-        res[z$type == "insert"] <-
-          es@text(es@text.insert(z$dat[z$type == "insert"]))
-        res[z$type == "delete"] <-
-          es@text(es@text.delete(z$dat[z$type == "delete"]))
-        res[z$type == "match"] <-
-          es@text(es@text.match(z$dat[z$type == "match"]))
-        res[z$type == "header"] <- es@header(z$dat[z$type == "header"])
-        if(mode == "context") {
-          ctx.sep <- es@context.sep(es@context.sep.txt)
-          res[z$type == "context.sep"] <- ctx.sep
-        }
-        res
-      }
-    )
     # Generate wrapped version of the text; if in sidebyside, make sure that
     # all elements are same length
 
     pre.render.w <- replicate(
       2L, vector("list", length(pre.render.s[[1L]])), simplify=FALSE
     )
-    for(i in seq_along(pre.render.s)) {
+    for(i in seq_along(pre.render.w)) {
       hdr <- pre.render[[i]]$type == "header"
-      pre.render.w[[i]][hdr] <- wrap(pre.render.s[[i]][hdr], x@etc@line.width)
-      pre.render.w[[i]][!hdr] <- wrap(pre.render.s[[i]][!hdr], x@etc@text.width)
+      pre.render.w[[i]][hdr] <-
+        wrap(pre.render[[i]]$dat[hdr], x@etc@line.width)
+      pre.render.w[[i]][!hdr] <-
+        wrap(pre.render[[i]]$dat[!hdr], x@etc@text.width)
     }
     line.lens <- lapply(pre.render.w, vapply, length, integer(1L))
     types <- lapply(pre.render, "[[", "type")
@@ -476,12 +457,43 @@ setMethod("as.character", "diffObjDiff",
     gutters <- render_gutters(
       cols=pre.render, lens=line.lens, lens.max=line.lens.max, etc=x@etc
     )
+    # Pad text
 
+    pre.render.w.p <- Map(
+      function(col, type) {
+        diff.line <- type %in% c("insert", "delete", "match")
+        col[diff.line] <- lapply(col[diff.line], rpad, x@etc@text.width)
+        col[!diff.line] <- lapply(col[!diff.line], rpad, x@etc@line.width)
+        col
+      },
+      pre.render.w, types
+    )
+    # Apply text level styles
+
+    es <- x@etc@style
+    pre.render.s <- lapply(
+      pre.render.w.p,
+      function(z) {
+        res <- character(length(z$dat))
+        res[z$type == "insert"] <-
+          es@text(es@text.insert(z$dat[z$type == "insert"]))
+        res[z$type == "delete"] <-
+          es@text(es@text.delete(z$dat[z$type == "delete"]))
+        res[z$type == "match"] <-
+          es@text(es@text.match(z$dat[z$type == "match"]))
+        res[z$type == "header"] <- es@header(z$dat[z$type == "header"])
+        if(mode == "context") {
+          ctx.sep <- es@context.sep(es@context.sep.txt)
+          res[z$type == "context.sep"] <- ctx.sep
+        }
+        res
+      }
+    )
     # Apply layout; output should be character with each element representing
     # a row of output
 
     out <- table_ascii(
-      banner.del=banner.A, banner.ins=banner.B, cols=pre.render.w,
+      banner.del=banner.A, banner.ins=banner.B, cols=pre.render.w.p,
       gutters=gutters, pads=pads, types=types, etc=x@etc
     )
     # Finalize
