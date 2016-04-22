@@ -87,7 +87,7 @@ local({
     )
 
     diff_print(chr.1, chr.2)
-    diff_obj(chr.1, chr.2)
+    diff_obj(chr.1, chr.2, mode="sidebyside")
     diff_print(chr.1, chr.2, mode="sidebyside")
     diff_print(chr.1[2:3], chr.2[2], mode="sidebyside")
 

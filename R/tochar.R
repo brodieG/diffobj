@@ -305,7 +305,7 @@ setMethod("as.character", "diffObjDiff",
 
     gutter.dat <- x@etc@gutter
     banner.len <- banner_len(mode)
-    max.w <- x@etc@disp.width
+    max.w <- x@etc@text.width
 
     line.limit.a <- if(line.limit[[1L]] >= 0L)
       pmax(integer(2L), line.limit - banner.len) else line.limit
@@ -328,7 +328,6 @@ setMethod("as.character", "diffObjDiff",
 
       # future calculations should assume narrower display
 
-      x@etc@disp.width <- disp.width <- 2L * max.w
       x@etc@line.width <- max.w
       x@etc@text.width <- max.w - gutter.dat@width
     }

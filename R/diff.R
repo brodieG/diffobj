@@ -53,9 +53,10 @@ make_diff_fun <- function(capt_fun) {
     etc.proc@line.width <- max(disp.width, .min.width + etc.proc@gutter@width)
     etc.proc@text.width <- etc.proc@line.width - etc.proc@gutter@width
 
-    # Capture
+    # Capture and diff
 
-    capt_fun(target, current, etc=etc.proc, err=err, ...)
+    diff <- capt_fun(target, current, etc=etc.proc, err=err, ...)
+    diff
   }
 }
 #' Diff \code{print}ed Objects
