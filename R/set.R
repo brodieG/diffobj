@@ -272,7 +272,8 @@ diff_style_theme <- function(theme="default") {
       line.insert=crayon::green, line.delete=crayon::red,
       word.insert=crayon::inverse, word.delete=crayon::inverse,
       banner.insert=crayon::green, banner.delete=crayon::red,
-      header=crayon::cyan, meta=crayon::silver
+      header=crayon::cyan, meta=crayon::silver,
+      context.sep=crayon::silver
     )
   } else if(theme == "git") {
     ins <- crayon::make_style(rgb(0, 5, 0, maxColorValue=5))
