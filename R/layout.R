@@ -60,11 +60,6 @@ cols_ascii <- function(gutter, pad, col, type, etc) {
   )
   es <- etc@style
 
-  # padding
-
-  diff.lines <- type.r %in% c("insert", "delete", "match")
-  col.txt <- rpad(col.txt, etc@line.width)
-
   # line formats
 
   col.txt[type.r == "insert"] <-
