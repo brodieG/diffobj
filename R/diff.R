@@ -44,14 +44,13 @@ make_diff_fun <- function(capt_fun) {
     # Compute gutter values so that we know correct widths to use for capture,
     # etc. Will need to update in HTML mode...
 
+    nc_fun <- if(etc.proc@use.ansi) crayon_nchar else nchar
     etc.proc@gutter <- gutter_dat(etc.proc)
-    etc.proc@line.width  <- as.integer(
-      max(
-        if(mode == "sidebyside") {
-          floor(etc.proc@disp.width / 2)
-        } else etc.proc@disp.width,
-        .min.width + etc.proc@gutter@width
-    ) )
+    disp.width <- if(mode == "sidebyside") {
+      as.integer((etc.proc@disp.width - nc_fun(etc.proc@style@pad.col.txt)) / 2)
+    } else etc.proc@disp.width
+
+    etc.proc@line.width <- max(disp.width, .min.width + etc.proc@gutter@width)
     etc.proc@text.width <- etc.proc@line.width - etc.proc@gutter@width
 
     # Capture

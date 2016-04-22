@@ -136,7 +136,8 @@ diffObjStyle <- setClass(
     gutter.delete.txt="character", gutter.delete.ctd.txt="character",
     gutter.match.txt="character", gutter.match.ctd.txt="character",
     gutter.pad.txt="character",
-    context.sep.txt="character"
+    context.sep.txt="character",
+    pad.col.txt="character"
   ),
   prototype=list(
     line=identity,
@@ -156,7 +157,8 @@ diffObjStyle <- setClass(
     gutter.delete.txt="<", gutter.delete.ctd.txt=":",
     gutter.match.txt=" ", gutter.match.ctd.txt=" ",
     gutter.pad.txt=" ",
-    context.sep.txt="~~~~~"
+    context.sep.txt="~~~~~",
+    pad.col.txt=" "
   ),
   validity=function(object){
     char.slots.pat <- "\\.txt$"
