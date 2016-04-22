@@ -281,7 +281,7 @@ diff_style_theme <- function(theme="default") {
   if(theme == "default") {
     diffObjStyle(
       word.insert=crayon::green, word.delete=crayon::red,
-      banner.insert=crayon::green, banner.delete=crayon::red,
+      #banner.insert=crayon::green, banner.delete=crayon::red,
       line.insert=crayon::silver,
       line.delete=crayon::silver,
       gutter.insert=crayon::green,
@@ -410,8 +410,8 @@ diff_style_theme <- function(theme="default") {
     word.delete <- crayon::make_style(rgb(4, 1, 1, maxColorValue=5), bg=TRUE)
     word.delete.fg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5))
     diffObjStyle(
-      line.insert=ins,
-      line.delete=del,
+      text.insert=ins,
+      text.delete=del,
       word.insert=function(x) word.insert(word.insert.fg(x)),
       word.delete=function(x) word.delete(word.delete.fg(x)),
       banner.insert=crayon::green,

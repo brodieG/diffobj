@@ -12,9 +12,10 @@ gutter_dat <- function(etc) {
   gutt.match.ctd <- es@gutter(es@gutter.match.ctd(es@gutter.match.ctd.txt))
 
   gutt.pad <- es@gutter(es@gutter.pad(es@gutter.pad.txt))
+  nc_fun <- if(etc@use.ansi) crayon_nchar else nchar
 
   gutt.max.w <- max(
-    nchar(gutt.pad) + nchar(
+    nc_fun(gutt.pad) + nc_fun(
       c(
         gutt.insert, gutt.insert.ctd, gutt.delete, gutt.delete.ctd, gutt.match,
         gutt.match.ctd
@@ -86,7 +87,7 @@ table_ascii <- function(
     cols_ascii, gutters, pads, cols, types, MoreArgs=list(etc=etc)
   )
   if(etc@mode == "sidebyside") {
-    paste0(
+    paste(
       c(banner.del, unlist(cols.proc[[1L]])),
       c(banner.ins, unlist(cols.proc[[2L]]))
     )
