@@ -298,7 +298,7 @@ setMethod("as.character", "diffObjDiff",
           "spaces. You can re-run diff with `ignore.white.space=FALSE` to show ",
           "them."
       ) }
-      res <- etc@style@meta(msg)
+      res <- x@etc@style@meta(msg)
     }
     # Basic width computation and banner size; start by computing gutter so we
     # can figure out what's left
@@ -373,7 +373,7 @@ setMethod("as.character", "diffObjDiff",
           "maintainer."
         )
       }
-      etc@style@meta(
+      x@etc@style@meta(
         paste0(
           "... omitted ",
           if(ll) sprintf("%d/%d lines", lim.line[[1L]], lim.line[[2L]]),
@@ -419,8 +419,10 @@ setMethod("as.character", "diffObjDiff",
     )
     pre.render <- lapply(
       unname(pre.render.mx.2),
-      function(mx) list(dat=unlist(mx[, 1L]), type=unlist(mx[, 2L]))
-    )
+      function(mx) list(
+        dat=unlist(mx[, 1L]),
+        type=unlist(mx[, 2L], recursive=FALSE)
+    ) )
     # Apply text level styles
 
     es <- x@etc@style
