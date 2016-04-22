@@ -138,6 +138,17 @@ etc <- function(
   )
     stop("Argument `align.threshold` must be between 0 and 1")
 
+  # style
+
+  if(is.chr.1L(style)) {
+    style <- try(diff_style_theme(style), silent=FALSE)
+    if(inherits(style, "try-error"))
+      stop("Argument `style` is not a valid style")
+  } else if (!is(style, "diffObjStyle")) {
+    stop(
+      "Argument `style` must be a style object or the name of a style object."
+    )
+  }
   # instantiate settings object
 
   set.vars <- as.list(this.env)
@@ -269,10 +280,14 @@ diff_style_theme <- function(theme="default") {
 
   if(theme == "default") {
     diffObjStyle(
-      line.insert=crayon::green, line.delete=crayon::red,
-      word.insert=crayon::inverse, word.delete=crayon::inverse,
+      word.insert=crayon::green, word.delete=crayon::red,
       banner.insert=crayon::green, banner.delete=crayon::red,
-      header=crayon::cyan, meta=crayon::silver,
+      line.insert=crayon::silver,
+      line.delete=crayon::silver,
+      gutter.insert=crayon::green,
+      gutter.delete=crayon::red,
+      header=crayon::cyan,
+      meta=crayon::silver,
       context.sep=crayon::silver
     )
   } else if(theme == "git") {
