@@ -338,8 +338,8 @@ setMethod("as.character", "diffObjDiff",
       deparse(x@etc@tar.exp)[[1L]]
     cur.banner <- if(!is.null(x@etc@cur.banner)) x@etc@cur.banner else
       deparse(x@etc@cur.exp)[[1L]]
-    banner.A <- chr_trim(tar.banner, x@etc@text.width)
-    banner.B <- chr_trim(cur.banner, x@etc@text.width)
+    banner.A <- x@etc@style@word.delete(chr_trim(tar.banner, x@etc@text.width))
+    banner.B <- x@etc@style@word.insert(chr_trim(cur.banner, x@etc@text.width))
 
     # Trim banner if exceeds line limit, currently we're implicitly assuming
     # that each banner line does not exceed 1 in length; may change in future

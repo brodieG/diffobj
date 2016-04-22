@@ -282,8 +282,8 @@ diff_style_theme <- function(theme="default") {
     diffObjStyle(
       word.insert=crayon::green, word.delete=crayon::red,
       #banner.insert=crayon::green, banner.delete=crayon::red,
-      line.insert=crayon::silver,
-      line.delete=crayon::silver,
+      # line.insert=crayon::silver,
+      # line.delete=crayon::silver,
       gutter.insert=crayon::green,
       gutter.delete=crayon::red,
       header=crayon::cyan,
