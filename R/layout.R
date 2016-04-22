@@ -29,21 +29,22 @@ gutter_dat <- function(etc) {
 }
 # Based on the type of each row in a column, render the correct gutter
 
-render_gutters <- function(cols, lens, etc) {
+render_gutters <- function(cols, lens, lens.max, etc) {
   gutter.dat <- etc@gutter
   Map(
-    function(dat, lens) {
+    function(dat, lens, lens.max) {
       Map(
-        function(type, len) {
+        function(type, len, len.max) {
           if(type %in% c("insert", "delete", "match")) c(
             if(len) slot(gutter.dat, as.character(type)),
-            rep(slot(gutter.dat, paste0(type, ".", "ctd")), max(len - 1L, 0L))
+            rep(slot(gutter.dat, paste0(type, ".", "ctd")), max(len - 1L, 0L)),
+            rep(slot(gutter.dat, "match"), max(len.max - len, 0L))
           ) else character(len)
         },
-        dat$type, lens
+        dat$type, lens, lens.max
       )
     },
-    cols, lens
+    cols, lens, lens.max
   )
 }
 row_ascii <- function(gutter, pad, text)
@@ -58,6 +59,13 @@ cols_ascii <- function(gutter, pad, col, type, etc) {
     gutt.ul, ifelse(nchar(gutt.ul), unlist(pad), ""), unlist(col)
   )
   es <- etc@style
+
+  # padding
+
+  diff.lines <- type.r %in% c("insert", "delete", "match")
+  col.txt <- rpad(col.txt, etc@line.width)
+
+  # line formats
 
   col.txt[type.r == "insert"] <-
     es@line(es@line.insert(col.txt[type.r == "insert"]))

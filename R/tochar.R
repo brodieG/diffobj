@@ -84,10 +84,9 @@ fin_fun_sidebyside <- function(A, B, context, max.w) {
   }
   A.ul <- unlist(A)
   B.ul <- unlist(B)
-  blank <- paste0(rep(" ", max.w), collapse="")
   hunkl(
-    col.1=ifelse(is.na(A.ul), blank, A.ul),
-    col.2=ifelse(is.na(B.ul), blank, B.ul),
+    col.1=ifelse(is.na(A.ul), "", A.ul),
+    col.2=ifelse(is.na(B.ul), "", B.ul),
     type.1=chrt(ifelse(context | is.na(A.ul), "match", "delete")),
     type.2=chrt(ifelse(context | is.na(B.ul), "match", "insert"))
   )
@@ -451,33 +450,32 @@ setMethod("as.character", "diffObjDiff",
     )
     for(i in seq_along(pre.render.s)) {
       hdr <- pre.render[[i]]$type == "header"
-      pre.render.w[[i]][hdr] <- wrap(
-        pre.render.s[[i]][hdr], x@etc@line.width, pad=mode == "sidebyside"
-      )
-      pre.render.w[[i]][!hdr] <- wrap(
-        pre.render.s[[i]][!hdr], x@etc@text.width, pad=mode == "sidebyside"
-      )
+      pre.render.w[[i]][hdr] <- wrap(pre.render.s[[i]][hdr], x@etc@line.width)
+      pre.render.w[[i]][!hdr] <- wrap(pre.render.s[[i]][!hdr], x@etc@text.width)
     }
     line.lens <- lapply(pre.render.w, vapply, length, integer(1L))
     types <- lapply(pre.render, "[[", "type")
 
     if(mode == "sidebyside") {
-      line.lens.max <- do.call(pmax, line.lens)
+      line.lens.max <- replicate(2L, do.call(pmax, line.lens), simplify=FALSE)
       pre.render.w <- lapply(
         pre.render.w, function(y) {
           Map(
             function(dat, len) {
               length(dat) <- len
+              dat[is.na(dat)] <- ""
               dat
             },
-            y, line.lens.max
+            y, line.lens.max[[1L]]
     ) } ) }
     # Compute gutter, padding, and continuations
 
     pads <- lapply(
       line.lens, function(y) lapply(y, rep, x=gutter.dat@pad)
     )
-    gutters <- render_gutters(cols=pre.render, lens=line.lens, etc=x@etc)
+    gutters <- render_gutters(
+      cols=pre.render, lens=line.lens, lens.max=line.lens.max, etc=x@etc
+    )
 
     # Apply layout; output should be character with each element representing
     # a row of output
