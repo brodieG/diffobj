@@ -425,9 +425,10 @@ setMethod("as.character", "diffObjDiff",
     # all elements are same length
 
     pre.render.w <- replicate(
-      2L, vector("list", length(pre.render[[1L]]$dat)), simplify=FALSE
+      length(pre.render),
+      vector("list", length(pre.render[[1L]]$dat)), simplify=FALSE
     )
-    for(i in seq_along(pre.render.w)) {
+    for(i in seq_along(pre.render)) {
       hdr <- pre.render[[i]]$type == "header"
       pre.render.w[[i]][hdr] <-
         wrap(pre.render[[i]]$dat[hdr], x@etc@line.width)
@@ -448,7 +449,8 @@ setMethod("as.character", "diffObjDiff",
               dat
             },
             y, line.lens.max[[1L]]
-    ) } ) }
+      ) } )
+    } else line.lens.max <- line.lens
     # Compute gutter, padding, and continuations
 
     pads <- lapply(

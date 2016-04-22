@@ -392,15 +392,17 @@ diff_style_theme <- function(theme="default") {
   } else if(theme == "checkers.light") {
     ins <- crayon::make_style(rgb(4, 5, 4, maxColorValue=5), bg=TRUE)
     word.insert <- crayon::make_style(rgb(2, 4, 2, maxColorValue=5), bg=TRUE)
+    ins.fg <- crayon::make_style(rgb(0, 3, 0, maxColorValue=5))
     del <- crayon::make_style(rgb(5, 4, 4, maxColorValue=5), bg=TRUE)
+    del.fg <- crayon::make_style(rgb(3, 0, 0, maxColorValue=5))
     word.delete <- crayon::make_style(rgb(4, 2, 2, maxColorValue=5), bg=TRUE)
     diffObjStyle(
-      line.insert=ins,
-      line.delete=del,
+      text.insert=ins,
+      text.delete=del,
       word.insert=word.insert,
       word.delete=word.delete,
-      banner.insert=crayon::green,
-      banner.delete=crayon::red,
+      gutter.insert=ins.fg,
+      gutter.delete=del.fg,
       header=crayon::cyan,
       meta=crayon::silver
     )
@@ -416,6 +418,8 @@ diff_style_theme <- function(theme="default") {
       text.delete=del,
       word.insert=function(x) word.insert(word.insert.fg(x)),
       word.delete=function(x) word.delete(word.delete.fg(x)),
+      gutter.insert=word.insert.fg,
+      gutter.delete=word.delete.fg,
       banner.insert=crayon::green,
       banner.delete=crayon::red,
       header=crayon::cyan,
