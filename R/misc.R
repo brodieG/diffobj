@@ -1,4 +1,3 @@
-# Generate a function that behaves like `stop` but with a specific reported
 # error call
 
 make_err_fun <- function(call)

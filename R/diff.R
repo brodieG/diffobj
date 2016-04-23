@@ -46,7 +46,7 @@ make_diff_fun <- function(capt_fun) {
 
     nc_fun <- if(etc.proc@use.ansi) crayon_nchar else nchar
     etc.proc@gutter <- gutter_dat(etc.proc)
-    disp.width <- if(mode == "sidebyside") {
+    disp.width <- if(etc.proc@mode == "sidebyside") {
       as.integer((etc.proc@disp.width - nc_fun(etc.proc@style@pad.col.txt)) / 2)
     } else etc.proc@disp.width
 

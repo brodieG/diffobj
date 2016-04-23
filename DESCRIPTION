@@ -27,6 +27,7 @@ Collate:
     's4.R'
     'core.R'
     'diff.R'
+    'html.R'
     'hunks.R'
     'layout.R'
     'myerssimple.R'

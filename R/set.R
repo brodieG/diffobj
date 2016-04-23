@@ -62,7 +62,7 @@
 etc <- function(
   line.limit=getOption("diffobj.line.limit"),
   hunk.limit=getOption("diffobj.hunk.limit"),
-  style=diff_style_theme("default"),
+  style=getOption("diffobj.style"),
   pager=pager_settings(),
   ignore.white.space=getOption("diffobj.ignore.white.space"),
   use.ansi=getOption("diffobj.use.ansi"),
@@ -270,7 +270,7 @@ reset_less_var <- function(LESS.old) {
 }
 .valid_themes <- c(
   "default", "text", "stripes", "stripes.light", "checkers.light",
-  "checkers.dark", "git", "git.2", "git.3"
+  "checkers.dark", "git", "git.2", "git.3", "html"
 )
 #' @export
 
@@ -291,6 +291,25 @@ diff_style_theme <- function(theme="default") {
       header=crayon::cyan,
       meta=crayon::silver,
       context.sep=crayon::silver
+    )
+  } else if(theme == "html") {
+    ins <- crayon::make_style(rgb(0, 5, 0, maxColorValue=5))
+    word.insert.fg <- identity
+    word.insert.bg <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
+    word.insert <- function(x) word.insert.bg(word.insert.fg(x))
+
+    del <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
+    word.delete.fg <- identity
+    word.delete.bg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
+    word.delete <- function(x) word.delete.bg(word.delete.fg(x))
+
+    diffObjStyle(
+      line.insert=div_f(c("line", "insert")),
+      line.delete=div_f(c("line", "delete")),
+      line.match=div_f(c("line")),
+      word.insert=span_f(c("word", "insert")),
+      word.delete=span_f(c("word", "delete")),
+      header=div_f(c("line", "header"))
     )
   } else if(theme == "git") {
     ins <- crayon::make_style(rgb(0, 5, 0, maxColorValue=5))

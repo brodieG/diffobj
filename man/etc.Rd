@@ -6,7 +6,7 @@
 \usage{
 etc(line.limit = getOption("diffobj.line.limit"),
   hunk.limit = getOption("diffobj.hunk.limit"),
-  style = diff_style_theme("default"), pager = pager_settings(),
+  style = getOption("diffobj.style"), pager = pager_settings(),
   ignore.white.space = getOption("diffobj.ignore.white.space"),
   use.ansi = getOption("diffobj.use.ansi"), disp.width = getOption("width"),
   max.diffs = getOption("diffobj.max.diffs"),

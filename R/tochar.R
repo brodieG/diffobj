@@ -314,22 +314,21 @@ setMethod("as.character", "diffObjDiff",
     hunk.grps <- trim_hunks(x@diffs$hunks, x@etc)
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
 
-    if(mode == "sidebyside") {
-      # If side by side we want stuff close together if reasonable
+    # Compact to width of widest element
 
-      chr.dat <- unlist(lapply(hunks.flat, "[", c("A.chr", "B.chr")))
-      chr.size <- integer(length(chr.dat))
-      is.ansi <- x@etc@use.ansi & grepl(ansi_regex, chr.dat, perl=TRUE)
-      if(any(is.ansi)) chr.size[is.ansi] <- crayon_nchar(chr.dat)
-      chr.size[!is.ansi] <- nchar(chr.dat)
-      max.col.w <- max(0L, chr.size, .min.width) + gutter.dat@width
-      max.w <- if(max.col.w < max.w) max.col.w else max.w
+    chr.dat <- unlist(lapply(hunks.flat, "[", c("A.chr", "B.chr")))
+    chr.size <- integer(length(chr.dat))
+    is.ansi <- x@etc@use.ansi & grepl(ansi_regex, chr.dat, perl=TRUE)
+    if(any(is.ansi)) chr.size[is.ansi] <- crayon_nchar(chr.dat)
+    chr.size[!is.ansi] <- nchar(chr.dat)
+    max.col.w <- max(0L, chr.size, .min.width) + gutter.dat@width
+    max.w <- if(max.col.w < max.w) max.col.w else max.w
 
-      # future calculations should assume narrower display
+    # future calculations should assume narrower display
 
-      x@etc@line.width <- max.w
-      x@etc@text.width <- max.w - gutter.dat@width
-    }
+    x@etc@line.width <- max.w
+    x@etc@text.width <- max.w - gutter.dat@width
+
     # Make the object banner and compute more detailed widths post trim
 
     tar.banner <- if(!is.null(x@etc@tar.banner)) x@etc@tar.banner else
