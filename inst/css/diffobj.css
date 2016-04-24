@@ -4,10 +4,11 @@ DIV.diffobj_container DIV.row
 {
   width: 100%;
   overflow: hidden;
+  font-family: monospace;
 }
 DIV.diffobj_container DIV.line
 {
-  width: 50%;
+  width: 48%;
   float: left;
 }
 DIV.diffobj_container DIV.text
@@ -16,24 +17,44 @@ DIV.diffobj_container DIV.text
 }
 DIV.diffobj_container DIV.gutter
 {
-  width: 1em;
   float: left;
+  padding: 0 0.2em;
 }
 /* github style color scheme - default */
 
-DIV.diffobj_container SPAN.word.insert
+DIV.diffobj_container DIV.gutter,
+DIV.diffobj_container DIV.header
+{
+  color: #999;
+}
+DIV.diffobj_container SPAN.word.insert,
+DIV.diffobj_container DIV.line>DIV.insert
 {
   background-color: #a6f3a6;
 }
-DIV.diffobj_container SPAN.word.delete
+DIV.diffobj_container SPAN.word.delete,
+DIV.diffobj_container DIV.line>DIV.delete
 {
   background-color: #f8cbcb;
 }
-DIV.diffobj_container DIV.text.insert
+DIV.diffobj_container DIV.text>DIV
+{
+  padding-left: 0.5em;
+}
+DIV.diffobj_container DIV.text>DIV.insert
 {
   background-color: #eaffea;
+  border-left: 1px solid #33bb33;
 }
-DIV.diffobj_container DIV.text.delete
+DIV.diffobj_container DIV.text>DIV.delete
 {
   background-color: #ffecec;
+  border-left: 1px solid #bb3333;
+}
+DIV.diffobj_container DIV.header
+{
+  background-color: #f2f8fa;
+}
+DIV.diffobj_container DIV.line
+{
 }

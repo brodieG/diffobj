@@ -320,18 +320,19 @@ setMethod("as.character", "diffObjDiff",
 
     chr.dat <- unlist(lapply(hunks.flat, "[", c("A.chr", "B.chr")))
     chr.size <- integer(length(chr.dat))
-    is.ansi <- x@etc@use.ansi & grepl(ansi_regex, chr.dat, perl=TRUE)
-    if(any(is.ansi)) chr.size[is.ansi] <- crayon_nchar(chr.dat)
-    chr.size[!is.ansi] <- nchar(chr.dat)
-    max.col.w <- max(0L, chr.size, .min.width) + gutter.dat@width
-    max.w <- if(max.col.w < max.w) max.col.w else max.w
+    if(s@wrap) {
+      is.ansi <- x@etc@use.ansi & grepl(ansi_regex, chr.dat, perl=TRUE)
+      if(any(is.ansi)) chr.size[is.ansi] <- crayon_nchar(chr.dat)
+      chr.size[!is.ansi] <- nchar(chr.dat)
+      max.col.w <- max(0L, chr.size, .min.width) + gutter.dat@width
+      max.w <- if(max.col.w < max.w) max.col.w else max.w
 
-    # future calculations should assume narrower display
+      # future calculations should assume narrower display
 
-    x@etc@style@line.width <- max.w
-    x@etc@style@text.width <- max.w - gutter.dat@width
-    s <- x@etc@style
-
+      x@etc@style@line.width <- max.w
+      x@etc@style@text.width <- max.w - gutter.dat@width
+      s <- x@etc@style
+    }
     # Make the object banner and compute more detailed widths post trim
 
     tar.banner <- if(!is.null(x@etc@tar.banner)) x@etc@tar.banner else
@@ -503,7 +504,8 @@ setMethod("as.character", "diffObjDiff",
       insert=function(x) es@funs@text(es@funs@text.insert(x)),
       delete=function(x) es@funs@text(es@funs@text.delete(x)),
       match=function(x) es@funs@text(es@funs@text.match(x)),
-      header=es@funs@header, context.sep=es@funs@context.sep
+      header=es@funs@header,
+      context.sep=es@funs@context.sep
     )
     pre.render.s <- Map(
       function(dat, type) {

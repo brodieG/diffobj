@@ -46,16 +46,21 @@ make_diff_fun <- function(capt_fun) {
 
     nc_fun <- if(etc.proc@use.ansi) crayon_nchar else nchar
     etc.proc@gutter <- gutter_dat(etc.proc)
-    disp.width <- if(etc.proc@mode == "sidebyside") {
-      as.integer(
-        (etc.proc@style@disp.width - nc_fun(etc.proc@style@text@pad.col)) / 2
-      )
-    } else etc.proc@style@disp.width
+    if(is(etc.proc@style, "diffObjStyleHtml")) {
+      etc.proc@style@line.width <- 0L
+      etc.proc@style@text.width <- 0L
+    } else {
+      disp.width <- if(etc.proc@mode == "sidebyside") {
+        as.integer(
+          (etc.proc@style@disp.width - nc_fun(etc.proc@style@text@pad.col)) / 2
+        )
+      } else etc.proc@style@disp.width
 
-    etc.proc@style@line.width <-
-      max(disp.width, .min.width + etc.proc@gutter@width)
-    etc.proc@style@text.width <-
-      etc.proc@style@line.width - etc.proc@gutter@width
+      etc.proc@style@line.width <-
+        max(disp.width, .min.width + etc.proc@gutter@width)
+      etc.proc@style@text.width <-
+        etc.proc@style@line.width - etc.proc@gutter@width
+    }
 
     # Capture and diff
 
