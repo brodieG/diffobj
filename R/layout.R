@@ -2,16 +2,17 @@
 
 gutter_dat <- function(etc) {
   stopifnot(is(etc, "diffObjSettings"))
-  es <- etc@style
+  funs <- etc@style@funs
+  text <- etc@style@text
 
-  gutt.insert <- es@gutter(es@gutter.insert(es@gutter.insert.txt))
-  gutt.insert.ctd <- es@gutter(es@gutter.insert.ctd(es@gutter.insert.ctd.txt))
-  gutt.delete <- es@gutter(es@gutter.delete(es@gutter.delete.txt))
-  gutt.delete.ctd <- es@gutter(es@gutter.delete.ctd(es@gutter.delete.ctd.txt))
-  gutt.match <- es@gutter(es@gutter.match(es@gutter.match.txt))
-  gutt.match.ctd <- es@gutter(es@gutter.match.ctd(es@gutter.match.ctd.txt))
+  gutt.insert <- funs@gutter(funs@gutter.insert(text@gutter.insert))
+  gutt.insert.ctd <- funs@gutter(funs@gutter.insert.ctd(text@gutter.insert.ctd))
+  gutt.delete <- funs@gutter(funs@gutter.delete(text@gutter.delete))
+  gutt.delete.ctd <- funs@gutter(funs@gutter.delete.ctd(text@gutter.delete.ctd))
+  gutt.match <- funs@gutter(funs@gutter.match(text@gutter.match))
+  gutt.match.ctd <- funs@gutter(funs@gutter.match.ctd(text@gutter.match.ctd))
 
-  gutt.pad <- es@gutter(es@gutter.pad(es@gutter.pad.txt))
+  gutt.pad <- funs@gutter(funs@gutter.pad(text@gutter.pad))
   nc_fun <- if(etc@use.ansi) crayon_nchar else nchar
 
   gutt.max.w <- max(
@@ -58,7 +59,7 @@ cols_ascii <- function(gutter, pad, col, type, etc) {
   col.txt <- paste0(
     gutt.ul, ifelse(nchar(gutt.ul), unlist(pad), ""), unlist(col)
   )
-  es <- etc@style
+  es <- etc@style@funs
 
   # line formats
 

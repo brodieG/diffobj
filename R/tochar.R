@@ -121,12 +121,12 @@ hunk_atom_as_char <- function(h.a, mode, etc) {
     A.dat, B.dat, ignore.white.space=etc@ignore.white.space,
     threshold=etc@align.threshold
   )
-  fin_fun(dat.align$A, dat.align$B, h.a$context, max.w=etc@text.width)
+  fin_fun(dat.align$A, dat.align$B, h.a$context, max.w=etc@style@text.width)
 }
 
 hunk_as_char <- function(h.g, ranges.orig, etc) {
   mode <- etc@mode
-  disp.width <- etc@disp.width
+  disp.width <- etc@style@disp.width
   ignore.white.space <- etc@ignore.white.space
 
   # First check that the hunk group hasn't been completely trimmed
@@ -280,13 +280,15 @@ setMethod("as.character", "diffObjDiff",
     hunk.limit <- x@etc@hunk.limit
     line.limit <- x@etc@line.limit
     hunk.limit <- x@etc@hunk.limit
-    disp.width <- x@etc@disp.width
+    disp.width <- x@etc@style@disp.width
     max.diffs <- x@etc@max.diffs
     max.diffs.in.hunk <- x@etc@max.diffs.in.hunk
     max.diffs.wrap <- x@etc@max.diffs.wrap
     mode <- x@etc@mode
     tab.stops <- x@etc@tab.stops
     ignore.white.space <- x@etc@ignore.white.space
+    
+    s <- x@etc@style  # shorthand
 
     len.max <- max(length(x@tar.capt), length(x@cur.capt))
     no.diffs <- if(!any(x)) {
@@ -297,14 +299,14 @@ setMethod("as.character", "diffObjDiff",
           "spaces. You can re-run diff with `ignore.white.space=FALSE` to show ",
           "them."
       ) }
-      res <- x@etc@style@meta(msg)
+      res <- s@meta(msg)
     }
     # Basic width computation and banner size; start by computing gutter so we
     # can figure out what's left
 
     gutter.dat <- x@etc@gutter
     banner.len <- banner_len(mode)
-    max.w <- x@etc@text.width
+    max.w <- s@text.width
 
     line.limit.a <- if(line.limit[[1L]] >= 0L)
       pmax(integer(2L), line.limit - banner.len) else line.limit
@@ -326,8 +328,9 @@ setMethod("as.character", "diffObjDiff",
 
     # future calculations should assume narrower display
 
-    x@etc@line.width <- max.w
-    x@etc@text.width <- max.w - gutter.dat@width
+    x@etc@style@line.width <- max.w
+    x@etc@style@text.width <- max.w - gutter.dat@width
+    s <- x@etc@style
 
     # Make the object banner and compute more detailed widths post trim
 
@@ -335,8 +338,10 @@ setMethod("as.character", "diffObjDiff",
       deparse(x@etc@tar.exp)[[1L]]
     cur.banner <- if(!is.null(x@etc@cur.banner)) x@etc@cur.banner else
       deparse(x@etc@cur.exp)[[1L]]
-    banner.A <- x@etc@style@word.delete(chr_trim(tar.banner, x@etc@text.width))
-    banner.B <- x@etc@style@word.insert(chr_trim(cur.banner, x@etc@text.width))
+    ban.A.trim <- if(s@wrap) chr_trim(tar.banner, s@text.width) else tar.banner
+    ban.B.trim <- if(s@wrap) chr_trim(cur.banner, s@text.width) else cur.banner
+    banner.A <- s@funs@word.delete(ban.A.trim)
+    banner.B <- s@funs@word.insert(ban.B.trim)
 
     # Trim banner if exceeds line limit, currently we're implicitly assuming
     # that each banner line does not exceed 1 in length; may change in future
@@ -370,7 +375,7 @@ setMethod("as.character", "diffObjDiff",
           "maintainer."
         )
       }
-      x@etc@style@meta(
+      s@meta(
         paste0(
           "... omitted ",
           if(ll) sprintf("%d/%d lines", lim.line[[1L]], lim.line[[2L]]),
@@ -423,17 +428,21 @@ setMethod("as.character", "diffObjDiff",
     # Generate wrapped version of the text; if in sidebyside, make sure that
     # all elements are same length
 
-    pre.render.w <- replicate(
-      length(pre.render),
-      vector("list", length(pre.render[[1L]]$dat)), simplify=FALSE
-    )
-    for(i in seq_along(pre.render)) {
-      hdr <- pre.render[[i]]$type == "header"
-      pre.render.w[[i]][hdr] <-
-        wrap(pre.render[[i]]$dat[hdr], x@etc@line.width)
-      pre.render.w[[i]][!hdr] <-
-        wrap(pre.render[[i]]$dat[!hdr], x@etc@text.width)
-    }
+    pre.render.w <- if(s@wrap) {
+      pre.render.w <- replicate(
+        length(pre.render),
+        vector("list", length(pre.render[[1L]]$dat)), simplify=FALSE
+      )
+      for(i in seq_along(pre.render)) {
+        hdr <- pre.render[[i]]$type == "header"
+        pre.render.w[[i]][hdr] <-
+          wrap(pre.render[[i]]$dat[hdr], s@line.width)
+        pre.render.w[[i]][!hdr] <-
+          wrap(pre.render[[i]]$dat[!hdr], s@text.width)
+      }
+      pre.render.w
+    } else lapply(pre.render, as.list)
+
     line.lens <- lapply(pre.render.w, vapply, length, integer(1L))
     types <- lapply(pre.render, "[[", "type")
 
@@ -450,6 +459,7 @@ setMethod("as.character", "diffObjDiff",
             y, line.lens.max[[1L]]
       ) } )
     } else line.lens.max <- line.lens
+
     # Compute gutter, padding, and continuations
 
     pads <- lapply(
@@ -460,28 +470,31 @@ setMethod("as.character", "diffObjDiff",
     )
     # Pad text
 
-    pre.render.w.p <- Map(
-      function(col, type) {
-        diff.line <- type %in% c("insert", "delete", "match")
-        col[diff.line] <- lapply(col[diff.line], rpad, x@etc@text.width)
-        col[!diff.line] <- lapply(col[!diff.line], rpad, x@etc@line.width)
-        col
-      },
-      pre.render.w, types
-    )
+    pre.render.w.p <- if(s@pad) {
+      Map(
+        function(col, type) {
+          diff.line <- type %in% c("insert", "delete", "match")
+          col[diff.line] <- lapply(col[diff.line], rpad, s@text.width)
+          col[!diff.line] <- lapply(col[!diff.line], rpad, s@line.width)
+          col
+        },
+        pre.render.w, types
+      )
+    } else pre.render.w
+
     # Apply text level styles
 
     es <- x@etc@style
     funs.ts <- list(
-      insert=function(x) es@text(es@text.insert(x)),
-      delete=function(x) es@text(es@text.delete(x)),
-      match=function(x) es@text(es@text.match(x)),
-      header=es@header, context.sep=es@context.sep
+      insert=function(x) es@funs@text(es@funs@text.insert(x)),
+      delete=function(x) es@funs@text(es@funs@text.delete(x)),
+      match=function(x) es@funs@text(es@funs@text.match(x)),
+      header=es@funs@header, context.sep=es@funs@context.sep
     )
     pre.render.s <- Map(
       function(dat, type) {
         res <- vector("list", length(dat))
-        res[type == "context.sep"] <- list(es@context.sep.txt)
+        res[type == "context.sep"] <- list(es@funs@context.sep)
         for(i in names(funs.ts))
           res[type == i] <- lapply(dat[type == i], funs.ts[[i]])
         res

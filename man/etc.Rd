@@ -8,7 +8,7 @@ etc(line.limit = getOption("diffobj.line.limit"),
   hunk.limit = getOption("diffobj.hunk.limit"),
   style = getOption("diffobj.style"), pager = pager_settings(),
   ignore.white.space = getOption("diffobj.ignore.white.space"),
-  use.ansi = getOption("diffobj.use.ansi"), disp.width = getOption("width"),
+  use.ansi = getOption("diffobj.use.ansi"),
   max.diffs = getOption("diffobj.max.diffs"),
   max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
   max.diffs.wrap = getOption("diffobj.max.diffs.wrap"),
@@ -36,10 +36,6 @@ FALSE)}
 
 \item{use.ansi}{TRUE or FALSE, whether to use ANSI escape sequences to color
 differences (TRUE by default if we detect that your terminal supports it)}
-
-\item{disp.width}{integer(1L) number of display columns to take up; note that
-in \dQuote{sidebyside} mode the effective display width is half this
-number (defaults to \code{getOption("width")}.}
 
 \item{max.diffs}{integer(1L), number of differences after which we abandon
 the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
@@ -77,6 +73,10 @@ that contain tabs and carriage returns in such a way that they display as
 they would \bold{with} those characters, but without using those
 characters (defaults to TRUE).  If your console uses tab stops that are not
 eight characters apart you may specify them with \code{tab.stops}.}
+
+\item{disp.width}{integer(1L) number of display columns to take up; note that
+in \dQuote{sidebyside} mode the effective display width is half this
+number (defaults to \code{getOption("width")}.}
 }
 \value{
 a \code{diffObjSettings} S4 object for use with the

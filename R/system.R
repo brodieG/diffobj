@@ -19,7 +19,8 @@
     diffobj.max.diffs.wrap=50000L,
     diffobj.align.threshold=0.25,
     diffobj.style="default",
-    diffobj.tab.stops=8L
+    diffobj.tab.stops=8L,
+    diffobj.disp.width=getOption("width")
   )
   existing.opts <- options()
   options(default.opts[setdiff(names(default.opts), names(existing.opts))])

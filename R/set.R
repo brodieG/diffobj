@@ -1,3 +1,7 @@
+#' @include styles.R
+
+NULL
+
 #' Generate a \code{diffobj} Settings Object
 #'
 #' Used for more fine grained control on the \code{diff_obj} family of
@@ -66,7 +70,6 @@ etc <- function(
   pager=pager_settings(),
   ignore.white.space=getOption("diffobj.ignore.white.space"),
   use.ansi=getOption("diffobj.use.ansi"),
-  disp.width=getOption("width"),
   max.diffs=getOption("diffobj.max.diffs"),
   max.diffs.in.hunk=getOption("diffobj.max.diffs.in.hunk"),
   max.diffs.wrap=getOption("diffobj.max.diffs.wrap"),
@@ -113,7 +116,7 @@ etc <- function(
 
   msg.base <- "Argument `%s` must be integer(1L) and not NA."
   int1L.vars <- c(
-    "disp.width", "max.diffs", "max.diffs.in.hunk", "max.diffs.wrap"
+    "max.diffs", "max.diffs.in.hunk", "max.diffs.wrap"
   )
   for(i in int1L.vars) this.env[[i]] <-
     if(!is.int.1L(this.env[[i]])) {
@@ -268,186 +271,22 @@ reset_less_var <- function(LESS.old) {
     Sys.unsetenv("LESS")
   } else Sys.setenv(LESS=LESS.old)
 }
-.valid_themes <- c(
-  "default", "text", "stripes", "stripes.light", "checkers.light",
-  "checkers.dark", "git", "git.2", "git.3", "html"
+.valid_themes <- list(
+  core=diffObjStyle, 
+  default=diffObjStyleDefault,
+  default=diffObjStyleHtml
+  #   text=diffObjStyleText,
+  #   stripes=diffObjStripes,
+  #   stripes.light=diffObjStripesLight,
+  #   stripes.dark=diffObjStripesDark,
+  #   checkers.light=diffObjCheckersLight,
+  #   checkers.dark=diffObjCheckersDark,
 )
 #' @export
 
 diff_style_theme <- function(theme="default") {
-  if(!is.chr.1L(theme) || !theme %in% .valid_themes)
+  if(!is.chr.1L(theme) || !theme %in% names(.valid_themes))
     stop("Argument `theme` is not a valid theme")
 
-  if(theme == "default") {
-    diffObjStyle(
-      word.insert=crayon::green, word.delete=crayon::red,
-      #banner.insert=crayon::green, banner.delete=crayon::red,
-      # line.insert=crayon::silver,
-      # line.delete=crayon::silver,
-      gutter.insert=crayon::green,
-      gutter.insert.ctd=crayon::green,
-      gutter.delete=crayon::red,
-      gutter.delete.ctd=crayon::red,
-      header=crayon::cyan,
-      meta=crayon::silver,
-      context.sep=crayon::silver
-    )
-  } else if(theme == "html") {
-    ins <- crayon::make_style(rgb(0, 5, 0, maxColorValue=5))
-    word.insert.fg <- identity
-    word.insert.bg <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
-    word.insert <- function(x) word.insert.bg(word.insert.fg(x))
-
-    del <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
-    word.delete.fg <- identity
-    word.delete.bg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
-    word.delete <- function(x) word.delete.bg(word.delete.fg(x))
-
-    diffObjStyle(
-      line.insert=div_f(c("line", "insert")),
-      line.delete=div_f(c("line", "delete")),
-      line.match=div_f(c("line")),
-      word.insert=span_f(c("word", "insert")),
-      word.delete=span_f(c("word", "delete")),
-      header=div_f(c("line", "header"))
-    )
-  } else if(theme == "git") {
-    ins <- crayon::make_style(rgb(0, 5, 0, maxColorValue=5))
-    word.insert.fg <- identity
-    word.insert.bg <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
-    word.insert <- function(x) word.insert.bg(word.insert.fg(x))
-
-    del <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
-    word.delete.fg <- identity
-    word.delete.bg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
-    word.delete <- function(x) word.delete.bg(word.delete.fg(x))
-
-    diffObjStyle(
-      line.insert=ins,
-      line.delete=del,
-      word.insert=word.insert,
-      word.delete=word.delete,
-      banner.insert=crayon::green,
-      banner.delete=crayon::red,
-      header=crayon::cyan,
-      meta=crayon::silver
-    )
-  } else if(theme == "git.2") {
-    ins <- crayon::make_style(rgb(0, 5, 0, maxColorValue=5))
-    word.insert.fg <- crayon::reset
-    word.insert.bg <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
-    word.insert <- function(x) word.insert.fg(word.insert.bg(x))
-
-    del <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
-    word.delete.fg <- crayon::reset
-    word.delete.bg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
-    word.delete <- function(x) word.delete.fg(word.delete.bg(x))
-
-    diffObjStyle(
-      line.insert=ins,
-      line.delete=del,
-      word.insert=word.insert,
-      word.delete=word.delete,
-      banner.insert=crayon::green,
-      banner.delete=crayon::red,
-      header=crayon::cyan,
-      meta=crayon::silver
-    )
-  } else if(theme == "git.3") {
-    ins <- crayon::make_style(rgb(0, 5, 0, maxColorValue=5))
-    word.insert.fg <- crayon::reset
-    word.insert.bg <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
-    word.insert <- crayon::green
-
-    del <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
-    word.delete.fg <- crayon::reset
-    word.delete.bg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
-    word.delete <- crayon::red
-
-    diffObjStyle(
-      line.insert=identity,
-      line.delete=identity,
-      word.insert=word.insert,
-      word.delete=word.delete,
-      banner.insert=crayon::green,
-      banner.delete=crayon::red,
-      header=crayon::cyan,
-      meta=crayon::silver
-    )
-  } else if(theme == "stripes") {
-    ins <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
-    word.insert.fg <- crayon::make_style(rgb(0, 5, 0, maxColorValue=5))
-    word.insert <- function(x) crayon::bold(word.insert.fg(x))
-    del <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
-    word.delete.fg <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
-    word.delete <- function(x) crayon::bold(word.delete.fg(x))
-    diffObjStyle(
-      line.insert=ins,
-      line.delete=del,
-      word.insert=word.insert.fg,
-      word.delete=word.delete.fg,
-      banner.insert=crayon::green,
-      banner.delete=crayon::red,
-      header=crayon::cyan,
-      meta=crayon::silver
-    )
-  } else if(theme == "stripes.light") {
-    ins <- crayon::make_style(rgb(4, 5, 4, maxColorValue=5), bg=TRUE)
-    word.insert.fg <- crayon::make_style(rgb(0, 3, 0, maxColorValue=5))
-    word.insert <- function(x) crayon::bold(word.insert.fg(x))
-    del <- crayon::make_style(rgb(5, 4, 4, maxColorValue=5), bg=TRUE)
-    word.delete.fg <- crayon::make_style(rgb(3, 0, 0, maxColorValue=5))
-    word.delete <- function(x) crayon::bold(word.delete.fg(x))
-    diffObjStyle(
-      line.insert=ins,
-      line.delete=del,
-      word.insert=word.insert,
-      word.delete=word.delete,
-      banner.insert=crayon::green,
-      banner.delete=crayon::red,
-      header=crayon::cyan,
-      meta=crayon::silver
-    )
-  } else if(theme == "checkers.light") {
-    ins <- crayon::make_style(rgb(4, 5, 4, maxColorValue=5), bg=TRUE)
-    word.insert <- crayon::make_style(rgb(2, 4, 2, maxColorValue=5), bg=TRUE)
-    ins.fg <- crayon::make_style(rgb(0, 3, 0, maxColorValue=5))
-    del <- crayon::make_style(rgb(5, 4, 4, maxColorValue=5), bg=TRUE)
-    del.fg <- crayon::make_style(rgb(3, 0, 0, maxColorValue=5))
-    word.delete <- crayon::make_style(rgb(4, 2, 2, maxColorValue=5), bg=TRUE)
-    diffObjStyle(
-      text.insert=ins,
-      text.delete=del,
-      word.insert=word.insert,
-      word.delete=word.delete,
-      gutter.insert=ins.fg,
-      gutter.delete=del.fg,
-      header=crayon::cyan,
-      meta=crayon::silver
-    )
-  } else if(theme == "checkers.dark") {
-    ins <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
-    word.insert <- crayon::make_style(rgb(1, 4, 1, maxColorValue=5), bg=TRUE)
-    word.insert.fg <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5))
-    del <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
-    word.delete <- crayon::make_style(rgb(4, 1, 1, maxColorValue=5), bg=TRUE)
-    word.delete.fg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5))
-    diffObjStyle(
-      text.insert=ins,
-      text.delete=del,
-      word.insert=function(x) word.insert(word.insert.fg(x)),
-      word.delete=function(x) word.delete(word.delete.fg(x)),
-      gutter.insert=word.insert.fg,
-      gutter.delete=word.delete.fg,
-      banner.insert=crayon::green,
-      banner.delete=crayon::red,
-      header=crayon::cyan,
-      meta=crayon::silver
-    )
-  } else if(theme == "text") {
-    diffObjStyle(
-      word.insert=function(x) paste0(">|", x, "|>"),
-      word.delete=function(x) paste0("<|", x, "|<")
-    )
-  }
+  .valid_themes[[theme]]()
 }
