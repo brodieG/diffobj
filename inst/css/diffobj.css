@@ -1,0 +1,39 @@
+/* Structural CSS */
+
+DIV.diffobj_container DIV.row
+{
+  width: 100%;
+  overflow: hidden;
+}
+DIV.diffobj_container DIV.line
+{
+  width: 50%;
+  float: left;
+}
+DIV.diffobj_container DIV.text
+{
+  overflow: hidden;
+}
+DIV.diffobj_container DIV.gutter
+{
+  width: 1em;
+  float: left;
+}
+/* github style color scheme - default */
+
+DIV.diffobj_container SPAN.word.insert
+{
+  background-color: #a6f3a6;
+}
+DIV.diffobj_container SPAN.word.delete
+{
+  background-color: #f8cbcb;
+}
+DIV.diffobj_container DIV.text.insert
+{
+  background-color: #eaffea;
+}
+DIV.diffobj_container DIV.text.delete
+{
+  background-color: #ffecec;
+}

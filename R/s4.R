@@ -155,6 +155,7 @@ setClass(
       return("slot `trim.dat` in incorrect format")
     TRUE
 } )
+setClass("diffObjDiffHtml", contains="diffObjDiff")
 setMethod("show", "diffObjDiff",
   function(object) {
     # Finalize stuff
@@ -185,6 +186,21 @@ setMethod("show", "diffObjDiff",
     invisible(NULL)
   }
 )
+setMethod("show", "diffObjDiffHtml",
+  function(object) {
+    x.chr <- as.character(object)
+    head <- if(nchar(object@etc@style@css))
+      sprintf(
+        "<head><link rel='stylesheet' type='text/css' href='%s'></head>",
+        object@etc@style@css
+      )
+    doc <- c("<!DOCTYPE><html>", head, "<body>", x.chr, "</body></html>")
+    tmp <- paste0(tempfile(), ".html")
+    on.exit(unlink(tmp))
+    writeLines(doc, con=tmp)
+    browseURL(tmp)
+    readline("press any key to continue")
+} )
 # Compute what fraction of the lines in target and current actually end up
 # in the diff; some of the complexity is driven by repeated context hunks
 

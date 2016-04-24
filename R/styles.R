@@ -72,6 +72,7 @@ NULL
 diffObjStyleFuns <- setClass(
   "diffObjStyleFuns",
   slots=c(
+    container="ANY", row="ANY",
     line="ANY", line.insert="ANY", line.delete="ANY", line.match="ANY",
     text="ANY", text.insert="ANY", text.delete="ANY", text.match="ANY",
     gutter="ANY",
@@ -84,7 +85,7 @@ diffObjStyleFuns <- setClass(
     context.sep="ANY", header="ANY", meta="ANY"
   ),
   prototype=list(
-    line=identity,
+    container=identity, row=identity, line=identity,
     line.insert=identity, line.delete=identity, line.match=identity,
     text=identity,
     text.insert=identity, text.delete=identity, text.match=identity,
@@ -198,18 +199,39 @@ diffObjStyleDefault <- setClass(
 )
 diffObjStyleHtml <- setClass(
   "diffObjStyleHtml", contains="diffObjStyle",
+  slots=c(css="character"),
   prototype=list(
     funs=diffObjStyleFuns(
+      container=function(x) c("<div class='diffobj_container'>", x, "</div>"),
+      row=div_f("row"),
       line.insert=div_f(c("line", "insert")),
       line.delete=div_f(c("line", "delete")),
       line.match=div_f(c("line")),
+      text.insert=div_f(c("text", "insert")),
+      text.delete=div_f(c("text", "delete")),
+      text.match=div_f(c("text")),
+      gutter.insert=div_f(c("gutter", "insert")),
+      gutter.delete=div_f(c("gutter", "delete")),
+      gutter.match=div_f(c("gutter")),
       word.insert=span_f(c("word", "insert")),
       word.delete=span_f(c("word", "delete")),
       header=div_f(c("line", "header"))
     ),
+    text=diffObjStyleText(
+      gutter.insert="&gt;",
+      gutter.delete="&lt;",
+      gutter.match="&nbsp;"
+    ),
     wrap=FALSE,
-    pad=FALSE
-) )
+    pad=FALSE,
+    css=file.path(system.file(package="diffobj"), "css", "diffobj.css")
+  ),
+  validity=function(object) {
+    if(!is.chr.1L(css))
+      return("slot `css` must be character(1L)")
+    TRUE
+  }
+)
 
 
 # # if(theme == "core") {

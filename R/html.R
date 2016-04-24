@@ -57,7 +57,7 @@ diffobj_css <- function() {
     DIV.text=c(overflow="hidden"),
     DIV.text.insert=c(`background-color`="#eaffea"),
     DIV.text.delete=c(`background-color`="#ffecec"),
-    DIV.gutter=c(width="1em")
+    DIV.gutter=c(width="1em", float="left")
   )
   res <- character(length(css) + length(unlist(css)) + 2 * length(css))
   j <- 0

@@ -274,7 +274,7 @@ reset_less_var <- function(LESS.old) {
 .valid_themes <- list(
   core=diffObjStyle, 
   default=diffObjStyleDefault,
-  default=diffObjStyleHtml
+  html=diffObjStyleHtml
   #   text=diffObjStyleText,
   #   stripes=diffObjStripes,
   #   stripes.light=diffObjStripesLight,

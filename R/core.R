@@ -285,9 +285,10 @@ line_diff <- function(
     tar.capt, cur.capt, etc=etc, diff.mode="line", warn=warn,
     use.header=use.header
   )
+  diff.type <- if(is(etc@style, "diffObjStyleHtml")) "Html" else ""
   new(
-    "diffObjDiff", diffs=diffs, target=target, current=current,
-    tar.capt=tar.capt, cur.capt=cur.capt, etc=etc
+    sprintf("diffObjDiff%s", diff.type), diffs=diffs, target=target,
+    current=current, tar.capt=tar.capt, cur.capt=cur.capt, etc=etc
   )
 }
 # Helper function encodes matches within mismatches so that we can later word
