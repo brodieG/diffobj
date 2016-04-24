@@ -287,7 +287,7 @@ setMethod("as.character", "diffObjDiff",
     mode <- x@etc@mode
     tab.stops <- x@etc@tab.stops
     ignore.white.space <- x@etc@ignore.white.space
-    
+
     s <- x@etc@style  # shorthand
 
     len.max <- max(length(x@tar.capt), length(x@cur.capt))
@@ -425,6 +425,20 @@ setMethod("as.character", "diffObjDiff",
         dat=unlist(mx[, 1L]),
         type=unlist(mx[, 2L], recursive=FALSE)
     ) )
+    # Add the banners
+
+    if(mode == "sidebyside") {
+      pre.render[[1L]]$dat <- c(banner.A, pre.render[[1L]]$dat)
+      pre.render[[1L]]$type <-
+        unlist(list(chrt("delete"), pre.render[[1L]]$type))
+      pre.render[[2L]]$dat <- c(banner.B, pre.render[[2L]]$dat)
+      pre.render[[2L]]$type <-
+        unlist(list(chrt("insert"), pre.render[[2L]]$type))
+    } else {
+      pre.render[[1L]]$dat <- c(banner.A, banner.B, pre.render[[1L]]$dat)
+      pre.render[[1L]]$type <-
+        unlist(list(chrt("delete", "insert"), pre.render[[1L]]$type))
+    }
     # Generate wrapped version of the text; if in sidebyside, make sure that
     # all elements are same length
 
@@ -441,7 +455,7 @@ setMethod("as.character", "diffObjDiff",
           wrap(pre.render[[i]]$dat[!hdr], s@text.width)
       }
       pre.render.w
-    } else lapply(pre.render, as.list)
+    } else lapply(pre.render, function(y) as.list(y$dat))
 
     line.lens <- lapply(pre.render.w, vapply, length, integer(1L))
     types <- lapply(pre.render, "[[", "type")
@@ -501,16 +515,18 @@ setMethod("as.character", "diffObjDiff",
       },
       pre.render.w.p, types
     )
-    # Apply layout; output should be character with each element representing
-    # a row of output
+    # Render columns
 
-    out <- table_ascii(
-      banner.del=banner.A, banner.ins=banner.B, cols=pre.render.s,
-      gutters=gutters, pads=pads, types=types, etc=x@etc
+    cols <- render_cols(
+      cols=pre.render.s, gutters=gutters, pads=pads, types=types, etc=x@etc
     )
+    # Render rows
+
+    rows <- render_rows(cols, etc=x@etc)
+
     # Finalize
 
-    fin <- c(unlist(out), limit.out, str.fold.out, no.diffs)
+    fin <- c(s@funs@container(rows), limit.out, str.fold.out, no.diffs)
     attr(fin, "meta") <- trim.meta
     fin
 } )

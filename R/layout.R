@@ -51,8 +51,7 @@ render_gutters <- function(cols, lens, lens.max, etc) {
 row_ascii <- function(gutter, pad, text)
   if(anyNA(gutter)) text else paste0(gutter, pad, text)
 
-cols_ascii <- function(gutter, pad, col, type, etc) {
-  stopifnot(is(etc, "diffObjSettings"))
+render_col <- function(gutter, pad, col, type, etc) {
   lens <- vapply(col, length, integer(1L))
   type.r <- rep(type, lens)
   gutt.ul <- unlist(gutter)
@@ -74,28 +73,10 @@ cols_ascii <- function(gutter, pad, col, type, etc) {
   col.txt[type.r == "header"] <- es@line(es@header(col.txt[type.r == "header"]))
   col.txt
 }
-table_ascii <- function(
-  banner.ins, banner.del, gutters, pads, cols, types, etc
-) {
-  if(etc@mode == "sidebyside") {
-    banner.del <- rpad(banner.del, etc@text.width)
-    banner.ins <- rpad(banner.ins, etc@text.width)
-  }
-  banner.del <- cols_ascii(
-    etc@gutter@delete, etc@gutter@pad, banner.del, type="delete", etc
-  )
-  banner.ins <- cols_ascii(
-    etc@gutter@insert, etc@gutter@pad, banner.ins, type="insert", etc
-  )
-  cols.proc <- Map(
-    cols_ascii, gutters, pads, cols, types, MoreArgs=list(etc=etc)
-  )
-  if(etc@mode == "sidebyside") {
-    paste(
-      c(banner.del, unlist(cols.proc[[1L]])),
-      c(banner.ins, unlist(cols.proc[[2L]]))
-    )
-  } else {
-    c(banner.del, banner.ins, unlist(cols.proc[[1L]]))
-  }
+render_cols <- function(cols, gutters, pads, types, etc) {
+  Map(render_col, gutters, pads, cols, types, MoreArgs=list(etc=etc))
+}
+render_rows <- function(cols, etc) {
+  col.txt <- do.call(paste, c(cols, list(sep=etc@style@text@pad.col)))
+  etc@style@funs@row(col.txt)
 }
