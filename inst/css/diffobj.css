@@ -1,60 +1,75 @@
 /* Structural CSS */
 
-DIV.diffobj_container DIV.row
-{
+DIV.diffobj_container {
+  box-sizing: border-box;
+}
+DIV.diffobj_container *,
+DIV.diffobj_container *:before,
+DIV.diffobj_container *:after {
+  box-sizing: inherit;
+}
+DIV.diffobj_container DIV.row {
   width: 100%;
   overflow: hidden;
   font-family: monospace;
 }
-DIV.diffobj_container DIV.line
-{
-  width: 48%;
+DIV.diffobj_container DIV.line {
   float: left;
 }
-DIV.diffobj_container DIV.text
-{
+DIV.diffobj_container DIV.onecol DIV.line {
+  width: 100%;
+}
+DIV.diffobj_container DIV.twocol DIV.line {
+  width: 50%;
+}
+DIV.diffobj_container DIV.text {
   overflow: hidden;
 }
-DIV.diffobj_container DIV.gutter
-{
+DIV.diffobj_container DIV.gutter {
   float: left;
   padding: 0 0.2em;
 }
-/* github style color scheme - default */
+/* github inspired color scheme - default */
 
 DIV.diffobj_container DIV.gutter,
-DIV.diffobj_container DIV.header
-{
+DIV.diffobj_container DIV.header {
   color: #999;
 }
 DIV.diffobj_container SPAN.word.insert,
-DIV.diffobj_container DIV.line>DIV.insert
-{
+DIV.diffobj_container DIV.line>DIV.insert {
   background-color: #a6f3a6;
 }
 DIV.diffobj_container SPAN.word.delete,
-DIV.diffobj_container DIV.line>DIV.delete
-{
+DIV.diffobj_container DIV.line>DIV.delete {
   background-color: #f8cbcb;
 }
-DIV.diffobj_container DIV.text>DIV
-{
+DIV.diffobj_container DIV.text>DIV {
   padding-left: 0.5em;
+  border-left: 1px solid #888888;
 }
-DIV.diffobj_container DIV.text>DIV.insert
-{
+DIV.diffobj_container DIV.text>DIV.insert {
   background-color: #eaffea;
   border-left: 1px solid #33bb33;
 }
-DIV.diffobj_container DIV.text>DIV.delete
-{
+DIV.diffobj_container DIV.text>DIV.delete {
   background-color: #ffecec;
   border-left: 1px solid #bb3333;
 }
-DIV.diffobj_container DIV.header
-{
+DIV.diffobj_container DIV.header {
   background-color: #f2f8fa;
 }
-DIV.diffobj_container DIV.line
-{
+DIV.diffobj_container DIV.text>DIV.match {
+  background-color: #ffffff;
+}
+DIV.diffobj_container DIV.line {
+  background-color: #eeeeee;
+}
+DIV.diffobj_container DIV.line>DIV.insert {
+  border-left: 1px solid #33bb33;
+}
+DIV.diffobj_container DIV.line>DIV.delete {
+  border-left: 1px solid #bb3333;
+}
+DIV.diffobj_container DIV.line>DIV.match {
+  border-left: 1px solid #888888;
 }
