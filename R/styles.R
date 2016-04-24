@@ -75,17 +75,20 @@ diffObjStyleFuns <- setClass(
     container="ANY", row="ANY",
     line="ANY", line.insert="ANY", line.delete="ANY", line.match="ANY",
     text="ANY", text.insert="ANY", text.delete="ANY", text.match="ANY",
+    banner="ANY", banner.insert="ANY", banner.delete="ANY",
     gutter="ANY",
     gutter.insert="ANY", gutter.insert.ctd="ANY",
     gutter.delete="ANY", gutter.delete.ctd="ANY",
     gutter.match="ANY", gutter.match.ctd="ANY",
     gutter.pad="ANY",
     word.insert="ANY", word.delete="ANY",
-    banner="ANY", banner.insert="ANY", banner.delete="ANY",
     context.sep="ANY", header="ANY", meta="ANY"
   ),
   prototype=list(
-    container=identity, row=identity, line=identity,
+    container=identity, row=identity,
+    banner=identity, banner.insert=identity, banner.delete=identity,
+    line=identity,
+    line.insert=identity, line.delete=identity, line.match=identity,
     line.insert=identity, line.delete=identity, line.match=identity,
     text=identity,
     text.insert=identity, text.delete=identity, text.match=identity,
@@ -94,7 +97,6 @@ diffObjStyleFuns <- setClass(
     gutter.delete=identity, gutter.delete.ctd=identity,
     gutter.match=identity, gutter.match.ctd=identity,
     word.insert=identity, word.delete=identity,
-    banner=identity, banner.insert=identity, banner.delete=identity,
     header=identity,
     context.sep=identity,
     meta=identity
@@ -204,6 +206,9 @@ diffObjStyleHtml <- setClass(
     funs=diffObjStyleFuns(
       container=function(x) c("<div class='diffobj_container'>", x, "</div>"),
       row=div_f("row"),
+      banner.insert=div_f("insert"),
+      banner.delete=div_f("delete"),
+      banner=div_f("line banner"),
       line.insert=div_f("insert"),
       line.delete=div_f("delete"),
       line.match=div_f("match"),
@@ -264,12 +269,12 @@ diffObjStyleHtml <- setClass(
 #     word.insert.fg <- identity
 #     word.insert.bg <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
 #     word.insert <- function(x) word.insert.bg(word.insert.fg(x))
-# 
+#
 #     del <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
 #     word.delete.fg <- identity
 #     word.delete.bg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
 #     word.delete <- function(x) word.delete.bg(word.delete.fg(x))
-# 
+#
 #     diffObjStyle(
 #       line.insert=ins,
 #       line.delete=del,
@@ -285,12 +290,12 @@ diffObjStyleHtml <- setClass(
 #     word.insert.fg <- crayon::reset
 #     word.insert.bg <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
 #     word.insert <- function(x) word.insert.fg(word.insert.bg(x))
-# 
+#
 #     del <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
 #     word.delete.fg <- crayon::reset
 #     word.delete.bg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
 #     word.delete <- function(x) word.delete.fg(word.delete.bg(x))
-# 
+#
 #     diffObjStyle(
 #       line.insert=ins,
 #       line.delete=del,
@@ -306,12 +311,12 @@ diffObjStyleHtml <- setClass(
 #     word.insert.fg <- crayon::reset
 #     word.insert.bg <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
 #     word.insert <- crayon::green
-# 
+#
 #     del <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
 #     word.delete.fg <- crayon::reset
 #     word.delete.bg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
 #     word.delete <- crayon::red
-# 
+#
 #     diffObjStyle(
 #       line.insert=identity,
 #       line.delete=identity,

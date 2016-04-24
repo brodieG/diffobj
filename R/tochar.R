@@ -39,7 +39,10 @@ rng_as_chr <- function(range) {
 chrt <- function(...)
   factor(
     c(...),
-    levels=c("insert", "delete", "match", "header", "context.sep")
+    levels=c(
+      "insert", "delete", "match", "header", "context.sep",
+      "banner.insert", "banner.delete"
+    )
   )
 hunkl <- function(col.1=NULL, col.2=NULL, type.1=NULL, type.2=NULL)
   c(
@@ -426,19 +429,21 @@ setMethod("as.character", "diffObjDiff",
         dat=unlist(mx[, 1L]),
         type=unlist(mx[, 2L], recursive=FALSE)
     ) )
-    # Add the banners
+    # Add the banners; banners are rendered exactly like normal text, except
+    # for the line level functions
 
     if(mode == "sidebyside") {
       pre.render[[1L]]$dat <- c(banner.A, pre.render[[1L]]$dat)
       pre.render[[1L]]$type <-
-        unlist(list(chrt("delete"), pre.render[[1L]]$type))
+        unlist(list(chrt("banner.delete"), pre.render[[1L]]$type))
       pre.render[[2L]]$dat <- c(banner.B, pre.render[[2L]]$dat)
       pre.render[[2L]]$type <-
-        unlist(list(chrt("insert"), pre.render[[2L]]$type))
+        unlist(list(chrt("banner.insert"), pre.render[[2L]]$type))
     } else {
       pre.render[[1L]]$dat <- c(banner.A, banner.B, pre.render[[1L]]$dat)
-      pre.render[[1L]]$type <-
-        unlist(list(chrt("delete", "insert"), pre.render[[1L]]$type))
+      pre.render[[1L]]$type <- unlist(
+        list(chrt("banner.delete", "banner.insert"), pre.render[[1L]]$type)
+      )
     }
     # Generate wrapped version of the text; if in sidebyside, make sure that
     # all elements are same length
@@ -459,8 +464,10 @@ setMethod("as.character", "diffObjDiff",
     } else lapply(pre.render, function(y) as.list(y$dat))
 
     line.lens <- lapply(pre.render.w, vapply, length, integer(1L))
-    types <- lapply(pre.render, "[[", "type")
-
+    types.raw <- lapply(pre.render, "[[", "type")
+    types <- lapply(
+      types.raw, function(y) sub("^banner\\.", "", as.character(y))
+    )
     if(mode == "sidebyside") {
       line.lens.max <- replicate(2L, do.call(pmax, line.lens), simplify=FALSE)
       pre.render.w <- lapply(
@@ -481,7 +488,7 @@ setMethod("as.character", "diffObjDiff",
       line.lens, function(y) lapply(y, rep, x=gutter.dat@pad)
     )
     gutters <- render_gutters(
-      cols=pre.render, lens=line.lens, lens.max=line.lens.max, etc=x@etc
+      types=types, lens=line.lens, lens.max=line.lens.max, etc=x@etc
     )
     # Pad text
 
@@ -517,10 +524,10 @@ setMethod("as.character", "diffObjDiff",
       },
       pre.render.w.p, types
     )
-    # Render columns
+    # Render columns; note here we use 'types.raw' to distinguish banner lines
 
     cols <- render_cols(
-      cols=pre.render.s, gutters=gutters, pads=pads, types=types, etc=x@etc
+      cols=pre.render.s, gutters=gutters, pads=pads, types=types.raw, etc=x@etc
     )
     # Render rows
 

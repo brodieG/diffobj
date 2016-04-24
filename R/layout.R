@@ -30,22 +30,24 @@ gutter_dat <- function(etc) {
 }
 # Based on the type of each row in a column, render the correct gutter
 
-render_gutters <- function(cols, lens, lens.max, etc) {
+render_gutters <- function(types, lens, lens.max, etc) {
   gutter.dat <- etc@gutter
   Map(
     function(dat, lens, lens.max) {
       Map(
         function(type, len, len.max) {
-          if(type %in% c("insert", "delete", "match")) c(
-            if(len) slot(gutter.dat, as.character(type)),
-            rep(slot(gutter.dat, paste0(type, ".", "ctd")), max(len - 1L, 0L)),
-            rep(slot(gutter.dat, "match"), max(len.max - len, 0L))
-          ) else character(len)
+          if(type %in% c("insert", "delete", "match")) {
+            c(
+              if(len) slot(gutter.dat, as.character(type)),
+              rep(slot(gutter.dat, paste0(type, ".", "ctd")), max(len - 1L, 0L)),
+              rep(slot(gutter.dat, "match"), max(len.max - len, 0L))
+            )
+          } else character(len)
         },
-        dat$type, lens, lens.max
+        dat, lens, lens.max
       )
     },
-    cols, lens, lens.max
+    types, lens, lens.max
   )
 }
 row_ascii <- function(gutter, pad, text)
@@ -62,6 +64,10 @@ render_col <- function(gutter, pad, col, type, etc) {
 
   # line formats
 
+  col.txt[type.r == "banner.insert"] <-
+    es@banner(es@banner.insert(col.txt[type.r == "banner.insert"]))
+  col.txt[type.r == "banner.delete"] <-
+    es@banner(es@banner.delete(col.txt[type.r == "banner.delete"]))
   col.txt[type.r == "insert"] <-
     es@line(es@line.insert(col.txt[type.r == "insert"]))
   col.txt[type.r == "delete"] <-

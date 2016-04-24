@@ -1,4 +1,6 @@
-/* Structural CSS */
+/*
+ * Structural CSS
+ */
 
 DIV.diffobj_container {
   box-sizing: border-box;
@@ -27,6 +29,10 @@ DIV.diffobj_container DIV.gutter {
 }
 /* github inspired color scheme - default */
 
+DIV.diffobj_container DIV.line.banner {
+  font-size: 1.2em;
+  font-weight: bold;
+}
 DIV.diffobj_container DIV.gutter,
 DIV.diffobj_container DIV.header {
   color: #999;
