@@ -10,23 +10,19 @@ DIV.diffobj_container *:after {
 }
 DIV.diffobj_container DIV.row {
   width: 100%;
-  overflow: hidden;
   font-family: monospace;
+  display: table;
+  table-layout: fixed;
 }
 DIV.diffobj_container DIV.line {
-  float: left;
-}
-DIV.diffobj_container DIV.onecol DIV.line {
-  width: 100%;
-}
-DIV.diffobj_container DIV.twocol DIV.line {
-  width: 50%;
+  display: table-cell;
 }
 DIV.diffobj_container DIV.text {
-  overflow: hidden;
+  display: table-cell;
+  width: 100%;
 }
 DIV.diffobj_container DIV.gutter {
-  float: left;
+  display: table-cell;
   padding: 0 0.2em;
 }
 /* github inspired color scheme - default */
@@ -53,10 +49,14 @@ DIV.diffobj_container DIV.text>DIV.insert {
 }
 DIV.diffobj_container DIV.text>DIV.delete {
   background-color: #ffecec;
-  border-left: 1px solid #bb3333;
+  border-left: 1px solid #cc6666;
 }
 DIV.diffobj_container DIV.header {
-  background-color: #f2f8fa;
+  /*background-color: #f2f8fa;*/
+  background-color: #e0e6fa;
+  /*color: #888800;*/
+  font-size: 1.1em;
+  border-left: 1px solid #9894b6;
 }
 DIV.diffobj_container DIV.text>DIV.match {
   background-color: #ffffff;
