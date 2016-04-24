@@ -199,6 +199,36 @@ diffObjStyleDefault <- setClass(
       context.sep=crayon::silver
   ) )
 )
+diffObjStyleLight <- setClass(
+  "diffObjStyleLight", contains="diffObjStyle",
+  prototype=list(
+    funs=diffObjStyleFuns(
+      text.insert=crayon::make_style(rgb(4, 5, 4, maxColorValue=5), bg=TRUE),
+      text.delete=crayon::make_style(rgb(5, 4, 4, maxColorValue=5), bg=TRUE),
+      word.insert=crayon::make_style(rgb(2, 4, 2, maxColorValue=5), bg=TRUE),
+      word.delete=crayon::make_style(rgb(4, 2, 2, maxColorValue=5), bg=TRUE),
+      gutter.insert=crayon::make_style(rgb(0, 3, 0, maxColorValue=5)),
+      gutter.insert.ctd=crayon::make_style(rgb(0, 3, 0, maxColorValue=5)),
+      gutter.delete=crayon::make_style(rgb(3, 0, 0, maxColorValue=5)),
+      gutter.delete.ctd=crayon::make_style(rgb(3, 0, 0, maxColorValue=5)),
+      header=crayon::cyan,
+      meta=crayon::silver
+) ) )
+diffObjStyleDark <- setClass(
+  "diffObjStyleDark", contains="diffObjStyle",
+  prototype=list(
+    funs=diffObjStyleFuns(
+      text.insert=crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE),
+      text.delete=crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE),
+      word.insert=crayon::make_style(rgb(1, 4, 1, maxColorValue=5), bg=TRUE),
+      word.delete=crayon::make_style(rgb(4, 1, 1, maxColorValue=5), bg=TRUE),
+      gutter.insert=crayon::make_style(rgb(0, 1, 0, maxColorValue=5)),
+      gutter.insert.ctd=crayon::make_style(rgb(0, 1, 0, maxColorValue=5)),
+      gutter.delete=crayon::make_style(rgb(1, 0, 0, maxColorValue=5)),
+      gutter.delete.ctd=crayon::make_style(rgb(1, 0, 0, maxColorValue=5)),
+      header=crayon::cyan,
+      meta=crayon::silver
+) ) )
 diffObjStyleHtml <- setClass(
   "diffObjStyleHtml", contains="diffObjStyle",
   slots=c(css="character"),
