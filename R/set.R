@@ -277,9 +277,10 @@ reset_less_var <- function(LESS.old) {
   basicyb=diffObjStyleBasicYB,
   light=diffObjStyleLight,
   dark=diffObjStyleDark,
-  html=diffObjStyleHtml,
   darkyb=diffObjStyleDarkYB,
-  lightyb=diffObjStyleLightYB
+  lightyb=diffObjStyleLightYB,
+  html=diffObjStyleHtml,
+  htmlyb=diffObjStyleHtmlYB
   #   text=diffObjStyleText,
   #   stripes=diffObjStripes,
   #   stripes.light=diffObjStripesLight,

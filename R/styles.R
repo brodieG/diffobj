@@ -314,9 +314,15 @@ diffObjStyleHtml <- setClass(
     TRUE
   }
 )
-
-
-# # if(theme == "core") {
+diffObjStyleHtmlYB <- setClass(
+  "diffObjStyleHtmlYB", contains="diffObjStyleHtml",
+)
+setMethod("initialize", "diffObjStyleHtmlYB",
+  function(.Object, ...) {
+    .Object@funs@container=div_f(c("diffobj_container", "yb"))
+    callNextMethod(.Object, ...)
+  }
+)
 #     diffObjStyle(disp.width=getOption("width"))
 #   } else if(theme == "default") {
 #     diffObjStyle(

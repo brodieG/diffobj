@@ -1,15 +1,9 @@
+/* Structural CSS ------------------------------------------------------------*/
 /*
- * Structural CSS
+ * TBD whether we want a more fully table like structure; some of the visual
+ * cues provided by the current set-up are useful (line wraps, etc.)
  */
 
-DIV.diffobj_container {
-  box-sizing: border-box;
-}
-DIV.diffobj_container *,
-DIV.diffobj_container *:before,
-DIV.diffobj_container *:after {
-  box-sizing: inherit;
-}
 DIV.diffobj_container DIV.row {
   width: 100%;
   font-family: monospace;
@@ -27,16 +21,33 @@ DIV.diffobj_container DIV.gutter {
   display: table-cell;
   padding: 0 0.2em;
 }
-/* github inspired color scheme - default */
+/* Common elements -----------------------------------------------------------*/
 
 DIV.diffobj_container DIV.line.banner {
   font-size: 1.2em;
   font-weight: bold;
 }
-DIV.diffobj_container DIV.gutter,
-DIV.diffobj_container DIV.header {
+DIV.diffobj_container DIV.gutter {
   color: #999;
 }
+DIV.diffobj_container DIV.header {
+  font-size: 1.1em;
+}
+DIV.diffobj_container DIV.text>DIV.match {
+  background-color: #ffffff;
+}
+DIV.diffobj_container DIV.text>DIV {
+  border-left: 1px solid #888888;
+}
+DIV.diffobj_container DIV.line {
+  background-color: #eeeeee;
+}
+DIV.diffobj_container DIV.text>DIV,
+DIV.diffobj_container DIV.header {
+  padding-left: 0.5em;
+}
+/* github inspired color scheme - default ------------------------------------*/
+
 DIV.diffobj_container SPAN.word.insert,
 DIV.diffobj_container DIV.line>DIV.insert {
   background-color: #a6f3a6;
@@ -45,37 +56,62 @@ DIV.diffobj_container SPAN.word.delete,
 DIV.diffobj_container DIV.line>DIV.delete {
   background-color: #f8cbcb;
 }
-DIV.diffobj_container DIV.text>DIV {
-  padding-left: 0.5em;
-  border-left: 1px solid #888888;
-}
 DIV.diffobj_container DIV.text>DIV.insert {
   background-color: #eaffea;
+}
+DIV.diffobj_container DIV.text>DIV.insert,
+DIV.diffobj_container DIV.line>DIV.insert {
   border-left: 1px solid #33bb33;
 }
 DIV.diffobj_container DIV.text>DIV.delete {
   background-color: #ffecec;
+}
+DIV.diffobj_container DIV.text>DIV.delete,
+DIV.diffobj_container DIV.line>DIV.delete {
   border-left: 1px solid #cc6666;
 }
 DIV.diffobj_container DIV.header {
-  /*background-color: #f2f8fa;*/
   background-color: #e0e6fa;
-  /*color: #888800;*/
-  font-size: 1.1em;
   border-left: 1px solid #9894b6;
 }
-DIV.diffobj_container DIV.text>DIV.match {
+DIV.diffobj_container DIV.line>DIV.match {
+  border-left: 1px solid #888888;
+}
+/* Yellow Blue variation -----------------------------------------------------*/
+
+DIV.diffobj_container.yb SPAN.word.insert,
+DIV.diffobj_container.yb DIV.line>DIV.insert {
+  background-color: #cbcbf8;
+}
+DIV.diffobj_container.yb SPAN.word.delete,
+DIV.diffobj_container.yb DIV.line>DIV.delete {
+  background-color: #f0f0a6;
+}
+DIV.diffobj_container.yb DIV.text>DIV.insert {
+  background-color: #eaeaff;
+}
+DIV.diffobj_container.yb DIV.text>DIV.insert,
+DIV.diffobj_container.yb DIV.line>DIV.insert {
+  border-left: 1px solid #3333bb;
+}
+DIV.diffobj_container.yb DIV.text>DIV.delete {
+  background-color: #eeeecc;
+}
+DIV.diffobj_container.yb DIV.text>DIV.delete,
+DIV.diffobj_container.yb DIV.line>DIV.delete {
+  border-left: 1px solid #aaaa55;
+}
+DIV.diffobj_container.yb DIV.header {
+  background-color: #afafaf;
+  border-left: 1px solid #e3e3e3;
+  color: #e9e9e9;
+}
+DIV.diffobj_container.yb DIV.text>DIV.match {
   background-color: #ffffff;
 }
-DIV.diffobj_container DIV.line {
+DIV.diffobj_container.yb DIV.line {
   background-color: #eeeeee;
 }
-DIV.diffobj_container DIV.line>DIV.insert {
-  border-left: 1px solid #33bb33;
-}
-DIV.diffobj_container DIV.line>DIV.delete {
-  border-left: 1px solid #bb3333;
-}
-DIV.diffobj_container DIV.line>DIV.match {
+DIV.diffobj_container.yb DIV.line>DIV.match {
   border-left: 1px solid #888888;
 }
