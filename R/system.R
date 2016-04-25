@@ -18,7 +18,7 @@
     diffobj.max.diffs.in.hunk=50000L,
     diffobj.max.diffs.wrap=50000L,
     diffobj.align.threshold=0.25,
-    diffobj.style="default",
+    diffobj.style="basic",
     diffobj.tab.stops=8L,
     diffobj.disp.width=getOption("width")
   )
