@@ -66,6 +66,7 @@ NULL
 #' @param gutter.match.txt character(1L) see \code{gutter.ins.txt} above
 #' @param gutter.match.txt.ctd character(1L) see \code{gutter.ins.txt.ctd} above
 #' @return diffObjStyle S4 object
+#' @rdname diffObjStyle
 #' @export diffObjStyle
 #' @exportClass diffObjStyle
 
@@ -185,6 +186,10 @@ setMethod("initialize", "diffObjStyle", function(.Object, ...) {
     .Object@disp.width <- 80L
   return(callNextMethod(.Object, ...))
 } )
+#' @export diffObjStyleBasic
+#' @exportClass diffObjStyleBasic
+#' @rdname diffObjStyle
+
 diffObjStyleBasic <- setClass(
   "diffObjStyleBasic", contains="diffObjStyle",
   prototype=list(
@@ -199,6 +204,10 @@ diffObjStyleBasic <- setClass(
       context.sep=crayon::silver
   ) )
 )
+#' @export diffObjStyleBasicYB
+#' @exportClass diffObjStyleBasicYB
+#' @rdname diffObjStyle
+
 diffObjStyleBasicYB <- setClass(
   "diffObjStyleBasicYB", contains="diffObjStyle",
   prototype=list(
@@ -213,6 +222,10 @@ diffObjStyleBasicYB <- setClass(
       context.sep=crayon::silver
   ) )
 )
+#' @export diffObjStyleLight
+#' @exportClass diffObjStyleLight
+#' @rdname diffObjStyle
+
 diffObjStyleLight <- setClass(
   "diffObjStyleLight", contains="diffObjStyle",
   prototype=list(
@@ -228,6 +241,10 @@ diffObjStyleLight <- setClass(
       header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5)),
       meta=crayon::silver
 ) ) )
+#' @export diffObjStyleLightYB
+#' @exportClass diffObjStyleLightYB
+#' @rdname diffObjStyle
+
 diffObjStyleLightYB <- setClass(
   "diffObjStyleLightYB", contains="diffObjStyle",
   prototype=list(
@@ -243,6 +260,10 @@ diffObjStyleLightYB <- setClass(
       header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5)),
       meta=crayon::silver
 ) ) )
+#' @export diffObjStyleDark
+#' @exportClass diffObjStyleDark
+#' @rdname diffObjStyle
+
 diffObjStyleDark <- setClass(
   "diffObjStyleDark", contains="diffObjStyle",
   prototype=list(
@@ -258,6 +279,10 @@ diffObjStyleDark <- setClass(
       header=crayon::cyan,
       meta=crayon::silver
 ) ) )
+#' @export diffObjStyleDarkYB
+#' @exportClass diffObjStyleDarkYB
+#' @rdname diffObjStyle
+
 diffObjStyleDarkYB <- setClass(
   "diffObjStyleDarkYB", contains="diffObjStyle",
   prototype=list(
@@ -273,9 +298,17 @@ diffObjStyleDarkYB <- setClass(
       header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5)),
       meta=crayon::silver
 ) ) )
+#' @export diffObjStyleHtml
+#' @exportClass diffObjStyleHtml
+#' @rdname diffObjStyle
+
 diffObjStyleHtml <- setClass(
   "diffObjStyleHtml", contains="diffObjStyle",
-  slots=c(css="character"),
+  slots=c(
+    css="character",
+    css.mode="character",
+    escape.html.entities="logical"
+  ),
   prototype=list(
     funs=diffObjStyleFuns(
       container=function(x) c("<div class='diffobj_container'>", x, "</div>"),
@@ -306,14 +339,24 @@ diffObjStyleHtml <- setClass(
     ),
     wrap=FALSE,
     pad=FALSE,
-    css=file.path(system.file(package="diffobj"), "css", "diffobj.css")
+    css=file.path(system.file(package="diffobj"), "css", "diffobj.css"),
+    css.mode="external",
+    escape.html.entities=TRUE
   ),
   validity=function(object) {
-    if(!is.chr.1L(css))
+    if(!is.chr.1L(object@css))
       return("slot `css` must be character(1L)")
+    if(!is.chr.1L(object@css.mode) && !object@css %in% c("internal", "external"))
+      return("slot `css.mode` must be \"internal\" or \"external\".")
+    if(!is.TF(escape.html.entities))
+      return("slot `escape.html.entities` must be TRUE or FALSE")
     TRUE
   }
 )
+#' @export diffObjStyleHtmlYB
+#' @exportClass diffObjStyleHtmlYB
+#' @rdname diffObjStyle
+
 diffObjStyleHtmlYB <- setClass(
   "diffObjStyleHtmlYB", contains="diffObjStyleHtml",
 )
@@ -323,163 +366,3 @@ setMethod("initialize", "diffObjStyleHtmlYB",
     callNextMethod(.Object, ...)
   }
 )
-#     diffObjStyle(disp.width=getOption("width"))
-#   } else if(theme == "default") {
-#     diffObjStyle(
-#       word.insert=crayon::green, word.delete=crayon::red,
-#       gutter.insert=crayon::green,
-#       gutter.insert.ctd=crayon::green,
-#       gutter.delete=crayon::red,
-#       gutter.delete.ctd=crayon::red,
-#       header=crayon::cyan,
-#       meta=crayon::silver,
-#       context.sep=crayon::silver
-#     )
-#   } else if(theme == "html") {
-#     diffObjStyle(
-#       line.insert=div_f(c("line", "insert")),
-#       line.delete=div_f(c("line", "delete")),
-#       line.match=div_f(c("line")),
-#       word.insert=span_f(c("word", "insert")),
-#       word.delete=span_f(c("word", "delete")),
-#       header=div_f(c("line", "header"))
-#     )
-#   } else if(theme == "git") {
-#     ins <- crayon::make_style(rgb(0, 5, 0, maxColorValue=5))
-#     word.insert.fg <- identity
-#     word.insert.bg <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
-#     word.insert <- function(x) word.insert.bg(word.insert.fg(x))
-#
-#     del <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
-#     word.delete.fg <- identity
-#     word.delete.bg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
-#     word.delete <- function(x) word.delete.bg(word.delete.fg(x))
-#
-#     diffObjStyle(
-#       line.insert=ins,
-#       line.delete=del,
-#       word.insert=word.insert,
-#       word.delete=word.delete,
-#       banner.insert=crayon::green,
-#       banner.delete=crayon::red,
-#       header=crayon::cyan,
-#       meta=crayon::silver
-#     )
-#   } else if(theme == "git.2") {
-#     ins <- crayon::make_style(rgb(0, 5, 0, maxColorValue=5))
-#     word.insert.fg <- crayon::reset
-#     word.insert.bg <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
-#     word.insert <- function(x) word.insert.fg(word.insert.bg(x))
-#
-#     del <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
-#     word.delete.fg <- crayon::reset
-#     word.delete.bg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
-#     word.delete <- function(x) word.delete.fg(word.delete.bg(x))
-#
-#     diffObjStyle(
-#       line.insert=ins,
-#       line.delete=del,
-#       word.insert=word.insert,
-#       word.delete=word.delete,
-#       banner.insert=crayon::green,
-#       banner.delete=crayon::red,
-#       header=crayon::cyan,
-#       meta=crayon::silver
-#     )
-#   } else if(theme == "git.3") {
-#     ins <- crayon::make_style(rgb(0, 5, 0, maxColorValue=5))
-#     word.insert.fg <- crayon::reset
-#     word.insert.bg <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
-#     word.insert <- crayon::green
-#
-#     del <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
-#     word.delete.fg <- crayon::reset
-#     word.delete.bg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
-#     word.delete <- crayon::red
-#
-#     diffObjStyle(
-#       line.insert=identity,
-#       line.delete=identity,
-#       word.insert=word.insert,
-#       word.delete=word.delete,
-#       banner.insert=crayon::green,
-#       banner.delete=crayon::red,
-#       header=crayon::cyan,
-#       meta=crayon::silver
-#     )
-#   } else if(theme == "stripes") {
-#     ins <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
-#     word.insert.fg <- crayon::make_style(rgb(0, 5, 0, maxColorValue=5))
-#     word.insert <- function(x) crayon::bold(word.insert.fg(x))
-#     del <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
-#     word.delete.fg <- crayon::make_style(rgb(5, 0, 0, maxColorValue=5))
-#     word.delete <- function(x) crayon::bold(word.delete.fg(x))
-#     diffObjStyle(
-#       line.insert=ins,
-#       line.delete=del,
-#       word.insert=word.insert.fg,
-#       word.delete=word.delete.fg,
-#       banner.insert=crayon::green,
-#       banner.delete=crayon::red,
-#       header=crayon::cyan,
-#       meta=crayon::silver
-#     )
-#   } else if(theme == "stripes.light") {
-#     ins <- crayon::make_style(rgb(4, 5, 4, maxColorValue=5), bg=TRUE)
-#     word.insert.fg <- crayon::make_style(rgb(0, 3, 0, maxColorValue=5))
-#     word.insert <- function(x) crayon::bold(word.insert.fg(x))
-#     del <- crayon::make_style(rgb(5, 4, 4, maxColorValue=5), bg=TRUE)
-#     word.delete.fg <- crayon::make_style(rgb(3, 0, 0, maxColorValue=5))
-#     word.delete <- function(x) crayon::bold(word.delete.fg(x))
-#     diffObjStyle(
-#       line.insert=ins,
-#       line.delete=del,
-#       word.insert=word.insert,
-#       word.delete=word.delete,
-#       banner.insert=crayon::green,
-#       banner.delete=crayon::red,
-#       header=crayon::cyan,
-#       meta=crayon::silver
-#     )
-#   } else if(theme == "checkers.light") {
-#     ins <- crayon::make_style(rgb(4, 5, 4, maxColorValue=5), bg=TRUE)
-#     word.insert <- crayon::make_style(rgb(2, 4, 2, maxColorValue=5), bg=TRUE)
-#     ins.fg <- crayon::make_style(rgb(0, 3, 0, maxColorValue=5))
-#     del <- crayon::make_style(rgb(5, 4, 4, maxColorValue=5), bg=TRUE)
-#     del.fg <- crayon::make_style(rgb(3, 0, 0, maxColorValue=5))
-#     word.delete <- crayon::make_style(rgb(4, 2, 2, maxColorValue=5), bg=TRUE)
-#     diffObjStyle(
-#       text.insert=ins,
-#       text.delete=del,
-#       word.insert=word.insert,
-#       word.delete=word.delete,
-#       gutter.insert=ins.fg,
-#       gutter.delete=del.fg,
-#       header=crayon::cyan,
-#       meta=crayon::silver
-#     )
-#   } else if(theme == "checkers.dark") {
-#     ins <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE)
-#     word.insert <- crayon::make_style(rgb(1, 4, 1, maxColorValue=5), bg=TRUE)
-#     word.insert.fg <- crayon::make_style(rgb(0, 1, 0, maxColorValue=5))
-#     del <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE)
-#     word.delete <- crayon::make_style(rgb(4, 1, 1, maxColorValue=5), bg=TRUE)
-#     word.delete.fg <- crayon::make_style(rgb(1, 0, 0, maxColorValue=5))
-#     diffObjStyle(
-#       text.insert=ins,
-#       text.delete=del,
-#       word.insert=function(x) word.insert(word.insert.fg(x)),
-#       word.delete=function(x) word.delete(word.delete.fg(x)),
-#       gutter.insert=word.insert.fg,
-#       gutter.delete=word.delete.fg,
-#       banner.insert=crayon::green,
-#       banner.delete=crayon::red,
-#       header=crayon::cyan,
-#       meta=crayon::silver
-#     )
-#   } else if(theme == "text") {
-#     diffObjStyle(
-#       word.insert=function(x) paste0(">|", x, "|>"),
-#       word.delete=function(x) paste0("<|", x, "|<")
-#     )
-#   }

@@ -2,8 +2,24 @@
 % Please edit documentation in R/styles.R
 \docType{class}
 \name{diffObjStyleFuns-class}
+\alias{diffObjStyleBasic}
+\alias{diffObjStyleBasic-class}
+\alias{diffObjStyleBasicYB}
+\alias{diffObjStyleBasicYB-class}
+\alias{diffObjStyleDark}
+\alias{diffObjStyleDark-class}
+\alias{diffObjStyleDarkYB}
+\alias{diffObjStyleDarkYB-class}
 \alias{diffObjStyleFuns}
 \alias{diffObjStyleFuns-class}
+\alias{diffObjStyleHtml}
+\alias{diffObjStyleHtml-class}
+\alias{diffObjStyleHtmlYB}
+\alias{diffObjStyleHtmlYB-class}
+\alias{diffObjStyleLight}
+\alias{diffObjStyleLight-class}
+\alias{diffObjStyleLightYB}
+\alias{diffObjStyleLightYB-class}
 \title{Customize Appearance of Diff}
 \arguments{
 \item{line}{function}

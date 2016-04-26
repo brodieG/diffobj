@@ -539,3 +539,20 @@ setMethod("as.character", "diffObjDiff",
     attr(fin, "meta") <- trim.meta
     fin
 } )
+#' @rdname diffobj_s4method_doc
+
+setMethod("as.character", "diffObjDiffHtml",
+  function(x, ...) {
+    x.chr <- callNextMethod(x, ...)
+    # note interplay with 'show' method as 'show' will add the external css
+    head <- if(
+      nchar(x@etc@style@css) && x@etc@style@css.mode == "internal"
+    ) {
+      css.txt <- try(readLines(x@etc@style@css))
+      if(inherits(css.txt, "try-error"))
+        stop("Cannot read css file ", x@etc@style@css)
+      c("<head><style type='text/css'>", css.txt, "</style></head>")
+    }
+    c(head, x.chr)
+  }
+)

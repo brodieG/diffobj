@@ -155,6 +155,9 @@ setClass(
       return("slot `trim.dat` in incorrect format")
     TRUE
 } )
+# Purely so we can implement a different `show` method; the meaningful
+# difference are actually inside @etc@style
+
 setClass("diffObjDiffHtml", contains="diffObjDiff")
 setMethod("show", "diffObjDiff",
   function(object) {
@@ -189,7 +192,9 @@ setMethod("show", "diffObjDiff",
 setMethod("show", "diffObjDiffHtml",
   function(object) {
     x.chr <- as.character(object)
-    head <- if(nchar(object@etc@style@css))
+    head <- if(
+      nchar(object@etc@style@css) && object@etc@style@css.mode == "external"
+    )
       sprintf(
         "<head><link rel='stylesheet' type='text/css' href='%s'></head>",
         object@etc@style@css
