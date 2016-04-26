@@ -158,7 +158,14 @@ setClass(
 # Purely so we can implement a different `show` method; the meaningful
 # difference are actually inside @etc@style
 
-setClass("diffObjDiffHtml", contains="diffObjDiff")
+setClass(
+  "diffObjDiffHtml", contains="diffObjDiff",
+  validity=function(object) {
+    if(!is(object@etc@style, "diffObjStyleHtml"))
+      return("Slot `@etc@style` must be or extended \"diffObjStyleHtml\".")
+    TRUE
+  }
+)
 setMethod("show", "diffObjDiff",
   function(object) {
     # Finalize stuff
