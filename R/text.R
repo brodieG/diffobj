@@ -7,6 +7,14 @@ crayon_hascolor <- crayon::has_color
 crayon_split <- crayon::col_strsplit
 crayon_strip <- crayon::strip_style
 
+html_ent_sub <- function(x, etc) {
+  if(is(etc@style, "diffObjStyleHtml") && etc@style@escape.html.entities) {
+    x <- gsub("&", "&amp;", x, fixed=TRUE)
+    x <- gsub("<", "&lt;", x, fixed=TRUE)
+    x <- gsub(">", "&gt;", x, fixed=TRUE)
+  }
+  x
+}
 # borrowed from crayon, will lobby to get it exported
 ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
                      "(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])",
