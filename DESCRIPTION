@@ -20,6 +20,10 @@ LazyData: true
 URL: https://github.com/brodieG/diffobj
 BugReports: https://github.com/brodieG/diffobj/issues
 RoxygenNote: 5.0.1
+VignetteBuilder: knitr
+Suggests:
+    knitr,
+    testthat
 Collate:
     'capt.R'
     'check.R'

@@ -16,7 +16,12 @@ vignette: >
 
 `diffobj` uses the same comparison mechanism used by `git diff` and `diff` to compare the text representation of R objects.  You are shown what the objects as you are used to see them, with the differences highlighted, instead of possibly cryptic difference messages:
 
+```{r, echo=FALSE}
+# old.opt <- options(diffobj.style=diffObjStyleHtml(css.mode="internal"))
+
+```
 ```{r}
+print(interactive())
 a <- b <- matrix(1:9, 3)
 b[5] <- 50
 diff_print(a, b)
