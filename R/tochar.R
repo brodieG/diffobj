@@ -332,8 +332,8 @@ setMethod("as.character", "diffObjDiff",
 
       # future calculations should assume narrower display
 
-      x@etc@style@line.width <- max.w
-      x@etc@style@text.width <- max.w - gutter.dat@width
+      x@etc@style@text.width <- max.w
+      x@etc@style@line.width <- max.w + gutter.dat@width
       s <- x@etc@style
     }
     # Make the object banner and compute more detailed widths post trim
