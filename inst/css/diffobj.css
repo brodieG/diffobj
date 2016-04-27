@@ -4,6 +4,9 @@
  * cues provided by the current set-up are useful (line wraps, etc.)
  */
 
+DIV.diffobj_container PRE {
+  white-space: pre-wrap;
+}
 DIV.diffobj_container DIV.row {
   width: 100%;
   font-family: monospace;

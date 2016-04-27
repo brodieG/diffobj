@@ -311,7 +311,8 @@ diffObjStyleHtml <- setClass(
   ),
   prototype=list(
     funs=diffObjStyleFuns(
-      container=function(x) c("<div class='diffobj_container'>", x, "</div>"),
+      # container fun adds div at top and bottom
+      container=function(x) c("<div class='diffobj_container'><pre>", x, "</pre></div>"),
       row=div_f("row"),
       banner.insert=div_f("insert"),
       banner.delete=div_f("delete"),
@@ -348,7 +349,7 @@ diffObjStyleHtml <- setClass(
       return("slot `css` must be character(1L)")
     if(!is.chr.1L(object@css.mode) && !object@css %in% c("internal", "external"))
       return("slot `css.mode` must be \"internal\" or \"external\".")
-    if(!is.TF(escape.html.entities))
+    if(!is.TF(object@escape.html.entities))
       return("slot `escape.html.entities` must be TRUE or FALSE")
     TRUE
   }
@@ -362,7 +363,9 @@ diffObjStyleHtmlYB <- setClass(
 )
 setMethod("initialize", "diffObjStyleHtmlYB",
   function(.Object, ...) {
-    .Object@funs@container=div_f(c("diffobj_container", "yb"))
+    # container fun adds div at top and bottom
+    .Object@funs@container <- function(x)
+      c("<div class='diffobj_container yb'>", x, "</div>")
     callNextMethod(.Object, ...)
   }
 )

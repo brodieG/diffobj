@@ -12,6 +12,7 @@ html_ent_sub <- function(x, etc) {
     x <- gsub("&", "&amp;", x, fixed=TRUE)
     x <- gsub("<", "&lt;", x, fixed=TRUE)
     x <- gsub(">", "&gt;", x, fixed=TRUE)
+    # x <- gsub(" ", "&#32;", x, fixed=TRUE)
   }
   x
 }

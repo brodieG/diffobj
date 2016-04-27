@@ -206,10 +206,10 @@ setMethod("show", "diffObjDiffHtml",
         "<head><link rel='stylesheet' type='text/css' href='%s'></head>",
         object@etc@style@css
       )
-    doc <- c("<!DOCTYPE><html>", head, "<body>", x.chr, "</body></html>")
+    doc <- c("<!DOCTYPE html><html>", head, "<body>", x.chr, "</body></html>")
     tmp <- paste0(tempfile(), ".html")
     on.exit(unlink(tmp))
-    writeLines(doc, con=tmp)
+    writeLines(paste0(doc, collapse=""), con=tmp)
     browseURL(tmp)
     readline("press any key to continue")
 } )
