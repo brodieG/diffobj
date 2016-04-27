@@ -102,10 +102,9 @@ capt_print <- function(target, current, etc, err, ...){
   tar.call.def[[1L]] <- cur.call.def[[1L]] <- base::print.default
 
   both.at <- is.atomic(current) && is.atomic(target)
-  capt.width <- etc@style@text.width
   cur.capt <- capture(cur.call, etc, frame, err)
   cur.capt.def <- if(both.at) capture(cur.call.def, etc, frame, err)
-  tar.capt <- capture(tar.call, capt.width, frame)
+  tar.capt <- capture(tar.call, etc, frame, err)
   tar.capt.def <- if(both.at) capture(tar.call.def, etc, frame, err)
 
   use.header <- length(dim(target)) == 2L && length(dim(current)) == 2L
@@ -193,6 +192,9 @@ capt_str <- function(target, current, etc, err, ...){
 
   capt.width <- etc@style@text.width
   has.diff <- has.diff.prev <- FALSE
+
+  # not sure why we have strip_hz_control here; perhaps it is legacy from before
+  # we added to the line diff function?
 
   tar.capt <- strip_hz_control(
     capture(tar.call, etc, frame, err), stops=etc@tab.stops
