@@ -48,26 +48,3 @@ div_f <- function(class=character(), style=character())
 span_f <- function(class=character(), style=character())
   tag_f("span", class, style)
 
-diffobj_css <- function() {
-  css <- list(
-    DIV.row=c(width="100%", overflow="hidden"),
-    DIV.line=c(width="50%", float="left"),
-    SPAN.word.insert=c(`background-color`="#a6f3a6"),
-    SPAN.word.delete=c(`background-color`="#f8cbcb"),
-    DIV.text=c(overflow="hidden"),
-    DIV.text.insert=c(`background-color`="#eaffea"),
-    DIV.text.delete=c(`background-color`="#ffecec"),
-    DIV.gutter=c(width="1em", float="left")
-  )
-  res <- character(length(css) + length(unlist(css)) + 2 * length(css))
-  j <- 0
-  for(i in names(css)) {
-    res[[(j <- j + 1)]] <- i
-    res[[(j <- j + 1)]] <- "{"
-    res[seq_len(length(css[[i]])) + j] <-
-      paste0("  ", names(css[[i]]), ": ", css[[i]], ";")
-    j <- j + length(css[[i]])
-    res[[(j <- j + 1)]] <- "}"
-  }
-  res
-}
