@@ -200,18 +200,26 @@ setMethod("show", "diffObjDiffHtml",
   function(object) {
     x.chr <- as.character(object)
     head <- if(
-      nchar(object@etc@style@css) && object@etc@style@css.mode == "external"
+      nchar(object@etc@style@css) && object@etc@style@css.mode == "external" &&
+      object@etc@style@as.page
     )
       sprintf(
         "<head><link rel='stylesheet' type='text/css' href='%s'></head>",
         object@etc@style@css
       )
-    doc <- c("<!DOCTYPE html><html>", head, "<body>", x.chr, "</body></html>")
-    tmp <- paste0(tempfile(), ".html")
-    on.exit(unlink(tmp))
-    writeLines(paste0(doc, collapse=""), con=tmp)
-    browseURL(tmp)
-    readline("press any key to continue")
+    doc <- if(object@etc@style@as.page) {
+      c("<!DOCTYPE html><html>", head, "<body>", x.chr, "</body></html>")
+    } else x.chr
+    doc.fin <- paste0(doc, collapse="")
+    if(object@etc@style@use.browser) {
+      tmp <- paste0(tempfile(), ".html")
+      on.exit(unlink(tmp))
+      writeLines(doc.fin, con=tmp)
+      browseURL(tmp)
+      readline("press any key to continue")
+    } else {
+      cat(doc.fin, sep="")
+    }
 } )
 # Compute what fraction of the lines in target and current actually end up
 # in the diff; some of the complexity is driven by repeated context hunks

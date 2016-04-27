@@ -1,5 +1,7 @@
 
 .onLoad <- function(libname, pkgname) {
+  # Check if we are running interactively and not in knitr
+
   default.opts <- list(
     diffobj.context="auto",
     diffobj.context.auto.min=1L,
@@ -20,7 +22,13 @@
     diffobj.align.threshold=0.25,
     diffobj.style="basic",
     diffobj.tab.stops=8L,
-    diffobj.disp.width=getOption("width")
+    diffobj.disp.width=getOption("width"),
+    diffobj.html.escape.html.entities=TRUE,
+    diffobj.html.css=
+      file.path(system.file(package="diffobj"), "css", "diffobj.css"),
+    diffobj.html.css.mode="auto",
+    diffobj.html.use.browser="auto",
+    diffobj.html.as.page="auto"
   )
   existing.opts <- options()
   options(default.opts[setdiff(names(default.opts), names(existing.opts))])

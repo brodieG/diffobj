@@ -302,17 +302,20 @@ diffObjStyleDarkYB <- setClass(
 #' @exportClass diffObjStyleHtml
 #' @rdname diffObjStyle
 
-diffObjStyleHtml <- setClass(
+setClass(
   "diffObjStyleHtml", contains="diffObjStyle",
   slots=c(
     css="character",
     css.mode="character",
-    escape.html.entities="logical"
+    escape.html.entities="logical",
+    use.browser="logical",
+    as.page="logical"
   ),
   prototype=list(
     funs=diffObjStyleFuns(
       # container fun adds div at top and bottom
-      container=function(x) c("<div class='diffobj_container'><pre>", x, "</pre></div>"),
+      container=function(x)
+        c("<div class='diffobj_container'><pre>", x, "</pre></div>"),
       row=div_f("row"),
       banner.insert=div_f("insert"),
       banner.delete=div_f("delete"),
@@ -339,21 +342,42 @@ diffObjStyleHtml <- setClass(
       gutter.match="&nbsp;"
     ),
     wrap=FALSE,
-    pad=FALSE,
-    css=file.path(system.file(package="diffobj"), "css", "diffobj.css"),
-    css.mode="external",
-    escape.html.entities=TRUE
+    pad=FALSE
   ),
   validity=function(object) {
     if(!is.chr.1L(object@css))
       return("slot `css` must be character(1L)")
     if(!is.chr.1L(object@css.mode) && !object@css %in% c("internal", "external"))
       return("slot `css.mode` must be \"internal\" or \"external\".")
-    if(!is.TF(object@escape.html.entities))
-      return("slot `escape.html.entities` must be TRUE or FALSE")
+    TF.slots <- c("escape.html.entities", "use.browser", "as.page")
+    for(i in TF.slots)
+      if(!is.TF(slot(object, i)))
+        return(paste0("slot `", i, "` must be TRUE or FALSE"))
     TRUE
   }
 )
+# construct with default values specified via options
+
+diffObjStyleHtml <- function(...) {
+  args <- list(...)
+  args.def <- list(
+    css=getOption("diffobj.html.css"),
+    css.mode=getOption("diffobj.html.css.mode"),
+    escape.html.entities=getOption("diffobj.html.escape.html.entities"),
+    use.browser=getOption("diffobj.html.use.browser"),
+    as.page=getOption("diffobj.html.as.page")
+  )
+  int.and.not.knit <- interactive() && !isTRUE(getOption('knitr.in.progress'))
+  if(identical(args.def$use.browser, "auto"))
+    args.def$use.browser <- int.and.not.knit
+  if(identical(args.def$as.page, "auto"))
+    args.def$as.page <- int.and.not.knit
+  if(identical(args.def$css.mode, "auto"))
+    args.def$css.mode <- if(int.and.not.knit) "external" else "internal"
+
+  args.comb <- c(args, args.def[!names(args.def) %in% names(args)])
+  do.call("new", c("diffObjStyleHtml", args.comb))
+}
 #' @export diffObjStyleHtmlYB
 #' @exportClass diffObjStyleHtmlYB
 #' @rdname diffObjStyle
@@ -365,7 +389,7 @@ setMethod("initialize", "diffObjStyleHtmlYB",
   function(.Object, ...) {
     # container fun adds div at top and bottom
     .Object@funs@container <- function(x)
-      c("<div class='diffobj_container yb'>", x, "</div>")
+      c("<div class='diffobj_container yb'><pre>", x, "</pre></div>")
     callNextMethod(.Object, ...)
   }
 )

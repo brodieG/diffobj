@@ -115,6 +115,8 @@ local({
     )
     diff_chr(chr.5, chr.6, mode="sidebyside")
 
+    diff_print(1:100, 2:101)
+    diff_print(2:101, 1:100)  # add reverse arg?
 
     iris.2 <- iris.c <- transform(iris, Species=as.character(Species))
     # without rounding this is a bit wild, but good corner case to test
