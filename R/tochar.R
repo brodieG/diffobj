@@ -379,7 +379,7 @@ setMethod("as.character", "diffObjDiff",
           "maintainer."
         )
       }
-      s@meta(
+      s@funs@meta(
         paste0(
           "... omitted ",
           if(ll) sprintf("%d/%d lines", lim.line[[1L]], lim.line[[2L]]),

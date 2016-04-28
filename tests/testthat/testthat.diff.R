@@ -143,6 +143,8 @@ local({
     mdl1 <- lm(Sepal.Length ~ Sepal.Width, iris)
     mdl2 <- lm(Sepal.Length ~ Sepal.Width + Species, iris.3)
     diff_str(mdl1, mdl2, mode="sidebyside")
+    # make sure that notice of suppressed stuff shows up
+    diff_str(mdl1, mdl2, mode="sidebyside", etc=etc(line.limit=50))
     # interesting example below where the in-hunk word diff is too aggressive
     # preventing the eq-lines from atching
     diff_str(mdl1[7], mdl2[7], mode="sidebyside")
