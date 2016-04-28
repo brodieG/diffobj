@@ -50,19 +50,35 @@ hunkl <- function(col.1=NULL, col.2=NULL, type.1=NULL, type.2=NULL)
     if(!is.null(col.2)) list(list(dat=col.2, type=type.2))
   )
 
-fin_fun_context <- function(A, B, context, max.w) {
-  A.ul <- unlist(A)
-  B.ul <- unlist(B)
-  hunkl(
-    col.1=c(A.ul, if(context) NA, B.ul),
-    type.1=chrt(
-      rep(if(context) "match" else "delete", length(A.ul)),
-      if(context) "context.sep",
-      rep(if(context) "match" else "insert", length(B.ul))
-    ),
+# finalization functions take aligned data and juxtapose it according to 
+# selected display mode.  Note that _context must operate on all the hunks
+# in a hunk group, whereas the other two operate on each hunk atom
+
+fin_fun_context <- function(dat) {
+  A.dat <- lapply(dat, "[[", "A")
+  B.dat <- lapply(dat, "[[", "B")
+  A.lens <- vapply(A.dat, function(x) length(unlist(x)), integer(1L))
+  B.lens <- vapply(B.dat, function(x) length(unlist(x)), integer(1L))
+  context <- vapply(dat, "[[", logical(1L), "context")
+  A.ctx <- rep(context, A.lens)
+  B.ctx <- rep(context, B.lens)
+  A.types <- ifelse(A.ctx, "match", "delete")
+  B.types <- ifelse(B.ctx, "match", "insert")
+
+  A.ul <- unlist(A.dat)
+  B.ul <- unlist(B.dat)
+
+  # return in list so compatible with post `lapply` return values for other
+  # finalization functions
+
+  list(
+    hunkl(
+      col.1=c(A.ul,  NA, B.ul),
+      type.1=chrt(A.types, "context.sep", B.types)
+    )
   )
 }
-fin_fun_unified <- function(A, B, context, max.w) {
+fin_fun_unified <- function(A, B, context) {
   ord <- order(c(seq_along(A), seq_along(B)))
   types <- c(
     lapply(A, function(x) rep(if(context) "match" else "delete", length(x))),
@@ -73,7 +89,7 @@ fin_fun_unified <- function(A, B, context, max.w) {
     type.1=chrt(unlist(types[ord]))
   )
 }
-fin_fun_sidebyside <- function(A, B, context, max.w) {
+fin_fun_sidebyside <- function(A, B, context) {
   for(i in seq_along(A)) {
     A.ch <- A[[i]]
     B.ch <- B[[i]]
@@ -101,18 +117,15 @@ hunk_atom_as_char <- function(h.a, mode, etc) {
     ghd.mode.1 <- "A"
     ghd.mode.2 <- "B"
     ghd.type.1 <- ghd.type.2 <- "both"
-    fin_fun <- fin_fun_context
   } else if(mode == "unified") {
     ghd.mode.1 <- ghd.mode.2 <-"A"
     ghd.type.1 <- "pos"
     ghd.type.2 <- "neg"
-    fin_fun <- fin_fun_unified
   } else if(mode == "sidebyside") {
     ghd.mode.1 <- "A"
     ghd.mode.2 <- "B"
     ghd.type.1 <- "pos"
     ghd.type.2 <- "neg"
-    fin_fun <- fin_fun_sidebyside
   }
   A.dat <- get_hunk_dat(h.a, mode=ghd.mode.1, ghd.type.1)
   B.dat <- get_hunk_dat(h.a, mode=ghd.mode.2, ghd.type.2)
@@ -124,7 +137,7 @@ hunk_atom_as_char <- function(h.a, mode, etc) {
     A.dat, B.dat, ignore.white.space=etc@ignore.white.space,
     threshold=etc@align.threshold
   )
-  fin_fun(dat.align$A, dat.align$B, h.a$context, max.w=etc@style@text.width)
+  list(A=dat.align$A, B=dat.align$B, context=h.a$context)
 }
 
 hunk_as_char <- function(h.g, ranges.orig, etc) {
@@ -162,15 +175,26 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
         }
       } else hunkl()
     )
-    # Generate hunk contents in pre-rendered form.  These will be lists with
-    # four vectors.
+    # Generate hunk contents in aligned form
 
     hunk.res <- lapply(h.g, hunk_atom_as_char, mode=mode, etc=etc)
 
+    # Run finalization functions; context mode is different because we need to
+    # re-order across atomic hunks
+
+    fin_fun <- switch(
+      mode, unified=fin_fun_unified, sidebyside=fin_fun_sidebyside,
+      context=fin_fun_context
+    )
+    hunk.fin <- if(mode != "context") {
+      lapply(hunk.res, function(x) do.call(fin_fun, x))
+    } else {
+      fin_fun_context(hunk.res)
+    }
     # Add header and return; this a list of lists, though all sub-lists should
     # have same format
 
-    c(hunk.head, hunk.res)
+    c(hunk.head, hunk.fin)
   }
 }
 # helper for in_hunk_diffs
@@ -512,7 +536,7 @@ setMethod("as.character", "diffObjDiff",
       delete=function(x) es@funs@text(es@funs@text.delete(x)),
       match=function(x) es@funs@text(es@funs@text.match(x)),
       header=es@funs@header,
-      context.sep=es@funs@context.sep
+      context.sep=function(x) es@funs@context.sep(es@text@context.sep)
     )
     pre.render.s <- Map(
       function(dat, type) {
