@@ -326,7 +326,7 @@ setMethod("as.character", "diffObjDiff",
           "spaces. You can re-run diff with `ignore.white.space=FALSE` to show ",
           "them."
       ) }
-      res <- s@meta(msg)
+      res <- s@funs@meta(msg)
     }
     # Basic width computation and banner size; start by computing gutter so we
     # can figure out what's left
