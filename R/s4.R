@@ -1,4 +1,5 @@
 #' @include misc.R
+#' @include styles.R
 
 NULL
 
@@ -40,15 +41,27 @@ setClass(
     TRUE
   }
 )
+# pre-computed gutter data
+
+setClass(
+  "diffObjGutter",
+  slots= c(
+    insert="character", insert.ctd="character",
+    delete="character", delete.ctd="character",
+    match="character", match.ctd="character",
+    pad="character",
+    width="integer"
+  )
+)
 setClass(
   "diffObjSettings",
   slots=c(
     mode="character",             # diff output mode
     context="doAutoCOrInt",
     line.limit="integer",
+    style="diffObjStyle",
     pager="diffObjPager",
     hunk.limit="integer",
-    disp.width="integer",
     use.ansi="logical",
     max.diffs="integer",
     max.diffs.in.hunk="integer",
@@ -62,7 +75,8 @@ setClass(
     cur.exp="ANY",
     tar.banner="charOrNULL",
     cur.banner="charOrNULL",
-    use.header="logical"
+    use.header="logical",
+    gutter="diffObjGutter"
   ),
   prototype=list(use.header=FALSE)
 )
@@ -141,6 +155,17 @@ setClass(
       return("slot `trim.dat` in incorrect format")
     TRUE
 } )
+# Purely so we can implement a different `show` method; the meaningful
+# difference are actually inside @etc@style
+
+setClass(
+  "diffObjDiffHtml", contains="diffObjDiff",
+  validity=function(object) {
+    if(!is(object@etc@style, "diffObjStyleHtml"))
+      return("Slot `@etc@style` must be or extended \"diffObjStyleHtml\".")
+    TRUE
+  }
+)
 setMethod("show", "diffObjDiff",
   function(object) {
     # Finalize stuff
@@ -171,6 +196,31 @@ setMethod("show", "diffObjDiff",
     invisible(NULL)
   }
 )
+setMethod("show", "diffObjDiffHtml",
+  function(object) {
+    x.chr <- as.character(object)
+    head <- if(
+      nchar(object@etc@style@css) && object@etc@style@css.mode == "external" &&
+      object@etc@style@as.page
+    )
+      sprintf(
+        "<head><link rel='stylesheet' type='text/css' href='%s'></head>",
+        object@etc@style@css
+      )
+    doc <- if(object@etc@style@as.page) {
+      c("<!DOCTYPE html><html>", head, "<body>", x.chr, "</body></html>")
+    } else x.chr
+    doc.fin <- paste0(doc, collapse="")
+    if(object@etc@style@use.browser) {
+      tmp <- paste0(tempfile(), ".html")
+      on.exit(unlink(tmp))
+      writeLines(doc.fin, con=tmp)
+      browseURL(tmp)
+      readline("press any key to continue")
+    } else {
+      cat(doc.fin, sep="")
+    }
+} )
 # Compute what fraction of the lines in target and current actually end up
 # in the diff; some of the complexity is driven by repeated context hunks
 
@@ -212,59 +262,6 @@ setMethod("any", "diffObjDiffDiffs",
         !vapply(unlist(x$hunks, recursive=FALSE), "[[", logical(1L), "context")
     ) )
 } )
-# Apply line colors; returns a list with the A and B vectors colored,
-# note that all hunks will be collapsed.
-#
-# Really only intended to be used for stuff that produces a single hunk
-
-diff_color <- function(x, ...) {
-  if(!is.diffs(x)) stop("Logic Error: unexpected input; contact maintainer.")
-  h.flat <- unlist(x$hunks, recursive=FALSE)
-  # the & !logical(...) business is to ensure we get zero row matrices when
-  # the id vector is length zero
-
-  bind_hunks <- function(hunk, val)
-    do.call(
-      rbind,
-      lapply(
-        hunk,
-        function(y)
-          cbind(id=y[[val]], ctx=y$context & !logical(length(y[[val]])))
-    ) )
-
-  A.num <- bind_hunks(h.flat, "A")
-  B.num <- bind_hunks(h.flat, "B")
-  A.chr <- unlist(lapply(h.flat, "[[", "A.chr"))
-  B.chr <- unlist(lapply(h.flat, "[[", "B.chr"))
-
-  # The following contortions are to minimize number of calls to
-  # `crayon_style`
-
-  A.green <- which(A.num[, "id"] < 0 & !A.num[, "ctx"])
-  A.red <- which(A.num[, "id"] > 0 & !A.num[, "ctx"])
-  B.green <- which(B.num[, "id"] < 0 & !B.num[, "ctx"])
-  B.red <- which(B.num[, "id"] > 0 & !B.num[, "ctx"])
-
-  AB.green <- crayon_style(c(A.chr[A.green], B.chr[B.green]), "green")
-  AB.red <- crayon_style(c(A.chr[A.red], B.chr[B.red]), "red")
-
-  # Make a version where the differences are replaced with blank strings; this
-  # will then allow us to line up the hunk lines
-
-  A.eq <- A.chr
-  B.eq <- B.chr
-  A.eq[c(A.green, A.red)] <- ""
-  B.eq[c(B.green, B.red)] <- ""
-
-  # Color the diffs
-
-  A.chr[A.green] <- head(AB.green, length(A.green))
-  A.chr[A.red] <- head(AB.red, length(A.red))
-  B.chr[B.green] <- tail(AB.green, length(B.green))
-  B.chr[B.red] <- tail(AB.red, length(B.red))
-
-  list(A=A.chr, B=B.chr, A.eq=A.eq, B.eq=B.eq)
-}
 
 setClass(
   "diffObjMyersMbaSes",

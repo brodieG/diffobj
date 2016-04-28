@@ -354,7 +354,7 @@ process_hunks <- function(x, ctx.val, use.header) {
 
 get_hunk_chr_lens <- function(hunk.grps, etc) {
   mode <- etc@mode
-  disp.width <- etc@disp.width
+  disp.width <- etc@style@disp.width
   # Account for overhead / side by sideness in width calculations
   # Internal funs
 
@@ -466,7 +466,7 @@ trim_hunk <- function(hunk, type, line.id) {
 }
 trim_hunks <- function(hunk.grps, etc) {
   mode <- etc@mode
-  disp.width <- etc@disp.width
+  disp.width <- etc@style@disp.width
   hunk.limit <- etc@hunk.limit
   line.limit <- etc@line.limit
   diffs.orig <- count_diffs(hunk.grps)

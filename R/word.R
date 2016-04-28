@@ -90,7 +90,10 @@ diff_word <- function(
   )
   # Color
 
-  diff.colored <- diff_color(diffs)
+  diff.colored <- diff_color(
+    diffs, ins.fun=etc@style@funs@word.insert,
+    del.fun=etc@style@funs@word.delete
+  )
   tar.colored <- diff.colored$A
   cur.colored <- diff.colored$B
   tar.eq <- diff.colored$A.eq
@@ -145,4 +148,70 @@ diff_word <- function(
     cur.tok.ratio=ifelse(cur.lens, cur.toks.eq / cur.lens, 0),
     hit.diffs.max=diffs$hit.diffs.max
   )
+}
+# Apply line colors; returns a list with the A and B vectors colored,
+# note that all hunks will be collapsed.
+#
+# Really only intended to be used for stuff that produces a single hunk
+
+diff_color <- function(x, ins.fun, del.fun) {
+  if(!is.diffs(x))
+    stop("Logic Error: unexpected input; contact maintainer.")
+  h.flat <- unlist(x$hunks, recursive=FALSE)
+  # the & !logical(...) business is to ensure we get zero row matrices when
+  # the id vector is length zero
+
+  bind_hunks <- function(hunk, val)
+    do.call(
+      rbind,
+      lapply(
+        hunk,
+        function(y)
+          cbind(id=y[[val]], ctx=y$context & !logical(length(y[[val]])))
+    ) )
+
+  A.num <- bind_hunks(h.flat, "A")
+  B.num <- bind_hunks(h.flat, "B")
+  A.chr <- unlist(lapply(h.flat, "[[", "A.chr"))
+  B.chr <- unlist(lapply(h.flat, "[[", "B.chr"))
+
+  # The following contortions are to minimize number of calls to
+  # `crayon_style`
+
+  A.green <- which(A.num[, "id"] < 0 & !A.num[, "ctx"])
+  A.red <- which(A.num[, "id"] > 0 & !A.num[, "ctx"])
+  B.green <- which(B.num[, "id"] < 0 & !B.num[, "ctx"])
+  B.red <- which(B.num[, "id"] > 0 & !B.num[, "ctx"])
+
+  AB.green.in <- c(A.chr[A.green], B.chr[B.green])
+  AB.red.in <- c(A.chr[A.red], B.chr[B.red])
+  color.try <- try({
+    AB.green <- ins.fun(AB.green.in)
+    AB.red <- del.fun(AB.red.in)
+    NULL
+  })
+  if(inherits(color.try, "try-error"))
+    stop("Styling functions failed; see prior errors")
+  if(
+    !is.character(AB.green) || anyNA(AB.green) ||
+    length(AB.green) != length(AB.green.in)
+  )
+    stop("Insert styling function produced unexpected output")
+
+  # Make a version where the differences are replaced with blank strings; this
+  # will then allow us to line up the hunk lines
+
+  A.eq <- A.chr
+  B.eq <- B.chr
+  A.eq[c(A.green, A.red)] <- ""
+  B.eq[c(B.green, B.red)] <- ""
+
+  # Color the diffs
+
+  A.chr[A.green] <- head(AB.green, length(A.green))
+  A.chr[A.red] <- head(AB.red, length(A.red))
+  B.chr[B.green] <- tail(AB.green, length(B.green))
+  B.chr[B.red] <- tail(AB.red, length(B.red))
+
+  list(A=A.chr, B=B.chr, A.eq=A.eq, B.eq=B.eq)
 }

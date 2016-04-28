@@ -221,14 +221,18 @@ test_that("align mismatches", {
 test_that("align threshold", {
   A <- c("ab cd e f", "xy CD e f", "ab cd e f")
   B <- c("molly wolly", "ab cd e G", "ZZ cd e H", "xy CD e K")
-  A.l <- as.list(A)
-  B.l <- as.list(B)
   A.eq <- substr(A, 1, 7)
   B.eq <- substr(B, 1, 7)
+  A.tok.ratio <- c(1, 1, 0)
+  B.tok.ratio <- c(0, 1, 0, 1)
+I
+  A.l <- list(chr=A, eq.chr=A.eq, raw.chr=character(3L), tok.ratio=A.tok.ratio)
+  B.l <- list(chr=B, eq.chr=B.eq, raw.chr=character(4L), tok.ratio=B.tok.ratio)
+
   expect_identical(
     unname(
       diffobj:::align_eq(
-        A.l, B.l, A.eq, B.eq, A, B, ignore.white.space=FALSE, threshold=0
+        A.l, B.l, ignore.white.space=FALSE, threshold=0
     ) ),
     list(
       list(list(character(0)), list("ab cd e f"), list(character(0)), list("xy CD e f"), list("ab cd e f")),

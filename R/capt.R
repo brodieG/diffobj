@@ -3,19 +3,20 @@
 #
 # x is a quoted call to evaluate
 
-capture <- function(x, capt.width, frame, err) {
-  width.old <- getOption("width")
-  on.exit(options(width=width.old))
-  width <- max(capt.width, 20L)
-  options(width=width)
-
+capture <- function(x, etc, frame, err) {
+  capt.width <- etc@style@text.width
+  if(capt.width) {
+    width.old <- getOption("width")
+    on.exit(options(width=width.old))
+    options(width=capt.width)
+  }
   res <- try(obj.out <- capture.output(eval(x, frame)))
   if(inherits(res, "try-error"))
     err(
       "Failed attempting to get text representation of object: ",
       conditionMessage(attr(res, "condition"))
     )
-  res
+  html_ent_sub(res, etc)
 }
 # DEPRECATED?
 
@@ -101,11 +102,10 @@ capt_print <- function(target, current, etc, err, ...){
   tar.call.def[[1L]] <- cur.call.def[[1L]] <- base::print.default
 
   both.at <- is.atomic(current) && is.atomic(target)
-  capt.width <- calc_width(etc@disp.width, etc@mode) - 2L
-  cur.capt <- capture(cur.call, capt.width, frame, err)
-  cur.capt.def <- if(both.at) capture(cur.call.def, capt.width, frame, err)
-  tar.capt <- capture(tar.call, capt.width, frame)
-  tar.capt.def <- if(both.at) capture(tar.call.def, capt.width, frame, err)
+  cur.capt <- capture(cur.call, etc, frame, err)
+  cur.capt.def <- if(both.at) capture(cur.call.def, etc, frame, err)
+  tar.capt <- capture(tar.call, etc, frame, err)
+  tar.capt.def <- if(both.at) capture(tar.call.def, etc, frame, err)
 
   use.header <- length(dim(target)) == 2L && length(dim(current)) == 2L
 
@@ -190,15 +190,18 @@ capt_str <- function(target, current, etc, err, ...){
 
   # Run str
 
-  capt.width <- calc_width_pad(etc@disp.width, etc@mode)
+  capt.width <- etc@style@text.width
   has.diff <- has.diff.prev <- FALSE
 
+  # not sure why we have strip_hz_control here; perhaps it is legacy from before
+  # we added to the line diff function?
+
   tar.capt <- strip_hz_control(
-    capture(tar.call, capt.width, frame, err), stops=etc@tab.stops
+    capture(tar.call, etc, frame, err), stops=etc@tab.stops
   )
   tar.lvls <- str_levels(tar.capt, wrap=wrap)
   cur.capt <- strip_hz_control(
-    capture(cur.call, capt.width, frame, err), stops=etc@tab.stops
+    capture(cur.call, etc, frame, err), stops=etc@tab.stops
   )
   cur.lvls <- str_levels(cur.capt, wrap=wrap)
 
@@ -295,10 +298,16 @@ capt_str <- function(target, current, etc, err, ...){
 capt_chr <- function(target, current, etc, err, ...){
   tar.capt <- if(!is.character(target)) as.character(target, ...) else target
   cur.capt <- if(!is.character(current)) as.character(current, ...) else current
-  line_diff(target, current, tar.capt, cur.capt, etc=etc)
+  line_diff(
+    target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
+    etc=etc
+  )
 }
 capt_deparse <- function(target, current, etc, err, ...){
   tar.capt <- deparse(target, ...)
   cur.capt <- deparse(current, ...)
-  line_diff(target, current, tar.capt, cur.capt, etc=etc)
+  line_diff(
+    target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
+    etc=etc
+  )
 }

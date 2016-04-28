@@ -1,3 +1,7 @@
+#' @include styles.R
+
+NULL
+
 #' Generate a \code{diffobj} Settings Object
 #'
 #' Used for more fine grained control on the \code{diff_obj} family of
@@ -62,10 +66,10 @@
 etc <- function(
   line.limit=getOption("diffobj.line.limit"),
   hunk.limit=getOption("diffobj.hunk.limit"),
+  style=getOption("diffobj.style"),
   pager=pager_settings(),
   ignore.white.space=getOption("diffobj.ignore.white.space"),
   use.ansi=getOption("diffobj.use.ansi"),
-  disp.width=getOption("width"),
   max.diffs=getOption("diffobj.max.diffs"),
   max.diffs.in.hunk=getOption("diffobj.max.diffs.in.hunk"),
   max.diffs.wrap=getOption("diffobj.max.diffs.wrap"),
@@ -112,7 +116,7 @@ etc <- function(
 
   msg.base <- "Argument `%s` must be integer(1L) and not NA."
   int1L.vars <- c(
-    "disp.width", "max.diffs", "max.diffs.in.hunk", "max.diffs.wrap"
+    "max.diffs", "max.diffs.in.hunk", "max.diffs.wrap"
   )
   for(i in int1L.vars) this.env[[i]] <-
     if(!is.int.1L(this.env[[i]])) {
@@ -137,6 +141,17 @@ etc <- function(
   )
     stop("Argument `align.threshold` must be between 0 and 1")
 
+  # style
+
+  if(is.chr.1L(style)) {
+    style <- try(diff_style_theme(style), silent=FALSE)
+    if(inherits(style, "try-error"))
+      stop("Argument `style` is not a valid style")
+  } else if (!is(style, "diffObjStyle")) {
+    stop(
+      "Argument `style` must be a style object or the name of a style object."
+    )
+  }
   # instantiate settings object
 
   set.vars <- as.list(this.env)
@@ -255,4 +270,29 @@ reset_less_var <- function(LESS.old) {
   if(is.na(LESS.old)) {
     Sys.unsetenv("LESS")
   } else Sys.setenv(LESS=LESS.old)
+}
+.valid_themes <- list(
+  core=diffObjStyle, 
+  basic=diffObjStyleBasic,
+  basicyb=diffObjStyleBasicYB,
+  light=diffObjStyleLight,
+  dark=diffObjStyleDark,
+  darkyb=diffObjStyleDarkYB,
+  lightyb=diffObjStyleLightYB,
+  html=diffObjStyleHtml,
+  htmlyb=diffObjStyleHtmlYB
+  #   text=diffObjStyleText,
+  #   stripes=diffObjStripes,
+  #   stripes.light=diffObjStripesLight,
+  #   stripes.dark=diffObjStripesDark,
+  #   checkers.light=diffObjCheckersLight,
+  #   checkers.dark=diffObjCheckersDark,
+)
+#' @export
+
+diff_style_theme <- function(theme="default") {
+  if(!is.chr.1L(theme) || !theme %in% names(.valid_themes))
+    stop("Argument `theme` is not a valid theme")
+
+  .valid_themes[[theme]]()
 }

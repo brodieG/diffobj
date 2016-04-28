@@ -5,12 +5,14 @@
 \title{Generate a \code{diffobj} Settings Object}
 \usage{
 etc(line.limit = getOption("diffobj.line.limit"),
-  hunk.limit = getOption("diffobj.hunk.limit"), pager = pager_settings(),
+  hunk.limit = getOption("diffobj.hunk.limit"),
+  style = getOption("diffobj.style"), pager = pager_settings(),
   ignore.white.space = getOption("diffobj.ignore.white.space"),
-  use.ansi = getOption("diffobj.use.ansi"), disp.width = getOption("width"),
+  use.ansi = getOption("diffobj.use.ansi"),
   max.diffs = getOption("diffobj.max.diffs"),
   max.diffs.in.hunk = getOption("diffobj.max.diffs.in.hunk"),
   max.diffs.wrap = getOption("diffobj.max.diffs.wrap"),
+  align.threshold = getOption("diffobj.align.threshold"),
   convert.hz.white.space = getOption("diffobj.convert.hz.white.space"),
   tab.stops = getOption("diffobj.tab.stops"), frame = parent.frame(),
   tar.banner = NULL, cur.banner = NULL)
@@ -35,10 +37,6 @@ FALSE)}
 \item{use.ansi}{TRUE or FALSE, whether to use ANSI escape sequences to color
 differences (TRUE by default if we detect that your terminal supports it)}
 
-\item{disp.width}{integer(1L) number of display columns to take up; note that
-in \dQuote{sidebyside} mode the effective display width is half this
-number (defaults to \code{getOption("width")}.}
-
 \item{max.diffs}{integer(1L), number of differences after which we abandon
 the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
 \code{-1L} to always stick to the original algorithm (defaults to 10000L).}
@@ -50,6 +48,11 @@ to zero to turn off in-hunk word diff.}
 \item{max.diffs.wrap}{integer(1L), like \code{max.diffs}, but used when
 computing word diffs on atomic vectors (defaults to 10000L), see
 \dQuote{Atomic Vectors} for \code{\link{diff_print}}.}
+
+\item{align.threshold}{numeric(1L) between 0 and 1, proportion of
+characters in a line of \code{target} that must be matched in a line of
+\code{current} in the same hunk for those lines to be paired up when
+displayed (defaults to 0.25).}
 
 \item{tab.stops}{integer, what tab stops to use when converting hard tabs to
 spaces.  If not integer will be coerced to integer (defaults to 8L).}
@@ -70,6 +73,10 @@ that contain tabs and carriage returns in such a way that they display as
 they would \bold{with} those characters, but without using those
 characters (defaults to TRUE).  If your console uses tab stops that are not
 eight characters apart you may specify them with \code{tab.stops}.}
+
+\item{disp.width}{integer(1L) number of display columns to take up; note that
+in \dQuote{sidebyside} mode the effective display width is half this
+number (defaults to \code{getOption("width")}.}
 }
 \value{
 a \code{diffObjSettings} S4 object for use with the
@@ -78,7 +85,8 @@ a \code{diffObjSettings} S4 object for use with the
 \description{
 Used for more fine grained control on the \code{diff_obj} family of
 functions by generating a settings object to pass as the \code{etc}
-parameter.
+parameter.  Most arguments take default values from options so that you may
+customize the behavior of these functions to your liking.
 }
 \examples{
 mx1 <- mx2 <- matrix(1:80, 20)

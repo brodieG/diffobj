@@ -2,7 +2,7 @@
 title: "diffobj - Diffs for R Objects"
 author: "Brodie Gaslam"
 output:
-    rmarkdown::html_vignette:
+    function(...) rmarkdown::html_vignette(..., md_extensions="-markdown_in_html_blocks"):
         toc: true
         css: styles.css
 
@@ -16,11 +16,17 @@ vignette: >
 
 `diffobj` uses the same comparison mechanism used by `git diff` and `diff` to compare the text representation of R objects.  You are shown what the objects as you are used to see them, with the differences highlighted, instead of possibly cryptic difference messages:
 
-```{r}
-a <- b <- matrix(1:9, 3)
-b[5] <- 50
-diff_print(a, b)
-all.equal(a, b)
+```{r, results="asis"}
+library(diffobj)
+a <- matrix(1:9, 3)
+b <- matrix(1:9, 3)
+b[5] <- 1
+mdl1 <- lm(Sepal.Length ~ Sepal.Width, iris)
+mdl2 <- lm(Sepal.Length ~ Sepal.Width + Species, iris.3)
+diff_str(
+  mdl1, mdl2, mode="sidebyside",
+  etc=etc(style=diffObjStyleHtml(css.mode="internal"))
+)
 ```
 
 The `diffobj` functions were written originally to compare unit test results and quickly identify the nature of test regressions.  They work best with small objects or objects that are mostly alike, but can be used with other objects too.

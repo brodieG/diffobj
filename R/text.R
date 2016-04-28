@@ -7,6 +7,15 @@ crayon_hascolor <- crayon::has_color
 crayon_split <- crayon::col_strsplit
 crayon_strip <- crayon::strip_style
 
+html_ent_sub <- function(x, etc) {
+  if(is(etc@style, "diffObjStyleHtml") && etc@style@escape.html.entities) {
+    x <- gsub("&", "&amp;", x, fixed=TRUE)
+    x <- gsub("<", "&lt;", x, fixed=TRUE)
+    x <- gsub(">", "&gt;", x, fixed=TRUE)
+    # x <- gsub(" ", "&#32;", x, fixed=TRUE)
+  }
+  x
+}
 # borrowed from crayon, will lobby to get it exported
 ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
                      "(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])",
@@ -30,7 +39,7 @@ align_split <- function(v, m) {
   m.fin <- ifelse(m.all < 0, -m.all * 2 - 1, m.all * 2)
   if(any(diff(m.fin) < 0L))
     stop("Logic Error: non monotonic alignments; contact maintainer")
-  res <- replicate(res.len, list(character(0L)), simplify=FALSE)
+  res <- replicate(res.len, character(0L), simplify=FALSE)
   res[unique(m.fin)] <- unname(split(v, m.fin))
   res
 }
@@ -42,7 +51,7 @@ align_split <- function(v, m) {
 #
 # Will also apply colors to fully mismatching lines
 
-align_eq <- function(A, B, threshold, ignore.white.space, context) {
+align_eq <- function(A, B, threshold, ignore.white.space) {
   stopifnot(
     is.list(A), is.list(B), length(A) == length(B),
     identical(names(B), names(A)), identical(names(A), .valid_sub),
@@ -51,8 +60,7 @@ align_eq <- function(A, B, threshold, ignore.white.space, context) {
     !anyNA(unlist(c(A, B))),
     all(vapply(c(A[1:3], B[1:3]), is.character, logical(1L))),
     is.numeric(nums <- c(A[[4]], B[[4]])),
-    all(nums >= 0 & nums <= 1),
-    is.TF(context)
+    all(nums >= 0 & nums <= 1)
   )
   A.eq <- A$eq.chr
   B.eq <- B$eq.chr
@@ -83,15 +91,11 @@ align_eq <- function(A, B, threshold, ignore.white.space, context) {
     ifelse(align, B$tok.ratio[align], 1L) < threshold
   align[disallow.match] <- 0L
 
-  # A and B are word colored, but we don't want to keep those if if they don't
-  # qualify to be aligned; this is not super efficient since we're undoing the
-  # word coloring instead of not doing it, but pita to do properly
+  # Actually, now testing allowing the word coloring now that we have color
+  # schemes for lines and words
 
-  use.ansi <- crayon_hascolor()
-  A.fin <- if(!context && use.ansi) red(A$raw.chr) else A$raw.chr
-  B.fin <- if(!context && use.ansi) green(B$raw.chr) else B$raw.chr
-  A.fin[which(!!align)] <- A$chr[which(!!align)]
-  B.fin[align] <- B$chr[align]
+  A.fin <- A$chr
+  B.fin <- B$chr
 
   # Group elements together; only one match per group, mismatches are put
   # in interstitial buckets.  We number the interstitial buckest as the
@@ -327,9 +331,10 @@ wrap <- function(txt, width, pad=FALSE) {
   # vector
 
   use.ansi <- crayon_hascolor()
-  has.chars <- nzchar(txt)
+  has.na <- is.na(txt)
+  has.chars <- nzchar(txt) & !has.na
   w.chars <- which(has.chars)
-  wo.chars <- which(!has.chars)
+  wo.chars <- which(!has.chars & !has.na)
 
   txt.sub <- txt[has.chars]
   w.ansi.log <- grepl(ansi_regex, txt.sub, perl=TRUE) & use.ansi
@@ -340,6 +345,7 @@ wrap <- function(txt, width, pad=FALSE) {
   # length char elements
 
   res.l <- vector("list", length(txt))
+  res.l[has.na] <- NA_character_
   res.l[wo.chars] <- ""
   res.l[w.chars][w.ansi] <-
     wrap_int(txt.sub[w.ansi], width, crayon_substr, crayon_nchar)
@@ -348,7 +354,8 @@ wrap <- function(txt, width, pad=FALSE) {
 
   # pad if requested
 
-  if(pad) lapply(res.l, rpad, width=width) else res.l
+  if(pad) res.l[!has.na] <- lapply(res.l[!has.na], rpad, width=width)
+  res.l
 }
 # Add the +/- in front of a text line and color accordingly
 #
@@ -379,13 +386,14 @@ sign_pad <- function(txt, pad, rev=FALSE) {
         color <- pad[[x]] > 1L
         extras <- rep(if(color) pad.ex else "  ", len - 1L)
         res <- c(pads[pad[[x]]], extras)
-        if(use.ansi && color) {
-          crayon_style(res, if(pad[[x]] == 2L) "green" else "red")
-        } else res
+        res
   } } )
   Map(paste0, if(rev) txt else pad.out, if(!rev) txt else pad.out)
 }
 # combine wrap and sign_pad
 
-wrap_and_sign_pad <- function(l, width, pad.type, wrap.pad=FALSE)
-  lapply(l, function(x) sign_pad(wrap(x, width, wrap.pad), pad.type))
+wrap_and_sign_pad <- function(l, width, pad.type, wrap.pad=FALSE, style)
+  lapply(
+    l,
+    function(x) lapply(sign_pad(wrap(x, width, wrap.pad), pad.type), style)
+  )

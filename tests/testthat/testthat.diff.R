@@ -87,7 +87,7 @@ local({
     )
 
     diff_print(chr.1, chr.2)
-    diff_obj(chr.1, chr.2)
+    diff_obj(chr.1, chr.2, mode="sidebyside")
     diff_print(chr.1, chr.2, mode="sidebyside")
     diff_print(chr.1[2:3], chr.2[2], mode="sidebyside")
 
@@ -115,6 +115,8 @@ local({
     )
     diff_chr(chr.5, chr.6, mode="sidebyside")
 
+    diff_print(1:100, 2:101)
+    diff_print(2:101, 1:100)  # add reverse arg?
 
     iris.2 <- iris.c <- transform(iris, Species=as.character(Species))
     # without rounding this is a bit wild, but good corner case to test
@@ -141,6 +143,9 @@ local({
     mdl1 <- lm(Sepal.Length ~ Sepal.Width, iris)
     mdl2 <- lm(Sepal.Length ~ Sepal.Width + Species, iris.3)
     diff_str(mdl1, mdl2, mode="sidebyside")
+    diff_str(mdl1, mdl2, mode="sidebyside", e=etc(style="dark"))
+    # make sure that notice of suppressed stuff shows up
+    diff_str(mdl1, mdl2, mode="sidebyside", etc=etc(line.limit=50))
     # interesting example below where the in-hunk word diff is too aggressive
     # preventing the eq-lines from atching
     diff_str(mdl1[7], mdl2[7], mode="sidebyside")
@@ -159,7 +164,7 @@ local({
     # line limit issues
     diff_print(Puromycin, Puromycin2, etc=etc(line.limit=6))
     diff_print(Puromycin, Puromycin2, etc=etc(line.limit=6), mode="sidebyside")
-    STJKUdiff_print(Puromycin, Puromycin2, line.limit=6, mode="context")
+    diff_print(Puromycin, Puromycin2, line.limit=6, mode="context")
 
     diff_print(Puromycin, Puromycin2, line.limit=3)
     diff_print(Puromycin, Puromycin2, line.limit=3)
