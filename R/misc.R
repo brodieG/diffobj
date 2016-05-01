@@ -1,4 +1,14 @@
-# error call
+# check whether argument list contains non-default formals
+
+has_non_def_formals <- function(arg.list) {
+  stopifnot(is.pairlist(arg.list))
+  any(
+    vapply(
+      arg.list,
+      function(x) is.name(x) && !nzchar(as.character(x))
+      logical(1L)
+  ) )
+}
 
 make_err_fun <- function(call)
   function(...) stop(simpleError(do.call(paste0, list(...)), call=call))

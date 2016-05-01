@@ -109,66 +109,61 @@ diffObjStyleFuns <- setClass(
     for(i in slotNames(object)) {
       if(!is.function(slot(object, i)))
         return(paste0("Argument `", i, "` should be a function."))
-      frm <- formals(slot(object, i))
-      non.def <- vapply(
-        names(frm),
-        function(x)
-          is.name(frm[[x]]) && !nzchar(as.character(frm[[x]])) && x != "...",
-        logical(1L)
-      )
-      if(sum(non.def) > 1L)
+      if(has_non_def_formals(tail(formals(slot(object, i)), -1L)))
         return(
-         paste0(
-          "Argument `", i,
-          "` may not have more than one non-default formal argument"
-        ) )
+          paste0(
+            "Argument `", i,
+            "` may not have non-default formals argument after the first."
+          ) )
+      }
+      TRUE
     }
-    TRUE
-  }
-)
-diffObjStyleText <- setClass(
-  "diffObjStyleText",
-  slots=c(
-    gutter.insert="character", gutter.insert.ctd="character",
-    gutter.delete="character", gutter.delete.ctd="character",
-    gutter.match="character", gutter.match.ctd="character",
-    gutter.pad="character",
-    context.sep="character",
-    pad.col="character"
-  ),
-  prototype=list(
-    gutter.insert=">", gutter.insert.ctd=":",
-    gutter.delete="<", gutter.delete.ctd=":",
-    gutter.match=" ", gutter.match.ctd=" ",
-    gutter.pad=" ",
-    context.sep="~~~~~",
-    pad.col=" "
-  ),
-  validity=function(object){
-    for(i in slotNames(object)) if(!is.chr.1L(slot(object, i)))
-      return(paste0("Argument `", i, "` must be character(1L) and not NA."))
-    TRUE
-  }
-)
-diffObjStyle <- setClass(
-  "diffObjStyle",
-  slots=c(
-    funs="diffObjStyleFuns",
-    text="diffObjStyleText",
-    wrap="logical",
-    pad="logical",
-    disp.width="integer",
-    line.width="integer",
-    text.width="integer"
-  ),
-  prototype=list(
-    funs=diffObjStyleFuns(),
+  )
+  diffObjStyleText <- setClass(
+    "diffObjStyleText",
+    slots=c(
+      gutter.insert="character", gutter.insert.ctd="character",
+      gutter.delete="character", gutter.delete.ctd="character",
+      gutter.match="character", gutter.match.ctd="character",
+      gutter.pad="character",
+      context.sep="character",
+      pad.col="character"
+    ),
+    prototype=list(
+      gutter.insert=">", gutter.insert.ctd=":",
+      gutter.delete="<", gutter.delete.ctd=":",
+      gutter.match=" ", gutter.match.ctd=" ",
+      gutter.pad=" ",
+      context.sep="~~~~~",
+      pad.col=" "
+    ),
+    validity=function(object){
+      for(i in slotNames(object)) if(!is.chr.1L(slot(object, i)))
+        return(paste0("Argument `", i, "` must be character(1L) and not NA."))
+      TRUE
+    }
+  )
+  diffObjStyle <- setClass(
+    "diffObjStyle",
+    slots=c(
+      funs="diffObjStyleFuns",
+      text="diffObjStyleText",
+      wrap="logical",
+      pad="logical",
+      disp.width="integer",
+      line.width="integer",
+      text.width="integer",
+      finalizer="function"
+    ),
+    prototype=list(
+      Funs=diffObjStyleFuns(),
     text=diffObjStyleText(),
     disp.width=0L,
     text.width=0L,
     line.width=0L,
     wrap=TRUE,
-    pad=TRUE
+    pad=TRUE,
+    finalizer=function(x, y) x
   ),
   validity=function(object){
     int.1L.and.pos <- c("disp.width", "line.width", "text.width")
@@ -179,7 +174,17 @@ diffObjStyle <- setClass(
       return("Slot `wrap` must be TRUE or FALSE")
     if(!is.TF(object@pad))
       return("Slot `pad` must be TRUE or FALSE")
-    TRUE
+    fin.args <- formals(object@finalizer)
+    if(length(fin.args) < 2L)
+      return(
+        "Slot `finalizer` must be a function with at least two parameters."
+      )
+    if(length(fin.args) > 2L && has_non_def_formals(tail(fin.args, -2L)))
+      return(
+        paste0(
+          "Slot `finalizer` must be a function with no non-default parameters ",
+          "other than the first two."
+      ) )
   }
 )
 setMethod("initialize", "diffObjStyle", function(.Object, ...) {
@@ -305,9 +310,9 @@ diffObjStyleAnsi256DarkYb <- setClass(
 #' @exportClass diffObjStyleHtml
 #' @rdname diffObjStyle
 
-setClass(
+diffObjStyleHtml <- setClass(
   "diffObjStyleHtml", contains="diffObjStyle",
-  slots=c(css="character"),
+  slots=c(css="character", css.mode="character"),
   prototype=list(
     funs=diffObjStyleFuns(
       container=cont_f(),
@@ -342,18 +347,41 @@ setClass(
   validity=function(object) {
     if(!is.chr.1L(object@css))
       return("slot `css` must be character(1L)")
+    if(!is.chr.1L(object@css.mode))
+      return("slot `css.mode` must be \"internal\" or \"external\"")
     TRUE
   }
 )
 # construct with default values specified via options; would this work with
 # initialize?  Depends on whether this is run by package installation process
 
-diffObjStyleHtml <- function(...) {
-  args <- list(...)
-  args.def <- list(css=getOption("diffobj.html.css"))
-  args.comb <- c(args, args.def[!names(args.def) %in% names(args)])
-  do.call("new", c("diffObjStyleHtml", args.comb))
-}
+setMethod("initialize", "diffObjStyleHtml",
+  function(
+    .Object, css=getOption("diffobj.html.css"),
+    css.mode=getOption("diffobj.html.css.mode"), ...
+  ) {
+    # Generate finalizer function
+
+    .Object@finalizer <- function(txt, use.pager) {
+      header <- footer <- NULL
+      txt.flat <- paste0(txt, sep="")
+      css <- if(.Object@css.mode == "internal") {
+        css.txt <- try(paste0(readLines(.Object@css), collapse=""))
+        if(inherits(css.txt, "try-error"))
+        stop("Cannot read css file ", .Object@css)
+        sprintf("<style type='text/css'>%s</style>", css.txt)
+      } else if (use.pager) {
+        sprintf(
+          "<link rel='stylesheet' type='text/css' href='%s'>", .Object@css
+        )
+      } else ""
+      template <- if(use.pager) {
+        "<!DOCTYPE html><html><head>%s</head><body>%s</body><html>"
+      } else "%s%s"
+      sprintf(template, css, txt.flat)
+    }
+    callNextMethod(.Object, css=css, css.mode=css.mode, ...)
+} )
 #' @export diffObjStyleHtmlLightRgb
 #' @exportClass diffObjStyleHtmlLightRgb
 #' @rdname diffObjStyle
@@ -422,7 +450,11 @@ setMethod("initialize", "diffObjStyleHtmlLightYb",
 #' }
 #' @section Structural Details:
 #'
-#' The list must be fully populated with objects that are or extend
+#' The array/list is stored in the \code{data} slot of
+#' \code{diffObjStylePalette} objects.  Subsetting methods are provided so you
+#' may operate directly on the S4 object as you would on a regular array.
+#'
+#' The array/list must be fully populated with objects that are or extend
 #' \code{diffObjStyle}.  There is no explicit check that the objects in the list
 #' comply with the descriptions implied by their coordinates, although the
 #' default object provided by the package does comply for the most part.  One

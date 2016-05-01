@@ -146,17 +146,6 @@ setClass(
       return("slot `trim.dat` in incorrect format")
     TRUE
 } )
-# Purely so we can implement a different `show` method; the meaningful
-# difference are actually inside @etc@style
-
-setClass(
-  "diffObjDiffHtml", contains="diffObjDiff",
-  validity=function(object) {
-    if(!is(object@etc@style, "diffObjStyleHtml"))
-      return("Slot `@etc@style` must be or extended \"diffObjStyleHtml\".")
-    TRUE
-  }
-)
 setMethod("show", "diffObjDiff",
   function(object) {
     # Finalize stuff
@@ -169,49 +158,22 @@ setMethod("show", "diffObjDiff",
     threshold <- if(use.pager.thresh && pager.thresh == -1L)
       console_lines() else object@etc@pager@threshold
 
-    if(
-      identical(use.pager, "always") || (
-        use.pager.thresh && length(res.chr) > threshold
-      )
-    ){
+    use.pager <- object@pager@mode == "always" ||
+      object@pager@mode == "threshold" && length(pre.fin > threshold)
+
+    fin <- object@style@finalizer(res.chr, use.pager)
+
+    if(use.pager) {
       disp.f <- tempfile()
       on.exit(add=TRUE, unlink(disp.f))
-      writeLines(res.chr, disp.f)
-      if(pager_is_less() && object@etc@use.ansi) {
-        old.less <- set_less_var("R")
-        on.exit(reset_less_var(old.less), add=TRUE)
-      }
-      file.show(disp.f)
-    } else cat(res.chr, sep="\n")
-
+      writeLines(res.chr, paste0(disp.f, object@pager@file.ext))
+      object@pager@pager(disp.f)
+    } else {
+      cat(res.chr, sep="\n")
+    }
     invisible(NULL)
   }
 )
-setMethod("show", "diffObjDiffHtml",
-  function(object) {
-    x.chr <- as.character(object)
-    head <- if(
-      nchar(object@etc@style@css) && object@etc@style@css.mode == "external" &&
-      object@etc@style@as.page
-    )
-      sprintf(
-        "<head><link rel='stylesheet' type='text/css' href='%s'></head>",
-        object@etc@style@css
-      )
-    doc <- if(object@etc@style@as.page) {
-      c("<!DOCTYPE html><html>", head, "<body>", x.chr, "</body></html>")
-    } else x.chr
-    doc.fin <- paste0(doc, collapse="")
-    if(object@etc@style@use.browser) {
-      tmp <- paste0(tempfile(), ".html")
-      on.exit(unlink(tmp))
-      writeLines(doc.fin, con=tmp)
-      browseURL(tmp)
-      readline("press any key to continue")
-    } else {
-      cat(doc.fin, sep="")
-    }
-} )
 # Compute what fraction of the lines in target and current actually end up
 # in the diff; some of the complexity is driven by repeated context hunks
 

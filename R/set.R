@@ -149,15 +149,38 @@ etc <- function(
 
   # style
 
-  if(is.chr.1L(style)) {
-    style <- try(diff_style_theme(style), silent=FALSE)
-    if(inherits(style, "try-error"))
-      stop("Argument `style` is not a valid style")
-  } else if (!is(style, "diffObjStyle")) {
-    stop(
-      "Argument `style` must be a style object or the name of a style object."
-    )
+  if(!identical(style, "auto") || is(style, "diffObjStyle"))
+    stop("Argument `style` must be \"auto\" or a `diffObjStyle` object.")
+
+  # palette
+
+  if(!is(palette.of.styles, "diffObjStylePalette"))
+    stop("Argument `palette.of.styles` must be a `diffObjStylePalette` object.")
+
+  # format; decide what format to use
+
+  if(identical(style, "auto")) {
+    if(!is.chr.1L(format))
+      stop("Argument `format` must be character(1L) and not NA")
+    if(identical(format, "auto")) {
+      clrs <- crayon::num_colors()
+      if(clrs < 8) {
+        if()
+      }
+
+    } else if(!format %in% dimnames(palette.of.styles@data)$format)
+      stop(
+        "Argument `format` must be in `",
+        paste0(
+          deparse(
+            dimnames(palette.of.styles@data)$format, width.cutoff=500
+          ),
+          collapse=""
+        ), "`."
+      )
   }
+
+
   # instantiate settings object
 
   set.vars <- as.list(this.env)
@@ -278,7 +301,7 @@ reset_less_var <- function(LESS.old) {
   } else Sys.setenv(LESS=LESS.old)
 }
 .valid_themes <- list(
-  core=diffObjStyle, 
+  core=diffObjStyle,
   basic=diffObjStyleAnsi8NeutralRgb,
   basicyb=diffObjStyleAnsi8NeutralYb,
   light=diffObjStyleAnsi256LightRgb,

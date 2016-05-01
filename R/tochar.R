@@ -50,7 +50,7 @@ hunkl <- function(col.1=NULL, col.2=NULL, type.1=NULL, type.2=NULL)
     if(!is.null(col.2)) list(list(dat=col.2, type=type.2))
   )
 
-# finalization functions take aligned data and juxtapose it according to 
+# finalization functions take aligned data and juxtapose it according to
 # selected display mode.  Note that _context must operate on all the hunks
 # in a hunk group, whereas the other two operate on each hunk atom
 
@@ -557,26 +557,13 @@ setMethod("as.character", "diffObjDiff",
 
     rows <- render_rows(cols, etc=x@etc)
 
-    # Finalize
+    # Finalize; need to tell finalizer whether ouptut will be in pager or not
 
-    fin <- c(s@funs@container(rows), limit.out, str.fold.out, no.diffs)
+    pre.fin <- c(s@funs@container(rows), limit.out, str.fold.out, no.diffs)
+    use.pager <- x@pager@mode == "always" || x@pager@mode == "threshold" &&
+      length(pre.fin > x@pager@threshold)
+    fin <- s@finalizer(pre.fin, use.pager)
     attr(fin, "meta") <- trim.meta
+    attr(fin, "lines") <- length(pre.fin)
     fin
 } )
-#' @rdname diffobj_s4method_doc
-
-setMethod("as.character", "diffObjDiffHtml",
-  function(x, ...) {
-    x.chr <- callNextMethod(x, ...)
-    # note interplay with 'show' method as 'show' will add the external css
-    head <- if(
-      nchar(x@etc@style@css) && x@etc@style@css.mode == "internal"
-    ) {
-      css.txt <- try(readLines(x@etc@style@css))
-      if(inherits(css.txt, "try-error"))
-        stop("Cannot read css file ", x@etc@style@css)
-      c("<head><style type='text/css'>", css.txt, "</style></head>")
-    }
-    c(head, x.chr)
-  }
-)

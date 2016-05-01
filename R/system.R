@@ -39,3 +39,4 @@
   library.dynam.unload("diffobj", libpath)
 }
 
+gdO <- function(x) getOption(sprintf("diffobj.%s", x))
