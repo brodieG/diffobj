@@ -392,31 +392,33 @@ setMethod("initialize", "diffObjStyleHtmlLightYb",
   vector("list", prod(.dfs.dims.sizes)), dim=.dfs.dims.sizes, dimnames=.dfs.dims
 )
 
-#' Class for Tracking Default Styles
+#' Class for Tracking Default Styles by Style Type
 #'
-#' Provides a mechanism for complying with style defaults that constrain styles
-#' along one of the style dimensions without actually specifying a style.
-#' For example, one might require that a style be \dQuote{light} in tone, but
-#' not care about what particular style is used.  See examples for usage.
+#' Provides a mechanism for specifying a style based on the style properties
+#' along dimensions of format, brightness, and color.  This allows a user to
+#' request a style that meets a certain description (e.g. a \dQuote{light}
+#' scheme in \dQuote{ansi256} format), without having to provide a specific
+#' \code{\link{diffObjStyle}} object.
 #'
 #' @section Dimensions:
 #'
 #' There are three general orthogonal dimensions of styles that can be used when
-#' rendering diffs: the type of format, the \dQuote{luminosity} of the output,
+#' rendering diffs: the type of format, the \dQuote{brightness} of the output,
 #' and whether the colors used are distinguishable if you assume reds and greens
 #' are not distinguishable.  Defaults for the intersections each of these
-#' dimensions are encoded as a three dimensional list.
+#' dimensions are encoded as a three dimensional list.  This list is just an
+#' atomic vector of type \dQuote{list} with a length 3 \code{dim} attribute.
 #'
-#' The list dimensions are:
+#' The array/list dimensions are:
 #' \itemize{
 #'   \item format: the format type, typically \dQuote{raw}, \dQuote{ansi8},
-#'     \dQuote{ansi256}, \dQuote{html}
+#'     \dQuote{ansi256}, or \dQuote{html}
 #'   \item brightness: whether the colors are bright or not, which allows user to
 #'     chose a scheme that is compatible with their console, typically:
 #'     \dQuote{light}, \dQuote{dark}, \dQuote{normal}
-#'   \item color: whether to use full color schemes or not for compatibility with
-#'     people with reduced sensitivy to differences between red and green colors,
-#'     typically \dQuote{full} or \dQuote{yb} for Yellow Blue.
+#'   \item color: whether to use full color schemes or not for compatibility
+#'     with people with reduced sensitivy to differences between red and green
+#'     colors, typically \dQuote{rgb} or \dQuote{yb} for Yellow Blue.
 #' }
 #' @section Structural Details:
 #'
@@ -434,10 +436,11 @@ setMethod("initialize", "diffObjStyleHtmlLightYb",
 #' all the possible \code{brightness} values.
 #'
 #' While the list may only have the three dimensions described, you can add
-#' values to the dimensions provided the values described above also exist.
-#' For example, if you wanted to allow for styles that would render in
-#' \code{grid} graphics, you could genarate a default list with \dQuote{"grid"}
-#' value for the \code{format} dimension.
+#' values to the dimensions provided the values described above are the first
+#' ones in each of their corresponding dimensions.  For example, if you wanted
+#' to allow for styles that would render in \code{grid} graphics, you could
+#' genarate a default list with \dQuote{"grid"} value appended to the values of
+#' the \code{format} dimension.
 #'
 #' @export diffObjStylePalette
 #' @exportClass diffObjStylePalette
@@ -482,7 +485,9 @@ diffObjStylePalette <- setClass(
       !all(
         vapply(
           valid.names,
-          function(x) all(.dfs.dims[[x]] %in% dimnames(dat)[[x]]),
+          function(x) !identical(
+            .dfs.dims[[x]], head(dimnames(dat)[[x]], length(.dfs.dims[[x]]))
+          ),
           logical(1L)
     ) ) )
       return("Style dimension names do not contain all required values")
