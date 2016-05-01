@@ -1,5 +1,6 @@
 #' @include misc.R
 #' @include styles.R
+#' @include pager.R
 
 NULL
 
@@ -31,16 +32,6 @@ setClass(
     TRUE
 } )
 setClassUnion("doAutoCOrInt", c("diffObjAutoContext", "integer"))
-setClass(
-  "diffObjPager",
-  slots=c(mode="character", threshold="integer", less.flags="character"),
-  validity=function(object) {
-    if(!is.pager_mode(object@mode)) return("Invalid `mode` slot")
-    if(!is.less_flags(object@less.flags)) return("Invalid `less.flags` slot")
-    if(!is.int.1L(object@threshold)) return("Invalid `threshold` slot")
-    TRUE
-  }
-)
 # pre-computed gutter data
 
 setClass(
