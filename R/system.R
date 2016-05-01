@@ -1,6 +1,6 @@
 
 .onLoad <- function(libname, pkgname) {
-  # Check if we are running interactively and not in knitr
+  # Scheme defaults are fairly complex...
 
   default.opts <- list(
     diffobj.context="auto",

@@ -67,6 +67,10 @@ etc <- function(
   line.limit=getOption("diffobj.line.limit"),
   hunk.limit=getOption("diffobj.hunk.limit"),
   style=getOption("diffobj.style"),
+  format="auto",
+  brightness="neutral",
+  color="rgb",
+  palette.of.styles=diffObjStylePalette(),
   pager=pager_settings(),
   ignore.white.space=getOption("diffobj.ignore.white.space"),
   use.ansi=getOption("diffobj.use.ansi"),
@@ -77,6 +81,8 @@ etc <- function(
   convert.hz.white.space=getOption("diffobj.convert.hz.white.space"),
   tab.stops=getOption("diffobj.tab.stops"),
   frame=parent.frame(),
+
+
   tar.banner=NULL, cur.banner=NULL
 ) {
   # Check arguments
@@ -273,14 +279,14 @@ reset_less_var <- function(LESS.old) {
 }
 .valid_themes <- list(
   core=diffObjStyle, 
-  basic=diffObjStyleBasic,
-  basicyb=diffObjStyleBasicYB,
-  light=diffObjStyleLight,
-  dark=diffObjStyleDark,
-  darkyb=diffObjStyleDarkYB,
-  lightyb=diffObjStyleLightYB,
-  html=diffObjStyleHtml,
-  htmlyb=diffObjStyleHtmlYB
+  basic=diffObjStyleAnsi8NeutralRgb,
+  basicyb=diffObjStyleAnsi8NeutralYb,
+  light=diffObjStyleAnsi256LightRgb,
+  lightyb=diffObjStyleAnsi256LightYb,
+  dark=diffObjStyleAnsi256DarkRgb,
+  darkyb=diffObjStyleAnsi256DarkYb,
+  html=diffObjStyleHtmlLightRgb,
+  htmlyb=diffObjStyleHtmlLightYb
   #   text=diffObjStyleText,
   #   stripes=diffObjStripes,
   #   stripes.light=diffObjStripesLight,

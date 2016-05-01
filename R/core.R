@@ -216,9 +216,6 @@ setMethod("summary", "diffObjMyersMbaSes",
     if(!with.match) res <- res[-2L]
     print(res, ...)
 } )
-# Carries out the comparison between two character vectors and returns the
-# elements that match and those that don't as a unitizerDiffDiffs object
-#
 # mode is display mode (sidebyside, etc.)
 # diff.mode is whether we are doing the first pass line diff, or doing the
 #   in-hunk or word-wrap versions
