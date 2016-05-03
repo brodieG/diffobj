@@ -23,6 +23,9 @@ str_tpl <- function(object, max.level, ...) NULL
 trim_str <- function(str.txt, level, kj) {
   NULL
 }
+# utility fun to deparse into chr1L
+
+dep <- function(x) paste0(deparse(x, width.cutoff=500L), collapse="")
 
 # Reports how many levels deep each line of a `str` screen output is
 
@@ -205,3 +208,39 @@ is.diffs <- function(x)
   is.list(x$hunks) && is.int.1L(x$diffs) && is.int.1L(x$diffs.max) &&
   is.TF(x$hit.diffs.max)
 
+is.valid.palette.param <- function(x, param, palette) {
+  stopifnot(is(palettes, "diffObjStylePalette"))
+  stopifnot(isTRUE(param %in% c("brightness", "color.mode")))
+  valid.formats <- dimnames(palette@data)$format
+  valid.params <- dimnames(palette@data)[[param]]
+
+  if(!is.character(x) || anyNA(x))
+    stop("Argument `", param, "` must be character and not contain NAs")
+
+  if(!all(x %in% valid.params))
+    stop(
+      "Argument `", param, "` may only contain values in `", dep(valid.params),
+      "`"
+    )
+
+  if(
+    (length(x) > 1L && is.null(names(x))) ||
+    (!is.null(names(x)) && !"" %in% names(x)) ||
+    !all(names(x) %in% valid.formats)
+  )
+    stop(
+      "Argument `", param, "` must have names if it has length > 1, and those ",
+      "names must include at least an empty name `\"\"` as well as names only ",
+      "from `", dep(valid.formats), "`."
+    )
+  TRUE
+}
+# Helper function to retrieve a palette parameter
+
+get_pal_param <- function(format, param) {
+  if(format %in% names(param)) {
+    param[format]
+  } else if (wild.match <- match("", names(param), no.match=0L)) {
+    param[wild.match]
+  } else stop("Logic Error: malformed palette parameter; contact maintainer.")
+}

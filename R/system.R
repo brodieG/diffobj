@@ -23,6 +23,7 @@
     diffobj.style="basic",
     diffobj.tab.stops=8L,
     diffobj.disp.width=getOption("width"),
+
     diffobj.html.escape.html.entities=TRUE,
     diffobj.html.css=
       file.path(system.file(package="diffobj"), "css", "diffobj.css"),

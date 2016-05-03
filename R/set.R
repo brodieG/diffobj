@@ -69,9 +69,9 @@ etc <- function(
   style=getOption("diffobj.style"),
   format="auto",
   brightness="neutral",
-  color="rgb",
+  color.mode="rgb",
   palette.of.styles=diffObjStylePalette(),
-  pager=pager_settings(),
+  pager="auto",
   ignore.white.space=getOption("diffobj.ignore.white.space"),
   use.ansi=getOption("diffobj.use.ansi"),
   max.diffs=getOption("diffobj.max.diffs"),
@@ -81,8 +81,6 @@ etc <- function(
   convert.hz.white.space=getOption("diffobj.convert.hz.white.space"),
   tab.stops=getOption("diffobj.tab.stops"),
   frame=parent.frame(),
-
-
   tar.banner=NULL, cur.banner=NULL
 ) {
   # Check arguments
@@ -149,36 +147,74 @@ etc <- function(
 
   # style
 
-  if(!identical(style, "auto") || is(style, "diffObjStyle"))
+  if(!is(style, "diffObjStyle") && !is.chr.1L(style) && style != "auto")
     stop("Argument `style` must be \"auto\" or a `diffObjStyle` object.")
 
-  # palette
+  # pager
+
+  valid.pagers <- c("auto", "system", "browser")
+  if(
+    is.chr.1L(pager) && !pager %in% valid.pagers || !is(pager, "diffObjPager")
+  )
+    stop(
+      "Argument `pager` must be one of `", dep(valid.pagers),
+      "` or a `diffObjPager` object."
+    )
+  if(!is(pager, "diffObjPager")) {
+    if(pager == "system") {
+      pager <- if(pager_is_less())
+        diffObjPagerSystemLess() else diffObjPagerSystem()
+    } else if (pager == "browser") {
+      diffObjPagerBrowser()
+    }
+  }
+  # palette and arguments that reference palette dimensions
 
   if(!is(palette.of.styles, "diffObjStylePalette"))
     stop("Argument `palette.of.styles` must be a `diffObjStylePalette` object.")
+
+  is.valid.palette.param(brightness, "brightness", palette.of.styles)
+  is.valid.palette.param(color.mode, "color.mode", palette.of.styles)
 
   # format; decide what format to use
 
   if(identical(style, "auto")) {
     if(!is.chr.1L(format))
       stop("Argument `format` must be character(1L) and not NA")
-    if(identical(format, "auto")) {
+    valid.formats <- c("auto", dimnames(palette.of.styles@data)$format)
+    if(!format %in% valid.formats)
+      stop("Argument `format` must be one of `", dep(valid.formats) , "`.")
+    if(format == "auto") {
       clrs <- crayon::num_colors()
-      if(clrs < 8) {
-        if()
-      }
+      if(!is.int.1L(clrs)) 
+        stop(
+          "Logic Error: unexpected return from `crayon::num_colors()`; "
+          "contact maintainer."
+        )
+      # No recognized color alternatives, try to use HTML if we can
 
-    } else if(!format %in% dimnames(palette.of.styles@data)$format)
-      stop(
-        "Argument `format` must be in `",
-        paste0(
-          deparse(
-            dimnames(palette.of.styles@data)$format, width.cutoff=500
-          ),
-          collapse=""
-        ), "`."
-      )
-  }
+      format <- if(!clrs %in% c(8, 256)) {
+        if(
+          interactive() && !in_knitr() && (
+            is(pager, "diffObjPagerBrowser") || pager == "auto"
+          )
+        ) {
+          if(pager == "auto") pager <- diffObjPagerBrowser()
+          "html"
+        } else {
+          "raw"
+        }
+      } else if (clrs == 8) {
+        "ansi8"
+      } else if (clrs == 256) {
+        "ansi256"
+      } else stop("Logic error: unhandled format; contact maintainer.")
+      style <- diffObjStylePalette[
+        format,
+        get_pal_par(format, brightness),
+        get_pal_par(format, color.mode)
+      ]
+  } }
 
 
   # instantiate settings object

@@ -413,7 +413,7 @@ setMethod("initialize", "diffObjStyleHtmlLightYb",
 .dfs.dims <- list(
   format=c("raw", "ansi8", "ansi256", "html"),
   brightness=c("neutral", "light", "dark"),
-  color=c("full", "yb")  # add b/w?
+  color.mode=c("full", "yb")  # add b/w?
 )
 .dfs.dims.sizes <- vapply(.dfs.dims, length, integer(1L))
 .dfs.arr <- array(
@@ -444,9 +444,8 @@ setMethod("initialize", "diffObjStyleHtmlLightYb",
 #'   \item brightness: whether the colors are bright or not, which allows user to
 #'     chose a scheme that is compatible with their console, typically:
 #'     \dQuote{light}, \dQuote{dark}, \dQuote{normal}
-#'   \item color: whether to use full color schemes or not for compatibility
-#'     with people with reduced sensitivy to differences between red and green
-#'     colors, typically \dQuote{rgb} or \dQuote{yb} for Yellow Blue.
+#'   \item color.mode: \dQuote{rgb} for full color or \dQuote{yb} for
+#'     dichromats (yb stands for Yellow Blue).
 #' }
 #' @section Structural Details:
 #'
