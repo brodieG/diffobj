@@ -12,7 +12,7 @@ setClass(
 diffObjPagerOff <- setClass("diffObjPagerOff", contains="diffObjPager")
 diffObjPagerSystem <- setClass(
   "diffObjPagerSystem", contains="diffObjPager",
-  prototype=list(pager=file.show),
+  prototype=list(pager=file.show, threshold=-1L),
 )
 diffObjPagerSystemLess <- setClass(
   "diffObjPagerSystemLess", contains="diffObjPagerSystem", slots=c("flags"),
@@ -25,5 +25,5 @@ diffObjPagerSystemLess <- setClass(
 )
 diffObjPagerBrowser <- setClass(
   "diffObjPagerBrowser", contains="diffObjPager",
-  prototype=list(file.ext="html", pager=browseURL)
+  prototype=list(file.ext="html", pager=browseURL, threshold=0L)
 )

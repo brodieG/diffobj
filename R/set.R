@@ -153,20 +153,14 @@ etc <- function(
 
   # pager
 
-  valid.pagers <- c("auto", "system", "browser")
+  valid.pagers <- c("auto", "off", "system", "browser")
   if(!is(pager, "diffObjPager") && !string_in(pager, valid.pagers))
     stop(
       "Argument `pager` must be one of `", dep(valid.pagers),
       "` or a `diffObjPager` object."
     )
-  pager <- if(!is(pager, "diffObjPager")) {
-    if(pager == "system") {
-      if(pager_is_less())
-        diffObjPagerSystemLess() else diffObjPagerSystem()
-    } else if (pager == "browser") {
-      diffObjPagerBrowser()
-    } else diffObjPagerOff()
-  }
+  if(!is(pager, "diffObjPager") && string_in(pager, "off"))
+    pager <- diffObjPagerOff()
   # palette and arguments that reference palette dimensions
 
   if(!is(palette.of.styles, "diffObjStylePalette"))
@@ -212,6 +206,19 @@ etc <- function(
     style <- palette.of.styles[[
       format, get_pal_par(format, brightness), get_pal_par(format, color.mode)
     ]]
+  }
+  # Select auto-pager if necessary
+
+  pager <- if(!is(pager, "diffObjPager")) {
+    if(pager == "auto")
+      pager <- if(format == "html") "browser" else "system"
+
+    if(pager == "system") {
+      if(pager_is_less())
+        diffObjPagerSystemLess() else diffObjPagerSystem()
+    } else if (pager == "browser") {
+      diffObjPagerBrowser()
+    } else diffObjPagerOff()
   }
   # instantiate settings object
 
