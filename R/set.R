@@ -207,12 +207,12 @@ etc <- function(
       } else if (clrs == 256) {
         "ansi256"
       } else stop("Logic error: unhandled format; contact maintainer.")
-      style <- palette.of.styles[[
-        format,
-        get_pal_par(format, brightness),
-        get_pal_par(format, color.mode)
-      ]]
     }
+    style <- palette.of.styles[[
+      format,
+      get_pal_par(format, brightness),
+      get_pal_par(format, color.mode)
+    ]]
   }
   # instantiate settings object
 
