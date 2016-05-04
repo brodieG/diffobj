@@ -1,24 +1,20 @@
 setClass(
   "diffObjPager",
-  contains="virtual",
-  slots=c(pager="function", mode="character", file.ext="character"),
-  prototype=list(file.ext=""),
+  contains="VIRTUAL",
+  slots=c(pager="function", file.ext="character", threshold="integer"),
+  prototype=list(file.ext="", threshold=0L),
   validity=function(object) {
     if(!is.chr.1L(object@file.ext)) return("Invalid `file.ext` slot")
-    if(!is.pager_mode(object@mode)) return("Invalid `mode` slot")
     if(!is.int.1L(object@threshold)) return("Invalid `threshold` slot")
     TRUE
   }
 )
-setClass(
-  "diffObjPagerSystem", contains="diffObjPager", slots=c(threshold="integer"),
+diffObjPagerOff <- setClass("diffObjPagerOff", contains="diffObjPager")
+diffObjPagerSystem <- setClass(
+  "diffObjPagerSystem", contains="diffObjPager",
   prototype=list(pager=file.show),
-  validity=function(object) {
-    if(!is.int.1L(object@threshold)) return("Invalid `threshold` slot")
-    TRUE
-  }
 )
-setClass(
+diffObjPagerSystemLess <- setClass(
   "diffObjPagerSystemLess", contains="diffObjPagerSystem", slots=c("flags"),
   prototype=list(
     pager=function(x) {
@@ -27,10 +23,7 @@ setClass(
       file.show(x)
   } )
 )
-setClass("diffObjPagerBrowser", contains="diffObjPager",
-  prototype=list(file.ext="html", pager=browseURL),
-  validity=function(object) {
-    if(!object@mode %in% c("always", "never"))
-      return("Invalid `mode` slot.")
-    TRUE
-} )
+diffObjPagerBrowser <- setClass(
+  "diffObjPagerBrowser", contains="diffObjPager",
+  prototype=list(file.ext="html", pager=browseURL)
+)

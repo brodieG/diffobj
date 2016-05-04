@@ -413,7 +413,7 @@ setMethod("initialize", "diffObjStyleHtmlLightYb",
 .dfs.dims <- list(
   format=c("raw", "ansi8", "ansi256", "html"),
   brightness=c("neutral", "light", "dark"),
-  color.mode=c("full", "yb")  # add b/w?
+  color.mode=c("rgb", "yb")  # add b/w?
 )
 .dfs.dims.sizes <- vapply(.dfs.dims, length, integer(1L))
 .dfs.arr <- array(
@@ -534,17 +534,17 @@ setMethod("initialize", "diffObjStylePalette",
   function(.Object, ...) {
     .dfs.arr["raw", , ] <- list(diffObjStyle())
 
-    .dfs.arr["ansi8", , "full"] <- list(diffObjStyleAnsi8NeutralRgb())
+    .dfs.arr["ansi8", , "rgb"] <- list(diffObjStyleAnsi8NeutralRgb())
     .dfs.arr["ansi8", , "yb"] <- list(diffObjStyleAnsi8NeutralYb())
 
-    .dfs.arr["ansi256", "neutral", "full"] <- list(diffObjStyleAnsi8NeutralRgb())
+    .dfs.arr["ansi256", "neutral", "rgb"] <- list(diffObjStyleAnsi8NeutralRgb())
     .dfs.arr["ansi256", "neutral", "yb"] <- list(diffObjStyleAnsi8NeutralYb())
-    .dfs.arr["ansi256", "light", "full"] <- list(diffObjStyleAnsi256LightRgb())
+    .dfs.arr["ansi256", "light", "rgb"] <- list(diffObjStyleAnsi256LightRgb())
     .dfs.arr["ansi256", "light", "yb"] <- list(diffObjStyleAnsi256LightYb())
-    .dfs.arr["ansi256", "dark", "full"] <- list(diffObjStyleAnsi256DarkRgb())
+    .dfs.arr["ansi256", "dark", "rgb"] <- list(diffObjStyleAnsi256DarkRgb())
     .dfs.arr["ansi256", "dark", "yb"] <- list(diffObjStyleAnsi256DarkYb())
 
-    .dfs.arr["html", , "full"] <- list(diffObjStyleHtmlLightRgb())
+    .dfs.arr["html", , "rgb"] <- list(diffObjStyleHtmlLightRgb())
     .dfs.arr["html", , "yb"] <- list(diffObjStyleHtmlLightYb())
 
     .Object@data <- .dfs.arr
@@ -561,12 +561,12 @@ setReplaceMethod(
 setMethod(
   "[", signature=c(x="diffObjStylePalette"),
   function(x, i, j, ..., drop=TRUE) {
-    x@data[i, j, ..., drop]
+    x@data[i, j, ..., drop=drop]
   }
 )
 setMethod(
   "[[", signature=c(x="diffObjStylePalette"),
   function(x, i, j, ..., exact=TRUE) {
-    x@data[[i, j, ..., exact]]
+    x@data[[i, j, ..., exact=exact]]
   }
 )

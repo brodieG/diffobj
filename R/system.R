@@ -9,6 +9,7 @@
     diffobj.ignore.white.space=TRUE,
     diffobj.convert.hz.white.space=TRUE,
     diffobj.line.limit=-1L,
+    diffobj.pager="auto",
     diffobj.pager.mode="threshold",
     diffobj.pager.threshold=-1L,
     diffobj.less.flags="R",
@@ -20,10 +21,12 @@
     diffobj.max.diffs.in.hunk=50000L,
     diffobj.max.diffs.wrap=50000L,
     diffobj.align.threshold=0.25,
-    diffobj.style="basic",
+    diffobj.style="auto",
+    diffobj.format="auto",
+    diffobj.color.mode="rgb",
+    diffobj.brightness="neutral",
     diffobj.tab.stops=8L,
     diffobj.disp.width=getOption("width"),
-
     diffobj.html.escape.html.entities=TRUE,
     diffobj.html.css=
       file.path(system.file(package="diffobj"), "css", "diffobj.css"),

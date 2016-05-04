@@ -27,6 +27,7 @@ Suggests:
 Collate:
     'capt.R'
     'check.R'
+    'pager.R'
     'misc.R'
     'html.R'
     'styles.R'

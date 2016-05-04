@@ -557,13 +557,9 @@ setMethod("as.character", "diffObjDiff",
 
     rows <- render_rows(cols, etc=x@etc)
 
-    # Finalize; need to tell finalizer whether ouptut will be in pager or not
+    # Finalize
 
-    pre.fin <- c(s@funs@container(rows), limit.out, str.fold.out, no.diffs)
-    use.pager <- x@pager@mode == "always" || x@pager@mode == "threshold" &&
-      length(pre.fin > x@pager@threshold)
-    fin <- s@finalizer(pre.fin, use.pager)
+    fin <- c(s@funs@container(rows), limit.out, str.fold.out, no.diffs)
     attr(fin, "meta") <- trim.meta
-    attr(fin, "lines") <- length(pre.fin)
     fin
 } )

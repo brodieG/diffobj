@@ -148,26 +148,28 @@ setClass(
 } )
 setMethod("show", "diffObjDiff",
   function(object) {
-    # Finalize stuff
-
     res.chr <- as.character(object)
-    # slot(res.diff, "trim.dat") <- attr(res.chr, "meta")
-    use.pager <- object@etc@pager@mode
-    use.pager.thresh <- identical(use.pager, "threshold")
-    pager.thresh <- object@etc@pager@threshold
-    threshold <- if(use.pager.thresh && pager.thresh == -1L)
-      console_lines() else object@etc@pager@threshold
 
-    use.pager <- object@pager@mode == "always" ||
-      object@pager@mode == "threshold" && length(pre.fin > threshold)
+    # Determine whether to use pager or not
 
-    fin <- object@style@finalizer(res.chr, use.pager)
+    pager <- object@etc@pager
+
+    use.pager <- if(!is(pager, "diffObjPagerOff")) {
+      threshold <- if(pager@threshold < 0L) {
+        console_lines()
+      } else pager@threshold
+      threshold && length(res.chr) > threshold
+    } else FALSE
+
+    # Finalize and output
+
+    fin <- object@etc@style@finalizer(res.chr, use.pager)
 
     if(use.pager) {
       disp.f <- tempfile()
       on.exit(add=TRUE, unlink(disp.f))
-      writeLines(res.chr, paste0(disp.f, object@pager@file.ext))
-      object@pager@pager(disp.f)
+      writeLines(res.chr, paste0(disp.f, object@etc@pager@file.ext))
+      object@etc@pager@pager(disp.f)
     } else {
       cat(res.chr, sep="\n")
     }

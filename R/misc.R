@@ -1,14 +1,17 @@
 # check whether argument list contains non-default formals
 
 has_non_def_formals <- function(arg.list) {
-  stopifnot(is.pairlist(arg.list))
+  stopifnot(is.pairlist(arg.list) || is.list(arg.list))
   any(
     vapply(
       arg.list,
-      function(x) is.name(x) && !nzchar(as.character(x))
+      function(x) is.name(x) && !nzchar(as.character(x)),
       logical(1L)
   ) )
 }
+# check whether running in knitr
+
+in_knitr <- function() isTRUE(getOption('knitr.in.progress'))
 
 make_err_fun <- function(call)
   function(...) stop(simpleError(do.call(paste0, list(...)), call=call))
@@ -189,6 +192,12 @@ check_args <- function(call, tar.exp, cur.exp, mode, context, etc) {
   etc@cur.exp <- cur.exp
   etc
 }
+# requires a value to be a scalar character and match one of the provided
+# options
+
+string_in <- function(x, valid.x) is.chr.1L(x) && x %in% valid.x
+
+# Simple validation functions
 
 is.int.1L <- function(x)
   is.numeric(x) && length(x) == 1L && !is.na(x) && x ==  round(x) &&
@@ -209,7 +218,7 @@ is.diffs <- function(x)
   is.TF(x$hit.diffs.max)
 
 is.valid.palette.param <- function(x, param, palette) {
-  stopifnot(is(palettes, "diffObjStylePalette"))
+  stopifnot(is(palette, "diffObjStylePalette"))
   stopifnot(isTRUE(param %in% c("brightness", "color.mode")))
   valid.formats <- dimnames(palette@data)$format
   valid.params <- dimnames(palette@data)[[param]]
@@ -237,10 +246,12 @@ is.valid.palette.param <- function(x, param, palette) {
 }
 # Helper function to retrieve a palette parameter
 
-get_pal_param <- function(format, param) {
-  if(format %in% names(param)) {
+get_pal_par <- function(format, param) {
+  if(is.chr.1L(param) && is.null(names(param))) {
+    param
+  } else if(format %in% names(param)) {
     param[format]
-  } else if (wild.match <- match("", names(param), no.match=0L)) {
+  } else if (wild.match <- match("", names(param), nomatch=0L)) {
     param[wild.match]
   } else stop("Logic Error: malformed palette parameter; contact maintainer.")
 }
