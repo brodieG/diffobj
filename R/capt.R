@@ -4,7 +4,7 @@
 # x is a quoted call to evaluate
 
 capture <- function(x, etc, frame, err) {
-  capt.width <- etc@style@text.width
+  capt.width <- etc@text.width
   if(capt.width) {
     width.old <- getOption("width")
     on.exit(options(width=width.old))
@@ -190,7 +190,7 @@ capt_str <- function(target, current, etc, err, ...){
 
   # Run str
 
-  capt.width <- etc@style@text.width
+  capt.width <- etc@text.width
   has.diff <- has.diff.prev <- FALSE
 
   # not sure why we have strip_hz_control here; perhaps it is legacy from before

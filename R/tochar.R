@@ -142,7 +142,7 @@ hunk_atom_as_char <- function(h.a, mode, etc) {
 
 hunk_as_char <- function(h.g, ranges.orig, etc) {
   mode <- etc@mode
-  disp.width <- etc@style@disp.width
+  disp.width <- etc@disp.width
   ignore.white.space <- etc@ignore.white.space
 
   # First check that the hunk group hasn't been completely trimmed
@@ -307,7 +307,7 @@ setMethod("as.character", "diffObjDiff",
     hunk.limit <- x@etc@hunk.limit
     line.limit <- x@etc@line.limit
     hunk.limit <- x@etc@hunk.limit
-    disp.width <- x@etc@style@disp.width
+    disp.width <- x@etc@disp.width
     max.diffs <- x@etc@max.diffs
     max.diffs.in.hunk <- x@etc@max.diffs.in.hunk
     max.diffs.wrap <- x@etc@max.diffs.wrap
@@ -333,7 +333,7 @@ setMethod("as.character", "diffObjDiff",
 
     gutter.dat <- x@etc@gutter
     banner.len <- banner_len(mode)
-    max.w <- s@text.width
+    max.w <- x@etc@text.width
 
     line.limit.a <- if(line.limit[[1L]] >= 0L)
       pmax(integer(2L), line.limit - banner.len) else line.limit
@@ -356,8 +356,8 @@ setMethod("as.character", "diffObjDiff",
 
       # future calculations should assume narrower display
 
-      x@etc@style@text.width <- max.w
-      x@etc@style@line.width <- max.w + gutter.dat@width
+      x@etc@text.width <- max.w
+      x@etc@line.width <- max.w + gutter.dat@width
       s <- x@etc@style
     }
     # Make the object banner and compute more detailed widths post trim
@@ -366,8 +366,8 @@ setMethod("as.character", "diffObjDiff",
       deparse(x@etc@tar.exp)[[1L]]
     cur.banner <- if(!is.null(x@etc@cur.banner)) x@etc@cur.banner else
       deparse(x@etc@cur.exp)[[1L]]
-    ban.A.trim <- if(s@wrap) chr_trim(tar.banner, s@text.width) else tar.banner
-    ban.B.trim <- if(s@wrap) chr_trim(cur.banner, s@text.width) else cur.banner
+    ban.A.trim <- if(s@wrap) chr_trim(tar.banner, x@etc@text.width) else tar.banner
+    ban.B.trim <- if(s@wrap) chr_trim(cur.banner, x@etc@text.width) else cur.banner
     banner.A <- s@funs@word.delete(ban.A.trim)
     banner.B <- s@funs@word.insert(ban.B.trim)
 
@@ -480,9 +480,9 @@ setMethod("as.character", "diffObjDiff",
       for(i in seq_along(pre.render)) {
         hdr <- pre.render[[i]]$type == "header"
         pre.render.w[[i]][hdr] <-
-          wrap(pre.render[[i]]$dat[hdr], s@line.width)
+          wrap(pre.render[[i]]$dat[hdr], x@etc@line.width)
         pre.render.w[[i]][!hdr] <-
-          wrap(pre.render[[i]]$dat[!hdr], s@text.width)
+          wrap(pre.render[[i]]$dat[!hdr], x@etc@text.width)
       }
       pre.render.w
     } else lapply(pre.render, function(y) as.list(y$dat))
@@ -520,8 +520,8 @@ setMethod("as.character", "diffObjDiff",
       Map(
         function(col, type) {
           diff.line <- type %in% c("insert", "delete", "match")
-          col[diff.line] <- lapply(col[diff.line], rpad, s@text.width)
-          col[!diff.line] <- lapply(col[!diff.line], rpad, s@line.width)
+          col[diff.line] <- lapply(col[diff.line], rpad, x@etc@text.width)
+          col[!diff.line] <- lapply(col[!diff.line], rpad, x@etc@line.width)
           col
         },
         pre.render.w, types

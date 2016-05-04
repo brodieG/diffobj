@@ -67,10 +67,26 @@ setClass(
     tar.banner="charOrNULL",
     cur.banner="charOrNULL",
     use.header="logical",
+    disp.width="integer",
+    line.width="integer",
+    text.width="integer",
     gutter="diffObjGutter"
   ),
-  prototype=list(use.header=FALSE)
+  prototype=list(use.header=FALSE, disp.width=0L, text.width=0L, line.width=0L),
+  validity=function(object){
+    int.1L.and.pos <- c("disp.width", "line.width", "text.width")
+    for(i in int.1L.and.pos)
+      if(!is.int.1L(slot(object, i)) || slot(object, i) < 0L)
+        return(sprintf("Slot `%s` must be integer(1L) and positive"), i)
+  }
 )
+setMethod("initialize", "diffObjSettings", function(.Object, ...) {
+  if(is.numeric(.Object@disp.width))
+    .Object@disp.width <- as.integer(.Object@disp.width)
+  if(is.null(.Object@disp.width))
+    .Object@disp.width <- 80L
+  return(callNextMethod(.Object, ...))
+} )
 # Classes for tracking intermediate diff obj data
 #
 # DiffDiffs contains a slot corresponding to each of target and current where

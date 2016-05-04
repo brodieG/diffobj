@@ -78,6 +78,7 @@ etc <- function(
   max.diffs.in.hunk=getOption("diffobj.max.diffs.in.hunk"),
   max.diffs.wrap=getOption("diffobj.max.diffs.wrap"),
   align.threshold=getOption("diffobj.align.threshold"),
+  disp.width=getOption("diffobj.disp.width"),
   convert.hz.white.space=getOption("diffobj.convert.hz.white.space"),
   tab.stops=getOption("diffobj.tab.stops"),
   frame=parent.frame(),
