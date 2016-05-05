@@ -228,9 +228,7 @@ char_diff <- function(
     diff.mode %in% c("line", "hunk", "wrap"),
     isTRUE(warn) || identical(warn, FALSE)
   )
-  diff.param <- c(
-    line="max.diffs", hunk="max.diffs.in.hunk", wrap="max.diffs.wrap"
-  )
+  diff.param <- c(line="max.diffs")
   if(etc@ignore.white.space) {
     x.w <- normalize_whitespace(x)
     y.w <- normalize_whitespace(y)
@@ -238,7 +236,7 @@ char_diff <- function(
     x.w <- x
     y.w <- y
   }
-  max.diffs <- slot(etc, diff.param[[diff.mode]])
+  max.diffs <- etc@max.diffs
   diff <- diff_myers_mba(x.w, y.w, max.diffs)
   if(etc@ignore.white.space) {
     diff@a <- x
@@ -254,7 +252,7 @@ char_diff <- function(
     )
     if(warn)
       warning(
-        "Exceeded `", diff.param[diff.mode], "` limit during diff computation (",
+        "Exceeded diff limit during diff computation (",
         diff@diffs, " vs. ", max.diffs, " allowed); ",
         diff.msg[diff.mode], " diff is likely not optimal",
         call.=FALSE

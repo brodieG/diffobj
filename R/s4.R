@@ -55,8 +55,6 @@ setClass(
     hunk.limit="integer",
     use.ansi="logical",
     max.diffs="integer",
-    max.diffs.in.hunk="integer",
-    max.diffs.wrap="integer",
     align.threshold="numeric",
     ignore.white.space="logical",
     frame="environment",

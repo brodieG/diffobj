@@ -75,8 +75,6 @@ etc <- function(
   ignore.white.space=getOption("diffobj.ignore.white.space"),
   use.ansi=getOption("diffobj.use.ansi"),
   max.diffs=getOption("diffobj.max.diffs"),
-  max.diffs.in.hunk=getOption("diffobj.max.diffs.in.hunk"),
-  max.diffs.wrap=getOption("diffobj.max.diffs.wrap"),
   align.threshold=getOption("diffobj.align.threshold"),
   disp.width=getOption("diffobj.disp.width"),
   convert.hz.white.space=getOption("diffobj.convert.hz.white.space"),
@@ -120,9 +118,7 @@ etc <- function(
   # int 1L vars
 
   msg.base <- "Argument `%s` must be integer(1L) and not NA."
-  int1L.vars <- c(
-    "max.diffs", "max.diffs.in.hunk", "max.diffs.wrap"
-  )
+  int1L.vars <- c("max.diffs")
   for(i in int1L.vars) this.env[[i]] <-
     if(!is.int.1L(this.env[[i]])) {
       stop(simpleError(sprintf(msg.base, i)))
