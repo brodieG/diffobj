@@ -17,11 +17,26 @@ NULL
 
 make_diff_fun <- function(capt_fun) {
   function(
-    target, current, mode=getOption("diffobj.mode"),
-    context=getOption("diffobj.context"), etc=NULL, ...
+    target, current,
+    mode=gdo("mode"),
+    context=gdo("context"),
+    line.limit=gdo("line.limit"),
+    format=gdo("format"),
+    brightness=gdo("brightness"),
+    color.mode=gdo("color.mode"),
+    pager=gdo("pager"),
+    ignore.white.space=gdo("ignore.white.space"),
+    max.diffs=gdo("max.diffs"),
+    align.threshold=gdo("align.threshold"),
+    disp.width=gdo("disp.width"),
+    hunk.limit=gdo("hunk.limit"),
+    convert.hz.white.space=gdo("convert.hz.white.space"),
+    tab.stops=gdo("tab.stops"),
+    style=gdo("style"),
+    palette.of.styles=diffObjStylePalette(),
+    frame=parent.frame(),
+    ...
   ) {
-    etc.val <- if(is.null(etc)) etc() else etc  # resolve recursive default arg
-
     # Force evaluation of dots to make sure user doesn't mess us up with
     # something like options(crayon.enabled=...)
 
@@ -31,7 +46,13 @@ make_diff_fun <- function(capt_fun) {
 
     etc.proc <- check_args(
       call=call, tar.exp=substitute(target), cur.exp=substitute(current),
-      mode=mode, context=context, etc=etc.val
+      mode=mode, context=context, line.limit=line.limit, format=format,
+      brightness=brightness, color.mode=color.mode, pager=pager, 
+      ignore.white.space=ignore.white.space, max.diffs=max.diffs, 
+      align.threshold=align.threshold, disp.width=disp.width,
+      hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
+      tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
+      frame=frame
     )
     # Force crayon to whatever ansi status we chose; note we must do this after
     # touching vars in case someone passes `options(crayon.enabled=...)` as one

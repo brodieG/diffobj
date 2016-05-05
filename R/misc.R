@@ -149,49 +149,6 @@ check_limit <- function(limit) {
   if(length(limit) == 1L) limit <- rep(limit, 2L)
   limit
 }
-# Checks common arguments across functions
-
-check_args <- function(call, tar.exp, cur.exp, mode, context, etc) {
-  err <- make_err_fun(call)
-
-  if(!is(etc, "diffObjSettings"))
-    err("Argument `etc` must be a `diffObjSettings` S4 object")
-
-  msg.base <- paste0(
-    "Argument `%s` must be integer(1L) and not NA, an object produced ",
-    "by `auto_context`, or \"auto\"."
-  )
-  if(
-    !is.int.1L(context) && !is(context,"diffObjAutoContext") &&
-    !identical(context, "auto")
-  )
-    err(sprintf(msg.base, "context"))
-
-  if(!is(context, "diffObjAutoContext")) {
-    context <- if(identical(context, "auto")) auto_context() else
-      auto_context(as.integer(context), as.integer(context))
-  }
-  # any 'substr' of them otherwise these checks fail
-
-  val.modes <- c("unified", "context", "sidebyside")
-  fail.mode <- FALSE
-  if(!is.character(mode) || length(mode) != 1L || is.na(mode) || !nzchar(mode))
-    fail.mode <- TRUE
-  if(!fail.mode && !any(mode.eq <- substr(val.modes, 1, nchar(mode)) == mode))
-    fail.mode <- TRUE
-  if(fail.mode)
-    err(
-      "Argument `mode` must be character(1L) and in `", deparse(val.modes), "`."
-    )
-
-  # Update the etc object
-
-  etc@mode <- val.modes[[which(mode.eq)]]
-  etc@context <- context
-  etc@tar.exp <- tar.exp
-  etc@cur.exp <- cur.exp
-  etc
-}
 # requires a value to be a scalar character and match one of the provided
 # options
 
@@ -224,25 +181,23 @@ is.valid.palette.param <- function(x, param, palette) {
   valid.params <- dimnames(palette@data)[[param]]
 
   if(!is.character(x) || anyNA(x))
-    stop("Argument `", param, "` must be character and not contain NAs")
-
-  if(!all(x %in% valid.params))
-    stop(
+    paste0("Argument `", param, "` must be character and not contain NAs")
+  else if(!all(x %in% valid.params))
+    paste0(
       "Argument `", param, "` may only contain values in `", dep(valid.params),
       "`"
     )
-
-  if(
+  else if(
     (length(x) > 1L && is.null(names(x))) ||
     (!is.null(names(x)) && !"" %in% names(x)) ||
     !all(names(x) %in% valid.formats)
   )
-    stop(
+    paste0(
       "Argument `", param, "` must have names if it has length > 1, and those ",
       "names must include at least an empty name `\"\"` as well as names only ",
       "from `", dep(valid.formats), "`."
     )
-  TRUE
+  else TRUE
 }
 # Helper function to retrieve a palette parameter
 
