@@ -206,8 +206,9 @@ etc <- function(
   # Select auto-pager if necessary
 
   pager <- if(!is(pager, "diffObjPager")) {
-    if(pager == "auto")
+    if(pager == "auto" && interactive() && !in_knitr()) {
       pager <- if(format == "html") "browser" else "system"
+    } else "off"
 
     if(pager == "system") {
       if(pager_is_less())
