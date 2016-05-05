@@ -174,20 +174,22 @@ setMethod("show", "diffObjDiff",
       threshold <- if(pager@threshold < 0L) {
         console_lines()
       } else pager@threshold
-      threshold && length(res.chr) > threshold
+      !threshold || length(res.chr) > threshold
     } else FALSE
 
     # Finalize and output
 
-    fin <- object@etc@style@finalizer(res.chr, use.pager)
+    fin <- object@etc@style@finalizer(res.chr, pager)
 
     if(use.pager) {
-      disp.f <- tempfile()
+      disp.f <- paste0(tempfile(), ".", pager@file.ext)
       on.exit(add=TRUE, unlink(disp.f))
-      writeLines(res.chr, paste0(disp.f, object@etc@pager@file.ext))
-      object@etc@pager@pager(disp.f)
+      writeLines(fin, disp.f)
+      pager@pager(disp.f)
+      if(is(pager, "diffObjPagerBrowser"))
+        readline("Press ENTER to continue...")
     } else {
-      cat(res.chr, sep="\n")
+      cat(fin, sep="\n")
     }
     invisible(NULL)
   }

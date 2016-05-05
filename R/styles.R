@@ -143,33 +143,23 @@ diffObjStyleFuns <- setClass(
       TRUE
     }
   )
-  diffObjStyle <- setClass(
-    "diffObjStyle",
-    slots=c(
-      funs="diffObjStyleFuns",
-      text="diffObjStyleText",
-      wrap="logical",
-      pad="logical",
-      disp.width="integer",
-      line.width="integer",
-      text.width="integer",
-      finalizer="function"
-    ),
-    prototype=list(
-      Funs=diffObjStyleFuns(),
+diffObjStyle <- setClass(
+  "diffObjStyle",
+  slots=c(
+    funs="diffObjStyleFuns",
+    text="diffObjStyleText",
+    wrap="logical",
+    pad="logical",
+    finalizer="function"
+  ),
+  prototype=list(
+    Funs=diffObjStyleFuns(),
     text=diffObjStyleText(),
-    disp.width=0L,
-    text.width=0L,
-    line.width=0L,
     wrap=TRUE,
     pad=TRUE,
     finalizer=function(x, y) x
   ),
   validity=function(object){
-    int.1L.and.pos <- c("disp.width", "line.width", "text.width")
-    for(i in int.1L.and.pos)
-      if(!is.int.1L(slot(object, i)) || slot(object, i) < 0L)
-        return(sprintf("Slot `%s` must be integer(1L) and positive"), i)
     if(!is.TF(object@wrap))
       return("Slot `wrap` must be TRUE or FALSE")
     if(!is.TF(object@pad))
@@ -184,16 +174,9 @@ diffObjStyleFuns <- setClass(
         paste0(
           "Slot `finalizer` must be a function with no non-default parameters ",
           "other than the first two."
-      ) )
+    ) )
   }
 )
-setMethod("initialize", "diffObjStyle", function(.Object, ...) {
-  if(is.numeric(.Object@disp.width))
-    .Object@disp.width <- as.integer(.Object@disp.width)
-  if(is.null(.Object@disp.width))
-    .Object@disp.width <- 80L
-  return(callNextMethod(.Object, ...))
-} )
 #' @export diffObjStyleAnsi8NeutralRgb
 #' @exportClass diffObjStyleAnsi8NeutralRgb
 #' @rdname diffObjStyle
@@ -312,7 +295,9 @@ diffObjStyleAnsi256DarkYb <- setClass(
 
 diffObjStyleHtml <- setClass(
   "diffObjStyleHtml", contains="diffObjStyle",
-  slots=c(css="character", css.mode="character"),
+  slots=c(
+    css="character", css.mode="character", escape.html.entities="logical"
+  ),
   prototype=list(
     funs=diffObjStyleFuns(
       container=cont_f(),
@@ -342,13 +327,16 @@ diffObjStyleHtml <- setClass(
       gutter.match="&nbsp;"
     ),
     wrap=FALSE,
-    pad=FALSE
+    pad=FALSE,
+    escape.html.entities=TRUE
   ),
   validity=function(object) {
     if(!is.chr.1L(object@css))
       return("slot `css` must be character(1L)")
     if(!is.chr.1L(object@css.mode))
       return("slot `css.mode` must be \"internal\" or \"external\"")
+    if(!is.TF(object@escape.html.entities))
+      return("slot `escape.html.entities` must be TRUE or FALSE.")
     TRUE
   }
 )
@@ -358,22 +346,35 @@ diffObjStyleHtml <- setClass(
 setMethod("initialize", "diffObjStyleHtml",
   function(
     .Object, css=getOption("diffobj.html.css"),
-    css.mode=getOption("diffobj.html.css.mode"), ...
+    css.mode=getOption("diffobj.html.css.mode"),
+    escape.html.entities=getOption("diffobj.html.escape.html.entities"),
+    ...
   ) {
+    if(!is.chr.1L(css))
+      stop("Argument `css` must be character(1L) and not NA")
+    valid.css.modes <- c("auto", "internal", "external")
+    if(!string_in(css.mode, valid.css.modes))
+      stop("Argument `css.mode` must be in `", dep(valid.css.modes), "`.")
+
     # Generate finalizer function
 
-    .Object@finalizer <- function(txt, use.pager) {
+    .Object@finalizer <- function(txt, pager) {
+      stopifnot(is(pager, "diffObjPager"))
+
+      use.pager <- !is(pager, "diffObjPagerOff")
       header <- footer <- NULL
       txt.flat <- paste0(txt, sep="")
-      css <- if(.Object@css.mode == "internal") {
-        css.txt <- try(paste0(readLines(.Object@css), collapse=""))
+
+      css.mode <- if(css.mode == "auto" && is(pager, "diffObjPagerBrowser"))
+        "external" else "internal"
+
+      css <- if(css.mode == "internal") {
+        css.txt <- try(paste0(readLines(css), collapse=""))
         if(inherits(css.txt, "try-error"))
-        stop("Cannot read css file ", .Object@css)
+        stop("Cannot read css file ", css)
         sprintf("<style type='text/css'>%s</style>", css.txt)
       } else if (use.pager) {
-        sprintf(
-          "<link rel='stylesheet' type='text/css' href='%s'>", .Object@css
-        )
+        sprintf("<link rel='stylesheet' type='text/css' href='%s'>", css)
       } else ""
       template <- if(use.pager) {
         "<!DOCTYPE html><html><head>%s</head><body>%s</body><html>"
