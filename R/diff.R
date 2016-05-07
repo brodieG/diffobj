@@ -60,14 +60,15 @@ make_diff_fun <- function(capt_fun) {
     # touching vars in case someone passes `options(crayon.enabled=...)` as one
     # of the arguments
 
-    old.crayon.opt <- options(crayon.enabled=is(etc.proc@style, "diffObjAnsi"))
+    old.crayon.opt <-
+      options(crayon.enabled=is(etc.proc@style, "diffObjStyleAnsi"))
     on.exit(options(old.crayon.opt), add=TRUE)
     err <- make_err_fun(sys.call())
 
     # Compute gutter values so that we know correct widths to use for capture,
     # etc. Will need to update in HTML mode...
 
-    nc_fun <- if(is(etc.proc@style, "diffObjAnsi")) crayon_nchar else nchar
+    nc_fun <- if(is(etc.proc@style, "diffObjStyleAnsi")) crayon_nchar else nchar
     etc.proc@gutter <- gutter_dat(etc.proc)
     if(is(etc.proc@style, "diffObjStyleHtml")) {
       etc.proc@line.width <- 0L
@@ -106,7 +107,7 @@ make_diff_fun <- function(capt_fun) {
 #' @param current the object being compared to \code{target}
 #' @param mode character(1L), one of:
 #'   \itemize{
-#'     \item \dQuote{unified}: diff mode used by \code{git diff}, and the 
+#'     \item \dQuote{unified}: diff mode used by \code{git diff}, and the
 #'       default here
 #'     \item \dQuote{sidebyside}: line up the differences side by side
 #'     \item \dQuote{context}: show the target and current hunks in their

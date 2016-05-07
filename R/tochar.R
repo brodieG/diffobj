@@ -297,7 +297,8 @@ get_hunk_dat <- function(h.a, mode, type="both", sub=.valid_sub) {
 
 setMethod("as.character", "diffObjDiff",
   function(x, ...) {
-    old.crayon.opt <- options(crayon.enabled=is(x@etc@style, "diffObjAnsi"))
+    old.crayon.opt <-
+      options(crayon.enabled=is(x@etc@style, "diffObjStyleAnsi"))
     on.exit(options(old.crayon.opt), add=TRUE)
 
     # These checks should never fail since presumably the inputs have been
