@@ -289,7 +289,7 @@ diffObjStyleAnsi256DarkRgb <- setClass(
 #' @rdname diffObjStyle
 
 diffObjStyleAnsi256DarkYb <- setClass(
-  "diffObjStyleAnsi256DarkYb", contains="diffObjStyle",
+  "diffObjStyleAnsi256DarkYb", contains="diffObjStyleAnsi",
   prototype=list(
     funs=diffObjStyleFuns(
       text.insert=crayon::make_style(rgb(0, 0, 1, maxColorValue=5), bg=TRUE),
