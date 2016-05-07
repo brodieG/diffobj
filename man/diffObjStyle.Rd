@@ -3,6 +3,8 @@
 \docType{class}
 \name{diffObjStyle}
 \alias{diffObjStyle}
+\alias{diffObjStyleAnsi}
+\alias{diffObjStyleAnsi-class}
 \alias{diffObjStyleAnsi256DarkRgb}
 \alias{diffObjStyleAnsi256DarkRgb-class}
 \alias{diffObjStyleAnsi256DarkYb}
@@ -15,6 +17,9 @@
 \alias{diffObjStyleAnsi8NeutralRgb-class}
 \alias{diffObjStyleAnsi8NeutralYb}
 \alias{diffObjStyleAnsi8NeutralYb-class}
+\alias{diffObjStyleHtml}
+\alias{diffObjStyleHtml-class}
+\alias{diffObjStyleHtmlLightRgb}
 \alias{diffObjStyleHtmlLightRgb-class}
 \alias{diffObjStyleHtmlLightYb}
 \alias{diffObjStyleHtmlLightYb-class}

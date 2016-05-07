@@ -2,69 +2,6 @@
 
 NULL
 
-#' Generate a \code{diffobj} Settings Object
-#'
-#' Used for more fine grained control on the \code{diff_obj} family of
-#' functions by generating a settings object to pass as the \code{etc}
-#' parameter.  Most arguments take default values from options so that you may
-#' customize the behavior of these functions to your liking.
-#'
-#' @export
-#' @param line.limit integer(2L) or integer(1L), if length 1 how many lines of
-#'   output to show, where \code{-1} means no limit.  If length 2, the first
-#'   value indicates the threshold of screen lines to begin truncating output,
-#'   and the second the number of lines to truncate to, which should be fewer
-#'   than the threshold.
-#' @param hunk.limit integer(2L) or integer (1L), how many diff hunks to show.
-#'   Behaves similarly to the \code{line.limit}.  How many hunks are in a
-#'   particular diff is a function of how many differences, and also how much
-#'   \code{context} is used since context can cause two hunks to bleed into
-#'   each other and become one.
-#' @param use.ansi TRUE or FALSE, whether to use ANSI escape sequences to color
-#'   differences (TRUE by default if we detect that your terminal supports it)
-#' @param ignore.white.space TRUE or FALSE, whether to consider differences in
-#'   horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
-#'   FALSE)
-#' @param convert.hz.whitespace TRUE or FALSE, whether modify input strings
-#'   that contain tabs and carriage returns in such a way that they display as
-#'   they would \bold{with} those characters, but without using those
-#'   characters (defaults to TRUE).  If your console uses tab stops that are not
-#'   eight characters apart you may specify them with \code{tab.stops}.
-#' @param tab.stops integer, what tab stops to use when converting hard tabs to
-#'   spaces.  If not integer will be coerced to integer (defaults to 8L).
-#' @param disp.width integer(1L) number of display columns to take up; note that
-#'   in \dQuote{sidebyside} mode the effective display width is half this
-#'   number (defaults to \code{getOption("width")}.
-#' @param frame environment the evaluation frame for the \code{print/show/str},
-#'   calls, allows user to ensure correct methods are used, not used by
-#'   \code{\link{diff_chr}} or \code{\link{diff_deparse}}.
-#' @param max.diffs integer(1L), number of differences after which we abandon
-#'   the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
-#'   \code{-1L} to always stick to the original algorithm (defaults to 10000L).
-#' @param max.diffs.in.hunk integer(1L), like \code{max.diffs}, but used when
-#'   computing word diffs within hunks.  Used independently for each hunk.  Set
-#'   to zero to turn off in-hunk word diff.
-#' @param max.diffs.wrap integer(1L), like \code{max.diffs}, but used when
-#'   computing word diffs on atomic vectors (defaults to 10000L), see
-#'   \dQuote{Atomic Vectors} for \code{\link{diff_print}}.
-#' @param align.threshold numeric(1L) between 0 and 1, proportion of
-#'   characters in a line of \code{target} that must be matched in a line of
-#'   \code{current} in the same hunk for those lines to be paired up when
-#'   displayed (defaults to 0.25).
-#' @param tar.banner character(1L) or NULL, text to display ahead of the diff
-#'   section representing the target output.  If NULL will be
-#'   inferred from \code{target} and \code{current} expressions.
-#' @param cur.banner character(1L) like \code{tar.banner}, but for
-#'   \code{current}
-#' @return a \code{diffObjSettings} S4 object for use with the
-#'   \code{\link{diff_obj}} family of functions
-#' @examples
-#' mx1 <- mx2 <- matrix(1:80, 20)
-#' mx2[sample(1:80, 5)] <- 99
-#' diff_print(mx1, mx2, etc=etc(line.limit=10))
-
-NULL
-
 #' Attempt to Compute Console Height in Text Lines
 #'
 #' Returns the value of the \code{LINES} system variable if it is reasonable,

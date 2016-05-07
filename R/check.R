@@ -81,9 +81,6 @@ check_args <- function(
 ) {
   err <- make_err_fun(call)
 
-  if(!is(etc, "diffObjSettings"))
-    err("Argument `etc` must be a `diffObjSettings` S4 object")
-
   msg.base <- paste0(
     "Argument `%s` must be integer(1L) and not NA, an object produced ",
     "by `auto_context`, or \"auto\"."

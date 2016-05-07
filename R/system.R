@@ -14,7 +14,6 @@
     diffobj.pager.threshold=-1L,
     diffobj.less.flags="R",
     diffobj.hunk.limit=-1L,
-    diffobj.use.ansi=crayon::has_color(),
     diffobj.mode="unified",
     diffobj.silent=FALSE,
     diffobj.max.diffs=50000L,
@@ -39,4 +38,12 @@
   library.dynam.unload("diffobj", libpath)
 }
 
-gdO <- function(x) getOption(sprintf("diffobj.%s", x))
+#' Shorthand Function for Accessing diffobj Options
+#'
+#' \code{gdo(x)} is equivalent to \code{getOption(sprintf("diffobj.\%s", x))}.
+#'
+#' @export
+#' @param x character(1L) name off \code{diffobj} option to retrieve, without
+#'   the \dQuote{diffobj.} prefix
+
+gdo <- function(x) getOption(sprintf("diffobj.%s", x))
