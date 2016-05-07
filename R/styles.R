@@ -190,7 +190,7 @@ setMethod(
     .Object@pager <- if(pager_is_less())
       diffObjPagerSystemLess() else diffObjPagerSystem()
     callNextMethod(.Object, ...)
-  })
+})
 #' @export diffObjStyleAnsi8NeutralRgb
 #' @exportClass diffObjStyleAnsi8NeutralRgb
 #' @rdname diffObjStyle
@@ -405,7 +405,7 @@ setMethod("initialize", "diffObjStyleHtml",
 diffObjStyleHtmlLightRgb <- setClass(
   "diffObjStyleHtmlLightRgb", contains="diffObjStyleHtml"
 )
-setMethod("initialize", "diffObjStyleHtmlLightYb",
+setMethod("initialize", "diffObjStyleHtmlLightRgb",
   function(.Object, ...) {
     .Object@funs@container <- cont_f(c("light", "rgb"))
     callNextMethod(.Object, ...)
