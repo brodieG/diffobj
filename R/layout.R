@@ -13,7 +13,7 @@ gutter_dat <- function(etc) {
   gutt.match.ctd <- funs@gutter(funs@gutter.match.ctd(text@gutter.match.ctd))
 
   gutt.pad <- funs@gutter(funs@gutter.pad(text@gutter.pad))
-  nc_fun <- if(etc@use.ansi) crayon_nchar else nchar
+  nc_fun <- if(is(etc@style, "diffObjAnsi")) crayon_nchar else nchar
 
   gutt.max.w <- max(
     nc_fun(gutt.pad) + nc_fun(

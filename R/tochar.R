@@ -308,12 +308,14 @@ setMethod("as.character", "diffObjDiff",
     line.limit <- x@etc@line.limit
     hunk.limit <- x@etc@hunk.limit
     disp.width <- x@etc@disp.width
-    max.diffs <- x@etc@max.diffs
-    max.diffs.in.hunk <- x@etc@max.diffs.in.hunk
-    max.diffs.wrap <- x@etc@max.diffs.wrap
     mode <- x@etc@mode
     tab.stops <- x@etc@tab.stops
     ignore.white.space <- x@etc@ignore.white.space
+
+    # legacy from when we had different max diffs for different parts of diff
+    max.diffs <- x@etc@max.diffs
+    max.diffs.in.hunk <- x@etc@max.diffs
+    max.diffs.wrap <- x@etc@max.diffs
 
     s <- x@etc@style  # shorthand
 

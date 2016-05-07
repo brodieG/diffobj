@@ -77,7 +77,8 @@ is.valid.palette.param <- function(x, param, palette) {
 check_args <- function(
   call, tar.exp, cur.exp, mode, context, line.limit, format, brightness,
   color.mode, pager, ignore.white.space, max.diffs, align.threshold, disp.width,
-  hunk.limit, convert.hz.white.space, tab.stops, style, palette.of.styles, frame
+  hunk.limit, convert.hz.white.space, tab.stops, style, palette.of.styles,
+  frame, tar.banner, cur.banner
 ) {
   err <- make_err_fun(call)
 
@@ -146,8 +147,8 @@ check_args <- function(
   chr1LorNULL.vars <- c("tar.banner", "cur.banner")
   msg.base <- "Argument `%s` must be character(1L) and not NA, or NULL"
   for(x in chr1LorNULL.vars) {
-    if(!is.chr.1L(get(x, inherits=FALSE)) && !is.null(this.env[[x]]))
-      err(sprintf(msg.base, x))
+    y <- get(x, inherits=FALSE)
+    if(!is.chr.1L(y) && !is.null(y)) err(sprintf(msg.base, x))
   }
   # 0-1 vars
 
@@ -245,12 +246,11 @@ check_args <- function(
 
   etc <- new(
     "diffObjSettings", mode=val.modes[[which(mode.eq)]], context=context,
-    line.limit=line.limit, format=format, brightness=brightness,
-    color.mode=color.mode, ignore.white.space=ignore.white.space,
+    line.limit=line.limit, ignore.white.space=ignore.white.space,
     max.diffs=max.diffs, align.threshold=align.threshold, disp.width=disp.width,
     hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
-    tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
-    frame=frame, tar.exp=tar.exp, cur.exp=cur.exp
+    tab.stops=tab.stops, style=style, frame=frame,
+    tar.exp=tar.exp, cur.exp=cur.exp
   )
   etc
 }

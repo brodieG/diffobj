@@ -52,12 +52,11 @@ setClass(
     line.limit="integer",
     style="diffObjStyle",
     hunk.limit="integer",
-    use.ansi="logical",
     max.diffs="integer",
     align.threshold="numeric",
     ignore.white.space="logical",
+    convert.hz.white.space="logical",
     frame="environment",
-    silent="logical",
     tab.stops="integer",
     tar.exp="ANY",
     cur.exp="ANY",
@@ -75,6 +74,12 @@ setClass(
     for(i in int.1L.and.pos)
       if(!is.int.1L(slot(object, i)) || slot(object, i) < 0L)
         return(sprintf("Slot `%s` must be integer(1L) and positive"), i)
+    TF <- c("ignore.white.space", "convert.hz.white.space", "use.header")
+    for(i in TF)
+      if(!is.TF(slot(object, i)) || slot(object, i) < 0L)
+        return(sprintf("Slot `%s` must be TRUE or FALSE"), i)
+
+    TRUE
   }
 )
 setMethod("initialize", "diffObjSettings", function(.Object, ...) {
