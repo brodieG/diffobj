@@ -1,4 +1,17 @@
-# error call
+# check whether argument list contains non-default formals
+
+has_non_def_formals <- function(arg.list) {
+  stopifnot(is.pairlist(arg.list) || is.list(arg.list))
+  any(
+    vapply(
+      arg.list,
+      function(x) is.name(x) && !nzchar(as.character(x)),
+      logical(1L)
+  ) )
+}
+# check whether running in knitr
+
+in_knitr <- function() isTRUE(getOption('knitr.in.progress'))
 
 make_err_fun <- function(call)
   function(...) stop(simpleError(do.call(paste0, list(...)), call=call))
@@ -13,6 +26,9 @@ str_tpl <- function(object, max.level, ...) NULL
 trim_str <- function(str.txt, level, kj) {
   NULL
 }
+# utility fun to deparse into chr1L
+
+dep <- function(x) paste0(deparse(x, width.cutoff=500L), collapse="")
 
 # Reports how many levels deep each line of a `str` screen output is
 
@@ -133,49 +149,12 @@ check_limit <- function(limit) {
   if(length(limit) == 1L) limit <- rep(limit, 2L)
   limit
 }
-# Checks common arguments across functions
+# requires a value to be a scalar character and match one of the provided
+# options
 
-check_args <- function(call, tar.exp, cur.exp, mode, context, etc) {
-  err <- make_err_fun(call)
+string_in <- function(x, valid.x) is.chr.1L(x) && x %in% valid.x
 
-  if(!is(etc, "diffObjSettings"))
-    err("Argument `etc` must be a `diffObjSettings` S4 object")
-
-  msg.base <- paste0(
-    "Argument `%s` must be integer(1L) and not NA, an object produced ",
-    "by `auto_context`, or \"auto\"."
-  )
-  if(
-    !is.int.1L(context) && !is(context,"diffObjAutoContext") &&
-    !identical(context, "auto")
-  )
-    err(sprintf(msg.base, "context"))
-
-  if(!is(context, "diffObjAutoContext")) {
-    context <- if(identical(context, "auto")) auto_context() else
-      auto_context(as.integer(context), as.integer(context))
-  }
-  # any 'substr' of them otherwise these checks fail
-
-  val.modes <- c("unified", "context", "sidebyside")
-  fail.mode <- FALSE
-  if(!is.character(mode) || length(mode) != 1L || is.na(mode) || !nzchar(mode))
-    fail.mode <- TRUE
-  if(!fail.mode && !any(mode.eq <- substr(val.modes, 1, nchar(mode)) == mode))
-    fail.mode <- TRUE
-  if(fail.mode)
-    err(
-      "Argument `mode` must be character(1L) and in `", deparse(val.modes), "`."
-    )
-
-  # Update the etc object
-
-  etc@mode <- val.modes[[which(mode.eq)]]
-  etc@context <- context
-  etc@tar.exp <- tar.exp
-  etc@cur.exp <- cur.exp
-  etc
-}
+# Simple validation functions
 
 is.int.1L <- function(x)
   is.numeric(x) && length(x) == 1L && !is.na(x) && x ==  round(x) &&
@@ -195,3 +174,39 @@ is.diffs <- function(x)
   is.list(x$hunks) && is.int.1L(x$diffs) && is.int.1L(x$diffs.max) &&
   is.TF(x$hit.diffs.max)
 
+is.valid.palette.param <- function(x, param, palette) {
+  stopifnot(is(palette, "diffObjStylePalette"))
+  stopifnot(isTRUE(param %in% c("brightness", "color.mode")))
+  valid.formats <- dimnames(palette@data)$format
+  valid.params <- dimnames(palette@data)[[param]]
+
+  if(!is.character(x) || anyNA(x))
+    paste0("Argument `", param, "` must be character and not contain NAs")
+  else if(!all(x %in% valid.params))
+    paste0(
+      "Argument `", param, "` may only contain values in `", dep(valid.params),
+      "`"
+    )
+  else if(
+    (length(x) > 1L && is.null(names(x))) ||
+    (!is.null(names(x)) && !"" %in% names(x)) ||
+    !all(names(x) %in% valid.formats)
+  )
+    paste0(
+      "Argument `", param, "` must have names if it has length > 1, and those ",
+      "names must include at least an empty name `\"\"` as well as names only ",
+      "from `", dep(valid.formats), "`."
+    )
+  else TRUE
+}
+# Helper function to retrieve a palette parameter
+
+get_pal_par <- function(format, param) {
+  if(is.chr.1L(param) && is.null(names(param))) {
+    param
+  } else if(format %in% names(param)) {
+    param[format]
+  } else if (wild.match <- match("", names(param), nomatch=0L)) {
+    param[wild.match]
+  } else stop("Logic Error: malformed palette parameter; contact maintainer.")
+}

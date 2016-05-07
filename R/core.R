@@ -216,9 +216,6 @@ setMethod("summary", "diffObjMyersMbaSes",
     if(!with.match) res <- res[-2L]
     print(res, ...)
 } )
-# Carries out the comparison between two character vectors and returns the
-# elements that match and those that don't as a unitizerDiffDiffs object
-#
 # mode is display mode (sidebyside, etc.)
 # diff.mode is whether we are doing the first pass line diff, or doing the
 #   in-hunk or word-wrap versions
@@ -231,9 +228,7 @@ char_diff <- function(
     diff.mode %in% c("line", "hunk", "wrap"),
     isTRUE(warn) || identical(warn, FALSE)
   )
-  diff.param <- c(
-    line="max.diffs", hunk="max.diffs.in.hunk", wrap="max.diffs.wrap"
-  )
+  diff.param <- c(line="max.diffs")
   if(etc@ignore.white.space) {
     x.w <- normalize_whitespace(x)
     y.w <- normalize_whitespace(y)
@@ -241,7 +236,7 @@ char_diff <- function(
     x.w <- x
     y.w <- y
   }
-  max.diffs <- slot(etc, diff.param[[diff.mode]])
+  max.diffs <- etc@max.diffs
   diff <- diff_myers_mba(x.w, y.w, max.diffs)
   if(etc@ignore.white.space) {
     diff@a <- x
@@ -257,7 +252,7 @@ char_diff <- function(
     )
     if(warn)
       warning(
-        "Exceeded `", diff.param[diff.mode], "` limit during diff computation (",
+        "Exceeded diff limit during diff computation (",
         diff@diffs, " vs. ", max.diffs, " allowed); ",
         diff.msg[diff.mode], " diff is likely not optimal",
         call.=FALSE
@@ -285,10 +280,9 @@ line_diff <- function(
     tar.capt, cur.capt, etc=etc, diff.mode="line", warn=warn,
     use.header=use.header
   )
-  diff.type <- if(is(etc@style, "diffObjStyleHtml")) "Html" else ""
   new(
-    sprintf("diffObjDiff%s", diff.type), diffs=diffs, target=target,
-    current=current, tar.capt=tar.capt, cur.capt=cur.capt, etc=etc
+    "diffObjDiff", diffs=diffs, target=target, current=current,
+    tar.capt=tar.capt, cur.capt=cur.capt, etc=etc
   )
 }
 # Helper function encodes matches within mismatches so that we can later word

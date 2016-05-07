@@ -4,7 +4,6 @@
 \name{diffobj_s4method_doc}
 \alias{any,diffObjDiffDiffs-method}
 \alias{as.character,diffObjDiff-method}
-\alias{as.character,diffObjDiffHtml-method}
 \alias{diffobj_s4method_doc}
 \alias{show,diffObjMyersMbaSes-method}
 \alias{summary,diffObjMyersMbaSes-method}
@@ -17,8 +16,6 @@
 \S4method{summary}{diffObjMyersMbaSes}(object, with.match = FALSE, ...)
 
 \S4method{as.character}{diffObjDiff}(x, ...)
-
-\S4method{as.character}{diffObjDiffHtml}(x, ...)
 }
 \description{
 Dummy Doc File for S4 Methods with Existing Generics

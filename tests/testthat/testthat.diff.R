@@ -1,4 +1,3 @@
-library(unitizer)
 context("Diff")
 local({
 

@@ -1,5 +1,6 @@
 #' @include misc.R
 #' @include styles.R
+#' @include pager.R
 
 NULL
 
@@ -31,16 +32,6 @@ setClass(
     TRUE
 } )
 setClassUnion("doAutoCOrInt", c("diffObjAutoContext", "integer"))
-setClass(
-  "diffObjPager",
-  slots=c(mode="character", threshold="integer", less.flags="character"),
-  validity=function(object) {
-    if(!is.pager_mode(object@mode)) return("Invalid `mode` slot")
-    if(!is.less_flags(object@less.flags)) return("Invalid `less.flags` slot")
-    if(!is.int.1L(object@threshold)) return("Invalid `threshold` slot")
-    TRUE
-  }
-)
 # pre-computed gutter data
 
 setClass(
@@ -60,26 +51,44 @@ setClass(
     context="doAutoCOrInt",
     line.limit="integer",
     style="diffObjStyle",
-    pager="diffObjPager",
     hunk.limit="integer",
-    use.ansi="logical",
     max.diffs="integer",
-    max.diffs.in.hunk="integer",
-    max.diffs.wrap="integer",
     align.threshold="numeric",
     ignore.white.space="logical",
+    convert.hz.white.space="logical",
     frame="environment",
-    silent="logical",
     tab.stops="integer",
     tar.exp="ANY",
     cur.exp="ANY",
     tar.banner="charOrNULL",
     cur.banner="charOrNULL",
     use.header="logical",
+    disp.width="integer",
+    line.width="integer",
+    text.width="integer",
     gutter="diffObjGutter"
   ),
-  prototype=list(use.header=FALSE)
+  prototype=list(use.header=FALSE, disp.width=0L, text.width=0L, line.width=0L),
+  validity=function(object){
+    int.1L.and.pos <- c("disp.width", "line.width", "text.width")
+    for(i in int.1L.and.pos)
+      if(!is.int.1L(slot(object, i)) || slot(object, i) < 0L)
+        return(sprintf("Slot `%s` must be integer(1L) and positive"), i)
+    TF <- c("ignore.white.space", "convert.hz.white.space", "use.header")
+    for(i in TF)
+      if(!is.TF(slot(object, i)) || slot(object, i) < 0L)
+        return(sprintf("Slot `%s` must be TRUE or FALSE"), i)
+
+    TRUE
+  }
 )
+setMethod("initialize", "diffObjSettings", function(.Object, ...) {
+  if(is.numeric(.Object@disp.width))
+    .Object@disp.width <- as.integer(.Object@disp.width)
+  if(is.null(.Object@disp.width))
+    .Object@disp.width <- 80L
+  return(callNextMethod(.Object, ...))
+} )
 # Classes for tracking intermediate diff obj data
 #
 # DiffDiffs contains a slot corresponding to each of target and current where
@@ -155,72 +164,38 @@ setClass(
       return("slot `trim.dat` in incorrect format")
     TRUE
 } )
-# Purely so we can implement a different `show` method; the meaningful
-# difference are actually inside @etc@style
-
-setClass(
-  "diffObjDiffHtml", contains="diffObjDiff",
-  validity=function(object) {
-    if(!is(object@etc@style, "diffObjStyleHtml"))
-      return("Slot `@etc@style` must be or extended \"diffObjStyleHtml\".")
-    TRUE
-  }
-)
 setMethod("show", "diffObjDiff",
   function(object) {
-    # Finalize stuff
-
     res.chr <- as.character(object)
-    # slot(res.diff, "trim.dat") <- attr(res.chr, "meta")
-    use.pager <- object@etc@pager@mode
-    use.pager.thresh <- identical(use.pager, "threshold")
-    pager.thresh <- object@etc@pager@threshold
-    threshold <- if(use.pager.thresh && pager.thresh == -1L)
-      console_lines() else object@etc@pager@threshold
 
-    if(
-      identical(use.pager, "always") || (
-        use.pager.thresh && length(res.chr) > threshold
-      )
-    ){
-      disp.f <- tempfile()
+    # Determine whether to use pager or not
+
+    pager <- object@etc@style@pager
+
+    use.pager <- if(!is(pager, "diffObjPagerOff")) {
+      threshold <- if(pager@threshold < 0L) {
+        console_lines()
+      } else pager@threshold
+      !threshold || length(res.chr) > threshold
+    } else FALSE
+
+    # Finalize and output
+
+    fin <- object@etc@style@finalizer(res.chr, pager)
+
+    if(use.pager) {
+      disp.f <- paste0(tempfile(), ".", pager@file.ext)
       on.exit(add=TRUE, unlink(disp.f))
-      writeLines(res.chr, disp.f)
-      if(pager_is_less() && object@etc@use.ansi) {
-        old.less <- set_less_var("R")
-        on.exit(reset_less_var(old.less), add=TRUE)
-      }
-      file.show(disp.f)
-    } else cat(res.chr, sep="\n")
-
+      writeLines(fin, disp.f)
+      pager@pager(disp.f)
+      if(is(pager, "diffObjPagerBrowser"))
+        readline("Press ENTER to continue...")
+    } else {
+      cat(fin, sep="\n")
+    }
     invisible(NULL)
   }
 )
-setMethod("show", "diffObjDiffHtml",
-  function(object) {
-    x.chr <- as.character(object)
-    head <- if(
-      nchar(object@etc@style@css) && object@etc@style@css.mode == "external" &&
-      object@etc@style@as.page
-    )
-      sprintf(
-        "<head><link rel='stylesheet' type='text/css' href='%s'></head>",
-        object@etc@style@css
-      )
-    doc <- if(object@etc@style@as.page) {
-      c("<!DOCTYPE html><html>", head, "<body>", x.chr, "</body></html>")
-    } else x.chr
-    doc.fin <- paste0(doc, collapse="")
-    if(object@etc@style@use.browser) {
-      tmp <- paste0(tempfile(), ".html")
-      on.exit(unlink(tmp))
-      writeLines(doc.fin, con=tmp)
-      browseURL(tmp)
-      readline("press any key to continue")
-    } else {
-      cat(doc.fin, sep="")
-    }
-} )
 # Compute what fraction of the lines in target and current actually end up
 # in the diff; some of the complexity is driven by repeated context hunks
 

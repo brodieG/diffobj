@@ -67,8 +67,11 @@ NULL
 #' @param gutter.match.txt.ctd character(1L) see \code{gutter.ins.txt.ctd} above
 #' @return diffObjStyle S4 object
 #' @rdname diffObjStyle
+#' @name diffObjStyle
 #' @export diffObjStyle
 #' @exportClass diffObjStyle
+
+NULL
 
 diffObjStyleFuns <- setClass(
   "diffObjStyleFuns",
@@ -106,47 +109,40 @@ diffObjStyleFuns <- setClass(
     for(i in slotNames(object)) {
       if(!is.function(slot(object, i)))
         return(paste0("Argument `", i, "` should be a function."))
-      frm <- formals(slot(object, i))
-      non.def <- vapply(
-        names(frm),
-        function(x)
-          is.name(frm[[x]]) && !nzchar(as.character(frm[[x]])) && x != "...",
-        logical(1L)
-      )
-      if(sum(non.def) > 1L)
+      if(has_non_def_formals(tail(formals(slot(object, i)), -1L)))
         return(
-         paste0(
-          "Argument `", i,
-          "` may not have more than one non-default formal argument"
-        ) )
+          paste0(
+            "Argument `", i,
+            "` may not have non-default formals argument after the first."
+          ) )
+      }
+      TRUE
     }
-    TRUE
-  }
-)
-diffObjStyleText <- setClass(
-  "diffObjStyleText",
-  slots=c(
-    gutter.insert="character", gutter.insert.ctd="character",
-    gutter.delete="character", gutter.delete.ctd="character",
-    gutter.match="character", gutter.match.ctd="character",
-    gutter.pad="character",
-    context.sep="character",
-    pad.col="character"
-  ),
-  prototype=list(
-    gutter.insert=">", gutter.insert.ctd=":",
-    gutter.delete="<", gutter.delete.ctd=":",
-    gutter.match=" ", gutter.match.ctd=" ",
-    gutter.pad=" ",
-    context.sep="~~~~~",
-    pad.col=" "
-  ),
-  validity=function(object){
-    for(i in slotNames(object)) if(!is.chr.1L(slot(object, i)))
-      return(paste0("Argument `", i, "` must be character(1L) and not NA."))
-    TRUE
-  }
-)
+  )
+  diffObjStyleText <- setClass(
+    "diffObjStyleText",
+    slots=c(
+      gutter.insert="character", gutter.insert.ctd="character",
+      gutter.delete="character", gutter.delete.ctd="character",
+      gutter.match="character", gutter.match.ctd="character",
+      gutter.pad="character",
+      context.sep="character",
+      pad.col="character"
+    ),
+    prototype=list(
+      gutter.insert=">", gutter.insert.ctd=":",
+      gutter.delete="<", gutter.delete.ctd=":",
+      gutter.match=" ", gutter.match.ctd=" ",
+      gutter.pad=" ",
+      context.sep="~~~~~",
+      pad.col=" "
+    ),
+    validity=function(object){
+      for(i in slotNames(object)) if(!is.chr.1L(slot(object, i)))
+        return(paste0("Argument `", i, "` must be character(1L) and not NA."))
+      TRUE
+    }
+  )
 diffObjStyle <- setClass(
   "diffObjStyle",
   slots=c(
@@ -154,44 +150,53 @@ diffObjStyle <- setClass(
     text="diffObjStyleText",
     wrap="logical",
     pad="logical",
-    disp.width="integer",
-    line.width="integer",
-    text.width="integer"
+    finalizer="function",
+    pager="diffObjPager"
   ),
   prototype=list(
     funs=diffObjStyleFuns(),
     text=diffObjStyleText(),
-    disp.width=getOption("diffobj.disp.width"),
-    text.width=0L,
-    line.width=0L,
     wrap=TRUE,
-    pad=TRUE
+    pad=TRUE,
+    pager=diffObjPagerOff(),
+    finalizer=function(x, y) x
   ),
   validity=function(object){
-    int.1L.and.pos <- c("disp.width", "line.width", "text.width")
-    for(i in int.1L.and.pos)
-      if(!is.int.1L(slot(object, i)) || slot(object, i) < 0L)
-        return(sprintf("Slot `%s` must be integer(1L) and positive"), i)
     if(!is.TF(object@wrap))
       return("Slot `wrap` must be TRUE or FALSE")
     if(!is.TF(object@pad))
       return("Slot `pad` must be TRUE or FALSE")
-    TRUE
+    fin.args <- formals(object@finalizer)
+    if(length(fin.args) < 2L)
+      return(
+        "Slot `finalizer` must be a function with at least two parameters."
+      )
+    if(length(fin.args) > 2L && has_non_def_formals(tail(fin.args, -2L)))
+      return(
+        paste0(
+          "Slot `finalizer` must be a function with no non-default parameters ",
+          "other than the first two."
+    ) )
   }
 )
-setMethod("initialize", "diffObjStyle", function(.Object, ...) {
-  if(is.numeric(.Object@disp.width))
-    .Object@disp.width <- as.integer(disp.width)
-  if(is.null(.Object@disp.width))
-    .Object@disp.width <- 80L
-  return(callNextMethod(.Object, ...))
-} )
-#' @export diffObjStyleBasic
-#' @exportClass diffObjStyleBasic
+#' @export diffObjStyleAnsi
+#' @exportClass diffObjStyleAnsi
 #' @rdname diffObjStyle
 
-diffObjStyleBasic <- setClass(
-  "diffObjStyleBasic", contains="diffObjStyle",
+diffObjStyleAnsi <- setClass("diffObjStyleAnsi", contains="diffObjStyle")
+setMethod(
+  "initialize", "diffObjStyleAnsi",
+  function(.Object, ...) {
+    .Object@pager <- if(pager_is_less())
+      diffObjPagerSystemLess() else diffObjPagerSystem()
+    callNextMethod(.Object, ...)
+})
+#' @export diffObjStyleAnsi8NeutralRgb
+#' @exportClass diffObjStyleAnsi8NeutralRgb
+#' @rdname diffObjStyle
+
+diffObjStyleAnsi8NeutralRgb <- setClass(
+  "diffObjStyleAnsi8NeutralRgb", contains="diffObjStyleAnsi",
   prototype=list(
     funs=diffObjStyleFuns(
       word.insert=crayon::green, word.delete=crayon::red,
@@ -204,12 +209,12 @@ diffObjStyleBasic <- setClass(
       context.sep=crayon::silver
   ) )
 )
-#' @export diffObjStyleBasicYB
-#' @exportClass diffObjStyleBasicYB
+#' @export diffObjStyleAnsi8NeutralYb
+#' @exportClass diffObjStyleAnsi8NeutralYb
 #' @rdname diffObjStyle
 
-diffObjStyleBasicYB <- setClass(
-  "diffObjStyleBasicYB", contains="diffObjStyle",
+diffObjStyleAnsi8NeutralYb <- setClass(
+  "diffObjStyleAnsi8NeutralYb", contains="diffObjStyleAnsi",
   prototype=list(
     funs=diffObjStyleFuns(
       word.insert=crayon::blue, word.delete=crayon::yellow,
@@ -222,12 +227,12 @@ diffObjStyleBasicYB <- setClass(
       context.sep=crayon::silver
   ) )
 )
-#' @export diffObjStyleLight
-#' @exportClass diffObjStyleLight
+#' @export diffObjStyleAnsi256LightRgb
+#' @exportClass diffObjStyleAnsi256LightRgb
 #' @rdname diffObjStyle
 
-diffObjStyleLight <- setClass(
-  "diffObjStyleLight", contains="diffObjStyle",
+diffObjStyleAnsi256LightRgb <- setClass(
+  "diffObjStyleAnsi256LightRgb", contains="diffObjStyleAnsi",
   prototype=list(
     funs=diffObjStyleFuns(
       text.insert=crayon::make_style(rgb(4, 5, 4, maxColorValue=5), bg=TRUE),
@@ -241,12 +246,12 @@ diffObjStyleLight <- setClass(
       header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5)),
       meta=crayon::silver
 ) ) )
-#' @export diffObjStyleLightYB
-#' @exportClass diffObjStyleLightYB
+#' @export diffObjStyleAnsi256LightYb
+#' @exportClass diffObjStyleAnsi256LightYb
 #' @rdname diffObjStyle
 
-diffObjStyleLightYB <- setClass(
-  "diffObjStyleLightYB", contains="diffObjStyle",
+diffObjStyleAnsi256LightYb <- setClass(
+  "diffObjStyleAnsi256LightYb", contains="diffObjStyleAnsi",
   prototype=list(
     funs=diffObjStyleFuns(
       text.insert=crayon::make_style(rgb(3, 3, 5, maxColorValue=5), bg=TRUE),
@@ -260,12 +265,12 @@ diffObjStyleLightYB <- setClass(
       header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5)),
       meta=crayon::silver
 ) ) )
-#' @export diffObjStyleDark
-#' @exportClass diffObjStyleDark
+#' @export diffObjStyleAnsi256DarkRgb
+#' @exportClass diffObjStyleAnsi256DarkRgb
 #' @rdname diffObjStyle
 
-diffObjStyleDark <- setClass(
-  "diffObjStyleDark", contains="diffObjStyle",
+diffObjStyleAnsi256DarkRgb <- setClass(
+  "diffObjStyleAnsi256DarkRgb", contains="diffObjStyleAnsi",
   prototype=list(
     funs=diffObjStyleFuns(
       text.insert=crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE),
@@ -279,12 +284,12 @@ diffObjStyleDark <- setClass(
       header=crayon::cyan,
       meta=crayon::silver
 ) ) )
-#' @export diffObjStyleDarkYB
-#' @exportClass diffObjStyleDarkYB
+#' @export diffObjStyleAnsi256DarkYb
+#' @exportClass diffObjStyleAnsi256DarkYb
 #' @rdname diffObjStyle
 
-diffObjStyleDarkYB <- setClass(
-  "diffObjStyleDarkYB", contains="diffObjStyle",
+diffObjStyleAnsi256DarkYb <- setClass(
+  "diffObjStyleAnsi256DarkYb", contains="diffObjStyleAnsi",
   prototype=list(
     funs=diffObjStyleFuns(
       text.insert=crayon::make_style(rgb(0, 0, 1, maxColorValue=5), bg=TRUE),
@@ -302,20 +307,14 @@ diffObjStyleDarkYB <- setClass(
 #' @exportClass diffObjStyleHtml
 #' @rdname diffObjStyle
 
-setClass(
+diffObjStyleHtml <- setClass(
   "diffObjStyleHtml", contains="diffObjStyle",
   slots=c(
-    css="character",
-    css.mode="character",
-    escape.html.entities="logical",
-    use.browser="logical",
-    as.page="logical"
+    css="character", css.mode="character", escape.html.entities="logical"
   ),
   prototype=list(
     funs=diffObjStyleFuns(
-      # container fun adds div at top and bottom
-      container=function(x)
-        c("<div class='diffobj_container'><pre>", x, "</pre></div>"),
+      container=cont_f(),
       row=div_f("row"),
       banner.insert=div_f("insert"),
       banner.delete=div_f("delete"),
@@ -341,55 +340,249 @@ setClass(
       gutter.delete="&lt;",
       gutter.match="&nbsp;"
     ),
+    pager=diffObjPagerBrowser(),
     wrap=FALSE,
-    pad=FALSE
+    pad=FALSE,
+    escape.html.entities=TRUE
   ),
   validity=function(object) {
     if(!is.chr.1L(object@css))
       return("slot `css` must be character(1L)")
-    if(!is.chr.1L(object@css.mode) && !object@css %in% c("internal", "external"))
-      return("slot `css.mode` must be \"internal\" or \"external\".")
-    TF.slots <- c("escape.html.entities", "use.browser", "as.page")
-    for(i in TF.slots)
-      if(!is.TF(slot(object, i)))
-        return(paste0("slot `", i, "` must be TRUE or FALSE"))
+    if(!is.chr.1L(object@css.mode))
+      return("slot `css.mode` must be \"internal\" or \"external\"")
+    if(!is.TF(object@escape.html.entities))
+      return("slot `escape.html.entities` must be TRUE or FALSE.")
     TRUE
   }
 )
-# construct with default values specified via options
+# construct with default values specified via options; would this work with
+# initialize?  Depends on whether this is run by package installation process
 
-diffObjStyleHtml <- function(...) {
-  args <- list(...)
-  args.def <- list(
-    css=getOption("diffobj.html.css"),
+setMethod("initialize", "diffObjStyleHtml",
+  function(
+    .Object, css=getOption("diffobj.html.css"),
     css.mode=getOption("diffobj.html.css.mode"),
     escape.html.entities=getOption("diffobj.html.escape.html.entities"),
-    use.browser=getOption("diffobj.html.use.browser"),
-    as.page=getOption("diffobj.html.as.page")
-  )
-  int.and.not.knit <- interactive() && !isTRUE(getOption('knitr.in.progress'))
-  if(identical(args.def$use.browser, "auto"))
-    args.def$use.browser <- int.and.not.knit
-  if(identical(args.def$as.page, "auto"))
-    args.def$as.page <- int.and.not.knit
-  if(identical(args.def$css.mode, "auto"))
-    args.def$css.mode <- if(int.and.not.knit) "external" else "internal"
+    ...
+  ) {
+    if(!is.chr.1L(css))
+      stop("Argument `css` must be character(1L) and not NA")
+    valid.css.modes <- c("auto", "internal", "external")
+    if(!string_in(css.mode, valid.css.modes))
+      stop("Argument `css.mode` must be in `", dep(valid.css.modes), "`.")
 
-  args.comb <- c(args, args.def[!names(args.def) %in% names(args)])
-  do.call("new", c("diffObjStyleHtml", args.comb))
-}
-#' @export diffObjStyleHtmlYB
-#' @exportClass diffObjStyleHtmlYB
+    # Generate finalizer function
+
+    .Object@finalizer <- function(txt, pager) {
+      stopifnot(is(pager, "diffObjPager"))
+
+      use.pager <- !is(pager, "diffObjPagerOff")
+      header <- footer <- NULL
+      txt.flat <- paste0(txt, sep="")
+
+      css.mode <- if(css.mode == "auto" && is(pager, "diffObjPagerBrowser"))
+        "external" else "internal"
+
+      css <- if(css.mode == "internal") {
+        css.txt <- try(paste0(readLines(css), collapse=""))
+        if(inherits(css.txt, "try-error"))
+        stop("Cannot read css file ", css)
+        sprintf("<style type='text/css'>%s</style>", css.txt)
+      } else if (use.pager) {
+        sprintf("<link rel='stylesheet' type='text/css' href='%s'>", css)
+      } else ""
+      template <- if(use.pager) {
+        "<!DOCTYPE html><html><head>%s</head><body>%s</body><html>"
+      } else "%s%s"
+      sprintf(template, css, txt.flat)
+    }
+    callNextMethod(.Object, css=css, css.mode=css.mode, ...)
+} )
+#' @export diffObjStyleHtmlLightRgb
+#' @exportClass diffObjStyleHtmlLightRgb
 #' @rdname diffObjStyle
 
-diffObjStyleHtmlYB <- setClass(
-  "diffObjStyleHtmlYB", contains="diffObjStyleHtml",
+diffObjStyleHtmlLightRgb <- setClass(
+  "diffObjStyleHtmlLightRgb", contains="diffObjStyleHtml"
 )
-setMethod("initialize", "diffObjStyleHtmlYB",
+setMethod("initialize", "diffObjStyleHtmlLightRgb",
   function(.Object, ...) {
-    # container fun adds div at top and bottom
-    .Object@funs@container <- function(x)
-      c("<div class='diffobj_container yb'><pre>", x, "</pre></div>")
+    .Object@funs@container <- cont_f(c("light", "rgb"))
     callNextMethod(.Object, ...)
+  }
+)
+#' @export diffObjStyleHtmlLightYb
+#' @exportClass diffObjStyleHtmlLightYb
+#' @rdname diffObjStyle
+
+diffObjStyleHtmlLightYb <- setClass(
+  "diffObjStyleHtmlLightYb", contains="diffObjStyleHtml",
+)
+setMethod("initialize", "diffObjStyleHtmlLightYb",
+  function(.Object, ...) {
+    .Object@funs@container <- cont_f(c("light", "yb"))
+    callNextMethod(.Object, ...)
+  }
+)
+# Helper structure for constructing our defaults array
+
+.dfs.dims <- list(
+  format=c("raw", "ansi8", "ansi256", "html"),
+  brightness=c("neutral", "light", "dark"),
+  color.mode=c("rgb", "yb")  # add b/w?
+)
+.dfs.dims.sizes <- vapply(.dfs.dims, length, integer(1L))
+.dfs.arr <- array(
+  vector("list", prod(.dfs.dims.sizes)), dim=.dfs.dims.sizes, dimnames=.dfs.dims
+)
+
+#' Class for Tracking Default Styles by Style Type
+#'
+#' Provides a mechanism for specifying a style based on the style properties
+#' along dimensions of format, brightness, and color.  This allows a user to
+#' request a style that meets a certain description (e.g. a \dQuote{light}
+#' scheme in \dQuote{ansi256} format), without having to provide a specific
+#' \code{\link{diffObjStyle}} object.
+#'
+#' @section Dimensions:
+#'
+#' There are three general orthogonal dimensions of styles that can be used when
+#' rendering diffs: the type of format, the \dQuote{brightness} of the output,
+#' and whether the colors used are distinguishable if you assume reds and greens
+#' are not distinguishable.  Defaults for the intersections each of these
+#' dimensions are encoded as a three dimensional list.  This list is just an
+#' atomic vector of type \dQuote{list} with a length 3 \code{dim} attribute.
+#'
+#' The array/list dimensions are:
+#' \itemize{
+#'   \item format: the format type, typically \dQuote{raw}, \dQuote{ansi8},
+#'     \dQuote{ansi256}, or \dQuote{html}
+#'   \item brightness: whether the colors are bright or not, which allows user to
+#'     chose a scheme that is compatible with their console, typically:
+#'     \dQuote{light}, \dQuote{dark}, \dQuote{normal}
+#'   \item color.mode: \dQuote{rgb} for full color or \dQuote{yb} for
+#'     dichromats (yb stands for Yellow Blue).
+#' }
+#' @section Structural Details:
+#'
+#' The array/list is stored in the \code{data} slot of
+#' \code{diffObjStylePalette} objects.  Subsetting methods are provided so you
+#' may operate directly on the S4 object as you would on a regular array.
+#'
+#' The array/list must be fully populated with objects that are or extend
+#' \code{diffObjStyle}.  There is no explicit check that the objects in the list
+#' comply with the descriptions implied by their coordinates, although the
+#' default object provided by the package does comply for the most part.  One
+#' check that is carried out is that any element that has a \dQuote{html}
+#' value in the \code{format} dimension extends \code{diffObjStyleHtml}.
+#'
+#' Every cell in the list must be populated.  If there is a particular
+#' combination of coordinates that does not have a corresponding defined style
+#' a reasonable substitution must be provided.  For example, this package
+#' only defines \dQuote{light} HTML styles, so it simply uses that style for
+#' all the possible \code{brightness} values.
+#'
+#' While the list may only have the three dimensions described, you can add
+#' values to the dimensions provided the values described above are the first
+#' ones in each of their corresponding dimensions.  For example, if you wanted
+#' to allow for styles that would render in \code{grid} graphics, you could
+#' genarate a default list with \dQuote{"grid"} value appended to the values of
+#' the \code{format} dimension.
+#'
+#' @export diffObjStylePalette
+#' @exportClass diffObjStylePalette
+#' @examples
+#' ## Create a new style based on existing style by changing
+#' ## gutter symbols
+#' my.style <- diffObjStyleAnsi256LightRgb()
+#' my.style@text@gutter.ins <- "+"
+#' my.style@text@gutter.del <- "-"
+#' ## Generate the default style object palette, and replace
+#' ## the ansi256 / light / rgb style with our modified one
+#' defs <- diffObjStylePalette()
+#' defs["ansi256", "light", "rgb"] <- list(my.style) # note `list()`
+#' ## If so desired, set our new style palette as the default
+#' ## one; could also pass directly as argument to `diff*` funs
+#' \dontrun{
+#' options(diffobj.style.defaults) <- defs
+#' }
+
+diffObjStylePalette <- setClass(
+  "diffObjStylePalette",
+  slots=c(data="array"),
+  validity=function(object) {
+    dat <- object@data
+    valid.names <- names(.dfs.dims)
+    if(!is.list(dat))
+      return("Slot `data` must be a dimensioned list")
+    if(
+      !is.list(dimnames(dat)) ||
+      !identical(names(dimnames(dat)), valid.names) ||
+      !all(vapply(dimnames(dat), is.character, logical(1L))) ||
+      anyNA(unlist(dat))
+    )
+      return(
+        paste0(
+          "`dimnames` for default styles must be a list with names `",
+          paste0(deparse(valid.names), collapse=""), "` and contain only ",
+          "character vectors with no NA values."
+      ) )
+
+    if(
+      !all(
+        vapply(
+          valid.names,
+          function(x) !identical(
+            .dfs.dims[[x]], head(dimnames(dat)[[x]], length(.dfs.dims[[x]]))
+          ),
+          logical(1L)
+    ) ) )
+      return("Style dimension names do not contain all required values")
+
+    if(!all(vapply(dat, is, logical(1L), "diffObjStyle")))
+      return("Styles may only contain objects that extend `diffObjStyle`")
+    if(!all(vapply(dat["html", ,], is, logical(1L), "diffObjStyleHtml")))
+      return("Styles classifed as HTML must extend `diffObjStyleHtml`")
+    TRUE
+  }
+)
+setMethod("initialize", "diffObjStylePalette",
+  function(.Object, ...) {
+    .dfs.arr["raw", , ] <- list(diffObjStyle())
+
+    .dfs.arr["ansi8", , "rgb"] <- list(diffObjStyleAnsi8NeutralRgb())
+    .dfs.arr["ansi8", , "yb"] <- list(diffObjStyleAnsi8NeutralYb())
+
+    .dfs.arr["ansi256", "neutral", "rgb"] <- list(diffObjStyleAnsi8NeutralRgb())
+    .dfs.arr["ansi256", "neutral", "yb"] <- list(diffObjStyleAnsi8NeutralYb())
+    .dfs.arr["ansi256", "light", "rgb"] <- list(diffObjStyleAnsi256LightRgb())
+    .dfs.arr["ansi256", "light", "yb"] <- list(diffObjStyleAnsi256LightYb())
+    .dfs.arr["ansi256", "dark", "rgb"] <- list(diffObjStyleAnsi256DarkRgb())
+    .dfs.arr["ansi256", "dark", "yb"] <- list(diffObjStyleAnsi256DarkYb())
+
+    .dfs.arr["html", , "rgb"] <- list(diffObjStyleHtmlLightRgb())
+    .dfs.arr["html", , "yb"] <- list(diffObjStyleHtmlLightYb())
+
+    .Object@data <- .dfs.arr
+    callNextMethod(.Object, ...)
+  }
+)
+setReplaceMethod(
+  "[", signature=c(x="diffObjStylePalette"),
+  function(x, i, j, ..., value) {
+    x@data[i, j, ...] <- value
+    validObject(x)
+    x
+} )
+setMethod(
+  "[", signature=c(x="diffObjStylePalette"),
+  function(x, i, j, ..., drop=TRUE) {
+    x@data[i, j, ..., drop=drop]
+  }
+)
+setMethod(
+  "[[", signature=c(x="diffObjStylePalette"),
+  function(x, i, j, ..., exact=TRUE) {
+    x@data[[i, j, ..., exact=exact]]
   }
 )
