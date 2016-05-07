@@ -150,13 +150,15 @@ diffObjStyle <- setClass(
     text="diffObjStyleText",
     wrap="logical",
     pad="logical",
-    finalizer="function"
+    finalizer="function",
+    pager="diffObjPager"
   ),
   prototype=list(
-    Funs=diffObjStyleFuns(),
+    funs=diffObjStyleFuns(),
     text=diffObjStyleText(),
     wrap=TRUE,
     pad=TRUE,
+    pager=diffObjPagerOff(),
     finalizer=function(x, y) x
   ),
   validity=function(object){
@@ -326,6 +328,7 @@ diffObjStyleHtml <- setClass(
       gutter.delete="&lt;",
       gutter.match="&nbsp;"
     ),
+    pager=diffObjPagerBrowser(),
     wrap=FALSE,
     pad=FALSE,
     escape.html.entities=TRUE

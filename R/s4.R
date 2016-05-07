@@ -51,7 +51,6 @@ setClass(
     context="doAutoCOrInt",
     line.limit="integer",
     style="diffObjStyle",
-    pager="diffObjPager",
     hunk.limit="integer",
     use.ansi="logical",
     max.diffs="integer",
@@ -166,7 +165,7 @@ setMethod("show", "diffObjDiff",
 
     # Determine whether to use pager or not
 
-    pager <- object@etc@pager
+    pager <- object@etc@style@pager
 
     use.pager <- if(!is(pager, "diffObjPagerOff")) {
       threshold <- if(pager@threshold < 0L) {

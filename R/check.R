@@ -167,7 +167,7 @@ check_args <- function(
 
   # pager
 
-  valid.pagers <- c("auto", "off", "system", "browser")
+  valid.pagers <- c("auto", "off")
   if(!is(pager, "diffObjPager") && !string_in(pager, valid.pagers))
     err(
       "Argument `pager` must be one of `", dep(valid.pagers),
@@ -175,6 +175,7 @@ check_args <- function(
     )
   if(!is(pager, "diffObjPager") && string_in(pager, "off"))
     pager <- diffObjPagerOff()
+
   # palette and arguments that reference palette dimensions
 
   if(!is(palette.of.styles, "diffObjStylePalette"))
@@ -189,9 +190,15 @@ check_args <- function(
       ) )
     ) err(msg)
 
-  # format; decide what format to use
+  # Figure out whether pager is allowable or not; note that "auto" pager just
+  # means let the pager that comes built into the style be the pager
 
-  use.ansi <-   # NEED TO FIGURE OUT HOW TO HANDLE THIS
+  pager <- if(!is(pager, "diffObjPager")) {
+    if(pager == "auto" && interactive() && !in_knitr()) {
+      "auto"
+    } else diffObjPagerOff()
+  }
+  # format; decide what format to use
 
   if(!is(style, "diffObjStyle") && string_in(style, "auto")) {
     if(!is.chr.1L(format))
@@ -209,7 +216,7 @@ check_args <- function(
       # No recognized color alternatives, try to use HTML if we can
 
       format <- if(!clrs %in% c(8, 256)) {
-        if(
+        if(in_knitr() ||
           interactive() && !in_knitr() && (
             is(pager, "diffObjPagerBrowser") || pager == "auto"
           )
@@ -228,27 +235,21 @@ check_args <- function(
     style <- palette.of.styles[[
       format, get_pal_par(format, brightness), get_pal_par(format, color.mode)
     ]]
-  }
-  # Select auto-pager if necessary
+  } else stop("Logic Error: unexpected style state; contact maintainer.")
 
-  pager <- if(!is(pager, "diffObjPager")) {
-    if(pager == "auto" && interactive() && !in_knitr()) {
-      pager <- if(format == "html") "browser" else "system"
-    } else "off"
+  # Attach specific pager if it was requested generated; if "auto" just let the
+  # existing pager on the style be
 
-    if(pager == "system") {
-      if(pager_is_less())
-        diffObjPagerSystemLess() else diffObjPagerSystem()
-    } else if (pager == "browser") {
-      diffObjPagerBrowser()
-    } else diffObjPagerOff()
-  }
+  if(is(pager, "diffObjPager")) style@pager <- pager
+  else if(pager != "auto")
+    stop("Logic Error: Unexpected pager state; contact maintainer.")
+
   # instantiate settings object
 
   etc <- new(
     "diffObjSettings", mode=val.modes[[which(mode.eq)]], context=context,
     line.limit=line.limit, format=format, brightness=brightness,
-    color.mode=color.mode, pager=pager, ignore.white.space=ignore.white.space,
+    color.mode=color.mode, ignore.white.space=ignore.white.space,
     max.diffs=max.diffs, align.threshold=align.threshold, disp.width=disp.width,
     hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
     tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
