@@ -213,13 +213,8 @@ check_args <- function(
         )
       # No recognized color alternatives, try to use HTML if we can
 
-      format <- if(!clrs %in% c(8, 256)) {
-        if(in_knitr() ||
-          interactive() && !in_knitr() && (
-            is(pager, "diffObjPagerBrowser") || pager == "auto"
-          )
-        ) {
-          if(pager == "auto") pager <- diffObjPagerBrowser()
+      format <- if(!clrs %in% c(8, 256) || in_knitr()) {
+        if(in_knitr() || interactive()) {
           "html"
         } else {
           "raw"
