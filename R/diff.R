@@ -42,13 +42,13 @@ make_diff_fun <- function(capt_fun) {
 
     dots <- list(...)
 
-    # Check args
+    # Check args and evaluate all the auto-selection arguments
 
     etc.proc <- check_args(
       call=call, tar.exp=substitute(target), cur.exp=substitute(current),
       mode=mode, context=context, line.limit=line.limit, format=format,
-      brightness=brightness, color.mode=color.mode, pager=pager, 
-      ignore.white.space=ignore.white.space, max.diffs=max.diffs, 
+      brightness=brightness, color.mode=color.mode, pager=pager,
+      ignore.white.space=ignore.white.space, max.diffs=max.diffs,
       align.threshold=align.threshold, disp.width=disp.width,
       hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
       tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
@@ -58,7 +58,7 @@ make_diff_fun <- function(capt_fun) {
     # touching vars in case someone passes `options(crayon.enabled=...)` as one
     # of the arguments
 
-    old.crayon.opt <- options(crayon.enabled=etc.proc@use.ansi)
+    old.crayon.opt <- options(crayon.enabled=is(etc.proc@style, "diffObjAnsi"))
     on.exit(options(old.crayon.opt), add=TRUE)
     err <- make_err_fun(sys.call())
 
