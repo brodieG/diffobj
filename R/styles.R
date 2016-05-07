@@ -179,12 +179,24 @@ diffObjStyle <- setClass(
     ) )
   }
 )
+#' @export diffObjStyleAnsi
+#' @exportClass diffObjStyleAnsi
+#' @rdname diffObjStyle
+
+diffObjStyleAnsi <- setClass("diffObjStyleAnsi", contains="diffObjStyle")
+setMethod(
+  "initialize", "diffObjStyleAnsi",
+  function(.Object, ...) {
+    .Object@pager <- if(pager_is_less())
+      diffObjPagerSystemLess() else diffObjPagerSystem()
+    callNextMethod(.Object, ...)
+  })
 #' @export diffObjStyleAnsi8NeutralRgb
 #' @exportClass diffObjStyleAnsi8NeutralRgb
 #' @rdname diffObjStyle
 
 diffObjStyleAnsi8NeutralRgb <- setClass(
-  "diffObjStyleAnsi8NeutralRgb", contains="diffObjStyle",
+  "diffObjStyleAnsi8NeutralRgb", contains="diffObjStyleAnsi",
   prototype=list(
     funs=diffObjStyleFuns(
       word.insert=crayon::green, word.delete=crayon::red,
@@ -202,7 +214,7 @@ diffObjStyleAnsi8NeutralRgb <- setClass(
 #' @rdname diffObjStyle
 
 diffObjStyleAnsi8NeutralYb <- setClass(
-  "diffObjStyleAnsi8NeutralYb", contains="diffObjStyle",
+  "diffObjStyleAnsi8NeutralYb", contains="diffObjStyleAnsi",
   prototype=list(
     funs=diffObjStyleFuns(
       word.insert=crayon::blue, word.delete=crayon::yellow,
@@ -220,7 +232,7 @@ diffObjStyleAnsi8NeutralYb <- setClass(
 #' @rdname diffObjStyle
 
 diffObjStyleAnsi256LightRgb <- setClass(
-  "diffObjStyleAnsi256LightRgb", contains="diffObjStyle",
+  "diffObjStyleAnsi256LightRgb", contains="diffObjStyleAnsi",
   prototype=list(
     funs=diffObjStyleFuns(
       text.insert=crayon::make_style(rgb(4, 5, 4, maxColorValue=5), bg=TRUE),
@@ -239,7 +251,7 @@ diffObjStyleAnsi256LightRgb <- setClass(
 #' @rdname diffObjStyle
 
 diffObjStyleAnsi256LightYb <- setClass(
-  "diffObjStyleAnsi256LightYb", contains="diffObjStyle",
+  "diffObjStyleAnsi256LightYb", contains="diffObjStyleAnsi",
   prototype=list(
     funs=diffObjStyleFuns(
       text.insert=crayon::make_style(rgb(3, 3, 5, maxColorValue=5), bg=TRUE),
@@ -258,7 +270,7 @@ diffObjStyleAnsi256LightYb <- setClass(
 #' @rdname diffObjStyle
 
 diffObjStyleAnsi256DarkRgb <- setClass(
-  "diffObjStyleAnsi256DarkRgb", contains="diffObjStyle",
+  "diffObjStyleAnsi256DarkRgb", contains="diffObjStyleAnsi",
   prototype=list(
     funs=diffObjStyleFuns(
       text.insert=crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE),
