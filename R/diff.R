@@ -43,6 +43,8 @@ make_diff_fun <- function(capt_fun) {
     # something like options(crayon.enabled=...)
 
     dots <- list(...)
+    calls <- sys.calls()
+    call <- (if(length(calls) > 1L) tail(head(calls, -1L), 1L) else calls)[[1L]]
 
     # Check args and evaluate all the auto-selection arguments
 
