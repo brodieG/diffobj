@@ -173,6 +173,15 @@ make_diff_fun <- function(capt_fun) {
 
 diff_print <- make_diff_fun(capt_print)
 
+#' @export
+
+setGeneric(
+  "diffPrint", function(target, current, ...) standardGeneric("diffPrint")
+)
+#' @export
+
+setMethod("diffPrint", signature=c("ANY", "ANY"), make_diff_fun(capt_print))
+
 #' Diff Object Structures
 #'
 #' Compares the \code{str} output of \code{target} and \code{current}.  If
