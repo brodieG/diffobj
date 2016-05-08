@@ -149,7 +149,10 @@ local({
     # preventing the eq-lines from atching
     diff_str(mdl1[7], mdl2[7], mode="sidebyside")
     diff_print(mdl1, mdl2)
-
+    diff_str(
+      mdl1, mdl2, mode="sideby", bright="dark",
+      pager=PagerSystemLess(flags="RX")
+    )
     diff_print(letters[1:3], LETTERS[1:3])
 
     Puromycin2 <- Puromycin

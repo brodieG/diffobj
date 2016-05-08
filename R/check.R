@@ -191,8 +191,8 @@ check_args <- function(
   # Figure out whether pager is allowable or not; note that "auto" pager just
   # means let the pager that comes built into the style be the pager
 
-  pager <- if(!is(pager, "Pager")) {
-    if(pager == "auto" && interactive() && !in_knitr()) {
+  if(!is(pager, "Pager")) {
+    pager <- if(pager == "auto" && interactive() && !in_knitr()) {
       "auto"
     } else PagerOff()
   }
