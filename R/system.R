@@ -20,10 +20,11 @@
     diffobj.align.threshold=0.25,
     diffobj.style="auto",
     diffobj.format="auto",
-    diffobj.color.mode="rgb",
+    diffobj.color.mode="yb",
     diffobj.brightness="neutral",
     diffobj.tab.stops=8L,
-    diffobj.disp.width=getOption("width"),
+    diffobj.disp.width=NULL,  # NULL == getOption("width")
+    diffobj.palette=StylePalette(),
     diffobj.html.escape.html.entities=TRUE,
     diffobj.html.css=
       file.path(system.file(package="diffobj"), "css", "diffobj.css"),
