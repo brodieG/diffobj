@@ -205,7 +205,11 @@ setMethod("diffPrint", signature=c("ANY", "ANY"), make_diff_fun(capt_print))
 #'   method that will display the diff to screen
 #' @export
 
-diff_str <- make_diff_fun(capt_str)
+setGeneric("diffStr", function(target, current, ...) standardGeneric("diffStr"))
+
+#' @export
+
+setMethod("diffStr", signature=c("ANY", "ANY"), make_diff_fun(capt_str))
 
 #' Diff Character Vectors Element By Element
 #'
@@ -224,7 +228,11 @@ diff_str <- make_diff_fun(capt_str)
 #' @examples
 #' diff_chr(LETTERS[1:5], LETTERS[2:6])
 
-diff_chr <- make_diff_fun(capt_chr)
+setGeneric("diffChr", function(target, current, ...) standardGeneric("diffChr"))
+
+#' @export
+
+setMethod("diffChr", signature=c("ANY", "ANY"), make_diff_fun(capt_chr))
 
 #' Diff Deparsed Objects
 #'
@@ -243,7 +251,13 @@ diff_chr <- make_diff_fun(capt_chr)
 #' @examples
 #' diff_deparse(matrix(1:9, 3), 1:9)
 
-diff_deparse <- make_diff_fun(capt_deparse)
+setGeneric(
+  "diffDeparse", function(target, current, ...) standardGeneric("diffDeparse")
+)
+
+#' @export
+
+setMethod("diffDeparse", signature=c("ANY", "ANY"), make_diff_fun(capt_deparse))
 
 #' Diff Objects
 #'
@@ -266,8 +280,9 @@ diff_deparse <- make_diff_fun(capt_deparse)
 #'   method that will display the diff to screen
 #' @export
 
-diff_obj <- diff_print # we overwrite the body next
+setGeneric("diffObj", function(target, current, ...) standardGeneric("diffObj"))
 
+diff_obj <- diff_print # we overwrite the body next
 body(diff_obj) <- quote({
   if(length(list(...))) {
     stop("`...` argument not supported in `diff_obj`")
@@ -322,3 +337,5 @@ body(diff_obj) <- quote({
   }
   res
 })
+#' @export
+setMethod("diffObj", signature=c("ANY", "ANY"), diff_obj)
