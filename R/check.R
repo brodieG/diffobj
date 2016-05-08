@@ -82,6 +82,17 @@ check_args <- function(
 ) {
   err <- make_err_fun(call)
 
+  # Check display width
+
+  if(is.null(disp.width)) disp.width <- getOption("width")
+  if(is.null(disp.width)) disp.width <- 80L
+  if(!is.int.1L(disp.width) || disp.width < 1L)
+    err(
+      "Argument `disp.width` must be integer(1L) and positive, or NULL."
+    )
+
+  # Check context
+
   msg.base <- paste0(
     "Argument `%s` must be integer(1L) and not NA, an object produced ",
     "by `auto_context`, or \"auto\"."
@@ -176,6 +187,7 @@ check_args <- function(
 
   # palette and arguments that reference palette dimensions
 
+  if(is.null(palette.of.styles)) palette.of.styles <- StylePalette()
   if(!is(palette.of.styles, "StylePalette"))
     err("Argument `palette.of.styles` must be a `StylePalette` object.")
 
