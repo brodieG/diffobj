@@ -5,11 +5,11 @@ NULL
 # Generate a character representation of Shortest Edit Sequence
 #
 # @seealso \code{\link{diff_ses}}
-# @param x S4 object of class \code{diffObjMyersMbaSes}
+# @param x S4 object of class \code{MyersMbaSes}
 # @param ... unused
 # @return character vector
 
-setMethod("as.character", "diffObjMyersMbaSes",
+setMethod("as.character", "MyersMbaSes",
   function(x, ...) {
     dat <- as.data.frame(x)
 
@@ -53,7 +53,7 @@ setMethod("as.character", "diffObjMyersMbaSes",
 # Used for mapping edit actions to numbers so we can use numeric matrices
 .edit.map <- c("Match", "Insert", "Delete")
 
-setMethod("as.matrix", "diffObjMyersMbaSes",
+setMethod("as.matrix", "MyersMbaSes",
   function(x, row.names=NULL, optional=FALSE, ...) {
     # map del/ins/match to numbers
 
@@ -87,7 +87,7 @@ setMethod("as.matrix", "diffObjMyersMbaSes",
       last.b = last.b
     )
 } )
-setMethod("as.data.frame", "diffObjMyersMbaSes",
+setMethod("as.data.frame", "MyersMbaSes",
   function(x, row.names=NULL, optional=FALSE, ...) {
     len <- length(x@type)
     mod <- c("Insert", "Delete")
@@ -157,7 +157,7 @@ diff_myers_mba <- function(a, b, max.diffs=0L) {
   types <- .edit.map
   res$type <- factor(types[res$type], levels=types)
   res$offset <- res$offset + 1L  # C 0-indexing originally
-  res.s4 <- try(do.call("new", c(list("diffObjMyersMbaSes", a=a, b=b), res)))
+  res.s4 <- try(do.call("new", c(list("MyersMbaSes", a=a, b=b), res)))
   if(inherits(res.s4, "try-error"))
     stop(
       "Logic Error: unable to instantiate shortest edit script object; contact ",
@@ -175,7 +175,7 @@ diff_myers_mba <- function(a, b, max.diffs=0L) {
 
 #' @rdname diffobj_s4method_doc
 
-setMethod("show", "diffObjMyersMbaSes",
+setMethod("show", "MyersMbaSes",
   function(object) {
     res <- as.character(object)
     cat(res, sep="\n")
@@ -197,7 +197,7 @@ setMethod("show", "diffObjMyersMbaSes",
 
 #' @rdname diffobj_s4method_doc
 
-setMethod("summary", "diffObjMyersMbaSes",
+setMethod("summary", "MyersMbaSes",
   function(object, with.match=FALSE, ...) {
     what <- vapply(
       seq_along(object@type),
@@ -258,7 +258,7 @@ char_diff <- function(
         call.=FALSE
       )
   }
-  # used to be a `diffObjDiffDiffs` object, but too slow
+  # used to be a `DiffDiffs` object, but too slow
 
   list(
     hunks=hunks, diffs=count_diffs(hunks), diffs.max=0L,
@@ -266,7 +266,7 @@ char_diff <- function(
   )
 }
 # Variation on `char_diff` used for the overall diff where we don't need
-# to worry about overhead from creating the `diffObjDiff` object
+# to worry about overhead from creating the `Diff` object
 
 line_diff <- function(
   target, current, tar.capt, cur.capt, context, etc, warn=TRUE,
@@ -281,7 +281,7 @@ line_diff <- function(
     use.header=use.header
   )
   new(
-    "diffObjDiff", diffs=diffs, target=target, current=current,
+    "Diff", diffs=diffs, target=target, current=current,
     tar.capt=tar.capt, cur.capt=cur.capt, etc=etc
   )
 }

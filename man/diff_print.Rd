@@ -12,7 +12,8 @@ diff_print(target, current, mode = gdo("mode"), context = gdo("context"),
   disp.width = gdo("disp.width"), hunk.limit = gdo("hunk.limit"),
   convert.hz.white.space = gdo("convert.hz.white.space"),
   tab.stops = gdo("tab.stops"), style = gdo("style"),
-  palette.of.styles = diffObjStylePalette(), frame = parent.frame(), ...)
+  palette.of.styles = StylePalette(), tar.banner = NULL,
+  cur.banner = NULL, frame = parent.frame(), ...)
 }
 \arguments{
 \item{target}{the reference object}
@@ -21,7 +22,7 @@ diff_print(target, current, mode = gdo("mode"), context = gdo("context"),
 
 \item{mode}{character(1L), one of:
 \itemize{
-  \item \dQuote{unified}: diff mode used by \code{git diff}, and the 
+  \item \dQuote{unified}: diff mode used by \code{git diff}, and the
     default here
   \item \dQuote{sidebyside}: line up the differences side by side
   \item \dQuote{context}: show the target and current hunks in their
@@ -69,6 +70,13 @@ each other and become one.}
 \item{tab.stops}{integer, what tab stops to use when converting hard tabs to
 spaces.  If not integer will be coerced to integer (defaults to 8L).}
 
+\item{tar.banner}{character(1L) or NULL, text to display ahead of the diff
+section representing the target output.  If NULL will be
+inferred from \code{target} and \code{current} expressions.}
+
+\item{cur.banner}{character(1L) like \code{tar.banner}, but for
+\code{current}}
+
 \item{frame}{environment the evaluation frame for the \code{print/show/str},
 calls, allows user to ensure correct methods are used, not used by
 \code{\link{diff_chr}} or \code{\link{diff_deparse}}.}
@@ -80,19 +88,12 @@ that contain tabs and carriage returns in such a way that they display as
 they would \bold{with} those characters, but without using those
 characters (defaults to TRUE).  If your console uses tab stops that are not
 eight characters apart you may specify them with \code{tab.stops}.}
-
-\item{tar.banner}{character(1L) or NULL, text to display ahead of the diff
-section representing the target output.  If NULL will be
-inferred from \code{target} and \code{current} expressions.}
-
-\item{cur.banner}{character(1L) like \code{tar.banner}, but for
-\code{current}}
 }
 \value{
-a \code{diffObjSettings} S4 object for use with the
+a \code{Settings} S4 object for use with the
   \code{\link{diff_obj}} family of functions
 
-a \code{\link{diffObjDiff}} object; this object has a \code{show}
+a \code{\link{Diff}} object; this object has a \code{show}
   method that will display the diff to screen
 }
 \description{

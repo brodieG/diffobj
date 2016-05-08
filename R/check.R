@@ -48,7 +48,7 @@ is.diffs <- function(x)
   is.TF(x$hit.diffs.max)
 
 is.valid.palette.param <- function(x, param, palette) {
-  stopifnot(is(palette, "diffObjStylePalette"))
+  stopifnot(is(palette, "StylePalette"))
   stopifnot(isTRUE(param %in% c("brightness", "color.mode")))
   valid.formats <- dimnames(palette@data)$format
   valid.params <- dimnames(palette@data)[[param]]
@@ -87,12 +87,12 @@ check_args <- function(
     "by `auto_context`, or \"auto\"."
   )
   if(
-    !is.int.1L(context) && !is(context,"diffObjAutoContext") &&
+    !is.int.1L(context) && !is(context,"AutoContext") &&
     !identical(context, "auto")
   )
     err(sprintf(msg.base, "context"))
 
-  if(!is(context, "diffObjAutoContext")) {
+  if(!is(context, "AutoContext")) {
     context <- if(identical(context, "auto")) auto_context() else
       auto_context(as.integer(context), as.integer(context))
   }
@@ -160,24 +160,24 @@ check_args <- function(
 
   # style
 
-  if(!is(style, "diffObjStyle") && !string_in(style, "auto"))
-    err("Argument `style` must be \"auto\" or a `diffObjStyle` object.")
+  if(!is(style, "Style") && !string_in(style, "auto"))
+    err("Argument `style` must be \"auto\" or a `Style` object.")
 
   # pager
 
   valid.pagers <- c("auto", "off")
-  if(!is(pager, "diffObjPager") && !string_in(pager, valid.pagers))
+  if(!is(pager, "Pager") && !string_in(pager, valid.pagers))
     err(
       "Argument `pager` must be one of `", dep(valid.pagers),
-      "` or a `diffObjPager` object."
+      "` or a `Pager` object."
     )
-  if(!is(pager, "diffObjPager") && string_in(pager, "off"))
-    pager <- diffObjPagerOff()
+  if(!is(pager, "Pager") && string_in(pager, "off"))
+    pager <- PagerOff()
 
   # palette and arguments that reference palette dimensions
 
-  if(!is(palette.of.styles, "diffObjStylePalette"))
-    err("Argument `palette.of.styles` must be a `diffObjStylePalette` object.")
+  if(!is(palette.of.styles, "StylePalette"))
+    err("Argument `palette.of.styles` must be a `StylePalette` object.")
 
   palette.params <- c("brightness", "color.mode")
   for(x in palette.params)
@@ -191,14 +191,14 @@ check_args <- function(
   # Figure out whether pager is allowable or not; note that "auto" pager just
   # means let the pager that comes built into the style be the pager
 
-  pager <- if(!is(pager, "diffObjPager")) {
+  pager <- if(!is(pager, "Pager")) {
     if(pager == "auto" && interactive() && !in_knitr()) {
       "auto"
-    } else diffObjPagerOff()
+    } else PagerOff()
   }
   # format; decide what format to use
 
-  if(!is(style, "diffObjStyle") && string_in(style, "auto")) {
+  if(!is(style, "Style") && string_in(style, "auto")) {
     if(!is.chr.1L(format))
       err("Argument `format` must be character(1L) and not NA")
     valid.formats <- c("auto", dimnames(palette.of.styles@data)$format)
@@ -233,14 +233,14 @@ check_args <- function(
   # Attach specific pager if it was requested generated; if "auto" just let the
   # existing pager on the style be
 
-  if(is(pager, "diffObjPager")) style@pager <- pager
+  if(is(pager, "Pager")) style@pager <- pager
   else if(pager != "auto")
     stop("Logic Error: Unexpected pager state; contact maintainer.")
 
   # instantiate settings object
 
   etc <- new(
-    "diffObjSettings", mode=val.modes[[which(mode.eq)]], context=context,
+    "Settings", mode=val.modes[[which(mode.eq)]], context=context,
     line.limit=line.limit, ignore.white.space=ignore.white.space,
     max.diffs=max.diffs, align.threshold=align.threshold, disp.width=disp.width,
     hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,

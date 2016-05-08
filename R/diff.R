@@ -33,7 +33,7 @@ make_diff_fun <- function(capt_fun) {
     convert.hz.white.space=gdo("convert.hz.white.space"),
     tab.stops=gdo("tab.stops"),
     style=gdo("style"),
-    palette.of.styles=diffObjStylePalette(),
+    palette.of.styles=StylePalette(),
     tar.banner=NULL,
     cur.banner=NULL,
     frame=parent.frame(),
@@ -61,16 +61,16 @@ make_diff_fun <- function(capt_fun) {
     # of the arguments
 
     old.crayon.opt <-
-      options(crayon.enabled=is(etc.proc@style, "diffObjStyleAnsi"))
+      options(crayon.enabled=is(etc.proc@style, "StyleAnsi"))
     on.exit(options(old.crayon.opt), add=TRUE)
     err <- make_err_fun(sys.call())
 
     # Compute gutter values so that we know correct widths to use for capture,
     # etc. Will need to update in HTML mode...
 
-    nc_fun <- if(is(etc.proc@style, "diffObjStyleAnsi")) crayon_nchar else nchar
+    nc_fun <- if(is(etc.proc@style, "StyleAnsi")) crayon_nchar else nchar
     etc.proc@gutter <- gutter_dat(etc.proc)
-    if(is(etc.proc@style, "diffObjStyleHtml")) {
+    if(is(etc.proc@style, "StyleHtml")) {
       etc.proc@line.width <- 0L
       etc.proc@text.width <- 0L
     } else {
@@ -159,7 +159,7 @@ make_diff_fun <- function(capt_fun) {
 #'   inferred from \code{target} and \code{current} expressions.
 #' @param cur.banner character(1L) like \code{tar.banner}, but for
 #'   \code{current}
-#' @return a \code{diffObjSettings} S4 object for use with the
+#' @return a \code{Settings} S4 object for use with the
 #'   \code{\link{diff_obj}} family of functions
 #' @param ... additional arguments to pass on to \code{print}, \code{str}, etc.
 #' @seealso \code{\link{diff_obj}} for details on output and diff algorithm,
@@ -167,7 +167,7 @@ make_diff_fun <- function(capt_fun) {
 #'   \code{\link{diff_str}},
 #'   \code{\link{diff_chr}} to compare character vectors directly,
 #'   \code{\link{diff_deparse}} to compare deparsed objects
-#' @return a \code{\link{diffObjDiff}} object; this object has a \code{show}
+#' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
 
@@ -192,7 +192,7 @@ diff_print <- make_diff_fun(capt_print)
 #'   \code{\link{diff_print}},
 #'   \code{\link{diff_chr}} to compare character vectors directly,
 #'   \code{\link{diff_deparse}} to compare deparsed objects
-#' @return a \code{\link{diffObjDiff}} object; this object has a \code{show}
+#' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
 
@@ -209,7 +209,7 @@ diff_str <- make_diff_fun(capt_str)
 #'   \code{\link{etc}} for more detailed control of diff settings,
 #'   \code{\link{diff_print}}, \code{\link{diff_str}},
 #'   \code{\link{diff_deparse}} to compare deparsed objects
-#' @return a \code{\link{diffObjDiff}} object; this object has a \code{show}
+#' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
 #' @examples
@@ -228,7 +228,7 @@ diff_chr <- make_diff_fun(capt_chr)
 #'   \code{\link{etc}} for more detailed control of diff settings,
 #'   \code{\link{diff_print}}, \code{\link{diff_str}},
 #'   \code{\link{diff_chr}} to compare character vectors directly
-#' @return a \code{\link{diffObjDiff}} object; this object has a \code{show}
+#' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
 #' @examples
@@ -253,7 +253,7 @@ diff_deparse <- make_diff_fun(capt_deparse)
 #'   \code{\link{diff_print}}, \code{\link{diff_str}},
 #'   \code{\link{diff_chr}} to compare character vectors directly,
 #'   \code{\link{diff_deparse}} to compare deparsed objects
-#' @return a \code{\link{diffObjDiff}} object; this object has a \code{show}
+#' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
 

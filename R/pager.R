@@ -36,7 +36,7 @@
 #' @slot threshold integer(1L) number of lines of output that triggers the use
 #'   of the pager; negative values lead to using
 #'   \code{\link{console_lines} + 1}, and zero leads to always using the pager
-#'   irrespective of how many lines the output takes.
+#'   irrespective of how many lines the output has.
 #' @slot flags character(1L), only for \code{PagerSystemLess}, what flags to set
 #'   with the \code{LESS} system environment variable.  By default the
 #'   \dQuote{R} flag is set to ensure ANSI escape sequences are interpreted if
@@ -62,7 +62,7 @@ setClass(
   prototype=list(
     file.ext="", threshold=0L,
     pager=function(x) stop("Pager object does not specify a paging function.")
-  )
+  ),
   validity=function(object) {
     if(!is.chr.1L(object@file.ext)) return("Invalid `file.ext` slot")
     if(!is.int.1L(object@threshold)) return("Invalid `threshold` slot")

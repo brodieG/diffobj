@@ -34,7 +34,7 @@ auto_context <- function(
     stop("Argument `min` must be integer(1L) and greater than zero")
   if(!is.int.1L(max))
     stop("Argument `max` must be integer(1L) and not NA")
-  new("diffObjAutoContext", min=as.integer(min), max=as.integer(max))
+  new("AutoContext", min=as.integer(min), max=as.integer(max))
 }
 #' Control Under What Circumstances Output is Displayed Through Pager
 #'
@@ -70,7 +70,7 @@ pager_settings <- function(
   if(!is.int.1L(threshold)) stop(
     "Argument `threshold` should be integer(1L) and not NA"
   )
-  new("diffObjPager", mode=mode, threshold=threshold, less.flags=less.flags)
+  new("Pager", mode=mode, threshold=threshold, less.flags=less.flags)
 }
 # Check whether system has less as pager; this is an approximation since we
 # do not check that the pager shell script actually calls $PAGER
@@ -110,29 +110,4 @@ reset_less_var <- function(LESS.old) {
   if(is.na(LESS.old)) {
     Sys.unsetenv("LESS")
   } else Sys.setenv(LESS=LESS.old)
-}
-.valid_themes <- list(
-  core=diffObjStyle,
-  basic=diffObjStyleAnsi8NeutralRgb,
-  basicyb=diffObjStyleAnsi8NeutralYb,
-  light=diffObjStyleAnsi256LightRgb,
-  lightyb=diffObjStyleAnsi256LightYb,
-  dark=diffObjStyleAnsi256DarkRgb,
-  darkyb=diffObjStyleAnsi256DarkYb,
-  html=diffObjStyleHtmlLightRgb,
-  htmlyb=diffObjStyleHtmlLightYb
-  #   text=diffObjStyleText,
-  #   stripes=diffObjStripes,
-  #   stripes.light=diffObjStripesLight,
-  #   stripes.dark=diffObjStripesDark,
-  #   checkers.light=diffObjCheckersLight,
-  #   checkers.dark=diffObjCheckersDark,
-)
-#' @export
-
-diff_style_theme <- function(theme="default") {
-  if(!is.chr.1L(theme) || !theme %in% names(.valid_themes))
-    stop("Argument `theme` is not a valid theme")
-
-  .valid_themes[[theme]]()
 }

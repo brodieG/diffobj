@@ -99,9 +99,9 @@ Rdiff_run <- function(from, to, nullPointers, silent, minimal) {
 
 diff_rdiff <- function(target, current) {
   stopifnot(is.character(target), is.character(current))
-  a <- tempfile("diffObjRdiffa")
+  a <- tempfile("Rdiffa")
   writeLines(target, a)
-  b <- tempfile("diffObjRdiffb")
+  b <- tempfile("Rdiffb")
   writeLines(current, b)
   diff <- capture.output(system(paste("diff -bw", shQuote(a), shQuote(b))))
 }

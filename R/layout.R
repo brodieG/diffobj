@@ -1,7 +1,7 @@
 # Compute all the different gutter components and report max width
 
 gutter_dat <- function(etc) {
-  stopifnot(is(etc, "diffObjSettings"))
+  stopifnot(is(etc, "Settings"))
   funs <- etc@style@funs
   text <- etc@style@text
 
@@ -13,7 +13,7 @@ gutter_dat <- function(etc) {
   gutt.match.ctd <- funs@gutter(funs@gutter.match.ctd(text@gutter.match.ctd))
 
   gutt.pad <- funs@gutter(funs@gutter.pad(text@gutter.pad))
-  nc_fun <- if(is(etc@style, "diffObjStyleAnsi")) crayon_nchar else nchar
+  nc_fun <- if(is(etc@style, "StyleAnsi")) crayon_nchar else nchar
 
   gutt.max.w <- max(
     nc_fun(gutt.pad) + nc_fun(
@@ -22,7 +22,7 @@ gutter_dat <- function(etc) {
         gutt.match.ctd
   ) ) )
   new(
-    "diffObjGutter",
+    "Gutter",
     insert=gutt.insert, insert.ctd=gutt.insert.ctd, delete=gutt.delete,
     delete.ctd=gutt.delete.ctd, match=gutt.match, match.ctd=gutt.match.ctd,
     pad=gutt.pad, width=gutt.max.w
