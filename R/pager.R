@@ -47,8 +47,8 @@
 #'   of the evaluation and is reset / unset afterwards. \emph{Note:} you must
 #'   specify this slot via the constructor as in the example.  If you set the
 #'   slot directly it will not have any effect.
+#'
 #' @aliases PagerOff, PagerSystem, PagerSystemLess, PagerBrowser
-#' @slot pager a function used for paging character output
 #' @exportClass Pager
 #' @rdname Pager
 #' @examples
