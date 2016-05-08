@@ -1,29 +1,118 @@
+#' Objects for Specifying Pager Settings
+#'
+#' Generate pager configuration objects to use as the \code{pager} argument to
+#' the \code{\link[=diffObj]{diff*}} methods or as the \code{pager} slot for
+#' \code{\link{Style}} objects.
+#'
+#' Several pre-defined pager configuration objects are available via S4
+#' constructor functions:
+#' \itemize{
+#'   \item \code{PagerOff}: Turn off pager
+#'   \item \code{PagerSystem}: Use the system pager as invoked by
+#'      \code{\link{file.show}}
+#'   \item \code{PagerSystemLess}: Like \code{PagerSystem}, but provides
+#'      additional configuration options if it the system pager is \code{less}
+#'   \item \code{PagerBrowser}: Use \code{\link{browseURL}} as the pager
+#' }
+#' @section Custom Pagers:
+#'
+#' If you wish to define your own pager object you should do so by extending the
+#' \code{Pager} virtual class.  Your pager should at a minimum specify the
+#' \code{pager} slot of the object (see slot definition).  If the pager you use
+#' allows R code evaluation to continue after it is spawned, you may want to
+#' wrap it in a function that pauses evaluation (e.g. with
+#' \code{\link{readline}}), as otherwise the temporary file that contains the
+#' diff will be deleted before the pager has a chance to read it.
+#'
+#' @slot pager a function that accepts at least one parameter and does not
+#'   require a parameter other than the first parameter.  This function will be
+#'   called with a file name passed as the first argument.  The referenced file
+#'   will contain the text of the diff.  This is a temporary file that will be
+#'   deleted as soon as the pager function completes evaluation.
+#' @slot file.ext character(1L) an extension to append to file name passed to
+#'   \code{pager}, \emph{without} the period.  For example, \code{PagerBrowser}
+#'   uses \dQuote{html} to cause \code{\link{browseURL}} to launch the web
+#'   browser.
+#' @slot threshold integer(1L) number of lines of output that triggers the use
+#'   of the pager; negative values lead to using
+#'   \code{\link{console_lines} + 1}, and zero leads to always using the pager
+#'   irrespective of how many lines the output takes.
+#' @slot flags character(1L), only for \code{PagerSystemLess}, what flags to set
+#'   with the \code{LESS} system environment variable.  By default the
+#'   \dQuote{R} flag is set to ensure ANSI escape sequences are interpreted if
+#'   it appears your terminal supports ANSI escape sequences.  If you want to
+#'   leave the output on the screen after you exit the pager you can use
+#'   \dQuote{RX}.  You should only provide the flag letters (e.g. \dQuote{"RX"},
+#'   not \code{"-RX"}).  The system variable is only modified for the duration
+#'   of the evaluation and is reset / unset afterwards. \emph{Note:} you must
+#'   specify this slot via the constructor as in the example.  If you set the
+#'   slot directly it will not have any effect.
+#' @aliases PagerOff, PagerSystem, PagerSystemLess, PagerBrowser
+#' @slot pager a function used for paging character output
+#' @exportClass Pager
+#' @rdname Pager
+#' @examples
+#' ## Assuming system pager is `less` and terminal supports ANSI ESC sequences
+#' diff_print(letters, LETTERS, pager=PagerSystemLess(flags="RFX"))
+
 setClass(
-  "diffObjPager",
+  "Pager",
   contains="VIRTUAL",
   slots=c(pager="function", file.ext="character", threshold="integer"),
-  prototype=list(file.ext="", threshold=0L),
+  prototype=list(
+    file.ext="", threshold=0L,
+    pager=function(x) stop("Pager object does not specify a paging function.")
+  )
   validity=function(object) {
     if(!is.chr.1L(object@file.ext)) return("Invalid `file.ext` slot")
     if(!is.int.1L(object@threshold)) return("Invalid `threshold` slot")
     TRUE
   }
 )
-diffObjPagerOff <- setClass("diffObjPagerOff", contains="diffObjPager")
-diffObjPagerSystem <- setClass(
-  "diffObjPagerSystem", contains="diffObjPager",
+#' @export PagerOff
+#' @exportClass PagerOff
+#' @rdname Pager
+
+PagerOff <- setClass("PagerOff", contains="Pager")
+
+#' @export PagerSystem
+#' @exportClass PagerSystem
+#' @rdname Pager
+
+PagerSystem <- setClass(
+  "PagerSystem", contains="Pager",
   prototype=list(pager=file.show, threshold=-1L),
 )
-diffObjPagerSystemLess <- setClass(
-  "diffObjPagerSystemLess", contains="diffObjPagerSystem", slots=c("flags"),
-  prototype=list(
-    pager=function(x) {
-      old.less <- set_less_var("R")
+#' @export PagerSystemLess
+#' @exportClass PagerSystemLess
+#' @rdname Pager
+
+PagerSystemLess <- setClass(
+  "PagerSystemLess", contains="PagerSystem", slots=c("flags"),
+  prototype=list(flags="R")
+)
+# Must use initialize so that the pager function can access the flags slot
+
+setMethod("initialize", "PagerSystemLess",
+  function(.Object, ...) {
+    .Object@pager <- function(x) {
+      old.less <- set_less_var(.Object@flags)
       on.exit(reset_less_var(old.less), add=TRUE)
       file.show(x)
-  } )
-)
-diffObjPagerBrowser <- setClass(
-  "diffObjPagerBrowser", contains="diffObjPager",
-  prototype=list(file.ext="html", pager=browseURL, threshold=0L)
-)
+    }
+    callNextMethod(.Object, ...)
+} )
+#' @export PagerBrowser
+#' @exportClass PagerBrowser
+#' @rdname Pager
+
+PagerBrowser <- setClass(
+  "PagerBrowser", contains="Pager",
+  prototype=list(
+    file.ext="html",
+    threshold=0L,
+    pager=function(x) {
+      res <- browseURL(x)
+      readline("Press ENTER to continue...")
+      invisible(res)
+} ) )
