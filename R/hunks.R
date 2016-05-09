@@ -33,7 +33,7 @@
 #      vector.
 
 setGeneric("as.hunks", function(x, etc, ...) standardGeneric("as.hunks"))
-setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
+setMethod("as.hunks", c("MyersMbaSes", "Settings"),
   function(
     x, etc, ...
   ) {
@@ -143,7 +143,7 @@ setMethod("as.hunks", c("diffObjMyersMbaSes", "diffObjSettings"),
 
     context <- etc@context
     line.limit <- etc@line.limit
-    ctx.val <- if(is(context, "diffObjAutoContext")) {
+    ctx.val <- if(is(context, "AutoContext")) {
       len <- diff_line_len(
         p_and_t_hunks(res.l, ctx.val=context@max, etc=etc),
         etc=etc

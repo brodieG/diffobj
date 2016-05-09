@@ -17,7 +17,7 @@ setClassUnion("charOrNULL", c("character", "NULL"))
 NULL
 
 setClass(
-  "diffObjAutoContext",
+  "AutoContext",
   slots=c(
     min="integer",
     max="integer"
@@ -31,11 +31,11 @@ setClass(
       return("Slot `max` must be negative, or greater than slot `min`")
     TRUE
 } )
-setClassUnion("doAutoCOrInt", c("diffObjAutoContext", "integer"))
+setClassUnion("doAutoCOrInt", c("AutoContext", "integer"))
 # pre-computed gutter data
 
 setClass(
-  "diffObjGutter",
+  "Gutter",
   slots= c(
     insert="character", insert.ctd="character",
     delete="character", delete.ctd="character",
@@ -45,12 +45,12 @@ setClass(
   )
 )
 setClass(
-  "diffObjSettings",
+  "Settings",
   slots=c(
     mode="character",             # diff output mode
     context="doAutoCOrInt",
     line.limit="integer",
-    style="diffObjStyle",
+    style="Style",
     hunk.limit="integer",
     max.diffs="integer",
     align.threshold="numeric",
@@ -66,7 +66,7 @@ setClass(
     disp.width="integer",
     line.width="integer",
     text.width="integer",
-    gutter="diffObjGutter"
+    gutter="Gutter"
   ),
   prototype=list(use.header=FALSE, disp.width=0L, text.width=0L, line.width=0L),
   validity=function(object){
@@ -82,7 +82,7 @@ setClass(
     TRUE
   }
 )
-setMethod("initialize", "diffObjSettings", function(.Object, ...) {
+setMethod("initialize", "Settings", function(.Object, ...) {
   if(is.numeric(.Object@disp.width))
     .Object@disp.width <- as.integer(.Object@disp.width)
   if(is.null(.Object@disp.width))
@@ -99,7 +99,7 @@ setMethod("initialize", "diffObjSettings", function(.Object, ...) {
 # instantiated as many times as there are hunks, + 1
 
 setClass(
-  "diffObjDiffDiffs",
+  "DiffDiffs",
   slots=c(
     hunks="list",
     count.diffs="integer"  # used for `str` with auto `max.level`
@@ -134,7 +134,7 @@ setClass(
   }
 )
 setClass(
- "diffObjDiff",
+ "Diff",
   slots=c(
     target="ANY",                 # Actual object
     tar.capt="character",         # The captured representation
@@ -145,7 +145,7 @@ setClass(
     diffs="list",
     trim.dat="list",              # result of trimmaxg
     capt.mode="character",        # whether in print or str mode
-    etc="diffObjSettings"
+    etc="Settings"
   ),
   prototype=list(
     capt.mode="print",
@@ -164,7 +164,7 @@ setClass(
       return("slot `trim.dat` in incorrect format")
     TRUE
 } )
-setMethod("show", "diffObjDiff",
+setMethod("show", "Diff",
   function(object) {
     res.chr <- as.character(object)
 
@@ -172,7 +172,7 @@ setMethod("show", "diffObjDiff",
 
     pager <- object@etc@style@pager
 
-    use.pager <- if(!is(pager, "diffObjPagerOff")) {
+    use.pager <- if(!is(pager, "PagerOff")) {
       threshold <- if(pager@threshold < 0L) {
         console_lines()
       } else pager@threshold
@@ -188,8 +188,6 @@ setMethod("show", "diffObjDiff",
       on.exit(add=TRUE, unlink(disp.f))
       writeLines(fin, disp.f)
       pager@pager(disp.f)
-      if(is(pager, "diffObjPagerBrowser"))
-        readline("Press ENTER to continue...")
     } else {
       cat(fin, sep="\n")
     }
@@ -200,7 +198,7 @@ setMethod("show", "diffObjDiff",
 # in the diff; some of the complexity is driven by repeated context hunks
 
 setGeneric("lineCoverage", function(x) standardGeneric("lineCoverage"))
-setMethod("lineCoverage", "diffObjDiff",
+setMethod("lineCoverage", "Diff",
   function(x) {
     lines_in_hunk <- function(z, ind)
       if(z[[ind]][[1L]]) z[[ind]][[1L]]:z[[ind]][[2L]]
@@ -214,11 +212,11 @@ setMethod("lineCoverage", "diffObjDiff",
     min(1, (lines.tar + lines.cur) / (length(x@tar.capt) + length(x@cur.capt)))
   }
 )
-setMethod("any", "diffObjDiff",
+setMethod("any", "Diff",
   function(x, ..., na.rm = FALSE) {
     dots <- list(...)
     if(length(dots))
-      stop("`any` method for `diffObjDiff` supports only one argument")
+      stop("`any` method for `Diff` supports only one argument")
     any(
       which(
         !vapply(
@@ -226,12 +224,12 @@ setMethod("any", "diffObjDiff",
 ) ) ) } )
 #' @rdname diffobj_s4method_doc
 
-setMethod("any", "diffObjDiffDiffs",
+setMethod("any", "DiffDiffs",
   function(x, ..., na.rm = FALSE) {
     stop("function deprecated")
     dots <- list(...)
     if(length(dots))
-      stop("`any` method for `diffObjDiff` supports only one argument")
+      stop("`any` method for `Diff` supports only one argument")
     any(
       which(
         !vapply(unlist(x$hunks, recursive=FALSE), "[[", logical(1L), "context")
@@ -239,7 +237,7 @@ setMethod("any", "diffObjDiffDiffs",
 } )
 
 setClass(
-  "diffObjMyersMbaSes",
+  "MyersMbaSes",
   slots=c(
     a="character",
     b="character",

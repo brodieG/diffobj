@@ -5,7 +5,7 @@ NULL
 #' Make Functions That Wrap Text in HTML Tags
 #'
 #' Helper functions to generate functions to use as slots for the
-#' \code{diffObjStyleHtml@funs} classes.  These are functions that return
+#' \code{StyleHtml@funs} classes.  These are functions that return
 #' \emph{functions}.
 #'
 #' \code{tag_f} and related functions (\code{div_f}, \code{span_f}) produce

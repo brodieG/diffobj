@@ -295,10 +295,10 @@ get_hunk_dat <- function(h.a, mode, type="both", sub=.valid_sub) {
 }
 #' @rdname diffobj_s4method_doc
 
-setMethod("as.character", "diffObjDiff",
+setMethod("as.character", "Diff",
   function(x, ...) {
     old.crayon.opt <-
-      options(crayon.enabled=is(x@etc@style, "diffObjStyleAnsi"))
+      options(crayon.enabled=is(x@etc@style, "StyleAnsi"))
     on.exit(options(old.crayon.opt), add=TRUE)
 
     # These checks should never fail since presumably the inputs have been
@@ -351,7 +351,7 @@ setMethod("as.character", "diffObjDiff",
     chr.dat <- unlist(lapply(hunks.flat, "[", c("A.chr", "B.chr")))
     chr.size <- integer(length(chr.dat))
     if(s@wrap) {
-      is.ansi <- is(x@etc@style, "diffObjStyleAnsi") &
+      is.ansi <- is(x@etc@style, "StyleAnsi") &
         grepl(ansi_regex, chr.dat, perl=TRUE)
       if(any(is.ansi)) chr.size[is.ansi] <- crayon_nchar(chr.dat)
       chr.size[!is.ansi] <- nchar(chr.dat)

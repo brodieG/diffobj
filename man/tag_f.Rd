@@ -27,7 +27,7 @@ a function that accepts a character parameter.  If applied, each
 }
 \description{
 Helper functions to generate functions to use as slots for the
-\code{diffObjStyleHtml@funs} classes.  These are functions that return
+\code{StyleHtml@funs} classes.  These are functions that return
 \emph{functions}.
 }
 \details{
