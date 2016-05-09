@@ -106,13 +106,9 @@ capt_print <- function(target, current, etc, err, ...){
   cur.capt.def <- if(both.at) capture(cur.call.def, etc, frame, err)
   tar.capt <- capture(tar.call, etc, frame, err)
   tar.capt.def <- if(both.at) capture(tar.call.def, etc, frame, err)
+  etc@use.header <- length(dim(target)) == 2L && length(dim(current)) == 2L
 
-  use.header <- length(dim(target)) == 2L && length(dim(current)) == 2L
-
-  diff <- line_diff(
-    target, current, tar.capt, cur.capt, etc=etc,
-    warn=TRUE, use.header=use.header
-  )
+  diff <- line_diff(target, current, tar.capt, cur.capt, etc=etc, warn=TRUE)
   diff@tar.capt.def <- tar.capt.def
   diff@cur.capt.def <- cur.capt.def
   diff

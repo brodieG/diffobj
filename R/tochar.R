@@ -46,7 +46,10 @@ chrt <- function(...)
   )
 hunkl <- function(col.1=NULL, col.2=NULL, type.1=NULL, type.2=NULL)
   c(
-    list(list(dat=col.1, type=type.1)),
+    list(
+      if(is.null(col.1)) list(dat=character(), type=chrt()) else
+        list(dat=col.1, type=type.1)
+      ),
     if(!is.null(col.2)) list(list(dat=col.2, type=type.2))
   )
 
@@ -370,8 +373,10 @@ setMethod("as.character", "Diff",
       deparse(x@etc@tar.exp)[[1L]]
     cur.banner <- if(!is.null(x@etc@cur.banner)) x@etc@cur.banner else
       deparse(x@etc@cur.exp)[[1L]]
-    ban.A.trim <- if(s@wrap) chr_trim(tar.banner, x@etc@text.width) else tar.banner
-    ban.B.trim <- if(s@wrap) chr_trim(cur.banner, x@etc@text.width) else cur.banner
+    ban.A.trim <-
+      if(s@wrap) chr_trim(tar.banner, x@etc@text.width) else tar.banner
+    ban.B.trim <-
+      if(s@wrap) chr_trim(cur.banner, x@etc@text.width) else cur.banner
     banner.A <- s@funs@word.delete(ban.A.trim)
     banner.B <- s@funs@word.insert(ban.B.trim)
 
