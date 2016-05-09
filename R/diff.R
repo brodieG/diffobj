@@ -345,9 +345,9 @@ body(diff_obj) <- quote({
   call.raw <- match.call()
   call.raw[["silent"]] <- TRUE
   call.str <- call.print <- call.raw
-  call.str[[1L]] <- quote(diff_str)
+  call.str[[1L]] <- quote(diffStr)
   call.str[["max.level"]] <- "auto"
-  call.print[[1L]] <- quote(diff_print)
+  call.print[[1L]] <- quote(diffPrint)
 
   # Run both the print and str versions, and then decide which to use based
   # on some weighting of various factors including how many lines needed to be

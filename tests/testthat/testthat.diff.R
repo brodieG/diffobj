@@ -56,7 +56,7 @@ local({
     mx.3 <- mx.2
     mx.3[31, 2] <- 111L
 
-    diff_print(mx.2, mx.3, mode="sidebyside")
+    diffPrint(mx.2, mx.3, mode="sidebyside")
     lst.1 <- list(
       NULL,
       z=list(
@@ -71,10 +71,10 @@ local({
     lst.3 <- lst.2
     lst.3[[1]] <- "hello"
 
-    diff_print(lst.1, lst.3)
-    diff_print(lst.1, lst.3, mode="sidebyside")
-    diff_obj(lst.1, lst.3)
-    diff_obj(lst.1, lst.2)
+    diffPrint(lst.1, lst.3)
+    diffPrint(lst.1, lst.3, mode="sidebyside")
+    diffObj(lst.1, lst.3)
+    diffObj(lst.1, lst.2)
     chr.1 <- c(
       "hello world",
       "I ran into a rather bizarre bug involving memoise that made it impossible to forget the cached version of crayon:::i_num_colors. Somehow, the binary version of crayon on CRAN has a corrupted copy of the memoised crayon:::i_num_colors function",

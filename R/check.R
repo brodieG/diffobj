@@ -63,7 +63,7 @@ is.valid.palette.param <- function(x, param, palette) {
   else if(
     (length(x) > 1L && is.null(names(x))) ||
     (!is.null(names(x)) && !"" %in% names(x)) ||
-    !all(names(x) %in% valid.formats)
+    !all(names(x) %in% c("", valid.formats))
   )
     paste0(
       "Argument `", param, "` must have names if it has length > 1, and those ",
