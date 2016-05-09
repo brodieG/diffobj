@@ -48,7 +48,7 @@ is.diffs <- function(x)
   is.TF(x$hit.diffs.max)
 
 is.valid.palette.param <- function(x, param, palette) {
-  stopifnot(is(palette, "StylePalette"))
+  stopifnot(is(palette, "PaletteOfStyles"))
   stopifnot(isTRUE(param %in% c("brightness", "color.mode")))
   valid.formats <- dimnames(palette@data)$format
   valid.params <- dimnames(palette@data)[[param]]
@@ -187,9 +187,9 @@ check_args <- function(
 
   # palette and arguments that reference palette dimensions
 
-  if(is.null(palette.of.styles)) palette.of.styles <- StylePalette()
-  if(!is(palette.of.styles, "StylePalette"))
-    err("Argument `palette.of.styles` must be a `StylePalette` object.")
+  if(is.null(palette.of.styles)) palette.of.styles <- PaletteOfStyles()
+  if(!is(palette.of.styles, "PaletteOfStyles"))
+    err("Argument `palette.of.styles` must be a `PaletteOfStyles` object.")
 
   palette.params <- c("brightness", "color.mode")
   for(x in palette.params)

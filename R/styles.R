@@ -466,7 +466,7 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' @section Structural Details:
 #'
 #' The array/list is stored in the \code{data} slot of
-#' \code{StylePalette} objects.  Subsetting methods are provided so you
+#' \code{PaletteOfStyles} objects.  Subsetting methods are provided so you
 #' may operate directly on the S4 object as you would on a regular array.
 #'
 #' The array/list must be fully populated with objects that are or extend
@@ -489,8 +489,8 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' genarate a default list with \dQuote{"grid"} value appended to the values of
 #' the \code{format} dimension.
 #'
-#' @export StylePalette
-#' @exportClass StylePalette
+#' @export PaletteOfStyles
+#' @exportClass PaletteOfStyles
 #' @examples
 #' ## Create a new style based on existing style by changing
 #' ## gutter symbols
@@ -499,16 +499,16 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' my.style@text@gutter.del <- "-"
 #' ## Generate the default style object palette, and replace
 #' ## the ansi256 / light / rgb style with our modified one
-#' defs <- StylePalette()
+#' defs <- PaletteOfStyles()
 #' defs["ansi256", "light", "rgb"] <- list(my.style) # note `list()`
 #' ## If so desired, set our new style palette as the default
 #' ## one; could also pass directly as argument to `diff*` funs
 #' \dontrun{
-#' options(diffobj.style.defaults) <- defs
+#' options(diffobj.palette) <- defs
 #' }
 
-StylePalette <- setClass(
-  "StylePalette",
+PaletteOfStyles <- setClass(
+  "PaletteOfStyles",
   slots=c(data="array"),
   validity=function(object) {
     dat <- object@data
@@ -546,7 +546,7 @@ StylePalette <- setClass(
     TRUE
   }
 )
-setMethod("initialize", "StylePalette",
+setMethod("initialize", "PaletteOfStyles",
   function(.Object, ...) {
     .dfs.arr["raw", , ] <- list(Style())
 
@@ -568,20 +568,20 @@ setMethod("initialize", "StylePalette",
   }
 )
 setReplaceMethod(
-  "[", signature=c(x="StylePalette"),
+  "[", signature=c(x="PaletteOfStyles"),
   function(x, i, j, ..., value) {
     x@data[i, j, ...] <- value
     validObject(x)
     x
 } )
 setMethod(
-  "[", signature=c(x="StylePalette"),
+  "[", signature=c(x="PaletteOfStyles"),
   function(x, i, j, ..., drop=TRUE) {
     x@data[i, j, ..., drop=drop]
   }
 )
 setMethod(
-  "[[", signature=c(x="StylePalette"),
+  "[[", signature=c(x="PaletteOfStyles"),
   function(x, i, j, ..., exact=TRUE) {
     x@data[[i, j, ..., exact=exact]]
   }

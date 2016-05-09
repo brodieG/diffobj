@@ -213,10 +213,10 @@ make_diff_fun <- function(capt_fun) {
 #'   the \code{format}, \code{brightness}, and \code{color.mode} parameters.
 #'   The \code{Style} object provides full control of diff output styling.
 #'   See \code{\link{Style}} for more details.
-#' @param palette.of.styles \code{\link{StylePalette}} object; advanced usage,
+#' @param palette.of.styles \code{\link{PaletteOfStyles}} object; advanced usage,
 #'   contains all the \code{\link{Style}} objects that are selected by
 #'   specifying the \code{format}, \code{brightness}, and \code{color.mode}
-#'   parameters.  See \code{\link{StylePalette}} for more details.
+#'   parameters.  See \code{\link{PaletteOfStyles}} for more details.
 #' @param frame environment the evaluation frame for the \code{print/show/str},
 #'   calls, allows user to ensure correct methods are used, not used by
 #'   \code{\link{diffChr}} or \code{\link{diffDeparse}}.

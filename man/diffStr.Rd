@@ -9,15 +9,15 @@
 diffStr(target, current, ...)
 
 \S4method{diffStr}{ANY}(target, current, mode = gdo("mode"),
-  context = gdo("context"), line.limit = gdo("line.limit"),
-  format = gdo("format"), brightness = gdo("brightness"),
-  color.mode = gdo("color.mode"), pager = gdo("pager"),
-  style = gdo("style"), palette.of.styles = gdo("palette"),
-  max.diffs = gdo("max.diffs"), disp.width = gdo("disp.width"),
-  hunk.limit = gdo("hunk.limit"),
+  context = gdo("context"), format = gdo("format"),
+  brightness = gdo("brightness"), color.mode = gdo("color.mode"),
+  pager = gdo("pager"), line.limit = gdo("line.limit"),
+  hunk.limit = gdo("hunk.limit"), max.diffs = gdo("max.diffs"),
+  disp.width = gdo("disp.width"),
   ignore.white.space = gdo("ignore.white.space"),
   convert.hz.white.space = gdo("convert.hz.white.space"),
   tab.stops = gdo("tab.stops"), align.threshold = gdo("align.threshold"),
+  style = gdo("style"), palette.of.styles = gdo("palette"),
   frame = parent.frame(), tar.banner = NULL, cur.banner = NULL, ...)
 }
 \arguments{
@@ -44,12 +44,6 @@ depending on whether total screen lines fit within \code{line.limit} (see
 \code{\link{etc}}), or alternatively pass the return value of
 \code{\link{auto_context}} to fine tune the parameters of the auto context
 calculation.}
-
-\item{line.limit}{integer(2L) or integer(1L), if length 1 how many lines of
-output to show, where \code{-1} means no limit.  If length 2, the first
-value indicates the threshold of screen lines to begin truncating output,
-and the second the number of lines to truncate to, which should be fewer
-than the threshold.}
 
 \item{format}{character(1L), controls the diff output format, one of:
 \itemize{
@@ -96,16 +90,17 @@ to console and exceeds screen height, or will always use a pager if in
 interactive mode, not in running in \code{knitr} and in \dQuote{html}
 format.}
 
-\item{style}{\dQuote{auto}, or a \code{\link{Style}} object.
-\dQuote{auto} by default.  If a \code{Style} object, will override the
-the \code{format}, \code{brightness}, and \code{color.mode} parameters.
-The \code{Style} object provides full control of diff output styling.
-See \code{\link{Style}} for more details.}
+\item{line.limit}{integer(2L) or integer(1L), if length 1 how many lines of
+output to show, where \code{-1} means no limit.  If length 2, the first
+value indicates the threshold of screen lines to begin truncating output,
+and the second the number of lines to truncate to, which should be fewer
+than the threshold.}
 
-\item{palette.of.styles}{\code{\link{StylePalette}} object; advanced usage,
-contains all the \code{\link{Style}} objects that are selected by
-specifying the \code{format}, \code{brightness}, and \code{color.mode}
-parameters.  See \code{\link{StylePalette}} for more details.}
+\item{hunk.limit}{integer(2L) or integer (1L), how many diff hunks to show.
+Behaves similarly to \code{line.limit}.  How many hunks are in a
+particular diff is a function of how many differences, and also how much
+\code{context} is used since context can cause two hunks to bleed into
+each other and become one.}
 
 \item{max.diffs}{integer(1L), number of differences after which we abandon
 the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
@@ -115,12 +110,6 @@ the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
 in \dQuote{sidebyside} \code{mode} the effective display width is half this
 number (set to NULL to use \code{getOption("width")}, which is the
 default).}
-
-\item{hunk.limit}{integer(2L) or integer (1L), how many diff hunks to show.
-Behaves similarly to \code{line.limit}.  How many hunks are in a
-particular diff is a function of how many differences, and also how much
-\code{context} is used since context can cause two hunks to bleed into
-each other and become one.}
 
 \item{ignore.white.space}{TRUE or FALSE, whether to consider differences in
 horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
@@ -135,6 +124,17 @@ addressable by your tab stops the last tab stop will be repeated.}
 words in a line of \code{target} that must be matched in a line of
 \code{current} in the same hunk for those lines to be paired up when
 displayed (defaults to 0.25).}
+
+\item{style}{\dQuote{auto}, or a \code{\link{Style}} object.
+\dQuote{auto} by default.  If a \code{Style} object, will override the
+the \code{format}, \code{brightness}, and \code{color.mode} parameters.
+The \code{Style} object provides full control of diff output styling.
+See \code{\link{Style}} for more details.}
+
+\item{palette.of.styles}{\code{\link{PaletteOfStyles}} object; advanced usage,
+contains all the \code{\link{Style}} objects that are selected by
+specifying the \code{format}, \code{brightness}, and \code{color.mode}
+parameters.  See \code{\link{PaletteOfStyles}} for more details.}
 
 \item{frame}{environment the evaluation frame for the \code{print/show/str},
 calls, allows user to ensure correct methods are used, not used by
@@ -155,7 +155,7 @@ a \code{\link{Diff}} object; this object has a \code{show}
 Compares the \code{str} output of \code{target} and \code{current}.  If
 the \code{max.level} parameter to \code{str} is left unspecified, will
 attempt to find the largest \code{max.level} that fits within
-\code{line.limit} (see \code{\link{etc}}) and shows at least one difference.
+\code{line.limit} and shows at least one difference.
 }
 \details{
 Due to the seemingly inconsistent nature of \code{max.level} when used with
