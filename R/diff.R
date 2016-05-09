@@ -20,20 +20,20 @@ make_diff_fun <- function(capt_fun) {
     target, current,
     mode=gdo("mode"),
     context=gdo("context"),
-    line.limit=gdo("line.limit"),
     format=gdo("format"),
     brightness=gdo("brightness"),
     color.mode=gdo("color.mode"),
     pager=gdo("pager"),
-    style=gdo("style"),
-    palette.of.styles=gdo("palette"),
+    line.limit=gdo("line.limit"),
+    hunk.limit=gdo("hunk.limit"),
     max.diffs=gdo("max.diffs"),
     disp.width=gdo("disp.width"),
-    hunk.limit=gdo("hunk.limit"),
     ignore.white.space=gdo("ignore.white.space"),
     convert.hz.white.space=gdo("convert.hz.white.space"),
     tab.stops=gdo("tab.stops"),
     align.threshold=gdo("align.threshold"),
+    style=gdo("style"),
+    palette.of.styles=gdo("palette"),
     frame=parent.frame(),
     tar.banner=NULL,
     cur.banner=NULL,
@@ -133,11 +133,6 @@ make_diff_fun <- function(capt_fun) {
 #'   \code{\link{etc}}), or alternatively pass the return value of
 #'   \code{\link{auto_context}} to fine tune the parameters of the auto context
 #'   calculation.
-#' @param line.limit integer(2L) or integer(1L), if length 1 how many lines of
-#'   output to show, where \code{-1} means no limit.  If length 2, the first
-#'   value indicates the threshold of screen lines to begin truncating output,
-#'   and the second the number of lines to truncate to, which should be fewer
-#'   than the threshold.
 #' @param format character(1L), controls the diff output format, one of:
 #'   \itemize{
 #'     \item \dQuote{auto}: to select output format based on terminal
@@ -179,15 +174,16 @@ make_diff_fun <- function(capt_fun) {
 #'   to console and exceeds screen height, or will always use a pager if in
 #'   interactive mode, not in running in \code{knitr} and in \dQuote{html}
 #'   format.
-#' @param style \dQuote{auto}, or a \code{\link{Style}} object.
-#'   \dQuote{auto} by default.  If a \code{Style} object, will override the
-#'   the \code{format}, \code{brightness}, and \code{color.mode} parameters.
-#'   The \code{Style} object provides full control of diff output styling.
-#'   See \code{\link{Style}} for more details.
-#' @param palette.of.styles \code{\link{StylePalette}} object; advanced usage,
-#'   contains all the \code{\link{Style}} objects that are selected by
-#'   specifying the \code{format}, \code{brightness}, and \code{color.mode}
-#'   parameters.  See \code{\link{StylePalette}} for more details.
+#' @param line.limit integer(2L) or integer(1L), if length 1 how many lines of
+#'   output to show, where \code{-1} means no limit.  If length 2, the first
+#'   value indicates the threshold of screen lines to begin truncating output,
+#'   and the second the number of lines to truncate to, which should be fewer
+#'   than the threshold.
+#' @param hunk.limit integer(2L) or integer (1L), how many diff hunks to show.
+#'   Behaves similarly to \code{line.limit}.  How many hunks are in a
+#'   particular diff is a function of how many differences, and also how much
+#'   \code{context} is used since context can cause two hunks to bleed into
+#'   each other and become one.
 #' @param max.diffs integer(1L), number of differences after which we abandon
 #'   the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
 #'   \code{-1L} to always stick to the original algorithm (defaults to 10000L).
@@ -195,11 +191,6 @@ make_diff_fun <- function(capt_fun) {
 #'   in \dQuote{sidebyside} \code{mode} the effective display width is half this
 #'   number (set to NULL to use \code{getOption("width")}, which is the
 #'   default).
-#' @param hunk.limit integer(2L) or integer (1L), how many diff hunks to show.
-#'   Behaves similarly to \code{line.limit}.  How many hunks are in a
-#'   particular diff is a function of how many differences, and also how much
-#'   \code{context} is used since context can cause two hunks to bleed into
-#'   each other and become one.
 #' @param ignore.white.space TRUE or FALSE, whether to consider differences in
 #'   horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
 #'   FALSE)
@@ -217,6 +208,15 @@ make_diff_fun <- function(capt_fun) {
 #'   words in a line of \code{target} that must be matched in a line of
 #'   \code{current} in the same hunk for those lines to be paired up when
 #'   displayed (defaults to 0.25).
+#' @param style \dQuote{auto}, or a \code{\link{Style}} object.
+#'   \dQuote{auto} by default.  If a \code{Style} object, will override the
+#'   the \code{format}, \code{brightness}, and \code{color.mode} parameters.
+#'   The \code{Style} object provides full control of diff output styling.
+#'   See \code{\link{Style}} for more details.
+#' @param palette.of.styles \code{\link{StylePalette}} object; advanced usage,
+#'   contains all the \code{\link{Style}} objects that are selected by
+#'   specifying the \code{format}, \code{brightness}, and \code{color.mode}
+#'   parameters.  See \code{\link{StylePalette}} for more details.
 #' @param frame environment the evaluation frame for the \code{print/show/str},
 #'   calls, allows user to ensure correct methods are used, not used by
 #'   \code{\link{diffChr}} or \code{\link{diffDeparse}}.
@@ -231,12 +231,13 @@ make_diff_fun <- function(capt_fun) {
 #'   \code{\link{diffDeparse}} to compare deparsed objects
 #' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen or pager
+#' @rdname diffPrint
 #' @export
 
 setGeneric(
   "diffPrint", function(target, current, ...) standardGeneric("diffPrint")
 )
-#' @export
+#' @rdname diffPrint
 
 setMethod("diffPrint", signature=c("ANY", "ANY"), make_diff_fun(capt_print))
 
@@ -245,7 +246,7 @@ setMethod("diffPrint", signature=c("ANY", "ANY"), make_diff_fun(capt_print))
 #' Compares the \code{str} output of \code{target} and \code{current}.  If
 #' the \code{max.level} parameter to \code{str} is left unspecified, will
 #' attempt to find the largest \code{max.level} that fits within
-#' \code{line.limit} (see \code{\link{etc}}) and shows at least one difference.
+#' \code{line.limit} and shows at least one difference.
 #'
 #' Due to the seemingly inconsistent nature of \code{max.level} when used with
 #' objects with nested attributes, and also due to the relative slowness of
@@ -264,7 +265,7 @@ setMethod("diffPrint", signature=c("ANY", "ANY"), make_diff_fun(capt_print))
 
 setGeneric("diffStr", function(target, current, ...) standardGeneric("diffStr"))
 
-#' @export
+#' @rdname diffStr
 
 setMethod("diffStr", signature=c("ANY", "ANY"), make_diff_fun(capt_str))
 
@@ -286,7 +287,7 @@ setMethod("diffStr", signature=c("ANY", "ANY"), make_diff_fun(capt_str))
 
 setGeneric("diffChr", function(target, current, ...) standardGeneric("diffChr"))
 
-#' @export
+#' @rdname diffChr
 
 setMethod("diffChr", signature=c("ANY", "ANY"), make_diff_fun(capt_chr))
 
@@ -304,13 +305,13 @@ setMethod("diffChr", signature=c("ANY", "ANY"), make_diff_fun(capt_chr))
 #'   method that will display the diff to screen
 #' @export
 #' @examples
-#' diff_deparse(matrix(1:9, 3), 1:9)
+#' diffDeparse(matrix(1:9, 3), 1:9)
 
 setGeneric(
   "diffDeparse", function(target, current, ...) standardGeneric("diffDeparse")
 )
 
-#' @export
+#' @rdname diffDeparse
 
 setMethod("diffDeparse", signature=c("ANY", "ANY"), make_diff_fun(capt_deparse))
 
