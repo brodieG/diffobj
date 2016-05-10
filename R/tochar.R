@@ -160,23 +160,24 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
     max.w <- calc_width(disp.width, mode)
     capt.width <- calc_width_pad(disp.width, mode)
     h.ids <- vapply(h.g, "[[", integer(1L), "id")
-    tar.rng <- find_rng(h.ids, ranges.orig[1:2, , drop=FALSE])
-    cur.rng <- find_rng(h.ids, ranges.orig[3:4, , drop=FALSE])
+    h.head <- vapply(h.g, "[[", logical(1L), "header")
+    # exclude header hunks from contributing to range
+    h.ids.nh <- h.ids[!h.head]
+    tar.rng <- find_rng(h.ids.nh, ranges.orig[1:2, , drop=FALSE])
+    cur.rng <- find_rng(h.ids.nh, ranges.orig[3:4, , drop=FALSE])
 
     hh.a <- paste0("-", rng_as_chr(tar.rng))
     hh.b <- paste0("+", rng_as_chr(cur.rng))
 
     hunk.head <- list(
-      if(!h.g[[1L]]$header) {
-        if(mode == "sidebyside") {
-          hunkl(
-            col.1=sprintf("@@ %s @@", hh.a), col.2=sprintf("@@ %s @@", hh.b),
-            type.1=chrt("header"), type.2=chrt("header")
-          )
-        } else {
-          hunkl(col.1=sprintf("@@ %s %s @@", hh.a, hh.b), type.1=chrt("header"))
-        }
-      } else hunkl()
+      if(mode == "sidebyside") {
+        hunkl(
+          col.1=sprintf("@@ %s @@", hh.a), col.2=sprintf("@@ %s @@", hh.b),
+          type.1=chrt("header"), type.2=chrt("header")
+        )
+      } else {
+        hunkl(col.1=sprintf("@@ %s %s @@", hh.a, hh.b), type.1=chrt("header"))
+      }
     )
     # Generate hunk contents in aligned form
 
