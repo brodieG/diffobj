@@ -50,6 +50,7 @@ setClass(
     insert="character", insert.ctd="character",
     delete="character", delete.ctd="character",
     match="character", match.ctd="character",
+    guide="character", guide.ctd="character",
     pad="character",
     width="integer"
   )

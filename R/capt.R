@@ -109,7 +109,7 @@ capt_print <- function(target, current, etc, err, ...){
   if(
     length(dim(target)) == 2L && length(dim(current)) == 2L
   ) {
-    etc@header.rows <- HeaderRows(
+    etc@guide.rows <- GuideRows(
       target=detect_meta_rows(tar.capt), current=detect_meta_rows(cur.capt)
   ) }
   diff <- line_diff(target, current, tar.capt, cur.capt, etc=etc, warn=TRUE)

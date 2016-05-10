@@ -63,7 +63,7 @@ fin_fun_context <- function(dat) {
   A.lens <- vapply(A.dat, function(x) length(unlist(x)), integer(1L))
   B.lens <- vapply(B.dat, function(x) length(unlist(x)), integer(1L))
   context <- vapply(dat, "[[", logical(1L), "context")
-  guide <- vapply(dat, "[[", logical(1L), "header")
+  guide <- vapply(dat, "[[", logical(1L), "guide")
   A.ctx <- rep(context, A.lens)
   A.guide <- rep(guide, A.lens)
   B.ctx <- rep(context, B.lens)
@@ -84,14 +84,14 @@ fin_fun_context <- function(dat) {
     )
   )
 }
-fin_fun_unified <- function(A, B, context, header) {
+fin_fun_unified <- function(A, B, context, guide) {
   ord <- order(c(seq_along(A), seq_along(B)))
   types <- c(
     lapply(A, function(x)
-      rep(if(header) "guide" else if(context) "match" else "delete", length(x))
+      rep(if(guide) "guide" else if(context) "match" else "delete", length(x))
     ),
     lapply(B, function(x)
-      rep(if(header) "mea" else if(context) "match" else "insert", length(x))
+      rep(if(guide) "mea" else if(context) "match" else "insert", length(x))
     )
   )
   hunkl(
@@ -99,7 +99,7 @@ fin_fun_unified <- function(A, B, context, header) {
     type.1=chrt(unlist(types[ord]))
   )
 }
-fin_fun_sidebyside <- function(A, B, context, header) {
+fin_fun_sidebyside <- function(A, B, context, guide) {
   for(i in seq_along(A)) {
     A.ch <- A[[i]]
     B.ch <- B[[i]]
@@ -113,16 +113,21 @@ fin_fun_sidebyside <- function(A, B, context, header) {
   }
   A.ul <- unlist(A)
   B.ul <- unlist(B)
+  A.len <- length(A.ul)
+  B.len <- length(B.ul)
   hunkl(
     col.1=ifelse(is.na(A.ul), "", A.ul),
     col.2=ifelse(is.na(B.ul), "", B.ul),
     type.1=chrt(
-      ifelse(header, "guide", ifelse(context | is.na(A.ul), "match", "delete"))
-    ),
+      ifelse(
+        rep(guide, A.len),  "guide",
+        ifelse(context | is.na(A.ul), "match", "delete")
+    ) ),
     type.2=chrt(
-      ifelse(header, "guide", ifelse(context | is.na(B.ul), "match", "insert"))
-    )
-  )
+      ifelse(
+        rep(guide, B.len), "guide",
+        ifelse(context | is.na(B.ul), "match", "insert")
+  ) ) )
 }
 # Convert a hunk group into text representation
 
@@ -171,7 +176,7 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
     max.w <- calc_width(disp.width, mode)
     capt.width <- calc_width_pad(disp.width, mode)
     h.ids <- vapply(h.g, "[[", integer(1L), "id")
-    h.head <- vapply(h.g, "[[", logical(1L), "header")
+    h.head <- vapply(h.g, "[[", logical(1L), "guide")
     # exclude header hunks from contributing to range
     h.ids.nh <- h.ids[!h.head]
     tar.rng <- find_rng(h.ids.nh, ranges.orig[1:2, , drop=FALSE])
@@ -529,6 +534,7 @@ setMethod("as.character", "Diff",
 
     # Compute gutter, padding, and continuations
 
+    browser()
     pads <- lapply(
       line.lens, function(y) lapply(y, rep, x=gutter.dat@pad)
     )
@@ -540,7 +546,7 @@ setMethod("as.character", "Diff",
     pre.render.w.p <- if(s@pad) {
       Map(
         function(col, type) {
-          diff.line <- type %in% c("insert", "delete", "match")
+          diff.line <- type %in% c("insert", "delete", "match", "guide")
           col[diff.line] <- lapply(col[diff.line], rpad, x@etc@text.width)
           col[!diff.line] <- lapply(col[!diff.line], rpad, x@etc@line.width)
           col
@@ -549,7 +555,8 @@ setMethod("as.character", "Diff",
       )
     } else pre.render.w
 
-    # Apply text level styles
+    # Apply text level styles; make sure that all types are defined here
+    # otherwise you'll get lines missing in output.
 
     es <- x@etc@style
     funs.ts <- list(
@@ -557,6 +564,7 @@ setMethod("as.character", "Diff",
       delete=function(x) es@funs@text(es@funs@text.delete(x)),
       match=function(x) es@funs@text(es@funs@text.match(x)),
       header=es@funs@header,
+      guide=es@funs@guide,
       context.sep=function(x) es@funs@context.sep(es@text@context.sep)
     )
     pre.render.s <- Map(

@@ -84,6 +84,7 @@ StyleFuns <- setClass(
     gutter.insert="ANY", gutter.insert.ctd="ANY",
     gutter.delete="ANY", gutter.delete.ctd="ANY",
     gutter.match="ANY", gutter.match.ctd="ANY",
+    gutter.guide="ANY", gutter.guide.ctd="ANY",
     gutter.pad="ANY",
     word.insert="ANY", word.delete="ANY",
     context.sep="ANY", header="ANY", meta="ANY",
@@ -101,6 +102,7 @@ StyleFuns <- setClass(
     gutter.insert=identity, gutter.insert.ctd=identity,
     gutter.delete=identity, gutter.delete.ctd=identity,
     gutter.match=identity, gutter.match.ctd=identity,
+    gutter.guide=identity, gutter.guide.ctd=identity,
     word.insert=identity, word.delete=identity,
     header=identity,
     context.sep=identity,
@@ -127,6 +129,7 @@ StyleFuns <- setClass(
       gutter.insert="character", gutter.insert.ctd="character",
       gutter.delete="character", gutter.delete.ctd="character",
       gutter.match="character", gutter.match.ctd="character",
+      gutter.guide="character", gutter.guide.ctd="character",
       gutter.pad="character",
       context.sep="character",
       pad.col="character"
@@ -135,6 +138,7 @@ StyleFuns <- setClass(
       gutter.insert=">", gutter.insert.ctd=":",
       gutter.delete="<", gutter.delete.ctd=":",
       gutter.match=" ", gutter.match.ctd=" ",
+      gutter.guide="~", gutter.guide.ctd=":",
       gutter.pad=" ",
       context.sep="~~~~~",
       pad.col=" "
