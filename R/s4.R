@@ -34,6 +34,16 @@ setClass(
 setClassUnion("doAutoCOrInt", c("AutoContext", "integer"))
 # pre-computed gutter data
 
+HeaderRows <- setClass(
+  "HeaderRows",
+  slots=c(target="integer", current="integer"),
+  validity=function(object) {
+    vals <- c(object@target, object@current)
+    if(anyNA(vals) || any(vals < 1L))
+      return("Object may only contain strictly positive integer values")
+    TRUE
+  }
+)
 setClass(
   "Gutter",
   slots= c(
@@ -62,23 +72,22 @@ setClass(
     cur.exp="ANY",
     tar.banner="charOrNULL",
     cur.banner="charOrNULL",
-    use.header="logical",
+    header.rows="HeaderRows",
     disp.width="integer",
     line.width="integer",
     text.width="integer",
     gutter="Gutter"
   ),
-  prototype=list(use.header=FALSE, disp.width=0L, text.width=0L, line.width=0L),
+  prototype=list(disp.width=0L, text.width=0L, line.width=0L),
   validity=function(object){
     int.1L.and.pos <- c("disp.width", "line.width", "text.width")
     for(i in int.1L.and.pos)
       if(!is.int.1L(slot(object, i)) || slot(object, i) < 0L)
         return(sprintf("Slot `%s` must be integer(1L) and positive"), i)
-    TF <- c("ignore.white.space", "convert.hz.white.space", "use.header")
+    TF <- c("ignore.white.space", "convert.hz.white.space")
     for(i in TF)
       if(!is.TF(slot(object, i)) || slot(object, i) < 0L)
         return(sprintf("Slot `%s` must be TRUE or FALSE"), i)
-
     TRUE
   }
 )

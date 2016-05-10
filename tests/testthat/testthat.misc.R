@@ -45,3 +45,15 @@ test_that("trim_str", {
   #   sep="\n"
   # )
 })
+
+test_that("detect_meta_rows", {
+   iris.dply <- c("Source: local data frame [150 x 5]", "Groups: Species [3]", "", "   Sepal.Length Sepal.Width", "          (dbl)       (dbl)", "1           5.1         3.5", "2           4.9         3.0", "3           4.7         3.2", "4           4.6         3.1", "5           5.0         3.6", "6           5.4         3.9", "7           4.6         3.4", "8           5.0         3.4", "9           4.4         2.9", "10          4.9         3.1", "..          ...         ...", "Variables not shown: Petal.Length", "  (dbl), Petal.Width (dbl), Species", "  (fctr)")
+   expect_equal(diffobj:::detect_meta_rows(iris.dply), 3:5)
+   old.opt <- options(width=40)
+   on.exit(options(old.opt))
+   expect_equal(diffobj:::detect_meta_rows(capture.output(iris)), c(1, 152))
+   expect_equal(
+     diffobj:::detect_meta_rows(
+       capture.output(matrix(1:100, nrow=5)), c(1, 7, 13, 19)
+   ) )
+})

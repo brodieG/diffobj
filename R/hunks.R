@@ -43,11 +43,6 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
     sects <- unique(dat[, "section"])
     j <- 0L
 
-    # For each section, figure out how to represent target and current where
-    # 0 means match, 1:n is a matched mismatch (change in edit script parlance),
-    # and NA is a full mismatch (d or i).  Note we start the hunk ids at 2 so
-    # we can add a header hunk later
-
     res.l <- if(!nrow(dat)) {
       # Minimum one empty hunk if nothing; arbitrarily chose to make it a
       # non context hunk; ideally would figure out a way to integrate this
@@ -55,7 +50,7 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
 
       list(
         list(
-          id=2L, A=integer(0L), B=integer(0L), A.chr=character(0L),
+          id=1L, A=integer(0L), B=integer(0L), A.chr=character(0L),
           B.chr=character(0L), A.eq.chr=character(0L), B.eq.chr=character(0L),
           A.raw.chr=character(0L), B.raw.chr=character(0L),
           A.tok.ratio=numeric(0L), B.tok.ratio=numeric(0L),
@@ -126,7 +121,7 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
           if(cur.len) cur.rng <- c(B.start + 1L, B.start + cur.len)
 
           list(
-            id=i + 1L, A=A, B=B, A.chr=A.chr, B.chr=B.chr,
+            id=i, A=A, B=B, A.chr=A.chr, B.chr=B.chr,
             A.eq.chr=A.chr, B.eq.chr=B.chr,
             A.raw.chr=A.chr, B.raw.chr=B.chr,
             A.tok.ratio=numeric(length(A)), B.tok.ratio=numeric(length(B)),
@@ -157,16 +152,6 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
       } else if(len.min > line.limit[[1L]]) {
         context@min
       } else {
-        # compute max context size
-
-        # ctx.max <- ctx.hi <- ctx <- as.integer(
-        #   ceiling(
-        #     max(
-        #       vapply(
-        #         res.l,
-        #         function(x) if(x$context) length(x$A.chr) else 0L, integer(1L)
-        #     ) ) / 2L
-        # ) )
         ctx.max <- ctx.hi <- ctx <- context@max
         ctx.lo <- context@min
         safety <- 0L
@@ -200,7 +185,7 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
       }
     } else context
 
-    res <- process_hunks(res.l, ctx.val=ctx.val, use.header=etc@use.header)
+    res <- process_hunks(res.l, ctx.val=ctx.val, etc=etc)
     res
 } )
 # process the hunks and also drop off groups that exceed limit
@@ -208,7 +193,7 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
 # used exclusively when we are trying to auto-calculate context
 
 p_and_t_hunks <- function(hunks.raw, ctx.val, etc) {
-  c.all <- process_hunks(hunks.raw, ctx.val, etc@use.header)
+  c.all <- process_hunks(hunks.raw, ctx.val, etc)
   hunk.limit <- etc@hunk.limit
   if(hunk.limit[[1L]] >= 0L && length(c.all) > hunk.limit)
     c.all <- c.all[seq_along(hunk.limit[[2L]])]
@@ -229,7 +214,7 @@ hunk_sub <- function(hunk, op, n) {
   if(len.diff >= 0) {
     nm <- c(
       "A", "B", "A.chr", "B.chr", "A.eq.chr", "B.eq.chr",
-      "A.raw.chr", "B.raw.chr"
+      "A.raw.chr", "B.raw.chr", "A.tok.ratio", "B.tok.ratio"
     )
     hunk[nm] <- lapply(hunk[nm], op, n)
 
@@ -259,9 +244,10 @@ hunk_sub <- function(hunk, op, n) {
 # If a hunk bleeds into another due to context then it becomes part of the
 # other hunk.
 #
-# This will group atomic hunks into hunk groups
+# This will group atomic hunks into hunk groups with matching line in excess of
+# context removed.
 
-process_hunks <- function(x, ctx.val, use.header) {
+process_hunks <- function(x, ctx.val, etc) {
   context <- ctx.val
   ctx.vec <- vapply(x, "[[", logical(1L), "context")
   if(!all(abs(diff(ctx.vec)) == 1L))
@@ -323,19 +309,65 @@ process_hunks <- function(x, ctx.val, use.header) {
     }
     length(res.l) <- j - 1L
   }
-  # Add back the header hunk if needed.
+  # Add back the header hunks if needed they didn't make it in as part of the
+  # context or differences.  It should be the case that the only spot that could
+  # have missing hunk headers is the first hunk in a hunk group if it is a
+  # context hunk
 
-  missing.first <- res.l[[1L]][[1L]]$tar.rng.trim[[1L]] != 1L &&
-    res.l[[1L]][[1L]]$cur.rng.trim[[1L]] != 1L
-  header <- if(use.header && missing.first) {
-    header <- hunk_sub(x[[1L]], "head", 1L)
-    header$header <- TRUE
-    list(list(header))
+  # First, determine which headers if any need to be added back; need to do it
+  # first because it is possible that a header is present at the end context
+  # of the prior hunk group
+
+  hunks.flat <- unlist(res.l, recursive=FALSE)
+  get_rows <- function(h, mode) {
+    rng <- h[[sprintf("%s.rng.sub", mode)]]
+    seq_len(diff(rng) + 1L) + rng[[1L]] - 1L
   }
+  tar.rows <- unlist(lapply(hunks.flat, get_rows, "tar"))
+  cur.rows <- unlist(lapply(hunks.flat, get_rows, "cur"))
+  tar.h <- etc@header.rows@target[!etc@header.rows@target %in% tar.rows]
+  cur.h <- etc@header.rows@current[!etc@header.rows@current %in% cur.rows]
+
+  # Helper fun to pull out indices of header rows
+
+  get_headers <- function(hunk, rows, mode) {
+    rng <- hunk[[sprintf("%s.rng", mode)]]
+    rng.sub <- hunk[[sprintf("%s.rng.sub", mode)]]
+    h.rows <- which(!rows %bw% rng.sub & rows %bw% rng)
+    if(length(h.rows)) {
+      # we want all header rows that abut the last matched header row
+
+      last.h <- h.rows[seq(to=max(h.rows), length.out=length(h.rows)) == h.rows]
+
+      # re-index so we're in terms of rows in the hunk proper
+
+      last.h - rng[[1L]] + 1L
+    } else integer()
+  }
+  for(k in seq_along(res.l)) {
+    if(length(res.l[[k]]) && res.l[[k]][[1L]]$context) {
+      h <- res.l[[k]][[1L]]
+      h.o <- x[[res.l[[k]][[1L]]$id]]  # retrieve original untrimmed hunk
+      tar.h <- get_headers(h, etc@header.rows@target, "tar")
+      cur.h <- get_headers(h, etc@header.rows@current, "cur")
+
+      # since in a context hunk, these two should be exactly the same
+
+      if(!identical(tar.h, cur.h))
+        stop(
+          "Logic Error: context headers are not identical; contact maintainer"
+        )
+      if(length(tar.h)) {
+        h.h <- hunk_sub(h.o, "head", max(tar.h))
+        h.fin <- if(diff(range(tar.h)))
+          hunk_sub(h.h, "tail", -(min(tar.h) - 1L)) else h.h
+        h.fin$header <- TRUE
+        res.l[[k]] <- c(list(h.fin), res.l[[k]])
+  } } }
   # Finalize, including sizing correctly, and setting the ids to the right
   # values since we potentially duplicated some context hunks
 
-  res.fin <- c(header, res.l)
+  res.fin <- res.l
   k <- 1L
   for(i in seq_along(res.fin)) {
     for(j in seq_along(res.fin[[i]])) {

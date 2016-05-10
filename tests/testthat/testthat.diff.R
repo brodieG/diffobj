@@ -118,28 +118,32 @@ local({
     )
     diffChr(chr.5, chr.6, mode="sidebyside")
 
-    diffPrint(1:100, 2:101)
+    diffPrint(1:100, 2:101, mode="side")
     diffPrint(2:101, 1:100)  # add reverse arg?
 
     iris.2 <- iris.c <- transform(iris, Species=as.character(Species))
     # without rounding this is a bit wild, but good corner case to test
-    iris.2$Sepal.Length[sample(nrow(iris.2), 10)] <-
-      rnorm(10, mean(iris.2$Sepal.Length), sd(iris.2$Sepal.Length))
+    iris.2$Sepal.Length[sample(nrow(iris.2), 5)] <-
+      rnorm(5, mean(iris.2$Sepal.Length), sd(iris.2$Sepal.Length))
 
     iris.3 <- iris.2
     iris.3$Sepal.Length <- round(iris.3$Sepal.Length, 1L)
+    iris.4 <- iris.3
+    iris.4$Petal.Width[sample(1:nrow(iris.4), 6)] <- round(runif(6), 1)
 
     diffPrint(iris, iris.2) # no round
     diffPrint(iris, iris.2, mode="sidebyside")
     diffPrint(iris, iris.c)
     diffPrint(iris, iris.3)
     diffPrint(iris, iris.3, mode="sidebyside")
+    diffPrint(iris, iris.4, mode="sidebyside")
     diffObj(iris, iris.c)
     diffObj(iris, iris.2)
     diffObj(iris, iris.3)
     diffObj(iris, iris.3, mode="sidebyside")
 
     diffStr(cars, mtcars)
+    diffPrint(cars, mtcars, mode="s")
 
     diffPrint(iris, iris[-2])
     diffPrint(list(1, 2, 3), matrix(1:9, 3))
