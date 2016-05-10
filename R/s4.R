@@ -34,8 +34,8 @@ setClass(
 setClassUnion("doAutoCOrInt", c("AutoContext", "integer"))
 # pre-computed gutter data
 
-HeaderRows <- setClass(
-  "HeaderRows",
+GuideRows <- setClass(
+  "GuideRows",
   slots=c(target="integer", current="integer"),
   validity=function(object) {
     vals <- c(object@target, object@current)
@@ -72,7 +72,7 @@ setClass(
     cur.exp="ANY",
     tar.banner="charOrNULL",
     cur.banner="charOrNULL",
-    header.rows="HeaderRows",
+    guide.rows="GuideRows",
     disp.width="integer",
     line.width="integer",
     text.width="integer",

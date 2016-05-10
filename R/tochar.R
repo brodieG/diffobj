@@ -41,7 +41,7 @@ chrt <- function(...)
     c(...),
     levels=c(
       "insert", "delete", "match", "header", "context.sep",
-      "banner.insert", "banner.delete"
+      "banner.insert", "banner.delete", "guide"
     )
   )
 hunkl <- function(col.1=NULL, col.2=NULL, type.1=NULL, type.2=NULL)
@@ -63,10 +63,13 @@ fin_fun_context <- function(dat) {
   A.lens <- vapply(A.dat, function(x) length(unlist(x)), integer(1L))
   B.lens <- vapply(B.dat, function(x) length(unlist(x)), integer(1L))
   context <- vapply(dat, "[[", logical(1L), "context")
+  guide <- vapply(dat, "[[", logical(1L), "header")
   A.ctx <- rep(context, A.lens)
+  A.guide <- rep(guide, A.lens)
   B.ctx <- rep(context, B.lens)
-  A.types <- ifelse(A.ctx, "match", "delete")
-  B.types <- ifelse(B.ctx, "match", "insert")
+  B.guide <- rep(guide, B.lens)
+  A.types <- ifelse(A.guide, "guide", ifelse(A.ctx, "match", "delete"))
+  B.types <- ifelse(B.guide, "guide", ifelse(B.ctx, "match", "delete"))
 
   A.ul <- unlist(A.dat)
   B.ul <- unlist(B.dat)
@@ -81,18 +84,22 @@ fin_fun_context <- function(dat) {
     )
   )
 }
-fin_fun_unified <- function(A, B, context) {
+fin_fun_unified <- function(A, B, context, header) {
   ord <- order(c(seq_along(A), seq_along(B)))
   types <- c(
-    lapply(A, function(x) rep(if(context) "match" else "delete", length(x))),
-    lapply(B, function(x) rep(if(context) "match" else "insert", length(x)))
+    lapply(A, function(x)
+      rep(if(header) "guide" else if(context) "match" else "delete", length(x))
+    ),
+    lapply(B, function(x)
+      rep(if(header) "mea" else if(context) "match" else "insert", length(x))
+    )
   )
   hunkl(
     col.1=unlist(c(A, B)[ord]),
     type.1=chrt(unlist(types[ord]))
   )
 }
-fin_fun_sidebyside <- function(A, B, context) {
+fin_fun_sidebyside <- function(A, B, context, header) {
   for(i in seq_along(A)) {
     A.ch <- A[[i]]
     B.ch <- B[[i]]
@@ -109,8 +116,12 @@ fin_fun_sidebyside <- function(A, B, context) {
   hunkl(
     col.1=ifelse(is.na(A.ul), "", A.ul),
     col.2=ifelse(is.na(B.ul), "", B.ul),
-    type.1=chrt(ifelse(context | is.na(A.ul), "match", "delete")),
-    type.2=chrt(ifelse(context | is.na(B.ul), "match", "insert"))
+    type.1=chrt(
+      ifelse(header, "guide", ifelse(context | is.na(A.ul), "match", "delete"))
+    ),
+    type.2=chrt(
+      ifelse(header, "guide", ifelse(context | is.na(B.ul), "match", "insert"))
+    )
   )
 }
 # Convert a hunk group into text representation
@@ -140,7 +151,7 @@ hunk_atom_as_char <- function(h.a, mode, etc) {
     A.dat, B.dat, ignore.white.space=etc@ignore.white.space,
     threshold=etc@align.threshold
   )
-  list(A=dat.align$A, B=dat.align$B, context=h.a$context)
+  list(A=dat.align$A, B=dat.align$B, context=h.a$context, guide=h.a$guide)
 }
 
 hunk_as_char <- function(h.g, ranges.orig, etc) {

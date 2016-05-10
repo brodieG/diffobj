@@ -86,7 +86,8 @@ StyleFuns <- setClass(
     gutter.match="ANY", gutter.match.ctd="ANY",
     gutter.pad="ANY",
     word.insert="ANY", word.delete="ANY",
-    context.sep="ANY", header="ANY", meta="ANY"
+    context.sep="ANY", header="ANY", meta="ANY",
+    guide="ANY"
   ),
   prototype=list(
     container=identity, row=identity,
@@ -103,7 +104,8 @@ StyleFuns <- setClass(
     word.insert=identity, word.delete=identity,
     header=identity,
     context.sep=identity,
-    meta=identity
+    meta=identity,
+    guide=identity
   ),
   validity=function(object){
     for(i in slotNames(object)) {

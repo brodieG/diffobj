@@ -54,7 +54,7 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
           B.chr=character(0L), A.eq.chr=character(0L), B.eq.chr=character(0L),
           A.raw.chr=character(0L), B.raw.chr=character(0L),
           A.tok.ratio=numeric(0L), B.tok.ratio=numeric(0L),
-          context=FALSE, header=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
+          context=FALSE, guide=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
           tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
           tar.rng.trim=integer(2L), cur.rng.trim=integer(2L)
         )
@@ -125,7 +125,7 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
             A.eq.chr=A.chr, B.eq.chr=B.chr,
             A.raw.chr=A.chr, B.raw.chr=B.chr,
             A.tok.ratio=numeric(length(A)), B.tok.ratio=numeric(length(B)),
-            context=context, header=FALSE,
+            context=context, guide=FALSE,
             tar.rng=tar.rng, cur.rng=cur.rng,
             tar.rng.sub=tar.rng, cur.rng.sub=cur.rng,
             tar.rng.trim=tar.rng, cur.rng.trim=cur.rng
@@ -309,13 +309,13 @@ process_hunks <- function(x, ctx.val, etc) {
     }
     length(res.l) <- j - 1L
   }
-  # Add back the header hunks if needed they didn't make it in as part of the
+  # Add back the guide hunks if needed they didn't make it in as part of the
   # context or differences.  It should be the case that the only spot that could
-  # have missing hunk headers is the first hunk in a hunk group if it is a
+  # have missing hunk guides is the first hunk in a hunk group if it is a
   # context hunk
 
-  # First, determine which headers if any need to be added back; need to do it
-  # first because it is possible that a header is present at the end context
+  # First, determine which guides if any need to be added back; need to do it
+  # first because it is possible that a guide is present at the end context
   # of the prior hunk group
 
   hunks.flat <- unlist(res.l, recursive=FALSE)
@@ -325,17 +325,17 @@ process_hunks <- function(x, ctx.val, etc) {
   }
   tar.rows <- unlist(lapply(hunks.flat, get_rows, "tar"))
   cur.rows <- unlist(lapply(hunks.flat, get_rows, "cur"))
-  tar.h <- etc@header.rows@target[!etc@header.rows@target %in% tar.rows]
-  cur.h <- etc@header.rows@current[!etc@header.rows@current %in% cur.rows]
+  tar.h <- etc@guide.rows@target[!etc@guide.rows@target %in% tar.rows]
+  cur.h <- etc@guide.rows@current[!etc@guide.rows@current %in% cur.rows]
 
-  # Helper fun to pull out indices of header rows
+  # Helper fun to pull out indices of guide rows
 
-  get_headers <- function(hunk, rows, mode) {
+  get_guides <- function(hunk, rows, mode) {
     rng <- hunk[[sprintf("%s.rng", mode)]]
     rng.sub <- hunk[[sprintf("%s.rng.sub", mode)]]
     h.rows <- rows[which(!rows %bw% rng.sub & rows %bw% rng)]
     if(length(h.rows)) {
-      # we want all header rows that abut the last matched header row
+      # we want all guide rows that abut the last matched guide row
       h.fin <- h.rows[seq(to=max(h.rows), length.out=length(h.rows)) == h.rows]
       # convert back to indeces relative to hunk
       h.fin - rng[[1L]] + 1L
@@ -345,20 +345,20 @@ process_hunks <- function(x, ctx.val, etc) {
     if(length(res.l[[k]]) && res.l[[k]][[1L]]$context) {
       h <- res.l[[k]][[1L]]
       h.o <- x[[res.l[[k]][[1L]]$id]]  # retrieve original untrimmed hunk
-      tar.h <- get_headers(h, etc@header.rows@target, "tar")
-      cur.h <- get_headers(h, etc@header.rows@current, "cur")
+      tar.h <- get_guides(h, etc@guide.rows@target, "tar")
+      cur.h <- get_guides(h, etc@guide.rows@current, "cur")
 
       # since in a context hunk, these two should be exactly the same
 
       if(!identical(tar.h, cur.h))
         stop(
-          "Logic Error: context headers are not identical; contact maintainer"
+          "Logic Error: context guides are not identical; contact maintainer"
         )
       if(length(tar.h)) {
         h.h <- hunk_sub(h.o, "head", max(tar.h))
         tail.ind <- if(length(tar.h) == 1L) 1L else diff(range(tar.h)) + 1L
         h.fin <- hunk_sub(h.h, "tail", tail.ind)
-        h.fin$header <- TRUE
+        h.fin$guide <- TRUE
         res.l[[k]] <- c(list(h.fin), res.l[[k]])
   } } }
   # Finalize, including sizing correctly, and setting the ids to the right
@@ -375,7 +375,7 @@ process_hunks <- function(x, ctx.val, etc) {
   res.fin
 }
 # Compute how many lines the display version of the diff will take, meta
-# lines (used for hunk headers) are denoted by negatives
+# lines (used for hunk guides) are denoted by negatives
 #
 # count lines for each remaining hunk and figure out if we need to cut some
 # hunks off; note that "negative" lengths indicate the lines being counted
@@ -399,7 +399,7 @@ get_hunk_chr_lens <- function(hunk.grps, etc) {
 
     lines.out <- switch(
       mode,
-      context=c(A.lines, if(!hunk$header) -B.lines),
+      context=c(A.lines, if(!hunk$guide) -B.lines),
       unified=c(A.lines),
       sidebyside={
         max.len <- max(length(A.lines), length(B.lines))
@@ -430,10 +430,10 @@ get_hunk_chr_lens <- function(hunk.grps, etc) {
     res <- cbind(grp.id=if(nrow(res.tmp)) hunk.grp.id else integer(0L), res.tmp)
     # Need to make sure all positives are first, and all negatives second, if
     # there are negatives (context mode); we also add 1 to the first line in
-    # each section to account for the group hunkheader info if required (i.e.
-    # for all hunks except a header hunk
+    # each section to account for the group hunkguide info if required (i.e.
+    # for all hunks except a guide hunk
 
-    extra <- if(length(hunks) && hunks[[1L]]$header) 0L else 1L
+    extra <- if(length(hunks)) 1L else 0L  # used to be backwards, borked?
     if(identical(mode, "context"))
       res <- res[order(res[, "len"] < 0L), , drop=FALSE]
     if(
