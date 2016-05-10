@@ -333,15 +333,12 @@ process_hunks <- function(x, ctx.val, etc) {
   get_headers <- function(hunk, rows, mode) {
     rng <- hunk[[sprintf("%s.rng", mode)]]
     rng.sub <- hunk[[sprintf("%s.rng.sub", mode)]]
-    h.rows <- which(!rows %bw% rng.sub & rows %bw% rng)
+    h.rows <- rows[which(!rows %bw% rng.sub & rows %bw% rng)]
     if(length(h.rows)) {
       # we want all header rows that abut the last matched header row
-
-      last.h <- h.rows[seq(to=max(h.rows), length.out=length(h.rows)) == h.rows]
-
-      # re-index so we're in terms of rows in the hunk proper
-
-      last.h - rng[[1L]] + 1L
+      h.fin <- h.rows[seq(to=max(h.rows), length.out=length(h.rows)) == h.rows]
+      # convert back to indeces relative to hunk
+      h.fin - rng[[1L]] + 1L
     } else integer()
   }
   for(k in seq_along(res.l)) {
@@ -359,8 +356,8 @@ process_hunks <- function(x, ctx.val, etc) {
         )
       if(length(tar.h)) {
         h.h <- hunk_sub(h.o, "head", max(tar.h))
-        h.fin <- if(diff(range(tar.h)))
-          hunk_sub(h.h, "tail", -(min(tar.h) - 1L)) else h.h
+        tail.ind <- if(length(tar.h) == 1L) 1L else diff(range(tar.h)) + 1L
+        h.fin <- hunk_sub(h.h, "tail", tail.ind)
         h.fin$header <- TRUE
         res.l[[k]] <- c(list(h.fin), res.l[[k]])
   } } }
