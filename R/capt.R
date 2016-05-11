@@ -193,16 +193,12 @@ capt_str <- function(target, current, etc, err, ...){
   capt.width <- etc@text.width
   has.diff <- has.diff.prev <- FALSE
 
-  # not sure why we have strip_hz_control here; perhaps it is legacy from before
-  # we added to the line diff function?
+  # we used to strip_hz_control here, but shouldn't have to since handled by
+  # line_diff
 
-  tar.capt <- strip_hz_control(
-    capture(tar.call, etc, frame, err), stops=etc@tab.stops
-  )
+  tar.capt <- capture(tar.call, etc, frame, err)
   tar.lvls <- str_levels(tar.capt, wrap=wrap)
-  cur.capt <- strip_hz_control(
-    capture(cur.call, etc, frame, err), stops=etc@tab.stops
-  )
+  cur.capt <- capture(cur.call, etc, frame, err)
   cur.lvls <- str_levels(cur.capt, wrap=wrap)
 
   prev.lvl.hi <- lvl <- max.depth <- max(tar.lvls, cur.lvls)
