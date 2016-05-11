@@ -318,16 +318,6 @@ process_hunks <- function(x, ctx.val, etc) {
   # first because it is possible that a guide is present at the end context
   # of the prior hunk group
 
-  hunks.flat <- unlist(res.l, recursive=FALSE)
-  get_rows <- function(h, mode) {
-    rng <- h[[sprintf("%s.rng.sub", mode)]]
-    seq_len(diff(rng) + 1L) + rng[[1L]] - 1L
-  }
-  tar.rows <- unlist(lapply(hunks.flat, get_rows, "tar"))
-  cur.rows <- unlist(lapply(hunks.flat, get_rows, "cur"))
-  tar.h <- etc@guide.lines@target[!etc@guide.lines@target %in% tar.rows]
-  cur.h <- etc@guide.lines@current[!etc@guide.lines@current %in% cur.rows]
-
   # Helper fun to pull out indices of guide.lines
 
   get_guides <- function(hunk, rows, mode) {
