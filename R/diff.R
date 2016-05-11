@@ -24,13 +24,14 @@ make_diff_fun <- function(capt_fun) {
     brightness=gdo("brightness"),
     color.mode=gdo("color.mode"),
     pager=gdo("pager"),
-    line.limit=gdo("line.limit"),
-    hunk.limit=gdo("hunk.limit"),
+    guides=gdo("guides"),
     max.diffs=gdo("max.diffs"),
     disp.width=gdo("disp.width"),
     ignore.white.space=gdo("ignore.white.space"),
     convert.hz.white.space=gdo("convert.hz.white.space"),
     tab.stops=gdo("tab.stops"),
+    line.limit=gdo("line.limit"),
+    hunk.limit=gdo("hunk.limit"),
     align.threshold=gdo("align.threshold"),
     style=gdo("style"),
     palette.of.styles=gdo("palette"),
@@ -56,7 +57,7 @@ make_diff_fun <- function(capt_fun) {
       align.threshold=align.threshold, disp.width=disp.width,
       hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
       tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
-      frame=frame, tar.banner=tar.banner, cur.banner=cur.banner
+      frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides
     )
     # Force crayon to whatever ansi status we chose; note we must do this after
     # touching vars in case someone passes `options(crayon.enabled=...)` as one

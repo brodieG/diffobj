@@ -325,17 +325,17 @@ process_hunks <- function(x, ctx.val, etc) {
   }
   tar.rows <- unlist(lapply(hunks.flat, get_rows, "tar"))
   cur.rows <- unlist(lapply(hunks.flat, get_rows, "cur"))
-  tar.h <- etc@guide.rows@target[!etc@guide.rows@target %in% tar.rows]
-  cur.h <- etc@guide.rows@current[!etc@guide.rows@current %in% cur.rows]
+  tar.h <- etc@guide.lines@target[!etc@guide.lines@target %in% tar.rows]
+  cur.h <- etc@guide.lines@current[!etc@guide.lines@current %in% cur.rows]
 
-  # Helper fun to pull out indices of guide rows
+  # Helper fun to pull out indices of guide.lines
 
   get_guides <- function(hunk, rows, mode) {
     rng <- hunk[[sprintf("%s.rng", mode)]]
     rng.sub <- hunk[[sprintf("%s.rng.sub", mode)]]
     h.rows <- rows[which(!rows %bw% rng.sub & rows %bw% rng)]
     if(length(h.rows)) {
-      # we want all guide rows that abut the last matched guide row
+      # we want all guide.lines that abut the last matched guide row
       h.fin <- h.rows[seq(to=max(h.rows), length.out=length(h.rows)) == h.rows]
       # convert back to indeces relative to hunk
       h.fin - rng[[1L]] + 1L
@@ -345,8 +345,8 @@ process_hunks <- function(x, ctx.val, etc) {
     if(length(res.l[[k]]) && res.l[[k]][[1L]]$context) {
       h <- res.l[[k]][[1L]]
       h.o <- x[[res.l[[k]][[1L]]$id]]  # retrieve original untrimmed hunk
-      tar.h <- get_guides(h, etc@guide.rows@target, "tar")
-      cur.h <- get_guides(h, etc@guide.rows@current, "cur")
+      tar.h <- get_guides(h, etc@guide.lines@target, "tar")
+      cur.h <- get_guides(h, etc@guide.lines@current, "cur")
 
       # since in a context hunk, these two should be exactly the same
 

@@ -27,6 +27,10 @@ find_brackets <- function(x) {
     brackets
   } else integer(0L)
 }
+# Matches syntactically valid R variable names
+
+.reg.r.ident <- "(?:\\.[[:alpha:]]|[[:alpha:]])[[:alnum:]_.]*"
+
 # Apply diff algorithm within lines
 #
 # For each line, splits into words, runs diffs, and colors them appropriately.
@@ -53,7 +57,7 @@ diff_word <- function(
   reg <- paste0(
     # Some attempt at matching R identifiers; note we explicitly chose not to
     # match `.` or `..`, etc, since those could easily be punctuation
-    "(?:\\.[[:alpha:]]|[[:alpha:]])[[:alnum:]_.]*|",
+    sprintf("%s|", .reg.r.ident),
     # Not whitespaces that doesn't include quotes
     "[^ \"]+|",
     # Quoted phrases as structured in atomic character vectors

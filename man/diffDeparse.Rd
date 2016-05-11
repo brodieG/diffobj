@@ -11,12 +11,12 @@ diffDeparse(target, current, ...)
 \S4method{diffDeparse}{ANY}(target, current, mode = gdo("mode"),
   context = gdo("context"), format = gdo("format"),
   brightness = gdo("brightness"), color.mode = gdo("color.mode"),
-  pager = gdo("pager"), line.limit = gdo("line.limit"),
-  hunk.limit = gdo("hunk.limit"), max.diffs = gdo("max.diffs"),
-  disp.width = gdo("disp.width"),
+  pager = gdo("pager"), guides = gdo("guides"),
+  max.diffs = gdo("max.diffs"), disp.width = gdo("disp.width"),
   ignore.white.space = gdo("ignore.white.space"),
   convert.hz.white.space = gdo("convert.hz.white.space"),
-  tab.stops = gdo("tab.stops"), align.threshold = gdo("align.threshold"),
+  tab.stops = gdo("tab.stops"), line.limit = gdo("line.limit"),
+  hunk.limit = gdo("hunk.limit"), align.threshold = gdo("align.threshold"),
   style = gdo("style"), palette.of.styles = gdo("palette"),
   frame = parent.frame(), tar.banner = NULL, cur.banner = NULL, ...)
 }
@@ -90,18 +90,6 @@ to console and exceeds screen height, or will always use a pager if in
 interactive mode, not in running in \code{knitr} and in \dQuote{html}
 format.}
 
-\item{line.limit}{integer(2L) or integer(1L), if length 1 how many lines of
-output to show, where \code{-1} means no limit.  If length 2, the first
-value indicates the threshold of screen lines to begin truncating output,
-and the second the number of lines to truncate to, which should be fewer
-than the threshold.}
-
-\item{hunk.limit}{integer(2L) or integer (1L), how many diff hunks to show.
-Behaves similarly to \code{line.limit}.  How many hunks are in a
-particular diff is a function of how many differences, and also how much
-\code{context} is used since context can cause two hunks to bleed into
-each other and become one.}
-
 \item{max.diffs}{integer(1L), number of differences after which we abandon
 the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
 \code{-1L} to always stick to the original algorithm (defaults to 10000L).}
@@ -119,6 +107,18 @@ FALSE)}
 spaces.  If not integer will be coerced to integer (defaults to 8L).  You
 may specify more than one tab stop.  If display width exceeds that
 addressable by your tab stops the last tab stop will be repeated.}
+
+\item{line.limit}{integer(2L) or integer(1L), if length 1 how many lines of
+output to show, where \code{-1} means no limit.  If length 2, the first
+value indicates the threshold of screen lines to begin truncating output,
+and the second the number of lines to truncate to, which should be fewer
+than the threshold.}
+
+\item{hunk.limit}{integer(2L) or integer (1L), how many diff hunks to show.
+Behaves similarly to \code{line.limit}.  How many hunks are in a
+particular diff is a function of how many differences, and also how much
+\code{context} is used since context can cause two hunks to bleed into
+each other and become one.}
 
 \item{align.threshold}{numeric(1L) between 0 and 1, proportion of
 words in a line of \code{target} that must be matched in a line of

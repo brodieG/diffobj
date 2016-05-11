@@ -34,8 +34,8 @@ setClass(
 setClassUnion("doAutoCOrInt", c("AutoContext", "integer"))
 # pre-computed gutter data
 
-GuideRows <- setClass(
-  "GuideRows",
+GuideLines <- setClass(
+  "GuideLines",
   slots=c(target="integer", current="integer"),
   validity=function(object) {
     vals <- c(object@target, object@current)
@@ -73,7 +73,8 @@ setClass(
     cur.exp="ANY",
     tar.banner="charOrNULL",
     cur.banner="charOrNULL",
-    guide.rows="GuideRows",
+    guides="logical",
+    guide.lines="GuideLines",
     disp.width="integer",
     line.width="integer",
     text.width="integer",
@@ -84,11 +85,11 @@ setClass(
     int.1L.and.pos <- c("disp.width", "line.width", "text.width")
     for(i in int.1L.and.pos)
       if(!is.int.1L(slot(object, i)) || slot(object, i) < 0L)
-        return(sprintf("Slot `%s` must be integer(1L) and positive"), i)
-    TF <- c("ignore.white.space", "convert.hz.white.space")
+        return(sprintf("Slot `%s` must be integer(1L) and positive", i))
+    TF <- c("ignore.white.space", "convert.hz.white.space", "guides")
     for(i in TF)
       if(!is.TF(slot(object, i)) || slot(object, i) < 0L)
-        return(sprintf("Slot `%s` must be TRUE or FALSE"), i)
+        return(sprintf("Slot `%s` must be TRUE or FALSE", i))
     TRUE
   }
 )

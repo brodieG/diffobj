@@ -77,6 +77,7 @@ obj_capt <- function(
 capt_print <- function(target, current, etc, err, ...){
   dots <- list(...)
   frame <- etc@frame
+  guides <- etc@guides
   print.match <- try(
     match.call(
       get("print", envir=frame), as.call(c(list(quote(print), x=NULL), dots)),
@@ -106,12 +107,11 @@ capt_print <- function(target, current, etc, err, ...){
   cur.capt.def <- if(both.at) capture(cur.call.def, etc, frame, err)
   tar.capt <- capture(tar.call, etc, frame, err)
   tar.capt.def <- if(both.at) capture(tar.call.def, etc, frame, err)
-  if(
-    length(dim(target)) == 2L && length(dim(current)) == 2L
-  ) {
-    etc@guide.rows <- GuideRows(
-      target=detect_meta_rows(tar.capt), current=detect_meta_rows(cur.capt)
-  ) }
+  if(guides) {
+    tar.guides <- apply_guides(target, tar.capt)
+    cur.guides <- apply_guides(current, cur.capt)
+    etc@guide.lines <- GuideLines(target=tar.guides, current=cur.guides)
+  }
   diff <- line_diff(target, current, tar.capt, cur.capt, etc=etc, warn=TRUE)
   diff@tar.capt.def <- tar.capt.def
   diff@cur.capt.def <- cur.capt.def
