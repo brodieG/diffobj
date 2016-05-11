@@ -78,7 +78,9 @@ StyleFuns <- setClass(
   slots=c(
     container="ANY", row="ANY",
     line="ANY", line.insert="ANY", line.delete="ANY", line.match="ANY",
+    line.guide="ANY",
     text="ANY", text.insert="ANY", text.delete="ANY", text.match="ANY",
+    text.guide="ANY",
     banner="ANY", banner.insert="ANY", banner.delete="ANY",
     gutter="ANY",
     gutter.insert="ANY", gutter.insert.ctd="ANY",
@@ -93,11 +95,10 @@ StyleFuns <- setClass(
   prototype=list(
     container=identity, row=identity,
     banner=identity, banner.insert=identity, banner.delete=identity,
-    line=identity,
-    line.insert=identity, line.delete=identity, line.match=identity,
-    line.insert=identity, line.delete=identity, line.match=identity,
-    text=identity,
-    text.insert=identity, text.delete=identity, text.match=identity,
+    line=identity, line.insert=identity, line.delete=identity, 
+    line.match=identity, line.guide=identity,
+    text=identity, text.insert=identity, text.delete=identity, 
+    text.match=identity, text.guide=identity,
     gutter=identity, gutter.pad=identity,
     gutter.insert=identity, gutter.insert.ctd=identity,
     gutter.delete=identity, gutter.delete.ctd=identity,
@@ -119,36 +120,49 @@ StyleFuns <- setClass(
             "Argument `", i,
             "` may not have non-default formals argument after the first."
           ) )
-      }
-      TRUE
     }
+    TRUE
+  }
+)
+StyleFunsAnsi <- setClass(
+  "StyleFunsAnsi", contains="StyleFuns",
+  prototype=list(
+    word.insert=crayon::green, word.delete=crayon::red,
+    gutter.insert=crayon::green, gutter.insert.ctd=crayon::green,
+    gutter.delete=crayon::red, gutter.delete.ctd=crayon::red,
+    gutter.guide=crayon::silver, gutter.guide.ctd=crayon::silver,
+    header=crayon::cyan,
+    meta=crayon::silver,
+    line.guide=crayon::silver,
+    context.sep=crayon::silver
   )
-  StyleText <- setClass(
-    "StyleText",
-    slots=c(
-      gutter.insert="character", gutter.insert.ctd="character",
-      gutter.delete="character", gutter.delete.ctd="character",
-      gutter.match="character", gutter.match.ctd="character",
-      gutter.guide="character", gutter.guide.ctd="character",
-      gutter.pad="character",
-      context.sep="character",
-      pad.col="character"
-    ),
-    prototype=list(
-      gutter.insert=">", gutter.insert.ctd=":",
-      gutter.delete="<", gutter.delete.ctd=":",
-      gutter.match=" ", gutter.match.ctd=" ",
-      gutter.guide="~", gutter.guide.ctd=":",
-      gutter.pad=" ",
-      context.sep="~~~~~",
-      pad.col=" "
-    ),
-    validity=function(object){
-      for(i in slotNames(object)) if(!is.chr.1L(slot(object, i)))
-        return(paste0("Argument `", i, "` must be character(1L) and not NA."))
-      TRUE
-    }
-  )
+)
+StyleText <- setClass(
+  "StyleText",
+  slots=c(
+    gutter.insert="character", gutter.insert.ctd="character",
+    gutter.delete="character", gutter.delete.ctd="character",
+    gutter.match="character", gutter.match.ctd="character",
+    gutter.guide="character", gutter.guide.ctd="character",
+    gutter.pad="character",
+    context.sep="character",
+    pad.col="character"
+  ),
+  prototype=list(
+    gutter.insert=">", gutter.insert.ctd=":",
+    gutter.delete="<", gutter.delete.ctd=":",
+    gutter.match=" ", gutter.match.ctd=" ",
+    gutter.guide="~", gutter.guide.ctd=":",
+    gutter.pad=" ",
+    context.sep="~~~~~",
+    pad.col=" "
+  ),
+  validity=function(object){
+    for(i in slotNames(object)) if(!is.chr.1L(slot(object, i)))
+      return(paste0("Argument `", i, "` must be character(1L) and not NA."))
+    TRUE
+  }
+)
 Style <- setClass(
   "Style",
   slots=c(
@@ -189,7 +203,9 @@ Style <- setClass(
 #' @exportClass StyleAnsi
 #' @rdname Style
 
-StyleAnsi <- setClass("StyleAnsi", contains="Style")
+StyleAnsi <- setClass(
+  "StyleAnsi", contains="Style", prototype=list(funs=StyleFunsAnsi()),
+)
 setMethod(
   "initialize", "StyleAnsi",
   function(.Object, ...) {
@@ -201,20 +217,7 @@ setMethod(
 #' @exportClass StyleAnsi8NeutralRgb
 #' @rdname Style
 
-StyleAnsi8NeutralRgb <- setClass(
-  "StyleAnsi8NeutralRgb", contains="StyleAnsi",
-  prototype=list(
-    funs=StyleFuns(
-      word.insert=crayon::green, word.delete=crayon::red,
-      gutter.insert=crayon::green,
-      gutter.insert.ctd=crayon::green,
-      gutter.delete=crayon::red,
-      gutter.delete.ctd=crayon::red,
-      header=crayon::cyan,
-      meta=crayon::silver,
-      context.sep=crayon::silver
-  ) )
-)
+StyleAnsi8NeutralRgb <- setClass("StyleAnsi8NeutralRgb", contains="StyleAnsi")
 #' @export StyleAnsi8NeutralYb
 #' @exportClass StyleAnsi8NeutralYb
 #' @rdname Style
@@ -222,15 +225,12 @@ StyleAnsi8NeutralRgb <- setClass(
 StyleAnsi8NeutralYb <- setClass(
   "StyleAnsi8NeutralYb", contains="StyleAnsi",
   prototype=list(
-    funs=StyleFuns(
+    funs=StyleFunsAnsi(
       word.insert=crayon::blue, word.delete=crayon::yellow,
       gutter.insert=crayon::blue,
       gutter.insert.ctd=crayon::blue,
       gutter.delete=crayon::yellow,
-      gutter.delete.ctd=crayon::yellow,
-      header=crayon::cyan,
-      meta=crayon::silver,
-      context.sep=crayon::silver
+      gutter.delete.ctd=crayon::yellow
   ) )
 )
 #' @export StyleAnsi256LightRgb
@@ -240,7 +240,7 @@ StyleAnsi8NeutralYb <- setClass(
 StyleAnsi256LightRgb <- setClass(
   "StyleAnsi256LightRgb", contains="StyleAnsi",
   prototype=list(
-    funs=StyleFuns(
+    funs=StyleFunsAnsi(
       text.insert=crayon::make_style(rgb(4, 5, 4, maxColorValue=5), bg=TRUE),
       text.delete=crayon::make_style(rgb(5, 4, 4, maxColorValue=5), bg=TRUE),
       word.insert=crayon::make_style(rgb(2, 4, 2, maxColorValue=5), bg=TRUE),
@@ -249,8 +249,7 @@ StyleAnsi256LightRgb <- setClass(
       gutter.insert.ctd=crayon::make_style(rgb(0, 3, 0, maxColorValue=5)),
       gutter.delete=crayon::make_style(rgb(3, 0, 0, maxColorValue=5)),
       gutter.delete.ctd=crayon::make_style(rgb(3, 0, 0, maxColorValue=5)),
-      header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5)),
-      meta=crayon::silver
+      header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5))
 ) ) )
 #' @export StyleAnsi256LightYb
 #' @exportClass StyleAnsi256LightYb
@@ -259,7 +258,7 @@ StyleAnsi256LightRgb <- setClass(
 StyleAnsi256LightYb <- setClass(
   "StyleAnsi256LightYb", contains="StyleAnsi",
   prototype=list(
-    funs=StyleFuns(
+    funs=StyleFunsAnsi(
       text.insert=crayon::make_style(rgb(3, 3, 5, maxColorValue=5), bg=TRUE),
       text.delete=crayon::make_style(rgb(4, 4, 2, maxColorValue=5), bg=TRUE),
       word.insert=crayon::make_style(rgb(2, 2, 4, maxColorValue=5), bg=TRUE),
@@ -268,8 +267,7 @@ StyleAnsi256LightYb <- setClass(
       gutter.insert.ctd=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),
       gutter.delete=crayon::make_style(rgb(2, 1, 0, maxColorValue=5)),
       gutter.delete.ctd=crayon::make_style(rgb(2, 1, 0, maxColorValue=5)),
-      header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5)),
-      meta=crayon::silver
+      header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5))
 ) ) )
 #' @export StyleAnsi256DarkRgb
 #' @exportClass StyleAnsi256DarkRgb
@@ -278,7 +276,7 @@ StyleAnsi256LightYb <- setClass(
 StyleAnsi256DarkRgb <- setClass(
   "StyleAnsi256DarkRgb", contains="StyleAnsi",
   prototype=list(
-    funs=StyleFuns(
+    funs=StyleFunsAnsi(
       text.insert=crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE),
       text.delete=crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE),
       word.insert=crayon::make_style(rgb(0, 3, 0, maxColorValue=5), bg=TRUE),
@@ -286,9 +284,7 @@ StyleAnsi256DarkRgb <- setClass(
       gutter.insert=crayon::make_style(rgb(0, 2, 0, maxColorValue=5)),
       gutter.insert.ctd=crayon::make_style(rgb(0, 2, 0, maxColorValue=5)),
       gutter.delete=crayon::make_style(rgb(2, 0, 0, maxColorValue=5)),
-      gutter.delete.ctd=crayon::make_style(rgb(2, 0, 0, maxColorValue=5)),
-      header=crayon::cyan,
-      meta=crayon::silver
+      gutter.delete.ctd=crayon::make_style(rgb(2, 0, 0, maxColorValue=5))
 ) ) )
 #' @export StyleAnsi256DarkYb
 #' @exportClass StyleAnsi256DarkYb
@@ -297,7 +293,7 @@ StyleAnsi256DarkRgb <- setClass(
 StyleAnsi256DarkYb <- setClass(
   "StyleAnsi256DarkYb", contains="StyleAnsi",
   prototype=list(
-    funs=StyleFuns(
+    funs=StyleFunsAnsi(
       text.insert=crayon::make_style(rgb(0, 0, 1, maxColorValue=5), bg=TRUE),
       text.delete=crayon::make_style(rgb(1, 1, 0, maxColorValue=5), bg=TRUE),
       word.insert=crayon::make_style(rgb(0, 0, 4, maxColorValue=5), bg=TRUE),
@@ -306,8 +302,7 @@ StyleAnsi256DarkYb <- setClass(
       gutter.insert.ctd=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),
       gutter.delete=crayon::make_style(rgb(1, 1, 0, maxColorValue=5)),
       gutter.delete.ctd=crayon::make_style(rgb(1, 1, 0, maxColorValue=5)),
-      header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5)),
-      meta=crayon::silver
+      header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5))
 ) ) )
 #' @export StyleHtml
 #' @exportClass StyleHtml
@@ -328,14 +323,17 @@ StyleHtml <- setClass(
       line.insert=div_f("insert"),
       line.delete=div_f("delete"),
       line.match=div_f("match"),
+      line.guide=div_f("guide"),
       line=div_f("line"),
       text.insert=div_f("insert"),
       text.delete=div_f("delete"),
       text.match=div_f("match"),
+      text.guide=div_f("guide"),
       text=div_f("text"),
       gutter.insert=div_f("insert"),
       gutter.delete=div_f("delete"),
       gutter.match=div_f("match"),
+      gutter.guide=div_f("guide"),
       gutter=div_f("gutter"),
       word.insert=span_f(c("word", "insert")),
       word.delete=span_f(c("word", "delete")),

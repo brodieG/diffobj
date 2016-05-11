@@ -534,7 +534,6 @@ setMethod("as.character", "Diff",
 
     # Compute gutter, padding, and continuations
 
-    browser()
     pads <- lapply(
       line.lens, function(y) lapply(y, rep, x=gutter.dat@pad)
     )
@@ -563,8 +562,8 @@ setMethod("as.character", "Diff",
       insert=function(x) es@funs@text(es@funs@text.insert(x)),
       delete=function(x) es@funs@text(es@funs@text.delete(x)),
       match=function(x) es@funs@text(es@funs@text.match(x)),
+      guide=function(x) es@funs@text(es@funs@text.guide(x)),
       header=es@funs@header,
-      guide=es@funs@guide,
       context.sep=function(x) es@funs@context.sep(es@text@context.sep)
     )
     pre.render.s <- Map(

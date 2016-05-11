@@ -77,6 +77,8 @@ render_col <- function(gutter, pad, col, type, etc) {
     es@line(es@line.delete(col.txt[type.r == "delete"]))
   col.txt[type.r == "match"] <-
     es@line(es@line.match(col.txt[type.r == "match"]))
+  col.txt[type.r == "guide"] <-
+    es@line(es@line.guide(col.txt[type.r == "guide"]))
   col.txt[type.r == "context.sep"] <-
     es@line(es@context.sep(col.txt[type.r == "context.sep"]))
   col.txt[type.r == "header"] <- es@line(col.txt[type.r == "header"])
