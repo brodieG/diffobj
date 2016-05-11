@@ -251,7 +251,11 @@ strip_hz_control <- function(txt, stops=8L) {
   #   is.character(txt), !anyNA(txt),
   #   is.integer(stops), length(stops) >= 1L, !anyNA(stops), all(stops > 0L)
   # )
-  txt <- unlist(strsplit(txt, "\n"))
+  txt.l <- strsplit(txt, "\n")
+  txt.zero <- !vapply(txt.l, length, integer(1L))
+  txt.l[txt.zero] <- ""  # strsplit turns "" into character(0L)
+  txt <- unlist(txt.l)
+
   use.ansi <- crayon_hascolor()
   has.ansi <- grepl(ansi_regex, txt, perl=TRUE) & use.ansi
   w.ansi <- which(has.ansi)
