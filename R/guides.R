@@ -1,0 +1,163 @@
+# Detect which rows are likely to be meta data rows (e.g. headers) in tabular
+# data
+#
+# Should be raw data stripped of ANSI characters
+
+detect_2d_guides <- function(txt) {
+  stopifnot(is.character(txt))
+  space.rows <- !grepl("^\\s+\\[\\d+,\\]\\s|^\\S", txt)
+  head.row <- min(which(space.rows))
+  last.row <- max(which(!space.rows))
+  which(
+    space.rows & seq_along(space.rows) >= head.row &
+    seq_along(space.rows) < last.row
+  )
+}
+# Definitely approximate matching, we are lazy in matching the `$` versions
+# due to the possibility of pathological names (e.g., containing `)
+
+detect_list_guides <- function(txt) {
+  stopifnot(is.character(txt))
+  if(length(txt)) {
+    # match stuff like "[[1]][[2]]" or "$ab[[1]]$cd" ...
+    square.brkt <- "(\\[\\[\\d+\\]\\])"
+    dollar.simple <- sprintf("(\\$%s)", .reg.r.ident)
+    pat <- sprintf("^(%s|%s)*(\\$`.*`.*)?$", square.brkt, dollar.simple)
+
+    # Only keep those that are first, preceded by an empty string, or by
+    # another matching pattern
+    has.pat <- grepl(pat, txt) & nzchar(txt)
+    has.chars <- c(FALSE, head(nzchar(txt), -1L))
+    has.pat.prev <- c(FALSE, head(has.pat, -1L))
+    valid.pat <- has.pat & (!has.chars | has.pat.prev)
+
+    # For any sequence of matching patterns, only keep the last one since
+    # the other ones are redundant
+    if(any(valid.pat)) {
+      v.p.rle <- rle(valid.pat)
+      valid.pat[-with(v.p.rle, cumsum(lengths)[values])] <- FALSE
+    }
+    which(valid.pat)
+  } else integer(0L)
+}
+# Here we want to get the high dimension counter as well as the column headers
+# of each sub-dimension
+
+detect_array_guides <- function(txt, dim.n) {
+  n.d.n <- names(dim.n)
+  stopifnot(
+    is.character(txt),
+    is.list(dim.n) || is.null(dim.n),
+    (is.character(n.d.n) && length(n.d.n) > 2L) || is.null(n.d.n)
+  )
+  if(length(txt) > 2L) {
+    if(!is.null(n.d.n)) {
+      # try to guard against dimnames that contain regex
+      n.p <- "(\\[|\\]|\\(|\\)|\\{|\\}|\\*|\\+|\\?|\\.|\\^|\\$|\\\\|\\|)"
+      row.pat <- sprintf("^%s\\s+\\S+", gsub(n.p, "\\\1", n.d.n[[1L]]))
+      col.pat <- sprintf("^\\s{2,}%s$", gsub(n.p, "\\\1", n.d.n[[2L]]))
+      # identify which lines could be row and col headers
+      r.h <- grepl(row.pat, txt)
+      c.h <- grepl(col.pat, txt)
+    } else {
+      c.h <- rep(FALSE, length(txt))
+      r.h <- grepl("^\\s+\\S+", txt)
+    }
+    # Classify each line depending on what pattern it matches so we can then
+    # analyze sequences and determine which are valid
+
+    row.types <- integer(length(txt))
+    row.types[!nzchar(txt)] <- 1L          # blanks
+    row.types[grepl("^, , ", txt)] <- 2L   # high dim header
+    row.types[r.h] <- 3L                   # row meta / col headers
+    row.types[c.h] <- 4L                   # col meta
+
+    row.chain <- paste0(row.types, collapse="") # assumes all values 1 char long
+    p.simple <- "2130*1"    # no dimnames names
+    p.cols <- "21430*1"     # both row and col dimnames
+
+    p.test <- if(!is.null(n.d.n)) p.cols else p.simple
+
+    # not perfect, since we could check that matched tokens match dimensions...
+    # there should only be one sequence of the repeating pattern
+
+    if(
+      length(
+        unlist(
+          arr.coord <- gregexpr(sprintf("(%s)+", p.test), row.chain)
+      ) ) == 1L
+    ) {
+      arr.core <- unlist(regmatches(row.chain, arr.coord))
+      if(length(arr.core) != 1L)
+        stop("Logic Error: array repeat pattern problem; contact maintainer.")
+      # Now replace everything except the front part of the match with zeroes
+      core.match <- gregexpr(p.test, arr.core)
+      core.pieces <- regmatches(arr.core, core.match)
+      if(length(core.pieces) != 1L)
+        stop("Logic Error: array repeat pattern problem; contact maintainer.")
+      core.proc <- lapply(
+        unlist(core.pieces),
+        function(x) {
+          x.u <- unlist(strsplit(unlist(x), ""))
+          if(!length(x.u)) "" else {
+            x.u[!!cumsum(x.u == "0")] <- "0" # anything after zero turned to zero
+            paste0(x.u, collapse="")
+          }
+      } )
+      regmatches(arr.core, core.match) <- core.proc
+
+      # generate new version of chain with all zeros to sub back in
+
+      row.chain.z <- paste0(rep("0", nchar(row.chain)), collapse="")
+      regmatches(row.chain.z, arr.coord) <- arr.core
+
+      # Convert back to vector
+
+      which(unlist(strsplit(row.chain.z, "")) != "0")
+    } else {
+      integer(0L)
+    }
+  } else integer(0L)
+}
+setGeneric(
+  "guideLines", function(obj, obj.as.chr) StandardGeneric("guideLines")
+)
+# setMethod(
+#   "guideLines", c("array", "character"),
+#   function(obj, obj.as.chr) {
+#   }
+# )
+setMethod(
+  "guideLines", c("ANY", "character"),
+  function(obj, obj.as.chr) {
+    if(length(dim(obj)) == 2L) {
+      detect_2d_guides(obj.as.chr)
+    } else if (is.array(obj)) {
+      detect_array_guides(obj.as.chr, dimnames(obj))
+    } else if (is.list(obj)) {
+      detect_list_guides(obj.as.chr)
+    } else integer(0L)
+  }
+)
+# Helper function to verify guide line computation worked out
+
+apply_guides <- function(obj, obj.as.chr) {
+  guide <- try(guideLines(obj, obj.as.chr))
+  msg.extra <- paste0(
+    "If you did not define custom `guideLines` methods contact maintainer."
+  )
+  if(inherits(guide, "try-error"))
+    stop(
+      "`guideLines` method produced an error when attempting to compute guide ",
+      "lines; ", msg.extra
+    )
+  if(
+    !is.integer(guide) || anyNA(guide) || !all(guide %in% seq_along(obj.as.chr)) ||
+    anyDuplicated(guide)
+  )
+    stop(
+      "`guideLines` method must produce an integer vector containing unique ",
+      "index values for the `obj.as.chr` vector; ", msg.extra
+    )
+  guide
+}

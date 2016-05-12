@@ -186,6 +186,12 @@ local({
     Puromycin3 <- Puromycin2
     names(Puromycin3)[3L] <- "blargh"
     diffPrint(Puromycin, Puromycin3, line.limit=6, mode="context")
+
+    # Arrays
+
+    arr.1 <- arr.2 <- array(1:36, dim=c(6, 2, 3))
+    arr.2[c(4, 12, 20)] <- 99
+    diffPrint(arr.1, arr.2, mode="s", context=1)
   } )
   set.seed(2)
   w1 <- sample(
