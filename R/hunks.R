@@ -324,9 +324,19 @@ process_hunks <- function(x, ctx.val, etc) {
     rng <- hunk[[sprintf("%s.rng", mode)]]
     rng.sub <- hunk[[sprintf("%s.rng.sub", mode)]]
     h.rows <- rows[which(!rows %bw% rng.sub & rows %bw% rng)]
+
+    # special case where the first row in the subbed hunk is a context row
+
+    first.is.guide <- FALSE
+    if(rng.sub[[1L]] %in% rows) {
+      first.is.guide <- TRUE
+      h.rows <- c(h.rows, rng.sub[[1L]])
+    }
+    # we want all guide.lines that abut the last matched guide row
+
     if(length(h.rows)) {
-      # we want all guide.lines that abut the last matched guide row
       h.fin <- h.rows[seq(to=max(h.rows), length.out=length(h.rows)) == h.rows]
+      if(first.is.guide) h.fin <- head(h.fin, -1L)
       # convert back to indeces relative to hunk
       h.fin - rng[[1L]] + 1L
     } else integer()
