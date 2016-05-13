@@ -204,12 +204,13 @@ p_and_t_hunks <- function(hunks.raw, ctx.val, etc) {
 
 hunk_sub <- function(hunk, op, n) {
   stopifnot(
-    op %in% c("head", "tail"), hunk$context, all(hunk$tar.rng),
-    length(hunk$tar.rng) == length(hunk$cur.rng),
-    diff(hunk$tar.rng) == diff(hunk$cur.rng),
-    length(hunk$tar.rng) == 2L
+    op %in% c("head", "tail"), 
+    hunk$context, all(hunk$tar.rng.sub),
+    length(hunk$tar.rng.sub) == length(hunk$cur.rng.sub),
+    diff(hunk$tar.rng.sub) == diff(hunk$cur.rng.sub),
+    length(hunk$tar.rng.sub) == 2L
   )
-  hunk.len <- diff(hunk$tar.rng) + 1L
+  hunk.len <- diff(hunk$tar.rng.sub) + 1L
   len.diff <- hunk.len - n
   if(len.diff >= 0) {
     nm <- c(
@@ -223,14 +224,14 @@ hunk_sub <- function(hunk, op, n) {
     if(n) {
       if(op == "tail") {
         hunk$tar.rng.trim[[1L]] <- hunk$tar.rng.sub[[1L]] <-
-          hunk$tar.rng[[1L]] + len.diff
+          hunk$tar.rng.sub[[1L]] + len.diff
         hunk$cur.rng.trim[[1L]] <- hunk$cur.rng.sub[[1L]] <-
-          hunk$cur.rng[[1L]] + len.diff
+          hunk$cur.rng.sub[[1L]] + len.diff
       } else {
         hunk$tar.rng.trim[[2L]] <- hunk$tar.rng.sub[[2L]] <-
-          hunk$tar.rng[[2L]] - len.diff
+          hunk$tar.rng.sub[[2L]] - len.diff
         hunk$cur.rng.trim[[2L]] <- hunk$cur.rng.sub[[2L]] <-
-          hunk$cur.rng[[2L]] - len.diff
+          hunk$cur.rng.sub[[2L]] - len.diff
       }
     } else {
       hunk$tar.rng.trim <- hunk$cur.rng.trim <- hunk$tar.rng.sub <-

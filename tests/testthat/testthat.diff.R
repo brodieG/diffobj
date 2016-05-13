@@ -170,7 +170,7 @@ local({
     set.seed(1)
     Puromycin2$conc[c(8, 15:19, 22)] <- round(runif(7), 2)
     Puromycin2$state[17] <- "treated"
-    diffPrint(Puromycin, Puromycin2, etc=etc(line.limit=15))
+    diffPrint(Puromycin, Puromycin2, line.limit=15)
     diffPrint(Puromycin, Puromycin2, etc=etc(line.limit=15), mode="sidebyside")
     diffPrint(Puromycin, Puromycin2, etc=etc(line.limit=15), mode="context")
 
@@ -192,6 +192,7 @@ local({
     arr.1 <- arr.2 <- array(1:36, dim=c(6, 2, 3))
     arr.2[c(4, 12, 20)] <- 99
     diffPrint(arr.1, arr.2, mode="s", context=1)
+    diffPrint(arr.1, arr.2, mode="context", context=1)
   } )
   set.seed(2)
   w1 <- sample(
