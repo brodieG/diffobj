@@ -69,7 +69,7 @@ fin_fun_context <- function(dat) {
   B.ctx <- rep(context, B.lens)
   B.guide <- rep(guide, B.lens)
   A.types <- ifelse(A.guide, "guide", ifelse(A.ctx, "match", "delete"))
-  B.types <- ifelse(B.guide, "guide", ifelse(B.ctx, "match", "delete"))
+  B.types <- ifelse(B.guide, "guide", ifelse(B.ctx, "match", "insert"))
 
   A.ul <- unlist(A.dat)
   B.ul <- unlist(B.dat)
