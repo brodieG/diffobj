@@ -119,14 +119,10 @@ detect_array_guides <- function(txt, dim.n) {
     }
   } else integer(0L)
 }
+#' @export
 setGeneric(
   "guideLines", function(obj, obj.as.chr) StandardGeneric("guideLines")
 )
-# setMethod(
-#   "guideLines", c("array", "character"),
-#   function(obj, obj.as.chr) {
-#   }
-# )
 setMethod(
   "guideLines", c("ANY", "character"),
   function(obj, obj.as.chr) {
@@ -152,8 +148,8 @@ apply_guides <- function(obj, obj.as.chr) {
       "lines; ", msg.extra
     )
   if(
-    !is.integer(guide) || anyNA(guide) || !all(guide %in% seq_along(obj.as.chr)) ||
-    anyDuplicated(guide)
+    !is.integer(guide) || anyNA(guide) || anyDuplicated(guide) ||
+    !all(guide %in% seq_along(obj.as.chr))
   )
     stop(
       "`guideLines` method must produce an integer vector containing unique ",

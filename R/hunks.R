@@ -204,7 +204,7 @@ p_and_t_hunks <- function(hunks.raw, ctx.val, etc) {
 
 hunk_sub <- function(hunk, op, n) {
   stopifnot(
-    op %in% c("head", "tail"), 
+    op %in% c("head", "tail"),
     hunk$context, all(hunk$tar.rng.sub),
     length(hunk$tar.rng.sub) == length(hunk$cur.rng.sub),
     diff(hunk$tar.rng.sub) == diff(hunk$cur.rng.sub),
@@ -322,22 +322,28 @@ process_hunks <- function(x, ctx.val, etc) {
   # Helper fun to pull out indices of guide.lines
 
   get_guides <- function(hunk, rows, mode) {
+    stopifnot(hunk$context)
     rng <- hunk[[sprintf("%s.rng", mode)]]
     rng.sub <- hunk[[sprintf("%s.rng.sub", mode)]]
     h.rows <- rows[which(!rows %bw% rng.sub & rows %bw% rng)]
 
-    # special case where the first row in the subbed hunk is a context row
+    # special case where the first row in the subbed hunk is a context row;
+    # note we need to look at the first non-blank row; since this has to be
+    # a context hunk we can just look at A.chr
 
+    first.non.blank <- min(which(hunk$A.chr != "")) - 1L + rng.sub[[1L]]
     first.is.guide <- FALSE
-    if(rng.sub[[1L]] %in% rows) {
+
+    if(first.non.blank %in% rows) {
       first.is.guide <- TRUE
-      h.rows <- c(h.rows, rng.sub[[1L]])
+      h.rows <- c(h.rows, first.non.blank)
     }
     # we want all guide.lines that abut the last matched guide row
 
     if(length(h.rows)) {
       h.fin <- h.rows[seq(to=max(h.rows), length.out=length(h.rows)) == h.rows]
-      if(first.is.guide) h.fin <- head(h.fin, -1L)
+      if(first.is.guide)
+        h.fin <- head(h.fin, -(first.non.blank - rng.sub[[1L]] + 1L))
       # convert back to indeces relative to hunk
       h.fin - rng[[1L]] + 1L
     } else integer()
