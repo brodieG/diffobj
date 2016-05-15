@@ -16,8 +16,52 @@ setClassUnion("charOrNULL", c("character", "NULL"))
 
 NULL
 
-setClass(
-  "AutoContext",
+#' Controls How Lines Within a Diff Hunk Are Aligned
+#'
+#' @slot threshold numeric(1L) between 0 and 1, what proportion of words
+#'   in the lines must match in order to align them.  Set to 1 to effectively
+#'   turn aligning off.  Defaults to 0.25.
+#' @slot min.chars integer(1L) positive, minimum number of characters that must
+#'   match across lines in order to align them.  This requirement is in addition
+#'   to \code{threshold} and helps minimize spurious alignments.  Defaults to
+#'   5.
+#' @slot count.alnum.only logical(1L) modifier for \code{min.chars}, whether to
+#'   count alpha numeric characters only.  Helps reduce spurious alignment
+#'   caused by meta character sequences such as \dQuote{[[1]]} that would
+#'   otherwise meet the \code{min.chars} limit
+#' @export AlignThreshold
+#' @exportClass AlignThreshold
+
+AlignThreshold <- setClass("AlignThreshold",
+  slots=c(
+    threshold="numeric",
+    min.chars="integer",
+    count.alnum.only="logical"
+  ),
+  validity=function(object) {
+    if(
+      length(object@threshold) != 1L || is.na(object@threshold) ||
+      !object@threshold %bw% c(0, 1)
+    )
+      return("Slot `threhold` must be numeric(1L) between 0 and 1")
+    if(!is.int.1L(object@min.chars) || object@min.chars < 0L)
+      return("Slot `min.chars` must be integer(1L) and positive")
+    if(!is.TF(object@count.alnum.only))
+      return("Slot `count.alnum.only` must be TRUE or FALSE")
+  }
+)
+setMethod(
+  "initialize", "AlignThreshold",
+  function(
+    .Object, threshold=gdo("align.threshold"), min.chars=gdo("align.min.chars"),
+    count.alnum.only=gdo("align.count.alnum.only"), ...) {
+      callNextMethod(
+        .Object, threshold=threshold, min.chars=min.chars,
+        count.alnum.only=count.alnum.only, ...
+      )
+} )
+
+setClass("AutoContext",
   slots=c(
     min="integer",
     max="integer"
@@ -64,7 +108,7 @@ setClass(
     style="Style",
     hunk.limit="integer",
     max.diffs="integer",
-    align.threshold="numeric",
+    align="AlignThreshold",
     ignore.white.space="logical",
     convert.hz.white.space="logical",
     frame="environment",

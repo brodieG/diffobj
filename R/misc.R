@@ -139,21 +139,6 @@ get_pal_par <- function(format, param) {
     param[wild.match]
   } else stop("Logic Error: malformed palette parameter; contact maintainer.")
 }
-# Detect which rows are likely to be meta data rows (e.g. headers) in tabular
-# data
-#
-# Should be raw data stripped of ANSI characters
-
-detect_meta_rows <- function(txt) {
-  stopifnot(is.character(txt))
-  space.rows <- !grepl("^\\s+\\[\\d+,\\]\\s|^\\S", txt)
-  head.row <- min(which(space.rows))
-  last.row <- max(which(!space.rows))
-  which(
-    space.rows & seq_along(space.rows) >= head.row &
-    seq_along(space.rows) < last.row
-  )
-}
 # Between
 
 `%bw%` <- function(x, y) {

@@ -18,14 +18,17 @@
     diffobj.mode="unified",
     diffobj.silent=FALSE,
     diffobj.max.diffs=50000L,
+    diffobj.align=NULL,           # NULL == AlignThreshold()
     diffobj.align.threshold=0.25,
+    diffobj.align.min.chars=5L,
+    diffobj.align.count.alnum.only=TRUE,
     diffobj.style="auto",
     diffobj.format="auto",
     diffobj.color.mode="yb",
     diffobj.brightness="neutral",
     diffobj.tab.stops=8L,
-    diffobj.disp.width=NULL,  # NULL == getOption("width")
-    diffobj.palette=NULL,     # NULL == PaletteOfStyles()
+    diffobj.disp.width=NULL,      # NULL == getOption("width")
+    diffobj.palette=NULL,         # NULL == PaletteOfStyles()
     diffobj.guides=TRUE,
     diffobj.html.escape.html.entities=TRUE,
     diffobj.html.css=

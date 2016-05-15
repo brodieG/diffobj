@@ -76,7 +76,7 @@ is.valid.palette.param <- function(x, param, palette) {
 
 check_args <- function(
   call, tar.exp, cur.exp, mode, context, line.limit, format, brightness,
-  color.mode, pager, ignore.white.space, max.diffs, align.threshold, disp.width,
+  color.mode, pager, ignore.white.space, max.diffs, align, disp.width,
   hunk.limit, convert.hz.white.space, tab.stops, style, palette.of.styles,
   frame, tar.banner, cur.banner, guides
 ) {
@@ -161,14 +161,21 @@ check_args <- function(
     y <- get(x, inherits=FALSE)
     if(!is.chr.1L(y) && !is.null(y)) err(sprintf(msg.base, x))
   }
-  # 0-1 vars
+  # Align threshold
 
-  if(
-    !is.numeric(align.threshold) || length(align.threshold) != 1L ||
-    !align.threshold >= 0 || !align.threshold <= 1
-  )
-    err("Argument `align.threshold` must be between 0 and 1")
-
+  if(!is(align, "AlignThreshold")) {
+    align <- if(
+      is.numeric(align) && length(align) == 1L &&
+      !is.na(align) && align %bw% c(0, 1)
+    ) {
+      AlignThreshold(threshold=align)
+    } else if(is.null(align)) {
+      AlignThreshold()
+    } else err(
+      "Argument `align` must be an \"AlignThreshold\" object or numeric(1L) ",
+      "and between 0 and 1."
+    )
+  }
   # style
 
   if(!is(style, "Style") && !string_in(style, "auto"))
@@ -254,7 +261,7 @@ check_args <- function(
   etc <- new(
     "Settings", mode=val.modes[[which(mode.eq)]], context=context,
     line.limit=line.limit, ignore.white.space=ignore.white.space,
-    max.diffs=max.diffs, align.threshold=align.threshold, disp.width=disp.width,
+    max.diffs=max.diffs, align=align, disp.width=disp.width,
     hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
     tab.stops=tab.stops, style=style, frame=frame,
     tar.exp=tar.exp, cur.exp=cur.exp, guides=guides

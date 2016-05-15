@@ -152,10 +152,7 @@ hunk_atom_as_char <- function(h.a, mode, etc) {
   # Align the lines accounting for partial matching post word-diff,
   # each diff style has a different finalization function
 
-  dat.align <- align_eq(
-    A.dat, B.dat, ignore.white.space=etc@ignore.white.space,
-    threshold=etc@align.threshold
-  )
+  dat.align <- align_eq(A.dat, B.dat, etc=etc)
   list(A=dat.align$A, B=dat.align$B, context=h.a$context, guide=h.a$guide)
 }
 

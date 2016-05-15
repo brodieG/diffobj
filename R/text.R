@@ -51,7 +51,7 @@ align_split <- function(v, m) {
 #
 # Will also apply colors to fully mismatching lines
 
-align_eq <- function(A, B, threshold, ignore.white.space) {
+align_eq <- function(A, B, etc) {
   stopifnot(
     is.list(A), is.list(B), length(A) == length(B),
     identical(names(B), names(A)), identical(names(A), .valid_sub),
@@ -60,12 +60,13 @@ align_eq <- function(A, B, threshold, ignore.white.space) {
     !anyNA(unlist(c(A, B))),
     all(vapply(c(A[1:3], B[1:3]), is.character, logical(1L))),
     is.numeric(nums <- c(A[[4]], B[[4]])),
-    all(nums >= 0 & nums <= 1)
+    all(nums >= 0 & nums <= 1),
+    is(etc, "Settings")
   )
   A.eq <- A$eq.chr
   B.eq <- B$eq.chr
 
-  if(ignore.white.space) {
+  if(etc@ignore.white.space) {
     A.eq <- normalize_whitespace(A.eq)
     B.eq <- normalize_whitespace(B.eq)
   }
@@ -87,8 +88,16 @@ align_eq <- function(A, B, threshold, ignore.white.space) {
   # the possible tokens and could be spurious; we should probably do this
   # ahead of the for loop since we could probably save some iterations
 
-  disallow.match <- !nzchar(A.eq) | A$tok.ratio < threshold |
-    ifelse(align, B$tok.ratio[align], 1L) < threshold
+  # Remove non-alnums if requested for threshold comparisons
+
+  A.eq.clean <- if(etc@align@count.alnum.only)
+    gsub("[^[:alpha:]]", "", A.eq, perl=T) else A.eq
+
+  # TBD wither nchar here should be ansi-aware
+
+  disallow.match <- nchar(A.eq.clean) < etc@align@min.chars |
+    A$tok.ratio < etc@align@threshold |
+    ifelse(align, B$tok.ratio[align], 1L) < etc@align@threshold
   align[disallow.match] <- 0L
 
   # Actually, now testing allowing the word coloring now that we have color

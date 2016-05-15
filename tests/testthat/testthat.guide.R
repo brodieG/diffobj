@@ -35,6 +35,7 @@ test_that("detect_array_guides", {
   c.a.2 <- capture.output(a.2)
   c.a.3 <- capture.output(a.3)
   c.a.4 <- capture.output(a.4)
+  c.a.5 <- capture.output(a.5)
   # # helper funs to vizualize the guide line detection
   # viz_dag <- function(capt, obj)
   #   cbind(
@@ -45,6 +46,7 @@ test_that("detect_array_guides", {
   # viz_dag(c.a.2, a.2)
   # viz_dag(c.a.3, a.3)
   # viz_dag(c.a.4, a.4)
+  viz_dag(c.a.5, a.5)
   expect_equal(
     diffobj:::detect_array_guides(c.a.1, dimnames(a.1)),
     c(1L, 2L, 3L, 7L, 8L, 9L, 13L, 14L, 15L)

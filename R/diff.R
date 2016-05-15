@@ -32,7 +32,7 @@ make_diff_fun <- function(capt_fun) {
     tab.stops=gdo("tab.stops"),
     line.limit=gdo("line.limit"),
     hunk.limit=gdo("hunk.limit"),
-    align.threshold=gdo("align.threshold"),
+    align=gdo("align"),
     style=gdo("style"),
     palette.of.styles=gdo("palette"),
     frame=parent.frame(),
@@ -54,7 +54,7 @@ make_diff_fun <- function(capt_fun) {
       mode=mode, context=context, line.limit=line.limit, format=format,
       brightness=brightness, color.mode=color.mode, pager=pager,
       ignore.white.space=ignore.white.space, max.diffs=max.diffs,
-      align.threshold=align.threshold, disp.width=disp.width,
+      align=align, disp.width=disp.width,
       hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
       tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
       frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides
@@ -205,10 +205,10 @@ make_diff_fun <- function(capt_fun) {
 #'   spaces.  If not integer will be coerced to integer (defaults to 8L).  You
 #'   may specify more than one tab stop.  If display width exceeds that
 #'   addressable by your tab stops the last tab stop will be repeated.
-#' @param align.threshold numeric(1L) between 0 and 1, proportion of
+#' @param align numeric(1L) between 0 and 1, proportion of
 #'   words in a line of \code{target} that must be matched in a line of
 #'   \code{current} in the same hunk for those lines to be paired up when
-#'   displayed (defaults to 0.25).
+#'   displayed (defaults to 0.25), or a \code{\link{AlignThreshold}} object.
 #' @param style \dQuote{auto}, or a \code{\link{Style}} object.
 #'   \dQuote{auto} by default.  If a \code{Style} object, will override the
 #'   the \code{format}, \code{brightness}, and \code{color.mode} parameters.

@@ -16,7 +16,7 @@ diffDeparse(target, current, ...)
   ignore.white.space = gdo("ignore.white.space"),
   convert.hz.white.space = gdo("convert.hz.white.space"),
   tab.stops = gdo("tab.stops"), line.limit = gdo("line.limit"),
-  hunk.limit = gdo("hunk.limit"), align.threshold = gdo("align.threshold"),
+  hunk.limit = gdo("hunk.limit"), align = gdo("align"),
   style = gdo("style"), palette.of.styles = gdo("palette"),
   frame = parent.frame(), tar.banner = NULL, cur.banner = NULL, ...)
 }
@@ -120,10 +120,10 @@ particular diff is a function of how many differences, and also how much
 \code{context} is used since context can cause two hunks to bleed into
 each other and become one.}
 
-\item{align.threshold}{numeric(1L) between 0 and 1, proportion of
+\item{align}{numeric(1L) between 0 and 1, proportion of
 words in a line of \code{target} that must be matched in a line of
 \code{current} in the same hunk for those lines to be paired up when
-displayed (defaults to 0.25).}
+displayed (defaults to 0.25), or a \code{\link{AlignThreshold}} object.}
 
 \item{style}{\dQuote{auto}, or a \code{\link{Style}} object.
 \dQuote{auto} by default.  If a \code{Style} object, will override the
