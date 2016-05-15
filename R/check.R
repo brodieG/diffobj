@@ -109,7 +109,7 @@ check_args <- function(
   }
   # any 'substr' of them otherwise these checks fail
 
-  val.modes <- c("unified", "context", "sidebyside")
+  val.modes <- c("auto", "unified", "context", "sidebyside")
   fail.mode <- FALSE
   if(!is.character(mode) || length(mode) != 1L || is.na(mode) || !nzchar(mode))
     fail.mode <- TRUE

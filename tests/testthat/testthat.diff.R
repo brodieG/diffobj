@@ -55,7 +55,7 @@ local({
     mx.3 <- matrix(runif(100), ncol=2)
     mx.4 <- mx.3 <- mx.2
     mx.3[31, 2] <- 111L
-    mx.4[cbind(sample(1:50, 20), sample(1:2, 20, replace=TRUE))] <- 
+    mx.4[cbind(sample(1:50, 20), sample(1:2, 20, replace=TRUE))] <-
       sample(-(1:50), 20)
     diffPrint(mx.2, mx.3, mode="sidebyside")
     diffPrint(mx.2, mx.4, mode="sidebyside")
@@ -151,6 +151,13 @@ local({
     diffObj(iris, iris.2)
     diffObj(iris, iris.3)
     diffObj(iris, iris.3, mode="sidebyside")
+
+    # Narrow versions to fit side by side
+
+    iris.3a <- setNames(iris.3, c("S.L", "S.W", "P.L", "P.W", "Sp"))
+    iris.4a <- setNames(iris.4, c("S.L", "S.W", "P.L", "P.W", "Sp"))
+
+    diffPrint(iris.3a, iris.4a)
 
     diffStr(cars, mtcars)
     diffPrint(cars, mtcars, mode="s")

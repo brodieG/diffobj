@@ -15,7 +15,7 @@
     diffobj.pager.threshold=-1L,
     diffobj.less.flags="R",
     diffobj.hunk.limit=-1L,
-    diffobj.mode="unified",
+    diffobj.mode="auto",
     diffobj.silent=FALSE,
     diffobj.max.diffs=50000L,
     diffobj.align=NULL,           # NULL == AlignThreshold()

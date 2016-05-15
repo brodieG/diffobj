@@ -3,14 +3,14 @@
 #
 # x is a quoted call to evaluate
 
-capture <- function(x, etc, frame, err) {
+capture <- function(x, etc, err) {
   capt.width <- etc@text.width
   if(capt.width) {
     width.old <- getOption("width")
     on.exit(options(width=width.old))
     options(width=capt.width)
   }
-  res <- try(obj.out <- capture.output(eval(x, frame)))
+  res <- try(obj.out <- capture.output(eval(x, etc@frame)))
   if(inherits(res, "try-error"))
     err(
       "Failed attempting to get text representation of object: ",
@@ -24,12 +24,11 @@ capture <- function(x, etc, frame, err) {
 
 capt_print <- function(target, current, etc, err, ...){
   dots <- list(...)
-  frame <- etc@frame
   guides <- etc@guides
   print.match <- try(
     match.call(
-      get("print", envir=frame), as.call(c(list(quote(print), x=NULL), dots)),
-      envir=frame
+      get("print", envir=etc@frame), as.call(c(list(quote(print), x=NULL), dots)),
+      envir=etc@frame
   ) )
   if(inherits(print.match, "try-error"))
     err("Unable to compose `print` call")
@@ -46,12 +45,16 @@ capt_print <- function(target, current, etc, err, ...){
   tar.call[[2L]] <- target
   cur.call[[2L]] <- current
 
-  tar.call.def <- tar.call
-  cur.call.def <- cur.call
-  tar.call.def[[1L]] <- cur.call.def[[1L]] <- base::print.default
+  # If dimensioned object, and in auto-mode, switch to side by side if stuff is
+  # narrow enough to fit
 
-  cur.capt <- capture(cur.call, etc, frame, err)
-  tar.capt <- capture(tar.call, etc, frame, err)
+  cur.capt <- capture(cur.call, etc, err)
+  tar.capt <- capture(tar.call, etc, err)
+
+  etc <- if((!is.null(dim(target)) || !is.null(dim(current)))) {
+    set_mode(etc, tar.capt, cur.capt)
+  } else if(etc@mode == "auto") sideBySide(etc) else etc
+
   if(guides) {
     tar.guides <- apply_guides(target, tar.capt)
     cur.guides <- apply_guides(current, cur.capt)
@@ -74,12 +77,16 @@ capt_str <- function(target, current, etc, err, ...){
   str.match <- try(
     match.call(
       str_tpl,
-      call=as.call(c(list(quote(str), object=NULL), dots)), envir=frame
+      call=as.call(c(list(quote(str), object=NULL), dots)), envir=etc@frame
   ) )
   if(inherits(str.match, "try-error"))
     err("Unable to compose `str` call")
 
   names(str.match)[[2L]] <- ""
+
+  # Handle auto mode (side by side always for `str`)
+
+  if(etc@mode == "auto") etc <- sideBySide(etc)
 
   # Utility function; defining in body so it has access to `err`
 
@@ -139,9 +146,9 @@ capt_str <- function(target, current, etc, err, ...){
   # we used to strip_hz_control here, but shouldn't have to since handled by
   # line_diff
 
-  tar.capt <- capture(tar.call, etc, frame, err)
+  tar.capt <- capture(tar.call, etc, err)
   tar.lvls <- str_levels(tar.capt, wrap=wrap)
-  cur.capt <- capture(cur.call, etc, frame, err)
+  cur.capt <- capture(cur.call, etc, err)
   cur.lvls <- str_levels(cur.capt, wrap=wrap)
 
   prev.lvl.hi <- lvl <- max.depth <- max(tar.lvls, cur.lvls)
@@ -234,6 +241,9 @@ capt_str <- function(target, current, etc, err, ...){
 capt_chr <- function(target, current, etc, err, ...){
   tar.capt <- if(!is.character(target)) as.character(target, ...) else target
   cur.capt <- if(!is.character(current)) as.character(current, ...) else current
+
+  etc <- set_mode(etc, tar.capt, cur.capt)
+
   line_diff(
     target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
     etc=etc
@@ -242,8 +252,27 @@ capt_chr <- function(target, current, etc, err, ...){
 capt_deparse <- function(target, current, etc, err, ...){
   tar.capt <- deparse(target, ...)
   cur.capt <- deparse(current, ...)
+
+  etc <- set_mode(etc, tar.capt, cur.capt)
+
   line_diff(
     target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
     etc=etc
   )
+}
+# Sets mode to "unified" if stuff is to wide to fit side by side without
+# wrapping otherwise sets it in "sidebyside"
+
+set_mode <- function(etc, tar.capt, cur.capt) {
+  stopifnot(is(etc, "Settings"), is.character(tar.capt), is.character(cur.capt))
+  nc_fun <- if(is(etc@style, "StyleAnsi")) crayon_nchar else nchar
+  if(etc@mode == "auto") {
+    if(
+      any(nc_fun(cur.capt) > etc@text.width.half) ||
+      any(nc_fun(tar.capt) > etc@text.width.half)
+    ) {
+      etc@mode <- "unified"
+  } }
+  if(etc@mode == "auto") etc <- sideBySide(etc)
+  etc
 }

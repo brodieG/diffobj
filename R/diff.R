@@ -74,20 +74,26 @@ make_diff_fun <- function(capt_fun) {
     nc_fun <- if(is(etc.proc@style, "StyleAnsi")) crayon_nchar else nchar
     etc.proc@gutter <- gutter_dat(etc.proc)
     if(is(etc.proc@style, "StyleHtml")) {
-      etc.proc@line.width <- 0L
-      etc.proc@text.width <- 0L
+      etc.proc@line.width <- etc.proc@text.width <- etc.proc@line.width.half <-
+        etc.proc@text.width.half <- 0L
+      if(etc.proc@mode == "auto") etc.proc@mode <- "sidebyside"
     } else {
-      disp.width <- if(etc.proc@mode == "sidebyside") {
-        as.integer(
-          (etc.proc@disp.width - nc_fun(etc.proc@style@text@pad.col)) / 2
-        )
-      } else etc.proc@disp.width
-
+      half.width <- as.integer(
+        (etc.proc@disp.width - nc_fun(etc.proc@style@text@pad.col)) / 2
+      )
       etc.proc@line.width <-
-        max(disp.width, .min.width + etc.proc@gutter@width)
-      etc.proc@text.width <-
-        etc.proc@line.width - etc.proc@gutter@width
+        max(etc.proc@disp.width, .min.width + etc.proc@gutter@width)
+      etc.proc@text.width <- etc.proc@line.width - etc.proc@gutter@width
+      etc.proc@line.width.half <-
+        max(half.width, .min.width + etc.proc@gutter@width)
+      etc.proc@text.width.half <-
+        etc.proc@line.width.half - etc.proc@gutter@width
     }
+    # If in side by side mode already then we know we want half-width, and if
+    # width is less than 80 we know we want unitfied
+
+    if(mode == "auto" && etc.proc@disp.width < 80L) etc.proc@mode <- "unified"
+    if(mode == "sidebyside") etc.proc <- sideBySide(etc.proc)
 
     # Capture and diff
 
@@ -120,12 +126,16 @@ make_diff_fun <- function(capt_fun) {
 #' @param current the object being compared to \code{target}
 #' @param mode character(1L), one of:
 #'   \itemize{
-#'     \item \dQuote{unified}: diff mode used by \code{git diff}, and the
-#'       default here
+#'     \item \dQuote{unified}: diff mode used by \code{git diff}
 #'     \item \dQuote{sidebyside}: line up the differences side by side
 #'     \item \dQuote{context}: show the target and current hunks in their
 #'       entirety; this mode takes up a lot of screen space but makes it easier
 #'       to see what the objects actually look like
+#'     \item \dQuote{auto}: default mode; pick one of the above, will favor
+#'       \dQuote{sidebyside} unless \code{getOption("width")} is less than 80,
+#'       or in \code{diffPrint} and objects are dimensioned and do not fit side
+#'       by side, or in \code{diffChr}, \code{diffDeparse}, \code{diffFile} and
+#'       output does not fit in side by side without wrapping
 #'   }
 #' @param context integer(1L) how many lines of context are shown on either side
 #'   of differences, set to \code{-1L} to allow as many as there are.  Set to

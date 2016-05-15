@@ -123,11 +123,19 @@ setClass(
     disp.width="integer",
     line.width="integer",
     text.width="integer",
+    line.width.half="integer",
+    text.width.half="integer",
     gutter="Gutter"
   ),
-  prototype=list(disp.width=0L, text.width=0L, line.width=0L),
+  prototype=list(
+    disp.width=0L, text.width=0L, line.width=0L,
+    text.width.half=0L, line.width.half=0L
+  ),
   validity=function(object){
-    int.1L.and.pos <- c("disp.width", "line.width", "text.width")
+    int.1L.and.pos <- c(
+      "disp.width", "line.width", "text.width", "line.width.half", 
+      "text.width.half"
+    )
     for(i in int.1L.and.pos)
       if(!is.int.1L(slot(object, i)) || slot(object, i) < 0L)
         return(sprintf("Slot `%s` must be integer(1L) and positive", i))
@@ -145,6 +153,16 @@ setMethod("initialize", "Settings", function(.Object, ...) {
     .Object@disp.width <- 80L
   return(callNextMethod(.Object, ...))
 } )
+
+setGeneric("sideBySide", function(x, ...) standardGeneric("sideBySide"))
+setMethod("sideBySide", "Settings",
+  function(x, ...) {
+    x@mode <- "sidebyside"
+    x@text.width <- x@text.width.half
+    x@line.width <- x@line.width.half
+    x
+  }
+)
 # Classes for tracking intermediate diff obj data
 #
 # DiffDiffs contains a slot corresponding to each of target and current where
