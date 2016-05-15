@@ -145,6 +145,7 @@ local({
     diffPrint(iris, iris.c)
     diffPrint(iris, iris.3)
     diffPrint(iris, iris.3, mode="sidebyside")
+    diffPrint(iris, iris.4, mode="unified")
     diffPrint(iris, iris.4, mode="sidebyside")
     diffObj(iris, iris.c)
     diffObj(iris, iris.2)

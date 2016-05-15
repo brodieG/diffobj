@@ -91,13 +91,14 @@ align_eq <- function(A, B, etc) {
   # Remove non-alnums if requested for threshold comparisons
 
   A.eq.clean <- if(etc@align@count.alnum.only)
-    gsub("[^[:alnum:]]", "", A.eq, perl=T) else A.eq
+    gsub("[^[:alnum:]]", "", A.eq, perl=TRUE) else A.eq
 
   # TBD wither nchar here should be ansi-aware
 
+  B.tr <- B$tok.ratio[match(align, seq_along(B$tok.ratio))]
+  is.na(B.tr) <- 1
   disallow.match <- nchar(A.eq.clean) < etc@align@min.chars |
-    A$tok.ratio < etc@align@threshold |
-    ifelse(align, B$tok.ratio[align], 1L) < etc@align@threshold
+    A$tok.ratio < etc@align@threshold | B.tr < etc@align@threshold
   align[disallow.match] <- 0L
 
   # Actually, now testing allowing the word coloring now that we have color

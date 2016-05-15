@@ -55,6 +55,7 @@ setMethod(
   function(
     .Object, threshold=gdo("align.threshold"), min.chars=gdo("align.min.chars"),
     count.alnum.only=gdo("align.count.alnum.only"), ...) {
+      if(is.numeric(min.chars)) min.chars <- as.integer(min.chars)
       callNextMethod(
         .Object, threshold=threshold, min.chars=min.chars,
         count.alnum.only=count.alnum.only, ...
