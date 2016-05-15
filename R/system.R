@@ -4,7 +4,7 @@
   # Scheme defaults are fairly complex...
 
   default.opts <- list(
-    diffobj.context="auto",
+    diffobj.context=2L,
     diffobj.context.auto.min=1L,
     diffobj.context.auto.max=10L,
     diffobj.ignore.white.space=TRUE,
