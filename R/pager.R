@@ -101,7 +101,7 @@ setMethod("initialize", "PagerSystemLess",
       flags <- dots$flags
       if(!is.chr.1L(flags))
         stop("Argument `flags` must be character(1L) and not NA")
-    FJKU} else flags <- .Object@flags
+    } else flags <- .Object@flags
     .Object@pager <- function(x) {
       old.less <- set_less_var(flags)
       on.exit(reset_less_var(old.less), add=TRUE)
