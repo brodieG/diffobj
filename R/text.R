@@ -91,7 +91,7 @@ align_eq <- function(A, B, etc) {
   # Remove non-alnums if requested for threshold comparisons
 
   A.eq.clean <- if(etc@align@count.alnum.only)
-    gsub("[^[:alpha:]]", "", A.eq, perl=T) else A.eq
+    gsub("[^[:alnum:]]", "", A.eq, perl=T) else A.eq
 
   # TBD wither nchar here should be ansi-aware
 
