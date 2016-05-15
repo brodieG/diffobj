@@ -216,10 +216,7 @@ capt_str <- function(target, current, etc, err, ...){
     tar.str <- tar.capt[tar.lvls <= lvl]
     cur.str <- cur.capt[cur.lvls <= lvl]
 
-    diff.obj <- line_diff(
-      target, current, tar.str, cur.str, etc=etc, warn=warn,
-      strip=FALSE
-    )
+    diff.obj <- line_diff(target, current, tar.str, cur.str, etc=etc, warn=warn)
     diffs.str <- diff.obj@diffs
 
     if(diffs.str$hit.diffs.max) warn <- FALSE
