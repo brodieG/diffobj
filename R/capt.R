@@ -50,19 +50,14 @@ capt_print <- function(target, current, etc, err, ...){
   cur.call.def <- cur.call
   tar.call.def[[1L]] <- cur.call.def[[1L]] <- base::print.default
 
-  both.at <- is.atomic(current) && is.atomic(target)
   cur.capt <- capture(cur.call, etc, frame, err)
-  cur.capt.def <- if(both.at) capture(cur.call.def, etc, frame, err)
   tar.capt <- capture(tar.call, etc, frame, err)
-  tar.capt.def <- if(both.at) capture(tar.call.def, etc, frame, err)
   if(guides) {
     tar.guides <- apply_guides(target, tar.capt)
     cur.guides <- apply_guides(current, cur.capt)
     etc@guide.lines <- GuideLines(target=tar.guides, current=cur.guides)
   }
   diff <- line_diff(target, current, tar.capt, cur.capt, etc=etc, warn=TRUE)
-  diff@tar.capt.def <- tar.capt.def
-  diff@cur.capt.def <- cur.capt.def
   diff
 }
 # Tries various different `str` settings to get the best possible output
