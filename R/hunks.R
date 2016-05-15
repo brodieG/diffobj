@@ -327,26 +327,32 @@ process_hunks <- function(x, ctx.val, etc) {
     rng.sub <- hunk[[sprintf("%s.rng.sub", mode)]]
     h.rows <- rows[which(!rows %bw% rng.sub & rows %bw% rng)]
 
-    # special case where the first row in the subbed hunk is a context row;
-    # note we need to look at the first non-blank row; since this has to be
-    # a context hunk we can just look at A.chr
+    # If context hunk already contains guide row and there is a non guide at
+    # beginning of hunk, then we don't need to return a guide row
 
-    first.non.blank <- min(which(hunk$A.chr != "")) - 1L + rng.sub[[1L]]
-    first.is.guide <- FALSE
+    if(any(rows %bw% rng.sub) && !rng.sub[[1L]] %in% rows) {
+      integer(0L)
+    } else {
+      # special case where the first row in the subbed hunk is a context row;
+      # note we need to look at the first non-blank row; since this has to be
+      # a context hunk we can just look at A.chr
 
-    if(first.non.blank %in% rows) {
-      first.is.guide <- TRUE
-      h.rows <- c(h.rows, first.non.blank)
+      first.is.guide <- FALSE
+
+      if(rng.sub[[1L]] %in% rows) {
+        first.is.guide <- TRUE
+        h.rows <- c(h.rows, rng.sub[[1L]])
+      }
+      # we want all guide.lines that abut the last matched guide row
+
+      if(length(h.rows)) {
+        h.fin <-
+          h.rows[seq(to=max(h.rows), length.out=length(h.rows)) == h.rows]
+        if(first.is.guide) h.fin <- head(h.fin, -1L)
+        # convert back to indeces relative to hunk
+        h.fin - rng[[1L]] + 1L
+      } else integer(0L)
     }
-    # we want all guide.lines that abut the last matched guide row
-
-    if(length(h.rows)) {
-      h.fin <- h.rows[seq(to=max(h.rows), length.out=length(h.rows)) == h.rows]
-      if(first.is.guide)
-        h.fin <- head(h.fin, -(first.non.blank - rng.sub[[1L]] + 1L))
-      # convert back to indeces relative to hunk
-      h.fin - rng[[1L]] + 1L
-    } else integer()
   }
   for(k in seq_along(res.l)) {
     if(length(res.l[[k]]) && res.l[[k]][[1L]]$context) {

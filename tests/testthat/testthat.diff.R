@@ -53,9 +53,13 @@ local({
     mx.2 <- matrix(1:100, ncol=2)
     set.seed(1, "Mersenne-Twister")
     mx.3 <- matrix(runif(100), ncol=2)
-    mx.3 <- mx.2
+    mx.4 <- mx.3 <- mx.2
     mx.3[31, 2] <- 111L
+    mx.4[cbind(sample(1:50, 20), sample(1:2, 20, replace=TRUE))] <- 
+      sample(-(1:50), 20)
     diffPrint(mx.2, mx.3, mode="sidebyside")
+    diffPrint(mx.2, mx.4, mode="sidebyside")
+    diffPrint(mx.2, mx.4)
 
     A <- B <- matrix(sample(1:30), nrow=6)
     B[sample(1:30, 4)] <- sample(1:30, 4)
@@ -79,6 +83,11 @@ local({
     diffPrint(lst.1, lst.3, mode="sidebyside")
     diffObj(lst.1, lst.3)
     diffObj(lst.1, lst.2)
+
+    lst.4 <- list(NULL, z=list(z=list(z=list(z=list(matrix(1:3))))))
+    lst.5 <- list(NULL, z=list(z=list(z=list(z=list(matrix(2:4))))))
+    diffPrint(lst.4, lst.5)
+
     chr.1 <- c(
       "hello world",
       "I ran into a rather bizarre bug involving memoise that made it impossible to forget the cached version of crayon:::i_num_colors. Somehow, the binary version of crayon on CRAN has a corrupted copy of the memoised crayon:::i_num_colors function",
@@ -171,12 +180,12 @@ local({
     Puromycin2$conc[c(8, 15:19, 22)] <- round(runif(7), 2)
     Puromycin2$state[17] <- "treated"
     diffPrint(Puromycin, Puromycin2, line.limit=15)
-    diffPrint(Puromycin, Puromycin2, etc=etc(line.limit=15), mode="sidebyside")
-    diffPrint(Puromycin, Puromycin2, etc=etc(line.limit=15), mode="context")
+    diffPrint(Puromycin, Puromycin2, line.limit=15, mode="sidebyside")
+    diffPrint(Puromycin, Puromycin2, line.limit=15, mode="context")
 
     # line limit issues
-    diffPrint(Puromycin, Puromycin2, etc=etc(line.limit=6))
-    diffPrint(Puromycin, Puromycin2, etc=etc(line.limit=6), mode="sidebyside")
+    diffPrint(Puromycin, Puromycin2, line.limit=6)
+    diffPrint(Puromycin, Puromycin2, line.limit=6, mode="sidebyside")
     diffPrint(Puromycin, Puromycin2, line.limit=6, mode="context")
 
     diffPrint(Puromycin, Puromycin2, line.limit=3)
@@ -193,6 +202,17 @@ local({
     arr.2[c(4, 12, 20)] <- 99
     diffPrint(arr.1, arr.2, mode="s", context=1)
     diffPrint(arr.1, arr.2, mode="context", context=1)
+
+    # Large DF (WARNING: a bit slow)
+
+    library(ggplot2)
+    head(diamonds)
+    d2 <- diamonds
+    d2$x[sample(seq_len(nrows(d2)), 100)] <- sample(d2$x, 100)
+    d2$x[sample(seq_len(nrow(d2)), 100)] <- sample(d2$x, 100)
+    diffPrint(diamonds, d2)
+    diffPrint(diamonds, d2, context=1)
+    diffPrint(diamonds, d2, context=1, mode="s")
   } )
   set.seed(2)
   w1 <- sample(
