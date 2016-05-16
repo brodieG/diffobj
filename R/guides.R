@@ -14,18 +14,29 @@ detect_2d_guides <- function(txt) {
   # and non head rows; should have the same number of each for each block in
   # a wrapped 2d object
 
-  if(last.row > head.row) {
+  res <- if(last.row > head.row) {
     space.bw <- space.rows[head.row:last.row]
     seq.dat <- vapply(
       split(space.bw, cumsum(space.bw)), FUN=function(x) c(sum(x), sum(!x)),
       integer(2L)
     )
-    if(sum(apply(seq.dat, 1L, function(x) length(unique(x)))) == 2L) {
-      # Make sure we don't have ridiculous number of context rows
-      if(seq.dat[[1L]] > 3L) integer(1L) else
-        which(space.rows & seq_along(space.rows) %bw% c(head.row, last.row))
+    # Which of the sets of true and false head rows have the same repeating
+    # sequence as the first?
+
+    valid.rep <- max(
+      which(
+        cumsum(colSums(cbind(integer(2L), abs(apply(seq.dat, 1L, diff))))) == 0L
+      ),
+      0L
+    )
+    if(valid.rep) {
+      which(
+        rep(rep(c(TRUE, FALSE), valid.rep), seq.dat[seq_len(valid.rep * 2L)])
+      ) + head.row - 1L
     } else integer(0L)
   } else integer(0L)
+
+  res
 }
 # Definitely approximate matching, we are lazy in matching the `$` versions
 # due to the possibility of pathological names (e.g., containing `)

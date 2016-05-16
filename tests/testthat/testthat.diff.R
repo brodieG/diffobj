@@ -160,6 +160,11 @@ local({
     diffPrint(iris, iris.4, mode="sidebyside", guides=function(x, y) integer())
     diffPrint(iris, iris.4, mode="sidebyside", guides=FALSE)
 
+    iris.5 <- iris
+    attr(iris.5, "test.attr") <- letters
+
+    diffPrint(iris.5, iris.4, mode="sidebyside", guides=FALSE)
+
     # Narrow versions to fit side by side
 
     iris.3a <- setNames(iris.3, c("S.L", "S.W", "P.L", "P.W", "Sp"))
