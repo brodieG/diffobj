@@ -30,13 +30,15 @@ DIV.diffobj_container DIV.line.banner {
   font-size: 1.2em;
   font-weight: bold;
 }
-DIV.diffobj_container DIV.gutter {
+DIV.diffobj_container DIV.gutter,
+DIV.diffobj_container DIV.guide {
   color: #999;
 }
 DIV.diffobj_container DIV.header {
   font-size: 1.1em;
 }
-DIV.diffobj_container DIV.text>DIV.match {
+DIV.diffobj_container DIV.text>DIV.match,
+DIV.diffobj_container DIV.text>DIV.guide {
   background-color: #ffffff;
 }
 DIV.diffobj_container DIV.text>DIV {
@@ -48,6 +50,10 @@ DIV.diffobj_container DIV.line {
 DIV.diffobj_container DIV.text>DIV,
 DIV.diffobj_container DIV.header {
   padding-left: 0.5em;
+}
+DIV.diffobj_container DIV.line>DIV.match,
+DIV.diffobj_container DIV.line>DIV.guide {
+  border-left: 1px solid #888888;
 }
 /* github inspired color scheme - default ------------------------------------*/
 
@@ -76,9 +82,6 @@ DIV.diffobj_container.light.rgb DIV.line>DIV.delete {
 DIV.diffobj_container.light.rgb DIV.header {
   background-color: #e0e6fa;
   border-left: 1px solid #9894b6;
-}
-DIV.diffobj_container.light.rgb DIV.line>DIV.match {
-  border-left: 1px solid #888888;
 }
 /* Yellow Blue variation -----------------------------------------------------*/
 
@@ -109,12 +112,6 @@ DIV.diffobj_container.light.yb DIV.header {
   border-left: 1px solid #e3e3e3;
   color: #e9e9e9;
 }
-DIV.diffobj_container.light.yb DIV.text>DIV.match {
-  background-color: #ffffff;
-}
 DIV.diffobj_container.light.yb DIV.line {
   background-color: #eeeeee;
-}
-DIV.diffobj_container.light.yb DIV.line>DIV.match {
-  border-left: 1px solid #888888;
 }

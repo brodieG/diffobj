@@ -24,14 +24,15 @@ make_diff_fun <- function(capt_fun) {
     brightness=gdo("brightness"),
     color.mode=gdo("color.mode"),
     pager=gdo("pager"),
-    line.limit=gdo("line.limit"),
-    hunk.limit=gdo("hunk.limit"),
+    guides=gdo("guides"),
     max.diffs=gdo("max.diffs"),
     disp.width=gdo("disp.width"),
     ignore.white.space=gdo("ignore.white.space"),
     convert.hz.white.space=gdo("convert.hz.white.space"),
     tab.stops=gdo("tab.stops"),
-    align.threshold=gdo("align.threshold"),
+    line.limit=gdo("line.limit"),
+    hunk.limit=gdo("hunk.limit"),
+    align=gdo("align"),
     style=gdo("style"),
     palette.of.styles=gdo("palette"),
     frame=parent.frame(),
@@ -53,10 +54,10 @@ make_diff_fun <- function(capt_fun) {
       mode=mode, context=context, line.limit=line.limit, format=format,
       brightness=brightness, color.mode=color.mode, pager=pager,
       ignore.white.space=ignore.white.space, max.diffs=max.diffs,
-      align.threshold=align.threshold, disp.width=disp.width,
+      align=align, disp.width=disp.width,
       hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
       tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
-      frame=frame, tar.banner=tar.banner, cur.banner=cur.banner
+      frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides
     )
     # Force crayon to whatever ansi status we chose; note we must do this after
     # touching vars in case someone passes `options(crayon.enabled=...)` as one
@@ -73,20 +74,27 @@ make_diff_fun <- function(capt_fun) {
     nc_fun <- if(is(etc.proc@style, "StyleAnsi")) crayon_nchar else nchar
     etc.proc@gutter <- gutter_dat(etc.proc)
     if(is(etc.proc@style, "StyleHtml")) {
-      etc.proc@line.width <- 0L
-      etc.proc@text.width <- 0L
+      etc.proc@line.width <- etc.proc@text.width <- etc.proc@line.width.half <-
+        etc.proc@text.width.half <- 0L
+      if(etc.proc@mode == "auto") etc.proc@mode <- "sidebyside"
     } else {
-      disp.width <- if(etc.proc@mode == "sidebyside") {
-        as.integer(
-          (etc.proc@disp.width - nc_fun(etc.proc@style@text@pad.col)) / 2
-        )
-      } else etc.proc@disp.width
-
+      half.width <- as.integer(
+        (etc.proc@disp.width - nc_fun(etc.proc@style@text@pad.col)) / 2
+      )
       etc.proc@line.width <-
-        max(disp.width, .min.width + etc.proc@gutter@width)
-      etc.proc@text.width <-
-        etc.proc@line.width - etc.proc@gutter@width
+        max(etc.proc@disp.width, .min.width + etc.proc@gutter@width)
+      etc.proc@text.width <- etc.proc@line.width - etc.proc@gutter@width
+      etc.proc@line.width.half <-
+        max(half.width, .min.width + etc.proc@gutter@width)
+      etc.proc@text.width.half <-
+        etc.proc@line.width.half - etc.proc@gutter@width
     }
+    # If in side by side mode already then we know we want half-width, and if
+    # width is less than 80 we know we want unitfied
+
+    if(etc.proc@mode == "auto" && etc.proc@disp.width < 80L)
+      etc.proc@mode <- "unified"
+    if(etc.proc@mode == "sidebyside") etc.proc <- sideBySide(etc.proc)
 
     # Capture and diff
 
@@ -119,12 +127,16 @@ make_diff_fun <- function(capt_fun) {
 #' @param current the object being compared to \code{target}
 #' @param mode character(1L), one of:
 #'   \itemize{
-#'     \item \dQuote{unified}: diff mode used by \code{git diff}, and the
-#'       default here
+#'     \item \dQuote{unified}: diff mode used by \code{git diff}
 #'     \item \dQuote{sidebyside}: line up the differences side by side
 #'     \item \dQuote{context}: show the target and current hunks in their
 #'       entirety; this mode takes up a lot of screen space but makes it easier
 #'       to see what the objects actually look like
+#'     \item \dQuote{auto}: default mode; pick one of the above, will favor
+#'       \dQuote{sidebyside} unless \code{getOption("width")} is less than 80,
+#'       or in \code{diffPrint} and objects are dimensioned and do not fit side
+#'       by side, or in \code{diffChr}, \code{diffDeparse}, \code{diffFile} and
+#'       output does not fit in side by side without wrapping
 #'   }
 #' @param context integer(1L) how many lines of context are shown on either side
 #'   of differences, set to \code{-1L} to allow as many as there are.  Set to
@@ -174,6 +186,11 @@ make_diff_fun <- function(capt_fun) {
 #'   to console and exceeds screen height, or will always use a pager if in
 #'   interactive mode, not in running in \code{knitr} and in \dQuote{html}
 #'   format.
+#' @param guides TRUE (default), FALSE, or a function that accepts at least two
+#'   arguments and requires no more than two arguments.  Guides
+#'   are additional context lines that are not strictly part of a hunk, but
+#'   provide important contextual data (e.g. column headers).  See
+#'   \code{\link{printGuideLines}} for more details.
 #' @param line.limit integer(2L) or integer(1L), if length 1 how many lines of
 #'   output to show, where \code{-1} means no limit.  If length 2, the first
 #'   value indicates the threshold of screen lines to begin truncating output,
@@ -204,10 +221,10 @@ make_diff_fun <- function(capt_fun) {
 #'   spaces.  If not integer will be coerced to integer (defaults to 8L).  You
 #'   may specify more than one tab stop.  If display width exceeds that
 #'   addressable by your tab stops the last tab stop will be repeated.
-#' @param align.threshold numeric(1L) between 0 and 1, proportion of
+#' @param align numeric(1L) between 0 and 1, proportion of
 #'   words in a line of \code{target} that must be matched in a line of
 #'   \code{current} in the same hunk for those lines to be paired up when
-#'   displayed (defaults to 0.25).
+#'   displayed (defaults to 0.25), or a \code{\link{AlignThreshold}} object.
 #' @param style \dQuote{auto}, or a \code{\link{Style}} object.
 #'   \dQuote{auto} by default.  If a \code{Style} object, will override the
 #'   the \code{format}, \code{brightness}, and \code{color.mode} parameters.
@@ -345,9 +362,9 @@ body(diff_obj) <- quote({
   call.raw <- match.call()
   call.raw[["silent"]] <- TRUE
   call.str <- call.print <- call.raw
-  call.str[[1L]] <- quote(diff_str)
+  call.str[[1L]] <- quote(diffStr)
   call.str[["max.level"]] <- "auto"
-  call.print[[1L]] <- quote(diff_print)
+  call.print[[1L]] <- quote(diffPrint)
 
   # Run both the print and str versions, and then decide which to use based
   # on some weighting of various factors including how many lines needed to be

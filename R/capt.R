@@ -3,14 +3,14 @@
 #
 # x is a quoted call to evaluate
 
-capture <- function(x, etc, frame, err) {
+capture <- function(x, etc, err) {
   capt.width <- etc@text.width
   if(capt.width) {
     width.old <- getOption("width")
     on.exit(options(width=width.old))
     options(width=capt.width)
   }
-  res <- try(obj.out <- capture.output(eval(x, frame)))
+  res <- try(obj.out <- capture.output(eval(x, etc@frame)))
   if(inherits(res, "try-error"))
     err(
       "Failed attempting to get text representation of object: ",
@@ -18,69 +18,16 @@ capture <- function(x, etc, frame, err) {
     )
   html_ent_sub(res, etc)
 }
-# DEPRECATED?
-
-obj_capt <- function(
-  obj, width=getOption("width"), frame=parent.frame(), mode="print",
-  max.level=0L, default=FALSE, ...
-) {
-  if(!is.numeric(width) || length(width) != 1L || is.na(width))
-    stop("Argument `width` must be a one long numeric/integer.")
-  if(
-    !is.character(mode) || length(mode) != 1L || is.na(mode) ||
-    !mode %in% c("print", "str")
-  )
-    stop("Argument `mode` must be one of \"print\" or \"str\"")
-  # note this forces eval, which is needed
-  if(!is.environment(frame))
-    stop("Argument `frame` must be an environment")
-  if(
-    !is.na(max.level) && (
-      !is.numeric(max.level) || length(max.level) != 1L ||  max.level < 0
-    )
-  )
-    stop("Argument `max.level` must be integer(1L) and positive")
-
-  max.level <- as.integer(max.level)
-  width.old <- getOption("width")
-  on.exit(options(width=width.old))
-  width <- max(width, 10L)
-  options(width=width)
-
-  res <- try({
-    extra <- NULL
-    fun <- if(identical(mode, "print")) {
-      if(isS4(obj)) quote(show) else quote(print)
-    } else if(identical(mode, "str")) {
-      extra <- list(max.level=max.level)
-      quote(str)
-    } else stop("Logic Error: unexpected mode; contact maintainer.")
-    call <- as.call(c(list(fun, obj, `...`=...), extra))
-  })
-  res <- try(obj.out <- capture.output(eval(call, frame)))
-  if(inherits(res, "try-error"))
-    stop("Failed attempting to get text representation of object")
-
-  options(width=width.old)
-  on.exit(NULL)
-
-  # remove trailing spaces; shouldn't have to do it but doing it since legacy
-  # tests remove them and PITA to update those
-
-  obj.out <- sub("\\s*$", "", obj.out)
-  obj.out
-}
 # capture normal prints, along with default prints to make sure that if we
 # do try to wrap an atomic vector print it is very likely to be in a format
 # we are familiar with and not affected by a non-default print method
 
 capt_print <- function(target, current, etc, err, ...){
   dots <- list(...)
-  frame <- etc@frame
   print.match <- try(
     match.call(
-      get("print", envir=frame), as.call(c(list(quote(print), x=NULL), dots)),
-      envir=frame
+      get("print", envir=etc@frame), as.call(c(list(quote(print), x=NULL), dots)),
+      envir=etc@frame
   ) )
   if(inherits(print.match, "try-error"))
     err("Unable to compose `print` call")
@@ -97,24 +44,19 @@ capt_print <- function(target, current, etc, err, ...){
   tar.call[[2L]] <- target
   cur.call[[2L]] <- current
 
-  tar.call.def <- tar.call
-  cur.call.def <- cur.call
-  tar.call.def[[1L]] <- cur.call.def[[1L]] <- base::print.default
+  # If dimensioned object, and in auto-mode, switch to side by side if stuff is
+  # narrow enough to fit
 
-  both.at <- is.atomic(current) && is.atomic(target)
-  cur.capt <- capture(cur.call, etc, frame, err)
-  cur.capt.def <- if(both.at) capture(cur.call.def, etc, frame, err)
-  tar.capt <- capture(tar.call, etc, frame, err)
-  tar.capt.def <- if(both.at) capture(tar.call.def, etc, frame, err)
+  cur.capt <- capture(cur.call, etc, err)
+  tar.capt <- capture(tar.call, etc, err)
 
-  use.header <- length(dim(target)) == 2L && length(dim(current)) == 2L
+  etc <- if((!is.null(dim(target)) || !is.null(dim(current)))) {
+    set_mode(etc, tar.capt, cur.capt)
+  } else if(etc@mode == "auto") sideBySide(etc) else etc
 
-  diff <- line_diff(
-    target, current, tar.capt, cur.capt, etc=etc,
-    warn=TRUE, use.header=use.header
-  )
-  diff@tar.capt.def <- tar.capt.def
-  diff@cur.capt.def <- cur.capt.def
+  if(isTRUE(etc@guides)) etc@guides <- printGuideLines
+
+  diff <- line_diff(target, current, tar.capt, cur.capt, etc=etc, warn=TRUE)
   diff
 }
 # Tries various different `str` settings to get the best possible output
@@ -131,12 +73,16 @@ capt_str <- function(target, current, etc, err, ...){
   str.match <- try(
     match.call(
       str_tpl,
-      call=as.call(c(list(quote(str), object=NULL), dots)), envir=frame
+      call=as.call(c(list(quote(str), object=NULL), dots)), envir=etc@frame
   ) )
   if(inherits(str.match, "try-error"))
     err("Unable to compose `str` call")
 
   names(str.match)[[2L]] <- ""
+
+  # Handle auto mode (side by side always for `str`)
+
+  if(etc@mode == "auto") etc <- sideBySide(etc)
 
   # Utility function; defining in body so it has access to `err`
 
@@ -193,16 +139,12 @@ capt_str <- function(target, current, etc, err, ...){
   capt.width <- etc@text.width
   has.diff <- has.diff.prev <- FALSE
 
-  # not sure why we have strip_hz_control here; perhaps it is legacy from before
-  # we added to the line diff function?
+  # we used to strip_hz_control here, but shouldn't have to since handled by
+  # line_diff
 
-  tar.capt <- strip_hz_control(
-    capture(tar.call, etc, frame, err), stops=etc@tab.stops
-  )
+  tar.capt <- capture(tar.call, etc, err)
   tar.lvls <- str_levels(tar.capt, wrap=wrap)
-  cur.capt <- strip_hz_control(
-    capture(cur.call, etc, frame, err), stops=etc@tab.stops
-  )
+  cur.capt <- capture(cur.call, etc, err)
   cur.lvls <- str_levels(cur.capt, wrap=wrap)
 
   prev.lvl.hi <- lvl <- max.depth <- max(tar.lvls, cur.lvls)
@@ -210,6 +152,8 @@ capt_str <- function(target, current, etc, err, ...){
   first.loop <- TRUE
   safety <- 0L
   warn <- TRUE
+
+  if(isTRUE(etc@guides)) etc@guides <- strGuideLines
 
   repeat{
     if((safety <- safety + 1L) > max.depth && !first.loop)
@@ -220,10 +164,7 @@ capt_str <- function(target, current, etc, err, ...){
     tar.str <- tar.capt[tar.lvls <= lvl]
     cur.str <- cur.capt[cur.lvls <= lvl]
 
-    diff.obj <- line_diff(
-      target, current, tar.str, cur.str, etc=etc, warn=warn,
-      strip=FALSE
-    )
+    diff.obj <- line_diff(target, current, tar.str, cur.str, etc=etc, warn=warn)
     diffs.str <- diff.obj@diffs
 
     if(diffs.str$hit.diffs.max) warn <- FALSE
@@ -298,6 +239,10 @@ capt_str <- function(target, current, etc, err, ...){
 capt_chr <- function(target, current, etc, err, ...){
   tar.capt <- if(!is.character(target)) as.character(target, ...) else target
   cur.capt <- if(!is.character(current)) as.character(current, ...) else current
+
+  etc <- set_mode(etc, tar.capt, cur.capt)
+  if(isTRUE(etc@guides)) etc@guides <- chrGuideLines
+
   line_diff(
     target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
     etc=etc
@@ -306,8 +251,28 @@ capt_chr <- function(target, current, etc, err, ...){
 capt_deparse <- function(target, current, etc, err, ...){
   tar.capt <- deparse(target, ...)
   cur.capt <- deparse(current, ...)
+
+  etc <- set_mode(etc, tar.capt, cur.capt)
+  if(isTRUE(etc@guides)) etc@guides <- deparseGuideLines
+
   line_diff(
     target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
     etc=etc
   )
+}
+# Sets mode to "unified" if stuff is to wide to fit side by side without
+# wrapping otherwise sets it in "sidebyside"
+
+set_mode <- function(etc, tar.capt, cur.capt) {
+  stopifnot(is(etc, "Settings"), is.character(tar.capt), is.character(cur.capt))
+  nc_fun <- if(is(etc@style, "StyleAnsi")) crayon_nchar else nchar
+  if(etc@mode == "auto") {
+    if(
+      any(nc_fun(cur.capt) > etc@text.width.half) ||
+      any(nc_fun(tar.capt) > etc@text.width.half)
+    ) {
+      etc@mode <- "unified"
+  } }
+  if(etc@mode == "auto") etc <- sideBySide(etc)
+  etc
 }

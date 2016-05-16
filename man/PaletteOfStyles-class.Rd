@@ -74,7 +74,7 @@ defs["ansi256", "light", "rgb"] <- list(my.style) # note `list()`
 ## If so desired, set our new style palette as the default
 ## one; could also pass directly as argument to `diff*` funs
 \dontrun{
-options(diffobj.style.defaults) <- defs
+options(diffobj.palette) <- defs
 }
 }
 

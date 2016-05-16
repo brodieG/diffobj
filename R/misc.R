@@ -139,3 +139,10 @@ get_pal_par <- function(format, param) {
     param[wild.match]
   } else stop("Logic Error: malformed palette parameter; contact maintainer.")
 }
+# Between
+
+`%bw%` <- function(x, y) {
+  stopifnot(length(y) == 2L)
+  y.s <- sort(y)
+  x >= y[[1L]] & x <= y[[2L]]
+}

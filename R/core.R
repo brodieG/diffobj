@@ -221,9 +221,7 @@ setMethod("summary", "MyersMbaSes",
 #   in-hunk or word-wrap versions
 # warn is to allow us to suppress warnings after first hunk warning
 
-char_diff <- function(
-  x, y, context=-1L, etc, diff.mode, warn, use.header=FALSE
-) {
+char_diff <- function(x, y, context=-1L, etc, diff.mode, warn) {
   stopifnot(
     diff.mode %in% c("line", "hunk", "wrap"),
     isTRUE(warn) || identical(warn, FALSE)
@@ -269,17 +267,20 @@ char_diff <- function(
 # to worry about overhead from creating the `Diff` object
 
 line_diff <- function(
-  target, current, tar.capt, cur.capt, context, etc, warn=TRUE,
-  strip=TRUE, use.header=FALSE
+  target, current, tar.capt, cur.capt, context, etc, warn=TRUE, strip=TRUE
 ) {
+  if(!is.valid.guide.fun(etc@guides))
+    stop(
+      "Logic Error: guides are not a valid guide function; contact maintainer"
+    )
+  etc@guide.lines <-
+    make_guides(target, tar.capt, current, cur.capt, etc@guides)
+
   if(strip) {
     tar.capt <- strip_hz_control(tar.capt, stops=etc@tab.stops)
     cur.capt <- strip_hz_control(cur.capt, stops=etc@tab.stops)
   }
-  diffs <- char_diff(
-    tar.capt, cur.capt, etc=etc, diff.mode="line", warn=warn,
-    use.header=use.header
-  )
+  diffs <- char_diff(tar.capt, cur.capt, etc=etc, diff.mode="line", warn=warn)
   new(
     "Diff", diffs=diffs, target=target, current=current,
     tar.capt=tar.capt, cur.capt=cur.capt, etc=etc

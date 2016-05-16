@@ -45,3 +45,4 @@ test_that("trim_str", {
   #   sep="\n"
   # )
 })
+

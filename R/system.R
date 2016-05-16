@@ -4,7 +4,7 @@
   # Scheme defaults are fairly complex...
 
   default.opts <- list(
-    diffobj.context="auto",
+    diffobj.context=2L,
     diffobj.context.auto.min=1L,
     diffobj.context.auto.max=10L,
     diffobj.ignore.white.space=TRUE,
@@ -15,17 +15,21 @@
     diffobj.pager.threshold=-1L,
     diffobj.less.flags="R",
     diffobj.hunk.limit=-1L,
-    diffobj.mode="unified",
+    diffobj.mode="auto",
     diffobj.silent=FALSE,
     diffobj.max.diffs=50000L,
+    diffobj.align=NULL,           # NULL == AlignThreshold()
     diffobj.align.threshold=0.25,
+    diffobj.align.min.chars=3L,
+    diffobj.align.count.alnum.only=TRUE,
     diffobj.style="auto",
     diffobj.format="auto",
     diffobj.color.mode="yb",
     diffobj.brightness="neutral",
     diffobj.tab.stops=8L,
-    diffobj.disp.width=NULL,  # NULL == getOption("width")
-    diffobj.palette=NULL,     # NULL == PaletteOfStyles()
+    diffobj.disp.width=NULL,      # NULL == getOption("width")
+    diffobj.palette=NULL,         # NULL == PaletteOfStyles()
+    diffobj.guides=TRUE,
     diffobj.html.escape.html.entities=TRUE,
     diffobj.html.css=
       file.path(system.file(package="diffobj"), "css", "diffobj.css"),

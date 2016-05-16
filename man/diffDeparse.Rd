@@ -11,12 +11,12 @@ diffDeparse(target, current, ...)
 \S4method{diffDeparse}{ANY}(target, current, mode = gdo("mode"),
   context = gdo("context"), format = gdo("format"),
   brightness = gdo("brightness"), color.mode = gdo("color.mode"),
-  pager = gdo("pager"), line.limit = gdo("line.limit"),
-  hunk.limit = gdo("hunk.limit"), max.diffs = gdo("max.diffs"),
-  disp.width = gdo("disp.width"),
+  pager = gdo("pager"), guides = gdo("guides"),
+  max.diffs = gdo("max.diffs"), disp.width = gdo("disp.width"),
   ignore.white.space = gdo("ignore.white.space"),
   convert.hz.white.space = gdo("convert.hz.white.space"),
-  tab.stops = gdo("tab.stops"), align.threshold = gdo("align.threshold"),
+  tab.stops = gdo("tab.stops"), line.limit = gdo("line.limit"),
+  hunk.limit = gdo("hunk.limit"), align = gdo("align"),
   style = gdo("style"), palette.of.styles = gdo("palette"),
   frame = parent.frame(), tar.banner = NULL, cur.banner = NULL, ...)
 }
@@ -29,12 +29,16 @@ diffDeparse(target, current, ...)
 
 \item{mode}{character(1L), one of:
 \itemize{
-  \item \dQuote{unified}: diff mode used by \code{git diff}, and the
-    default here
+  \item \dQuote{unified}: diff mode used by \code{git diff}
   \item \dQuote{sidebyside}: line up the differences side by side
   \item \dQuote{context}: show the target and current hunks in their
     entirety; this mode takes up a lot of screen space but makes it easier
     to see what the objects actually look like
+  \item \dQuote{auto}: default mode; pick one of the above, will favor
+    \dQuote{sidebyside} unless \code{getOption("width")} is less than 80,
+    or in \code{diffPrint} and objects are dimensioned and do not fit side
+    by side, or in \code{diffChr}, \code{diffDeparse}, \code{diffFile} and
+    output does not fit in side by side without wrapping
 }}
 
 \item{context}{integer(1L) how many lines of context are shown on either side
@@ -90,17 +94,11 @@ to console and exceeds screen height, or will always use a pager if in
 interactive mode, not in running in \code{knitr} and in \dQuote{html}
 format.}
 
-\item{line.limit}{integer(2L) or integer(1L), if length 1 how many lines of
-output to show, where \code{-1} means no limit.  If length 2, the first
-value indicates the threshold of screen lines to begin truncating output,
-and the second the number of lines to truncate to, which should be fewer
-than the threshold.}
-
-\item{hunk.limit}{integer(2L) or integer (1L), how many diff hunks to show.
-Behaves similarly to \code{line.limit}.  How many hunks are in a
-particular diff is a function of how many differences, and also how much
-\code{context} is used since context can cause two hunks to bleed into
-each other and become one.}
+\item{guides}{TRUE (default), FALSE, or a function that accepts at least two
+arguments and requires no more than two arguments.  Guides
+are additional context lines that are not strictly part of a hunk, but
+provide important contextual data (e.g. column headers).  See
+\code{\link{printGuideLines}} for more details.}
 
 \item{max.diffs}{integer(1L), number of differences after which we abandon
 the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
@@ -120,10 +118,22 @@ spaces.  If not integer will be coerced to integer (defaults to 8L).  You
 may specify more than one tab stop.  If display width exceeds that
 addressable by your tab stops the last tab stop will be repeated.}
 
-\item{align.threshold}{numeric(1L) between 0 and 1, proportion of
+\item{line.limit}{integer(2L) or integer(1L), if length 1 how many lines of
+output to show, where \code{-1} means no limit.  If length 2, the first
+value indicates the threshold of screen lines to begin truncating output,
+and the second the number of lines to truncate to, which should be fewer
+than the threshold.}
+
+\item{hunk.limit}{integer(2L) or integer (1L), how many diff hunks to show.
+Behaves similarly to \code{line.limit}.  How many hunks are in a
+particular diff is a function of how many differences, and also how much
+\code{context} is used since context can cause two hunks to bleed into
+each other and become one.}
+
+\item{align}{numeric(1L) between 0 and 1, proportion of
 words in a line of \code{target} that must be matched in a line of
 \code{current} in the same hunk for those lines to be paired up when
-displayed (defaults to 0.25).}
+displayed (defaults to 0.25), or a \code{\link{AlignThreshold}} object.}
 
 \item{style}{\dQuote{auto}, or a \code{\link{Style}} object.
 \dQuote{auto} by default.  If a \code{Style} object, will override the

@@ -16,8 +16,53 @@ setClassUnion("charOrNULL", c("character", "NULL"))
 
 NULL
 
-setClass(
-  "AutoContext",
+#' Controls How Lines Within a Diff Hunk Are Aligned
+#'
+#' @slot threshold numeric(1L) between 0 and 1, what proportion of words
+#'   in the lines must match in order to align them.  Set to 1 to effectively
+#'   turn aligning off.  Defaults to 0.25.
+#' @slot min.chars integer(1L) positive, minimum number of characters that must
+#'   match across lines in order to align them.  This requirement is in addition
+#'   to \code{threshold} and helps minimize spurious alignments.  Defaults to
+#'   5.
+#' @slot count.alnum.only logical(1L) modifier for \code{min.chars}, whether to
+#'   count alpha numeric characters only.  Helps reduce spurious alignment
+#'   caused by meta character sequences such as \dQuote{[[1]]} that would
+#'   otherwise meet the \code{min.chars} limit
+#' @export AlignThreshold
+#' @exportClass AlignThreshold
+
+AlignThreshold <- setClass("AlignThreshold",
+  slots=c(
+    threshold="numeric",
+    min.chars="integer",
+    count.alnum.only="logical"
+  ),
+  validity=function(object) {
+    if(
+      length(object@threshold) != 1L || is.na(object@threshold) ||
+      !object@threshold %bw% c(0, 1)
+    )
+      return("Slot `threhold` must be numeric(1L) between 0 and 1")
+    if(!is.int.1L(object@min.chars) || object@min.chars < 0L)
+      return("Slot `min.chars` must be integer(1L) and positive")
+    if(!is.TF(object@count.alnum.only))
+      return("Slot `count.alnum.only` must be TRUE or FALSE")
+  }
+)
+setMethod(
+  "initialize", "AlignThreshold",
+  function(
+    .Object, threshold=gdo("align.threshold"), min.chars=gdo("align.min.chars"),
+    count.alnum.only=gdo("align.count.alnum.only"), ...) {
+      if(is.numeric(min.chars)) min.chars <- as.integer(min.chars)
+      callNextMethod(
+        .Object, threshold=threshold, min.chars=min.chars,
+        count.alnum.only=count.alnum.only, ...
+      )
+} )
+
+setClass("AutoContext",
   slots=c(
     min="integer",
     max="integer"
@@ -34,12 +79,23 @@ setClass(
 setClassUnion("doAutoCOrInt", c("AutoContext", "integer"))
 # pre-computed gutter data
 
+GuideLines <- setClass(
+  "GuideLines",
+  slots=c(target="integer", current="integer"),
+  validity=function(object) {
+    vals <- c(object@target, object@current)
+    if(anyNA(vals) || any(vals < 1L))
+      return("Object may only contain strictly positive integer values")
+    TRUE
+  }
+)
 setClass(
   "Gutter",
   slots= c(
     insert="character", insert.ctd="character",
     delete="character", delete.ctd="character",
     match="character", match.ctd="character",
+    guide="character", guide.ctd="character",
     pad="character",
     width="integer"
   )
@@ -53,7 +109,7 @@ setClass(
     style="Style",
     hunk.limit="integer",
     max.diffs="integer",
-    align.threshold="numeric",
+    align="AlignThreshold",
     ignore.white.space="logical",
     convert.hz.white.space="logical",
     frame="environment",
@@ -62,23 +118,39 @@ setClass(
     cur.exp="ANY",
     tar.banner="charOrNULL",
     cur.banner="charOrNULL",
-    use.header="logical",
+    guides="ANY",
+    guide.lines="GuideLines",
     disp.width="integer",
     line.width="integer",
     text.width="integer",
+    line.width.half="integer",
+    text.width.half="integer",
     gutter="Gutter"
   ),
-  prototype=list(use.header=FALSE, disp.width=0L, text.width=0L, line.width=0L),
+  prototype=list(
+    disp.width=0L, text.width=0L, line.width=0L,
+    text.width.half=0L, line.width.half=0L,
+    guides=function(obj, obj.as.chr) integer(0L)
+  ),
   validity=function(object){
-    int.1L.and.pos <- c("disp.width", "line.width", "text.width")
+    int.1L.and.pos <- c(
+      "disp.width", "line.width", "text.width", "line.width.half",
+      "text.width.half"
+    )
     for(i in int.1L.and.pos)
       if(!is.int.1L(slot(object, i)) || slot(object, i) < 0L)
-        return(sprintf("Slot `%s` must be integer(1L) and positive"), i)
-    TF <- c("ignore.white.space", "convert.hz.white.space", "use.header")
+        return(sprintf("Slot `%s` must be integer(1L) and positive", i))
+    TF <- c("ignore.white.space", "convert.hz.white.space")
     for(i in TF)
       if(!is.TF(slot(object, i)) || slot(object, i) < 0L)
-        return(sprintf("Slot `%s` must be TRUE or FALSE"), i)
-
+        return(sprintf("Slot `%s` must be TRUE or FALSE", i))
+    if(!is.TF(object@guides) && !is.function(object@guides))
+      return("Slot `guides` must be TRUE, FALSE, or a function")
+    if(
+      is.function(object@guides) &&
+      !isTRUE(v.g <- is.valid.guide.fun(object@guides))
+    )
+      return(sprintf("Slot `guides` is not a valid guide function (%s)", v.g))
     TRUE
   }
 )
@@ -89,6 +161,16 @@ setMethod("initialize", "Settings", function(.Object, ...) {
     .Object@disp.width <- 80L
   return(callNextMethod(.Object, ...))
 } )
+
+setGeneric("sideBySide", function(x, ...) standardGeneric("sideBySide"))
+setMethod("sideBySide", "Settings",
+  function(x, ...) {
+    x@mode <- "sidebyside"
+    x@text.width <- x@text.width.half
+    x@line.width <- x@line.width.half
+    x
+  }
+)
 # Classes for tracking intermediate diff obj data
 #
 # DiffDiffs contains a slot corresponding to each of target and current where

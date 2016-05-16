@@ -11,7 +11,7 @@ local({
 
   oc1 <- unitizer:::obj_capt(test.obj.s3)
   oc2 <- unitizer:::obj_capt(test.obj.s4)
-  do1 <- unitizer:::diff_obj_internal(
+  do1 <- unitizer:::diffObj_internal(
     test.obj.s3, test.obj.s3, width=60L, context=c(10L, 5L), file=stdout(),
     white.space=FALSE
   )
@@ -53,10 +53,20 @@ local({
     mx.2 <- matrix(1:100, ncol=2)
     set.seed(1, "Mersenne-Twister")
     mx.3 <- matrix(runif(100), ncol=2)
-    mx.3 <- mx.2
+    mx.4 <- mx.3 <- mx.2
     mx.3[31, 2] <- 111L
+    mx.4[cbind(sample(1:50, 6), sample(1:2, 6, replace=TRUE))] <-
+      sample(-(1:50), 6)
+    diffPrint(mx.2, mx.3)
+    diffPrint(mx.2, mx.3, mode="unified")
+    diffPrint(mx.2, mx.4)
+    diffPrint(mx.2, mx.4, mode="unified")
 
-    diff_print(mx.2, mx.3, mode="sidebyside")
+    A <- B <- matrix(sample(1:80), nrow=16)
+    B[cbind(sample(5:16, 4), sample(1:5, 4))] <- sample(30:80, 4)
+    diffPrint(A, B)
+    diffPrint(A, B, mode="unified")
+
     lst.1 <- list(
       NULL,
       z=list(
@@ -68,13 +78,19 @@ local({
     lst.2$z$z$z$z$z <- 6
     lst.2$z[[1L]][[1L]][2L] <- "bananas"
     lst.2$z[[4L]] <- matrix(12:1, ncol=3)
+    lst.2$z[[4L]][4, ] <- c(3L, 6L, 9L)
     lst.3 <- lst.2
     lst.3[[1]] <- "hello"
 
-    diff_print(lst.1, lst.3)
-    diff_print(lst.1, lst.3, mode="sidebyside")
-    diff_obj(lst.1, lst.3)
-    diff_obj(lst.1, lst.2)
+    diffPrint(lst.1, lst.3, mode="sidebyside")
+    diffPrint(lst.1, lst.3, mode="unified")
+    diffObj(lst.1, lst.3)
+    diffObj(lst.1, lst.2)
+
+    lst.4 <- list(NULL, z=list(z=list(z=list(z=list(matrix(1:3))))))
+    lst.5 <- list(NULL, z=list(z=list(z=list(z=list(matrix(2:4))))))
+    diffPrint(lst.4, lst.5)
+
     chr.1 <- c(
       "hello world",
       "I ran into a rather bizarre bug involving memoise that made it impossible to forget the cached version of crayon:::i_num_colors. Somehow, the binary version of crayon on CRAN has a corrupted copy of the memoised crayon:::i_num_colors function",
@@ -85,10 +101,10 @@ local({
       "I ran blah a rather bizarre bug involving memoise that made it"
     )
 
-    diff_print(chr.1, chr.2)
-    diff_obj(chr.1, chr.2, mode="sidebyside")
-    diff_print(chr.1, chr.2, mode="sidebyside")
-    diff_print(chr.1[2:3], chr.2[2], mode="sidebyside")
+    diffPrint(chr.1, chr.2)
+    diffObj(chr.1, chr.2, mode="sidebyside")
+    diffPrint(chr.1, chr.2, mode="sidebyside")
+    diffPrint(chr.1[2:3], chr.2[2], mode="sidebyside")
 
     # make sure blanks line up correctly
     chr.3 <- letters[1:20]
@@ -96,7 +112,8 @@ local({
       "a phrase long enough to wrap a few lines when looked at on a side by side basis",
       "lorem ipsum dolor something or other I don't remember what the whole thing was anyway"
     )
-    diff_print(chr.3, chr.4, mode="sidebyside")
+    diffPrint(chr.3, chr.4)
+    diffPrint(chr.3, chr.4, mode="unified")
 
     # Shows that line shifts within hunks are matched
 
@@ -112,69 +129,111 @@ local({
       "humpty dumpty TOOK a big fall",
       "a COMPUTER once wrote a phrase"
     )
-    diff_chr(chr.5, chr.6, mode="sidebyside")
+    diffChr(chr.5, chr.6)
+    diffChr(chr.5, chr.6, mode="unified")
 
-    diff_print(1:100, 2:101)
-    diff_print(2:101, 1:100)  # add reverse arg?
+    diffPrint(1:100, 2:101, mode="sidebyside")
+    diffPrint(2:101, 1:100)  # add reverse arg?
 
     iris.2 <- iris.c <- transform(iris, Species=as.character(Species))
     # without rounding this is a bit wild, but good corner case to test
-    iris.2$Sepal.Length[sample(nrow(iris.2), 10)] <-
-      rnorm(10, mean(iris.2$Sepal.Length), sd(iris.2$Sepal.Length))
+    iris.2$Sepal.Length[sample(nrow(iris.2), 5)] <-
+      rnorm(5, mean(iris.2$Sepal.Length), sd(iris.2$Sepal.Length))
 
     iris.3 <- iris.2
     iris.3$Sepal.Length <- round(iris.3$Sepal.Length, 1L)
+    iris.4 <- iris.3
+    iris.4$Petal.Width[sample(1:nrow(iris.4), 6)] <- round(runif(6), 1)
 
-    diff_print(iris, iris.2) # no round
-    diff_print(iris, iris.c)
-    diff_obj(iris, iris.c)
-    diff_obj(iris, iris.2)
-    diff_obj(iris, iris.3)
-    diff_obj(iris, iris.3, mode="sidebyside")
+    diffPrint(iris, iris.2) # no round
+    diffPrint(iris, iris.2, mode="sidebyside")
+    diffPrint(iris, iris.c)
+    diffPrint(iris, iris.3)
+    diffPrint(iris, iris.3, mode="sidebyside")
+    diffPrint(iris, iris.4, mode="unified")
+    diffPrint(iris, iris.4, mode="sidebyside")
+    diffObj(iris, iris.c)
+    diffObj(iris, iris.2)
+    diffObj(iris, iris.3)
+    diffObj(iris, iris.3, mode="sidebyside")
 
-    diff_str(cars, mtcars)
+    diffPrint(iris, iris.4, mode="sidebyside", guides=function(x, y) integer())
+    diffPrint(iris, iris.4, mode="sidebyside", guides=FALSE)
 
-    diff_print(iris, iris[-2])
-    diff_print(list(1, 2, 3), matrix(1:9, 3))
-    diff_print(list(25, 2, 3), matrix(1:9, 3))
-    diff_print(list(c(1, 4, 7), c(2, 5, 8), c(3, 6, 9)), matrix(1:9, 3))
+    iris.5 <- iris
+    attr(iris.5, "test.attr") <- letters
+
+    diffPrint(iris.5, iris.4, mode="sidebyside", guides=FALSE)
+
+    # Narrow versions to fit side by side
+
+    iris.3a <- setNames(iris.3, c("S.L", "S.W", "P.L", "P.W", "Sp"))
+    iris.4a <- setNames(iris.4, c("S.L", "S.W", "P.L", "P.W", "Sp"))
+
+    diffPrint(iris.3a, iris.4a)
+
+    diffStr(cars, mtcars)
+    diffPrint(cars, mtcars, mode="s")
+
+    diffPrint(iris, iris[-2])
+    diffPrint(list(1, 2, 3), matrix(1:9, 3))
+    diffPrint(list(25, 2, 3), matrix(1:9, 3))
+    diffPrint(list(c(1, 4, 7), c(2, 5, 8), c(3, 6, 9)), matrix(1:9, 3))
 
     mdl1 <- lm(Sepal.Length ~ Sepal.Width, iris)
     mdl2 <- lm(Sepal.Length ~ Sepal.Width + Species, iris.3)
-    diff_str(mdl1, mdl2, mode="sidebyside")
-    diff_str(mdl1, mdl2, mode="sidebyside", e=etc(style="dark"))
+    diffStr(mdl1, mdl2, mode="sidebyside")
+    diffStr(mdl1, mdl2, mode="sidebyside", brightness="light")
     # make sure that notice of suppressed stuff shows up
-    diff_str(mdl1, mdl2, mode="sidebyside", etc=etc(line.limit=50))
+    diffStr(mdl1, mdl2, mode="sidebyside", line.limit=15)
     # interesting example below where the in-hunk word diff is too aggressive
     # preventing the eq-lines from atching
-    diff_str(mdl1[7], mdl2[7], mode="sidebyside")
-    diff_print(mdl1, mdl2)
-    diff_str(
+    diffStr(mdl1[7], mdl2[7], mode="sidebyside")
+    diffPrint(mdl1, mdl2)
+    diffStr(
       mdl1, mdl2, mode="sideby", bright="dark",
       pager=PagerSystemLess(flags="RX")
     )
-    diff_print(letters[1:3], LETTERS[1:3])
+    diffPrint(letters[1:3], LETTERS[1:3])
 
     Puromycin2 <- Puromycin
     set.seed(1)
     Puromycin2$conc[c(8, 15:19, 22)] <- round(runif(7), 2)
     Puromycin2$state[17] <- "treated"
-    diff_print(Puromycin, Puromycin2, etc=etc(line.limit=15))
-    diff_print(Puromycin, Puromycin2, etc=etc(line.limit=15), mode="sidebyside")
-    diff_print(Puromycin, Puromycin2, etc=etc(line.limit=15), mode="context")
+    diffPrint(Puromycin, Puromycin2, line.limit=15)
+    diffPrint(Puromycin, Puromycin2, line.limit=15, mode="sidebyside")
+    diffPrint(Puromycin, Puromycin2, line.limit=15, mode="context")
 
     # line limit issues
-    diff_print(Puromycin, Puromycin2, etc=etc(line.limit=6))
-    diff_print(Puromycin, Puromycin2, etc=etc(line.limit=6), mode="sidebyside")
-    diff_print(Puromycin, Puromycin2, line.limit=6, mode="context")
+    diffPrint(Puromycin, Puromycin2, line.limit=6)
+    diffPrint(Puromycin, Puromycin2, line.limit=6, mode="sidebyside")
+    diffPrint(Puromycin, Puromycin2, line.limit=6, mode="context")
 
-    diff_print(Puromycin, Puromycin2, line.limit=3)
-    diff_print(Puromycin, Puromycin2, line.limit=3)
-    diff_print(Puromycin, Puromycin2, line.limit=4)
+    diffPrint(Puromycin, Puromycin2, line.limit=3)
+    diffPrint(Puromycin, Puromycin2, line.limit=3)
+    diffPrint(Puromycin, Puromycin2, line.limit=4)
 
     Puromycin3 <- Puromycin2
     names(Puromycin3)[3L] <- "blargh"
-    diff_print(Puromycin, Puromycin3, line.limit=6, mode="context")
+    diffPrint(Puromycin, Puromycin3, line.limit=6, mode="context")
+
+    # Arrays
+
+    arr.1 <- arr.2 <- array(1:36, dim=c(6, 2, 3))
+    arr.2[c(4, 12, 20)] <- 99
+    diffPrint(arr.1, arr.2, mode="s", context=1)
+    diffPrint(arr.1, arr.2, mode="context", context=1)
+
+    # Large DF (WARNING: a bit slow)
+
+    library(ggplot2)
+    head(diamonds)
+    d2 <- diamonds
+    d2$x[sample(seq_len(nrows(d2)), 100)] <- sample(d2$x, 100)
+    d2$x[sample(seq_len(nrow(d2)), 100)] <- sample(d2$x, 100)
+    diffPrint(diamonds, d2)
+    diffPrint(diamonds, d2, context=1)
+    diffPrint(diamonds, d2, context=1, mode="s")
   } )
   set.seed(2)
   w1 <- sample(
@@ -188,9 +247,9 @@ local({
   w3 <- w1[8:15]
   w4 <- c(w1[1:5], toupper(w1[1:5]), w1[6:15], toupper(w1[1:5]))
 
-  diff_print(w1, w2)
-  diff_print(w1, w3)
-  diff_print(w1, w4)
+  diffPrint(w1, w2)
+  diffPrint(w1, w3)
+  diffPrint(w1, w4)
 
   nums <- runif(5, -1e9, 1e9)
   scinums <- format(c(nums, 1/nums), scientific=TRUE)
@@ -211,19 +270,19 @@ local({
     hello1 <- structure("   hello  hello", class="unitizer_test_obj_1")
     hello2 <- structure( "hello    hello   ", class="unitizer_test_obj_1")
     expect_equal(
-      diff_print(hello1, hello2, context=c(10, 5)),
+      diffPrint(hello1, hello2, context=c(10, 5)),
       c("\033[90mOnly visible differences between objects are horizontal \033[39m", "\033[90mwhite spaces. You can re-run diff with `white.space=TRUE` to\033[39m", "\033[90mshow them.\033[39m")
     )
     expect_equal(
-      diff_print(hello1, hello2, white.space=TRUE, context=c(10, 5)),
+      diffPrint(hello1, hello2, white.space=TRUE, context=c(10, 5)),
       c("\033[36m@@ hello1 @@\033[39m", "\033[31m-  \033[39m   hello  hello", "\033[36m@@ hello2 @@\033[39m", "\033[32m+  \033[39mhello    hello")
     )
     expect_equal(
-      diff_print(matrix(1:100), matrix(1:98), context=c(1, 1)),
+      diffPrint(matrix(1:100), matrix(1:98), context=c(1, 1)),
       c("\033[36m@@ matrix(1:100) @@\033[39m", "\033[90m   ~~ omitted 98 lines w/o diffs ~~\033[39m", "    [98,]   98", "\033[31m-  \033[39m\033[31m [99,]   99\033[39m", "\033[31m-  \033[39m\033[31m[100,]  100\033[39m", "\033[36m@@ matrix(1:98) @@\033[39m", "\033[90m   ~~ omitted 98 lines w/o diffs ~~\033[39m", "   [98,]   98")
     )
     expect_equal(
-      diff_print(matrix(1:100), matrix(1:98), context=c(1, 1), white.space=TRUE),
+      diffPrint(matrix(1:100), matrix(1:98), context=c(1, 1), white.space=TRUE),
       c("\033[36m@@ matrix(1:100) @@\033[39m", "\033[31m-  \033[39m       [,1]", "\033[31m-  \033[39m  [1,]    1", "\033[31m-  \033[39m  [2,]    2", "\033[90m   ~~ omitted 98 lines w/ 98 diffs ~~\033[39m", "\033[36m@@ matrix(1:98) @@\033[39m", "\033[32m+  \033[39m      [,1]", "\033[32m+  \033[39m [1,]    1", "\033[32m+  \033[39m [2,]    2", "\033[90m   ~~ omitted 96 lines w/ 96 diffs ~~\033[39m")
     )
   })
@@ -319,28 +378,28 @@ local({
       )
     )
   })
-  test_that("Rdiff_obj", {
+  test_that("RdiffObj", {
     a <- matrix(1:3, ncol=1)
     b <- matrix(c(1, 3, 2), ncol=1)
     expect_identical(
-      capture.output(res <- Rdiff_obj(a, b)),
+      capture.output(res <- RdiffObj(a, b)),
       c("", "3c3", "< [2,]    2", "---", "> [2,]    3", "4c4", "< [3,]    3",  "---", "> [3,]    2")
     )
     expect_equal(res, 1)
-    expect_identical(capture.output(Rdiff_obj(a, a)), character())
-    expect_equal(Rdiff_obj(a, a), 0)
+    expect_identical(capture.output(RdiffObj(a, a)), character())
+    expect_equal(RdiffObj(a, a), 0)
 
     # Try with RDS object
 
     f <- tempfile()
     saveRDS(a, f)
     expect_identical(
-      capture.output(res <- Rdiff_obj(f, b)),
+      capture.output(res <- RdiffObj(f, b)),
       c("", "3c3", "< [2,]    2", "---", "> [2,]    3", "4c4", "< [3,]    3",  "---", "> [3,]    2")
     )
     expect_equal(res, 1)
-    expect_identical(capture.output(Rdiff_obj(f, f)), character())
-    expect_equal(Rdiff_obj(a, a), 0)
+    expect_identical(capture.output(RdiffObj(f, f)), character())
+    expect_equal(RdiffObj(a, a), 0)
     unlink(f)
   })}
 )
