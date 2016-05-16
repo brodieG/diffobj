@@ -55,15 +55,17 @@ local({
     mx.3 <- matrix(runif(100), ncol=2)
     mx.4 <- mx.3 <- mx.2
     mx.3[31, 2] <- 111L
-    mx.4[cbind(sample(1:50, 20), sample(1:2, 20, replace=TRUE))] <-
-      sample(-(1:50), 20)
-    diffPrint(mx.2, mx.3, mode="sidebyside")
-    diffPrint(mx.2, mx.4, mode="sidebyside")
+    mx.4[cbind(sample(1:50, 6), sample(1:2, 6, replace=TRUE))] <-
+      sample(-(1:50), 6)
+    diffPrint(mx.2, mx.3)
+    diffPrint(mx.2, mx.3, mode="unified")
     diffPrint(mx.2, mx.4)
+    diffPrint(mx.2, mx.4, mode="unified")
 
-    A <- B <- matrix(sample(1:30), nrow=6)
-    B[sample(1:30, 4)] <- sample(1:30, 4)
-    diffPrint(A, B, mode="sidebyside")
+    A <- B <- matrix(sample(1:80), nrow=16)
+    B[cbind(sample(5:16, 4), sample(1:5, 4))] <- sample(30:80, 4)
+    diffPrint(A, B)
+    diffPrint(A, B, mode="unified")
 
     lst.1 <- list(
       NULL,
@@ -76,11 +78,12 @@ local({
     lst.2$z$z$z$z$z <- 6
     lst.2$z[[1L]][[1L]][2L] <- "bananas"
     lst.2$z[[4L]] <- matrix(12:1, ncol=3)
+    lst.2$z[[4L]][4, ] <- c(3L, 6L, 9L)
     lst.3 <- lst.2
     lst.3[[1]] <- "hello"
 
-    diffPrint(lst.1, lst.3)
     diffPrint(lst.1, lst.3, mode="sidebyside")
+    diffPrint(lst.1, lst.3, mode="unified")
     diffObj(lst.1, lst.3)
     diffObj(lst.1, lst.2)
 
@@ -109,7 +112,8 @@ local({
       "a phrase long enough to wrap a few lines when looked at on a side by side basis",
       "lorem ipsum dolor something or other I don't remember what the whole thing was anyway"
     )
-    diffPrint(chr.3, chr.4, mode="sidebyside")
+    diffPrint(chr.3, chr.4)
+    diffPrint(chr.3, chr.4, mode="unified")
 
     # Shows that line shifts within hunks are matched
 
@@ -125,9 +129,10 @@ local({
       "humpty dumpty TOOK a big fall",
       "a COMPUTER once wrote a phrase"
     )
-    diffChr(chr.5, chr.6, mode="sidebyside")
+    diffChr(chr.5, chr.6)
+    diffChr(chr.5, chr.6, mode="unified")
 
-    diffPrint(1:100, 2:101, mode="side")
+    diffPrint(1:100, 2:101, mode="sidebyside")
     diffPrint(2:101, 1:100)  # add reverse arg?
 
     iris.2 <- iris.c <- transform(iris, Species=as.character(Species))

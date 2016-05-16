@@ -92,8 +92,9 @@ make_diff_fun <- function(capt_fun) {
     # If in side by side mode already then we know we want half-width, and if
     # width is less than 80 we know we want unitfied
 
-    if(mode == "auto" && etc.proc@disp.width < 80L) etc.proc@mode <- "unified"
-    if(mode == "sidebyside") etc.proc <- sideBySide(etc.proc)
+    if(etc.proc@mode == "auto" && etc.proc@disp.width < 80L)
+      etc.proc@mode <- "unified"
+    if(etc.proc@mode == "sidebyside") etc.proc <- sideBySide(etc.proc)
 
     # Capture and diff
 
