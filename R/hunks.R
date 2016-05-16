@@ -361,7 +361,9 @@ process_hunks <- function(x, ctx.val, etc) {
       tar.h <- get_guides(h, etc@guide.lines@target, "tar")
       cur.h <- get_guides(h, etc@guide.lines@current, "cur")
 
-      # since in a context hunk, these two should be exactly the same
+      # since in a context hunk, these two should be exactly the same; note that
+      # we adjust for position in the hunk, so they don't ahve to start
+      # of as the same when they are in etc@guide.lines
 
       if(!identical(tar.h, cur.h))
         stop(
