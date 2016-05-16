@@ -7,11 +7,25 @@ detect_2d_guides <- function(txt) {
   stopifnot(is.character(txt))
   space.rows <- !grepl("^\\s+\\[\\d+,\\]\\s|^\\S", txt)
   head.row <- min(which(space.rows))
+  first.row <- min(which(!space.rows & seq_along(space.rows) > head.row))
   last.row <- max(which(!space.rows))
-  which(
-    space.rows & seq_along(space.rows) >= head.row &
-    seq_along(space.rows) < last.row
-  )
+
+  # Between first.row and last.row, look for repeating sequences of head rows
+  # and non head rows; should have the same number of each for each block in
+  # a wrapped 2d object
+
+  if(last.row > head.row) {
+    space.bw <- space.rows[head.row:last.row]
+    seq.dat <- vapply(
+      split(space.bw, cumsum(space.bw)), FUN=function(x) c(sum(x), sum(!x)),
+      integer(2L)
+    )
+    if(sum(apply(seq.dat, 1L, function(x) length(unique(x)))) == 2L) {
+      # Make sure we don't have ridiculous number of context rows
+      if(seq.dat[[1L]] > 3L) integer(1L) else
+        which(space.rows & seq_along(space.rows) %bw% c(head.row, last.row))
+    } else integer(0L)
+  } else integer(0L)
 }
 # Definitely approximate matching, we are lazy in matching the `$` versions
 # due to the possibility of pathological names (e.g., containing `)
