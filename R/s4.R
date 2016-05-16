@@ -118,7 +118,7 @@ setClass(
     cur.exp="ANY",
     tar.banner="charOrNULL",
     cur.banner="charOrNULL",
-    guides="logical",
+    guides="ANY",
     guide.lines="GuideLines",
     disp.width="integer",
     line.width="integer",
@@ -129,20 +129,28 @@ setClass(
   ),
   prototype=list(
     disp.width=0L, text.width=0L, line.width=0L,
-    text.width.half=0L, line.width.half=0L
+    text.width.half=0L, line.width.half=0L,
+    guides=function(obj, obj.as.chr) integer(0L)
   ),
   validity=function(object){
     int.1L.and.pos <- c(
-      "disp.width", "line.width", "text.width", "line.width.half", 
+      "disp.width", "line.width", "text.width", "line.width.half",
       "text.width.half"
     )
     for(i in int.1L.and.pos)
       if(!is.int.1L(slot(object, i)) || slot(object, i) < 0L)
         return(sprintf("Slot `%s` must be integer(1L) and positive", i))
-    TF <- c("ignore.white.space", "convert.hz.white.space", "guides")
+    TF <- c("ignore.white.space", "convert.hz.white.space")
     for(i in TF)
       if(!is.TF(slot(object, i)) || slot(object, i) < 0L)
         return(sprintf("Slot `%s` must be TRUE or FALSE", i))
+    if(!is.TF(object@guides) && !is.function(object@guides))
+      return("Slot `guides` must be TRUE, FALSE, or a function")
+    if(
+      is.function(object@guides) &&
+      !isTRUE(v.g <- is.valid.guide.fun(object@guides))
+    )
+      return(sprintf("Slot `guides` is not a valid guide function (%s)", v.g))
     TRUE
   }
 )

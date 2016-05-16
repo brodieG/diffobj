@@ -72,6 +72,20 @@ is.valid.palette.param <- function(x, param, palette) {
     )
   else TRUE
 }
+is.valid.guide.fun <- function(x) {
+  if(!is.function(x)) {
+    "is not a function"
+  } else if(length(formals(x)) < 2L) {
+    "does not have at least two arguments"
+  } else if("..." %in% names(formals(x))[1:2]) {
+    "cannot have `...` as one of the first two arguments"
+  } else {
+    nm.forms <- vapply(formals(x), is.name, logical(1L))
+    forms.chr <- character(length(nm.forms))
+    forms.chr[nm.forms] <- as.character(formals(x)[nm.forms])
+    if(any(tail(!nzchar(forms.chr) & nm.forms, -2L)))
+      "cannot have any non-optional arguments other than first two" else TRUE
+} }
 # Checks common arguments across functions
 
 check_args <- function(
@@ -141,9 +155,18 @@ check_args <- function(
         line.limit, "line.limit",
         ", or \"auto\" or the result of calling `auto_line_limit`"
     ) )
+  # guides
+
+  if(!is.TF(guides) && !is.function(guides))
+    err("Argument `guides` must be TRUE, FALSE, or a function")
+  if(is.function(guides) && !isTRUE(g.f.err <- is.valid.guide.fun(guides)))
+    err("Argument `guides` ", g.f.err)
+  if(!is.function(guides) && !guides)
+    guides <- function(obj, obj.as.chr) integer(0L)
+
   # check T F args
 
-  TF.vars <- c("ignore.white.space", "convert.hz.white.space", "guides")
+  TF.vars <- c("ignore.white.space", "convert.hz.white.space")
   msg.base <- "Argument `%s` must be TRUE or FALSE."
   for(x in TF.vars) if(!is.TF(get(x, inherits=FALSE))) err(sprintf(msg.base, x))
 

@@ -29,12 +29,16 @@ diffPrint(target, current, ...)
 
 \item{mode}{character(1L), one of:
 \itemize{
-  \item \dQuote{unified}: diff mode used by \code{git diff}, and the
-    default here
+  \item \dQuote{unified}: diff mode used by \code{git diff}
   \item \dQuote{sidebyside}: line up the differences side by side
   \item \dQuote{context}: show the target and current hunks in their
     entirety; this mode takes up a lot of screen space but makes it easier
     to see what the objects actually look like
+  \item \dQuote{auto}: default mode; pick one of the above, will favor
+    \dQuote{sidebyside} unless \code{getOption("width")} is less than 80,
+    or in \code{diffPrint} and objects are dimensioned and do not fit side
+    by side, or in \code{diffChr}, \code{diffDeparse}, \code{diffFile} and
+    output does not fit in side by side without wrapping
 }}
 
 \item{context}{integer(1L) how many lines of context are shown on either side
@@ -89,6 +93,12 @@ display the diff output.  If \dQuote{auto} will use a pager if output is
 to console and exceeds screen height, or will always use a pager if in
 interactive mode, not in running in \code{knitr} and in \dQuote{html}
 format.}
+
+\item{guides}{TRUE (default), FALSE, or a function that accepts at least two
+arguments and requires no more than two arguments.  Guides
+are additional context lines that are not strictly part of a hunk, but
+provide important contextual data (e.g. column headers).  See
+\code{\link{printGuideLines}} for more details.}
 
 \item{max.diffs}{integer(1L), number of differences after which we abandon
 the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to

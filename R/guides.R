@@ -133,13 +133,21 @@ detect_array_guides <- function(txt, dim.n) {
     }
   } else integer(0L)
 }
+#' Generic Methods to Implement Flexible Guide Line Computations
+#'
+#' These functions are most useful
 #' @export
+#' @rdname guideLines
+
 setGeneric(
-  "guideLines", function(obj, obj.as.chr) StandardGeneric("guideLines")
+  "printGuideLines",
+  function(obj, obj.as.chr) StandardGeneric("printGuideLines")
 )
 setMethod(
-  "guideLines", c("ANY", "character"),
+  "printGuideLines", c("ANY", "character"),
   function(obj, obj.as.chr) {
+    if(anyNA(obj.as.chr))
+      stop("Cannot compute guides if `obj.as.chr` contains NAs")
     if(length(dim(obj)) == 2L) {
       detect_2d_guides(obj.as.chr)
     } else if (is.array(obj)) {
@@ -149,16 +157,52 @@ setMethod(
     } else integer(0L)
   }
 )
+#' @export
+#' @rdname guideLines
+
+setGeneric(
+  "strGuideLines",
+  function(obj, obj.as.chr) StandardGeneric("strGuideLines")
+)
+setMethod("strGuideLines", c("ANY", "character"),
+  function(obj, obj.as.chr) {
+    if(anyNA(obj.as.chr))
+      stop("Cannot compute guides if `obj.as.chr` contains NAs")
+    starts.w.dollar <- grepl("^ \\$", obj.as.chr)
+    which(starts.w.dollar & !c(tail(starts.w.dollar, -1L), FALSE))
+} )
+
+#' @export
+#' @rdname guideLines
+
+setGeneric(
+  "chrGuideLines",
+  function(obj, obj.as.chr) StandardGeneric("chrGuideLines")
+)
+setMethod("chrGuideLines", c("ANY", "character"),
+  function(obj, obj.as.chr) integer(0L)
+)
+#' @export
+#' @rdname guideLines
+
+setGeneric(
+  "deparseGuideLines",
+  function(obj, obj.as.chr) StandardGeneric("chrGuideLines")
+)
+setMethod("deparseGuideLines", c("ANY", "character"),
+  function(obj, obj.as.chr) integer(0L)
+)
+
 # Helper function to verify guide line computation worked out
 
-apply_guides <- function(obj, obj.as.chr) {
-  guide <- try(guideLines(obj, obj.as.chr))
+apply_guides <- function(obj, obj.as.chr, guide_fun) {
+  guide <- try(guide_fun(obj, obj.as.chr))
   msg.extra <- paste0(
-    "If you did not define custom `guideLines` methods contact maintainer."
+    "If you did not define custom `*GuideLines` methods contact maintainer."
   )
   if(inherits(guide, "try-error"))
     stop(
-      "`guideLines` method produced an error when attempting to compute guide ",
+      "`*GuideLines` method produced an error when attempting to compute guide ",
       "lines; ", msg.extra
     )
   if(
@@ -166,8 +210,13 @@ apply_guides <- function(obj, obj.as.chr) {
     !all(guide %in% seq_along(obj.as.chr))
   )
     stop(
-      "`guideLines` method must produce an integer vector containing unique ",
+      "`*GuideLines` method must produce an integer vector containing unique ",
       "index values for the `obj.as.chr` vector; ", msg.extra
     )
   guide
+}
+make_guides <- function(target, tar.capt, current, cur.capt, guide_fun) {
+  tar.guides <- apply_guides(target, tar.capt, guide_fun)
+  cur.guides <- apply_guides(current, cur.capt, guide_fun)
+  GuideLines(target=tar.guides, current=cur.guides)
 }

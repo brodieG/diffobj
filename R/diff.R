@@ -186,6 +186,11 @@ make_diff_fun <- function(capt_fun) {
 #'   to console and exceeds screen height, or will always use a pager if in
 #'   interactive mode, not in running in \code{knitr} and in \dQuote{html}
 #'   format.
+#' @param guides TRUE (default), FALSE, or a function that accepts at least two
+#'   arguments and requires no more than two arguments.  Guides
+#'   are additional context lines that are not strictly part of a hunk, but
+#'   provide important contextual data (e.g. column headers).  See
+#'   \code{\link{printGuideLines}} for more details.
 #' @param line.limit integer(2L) or integer(1L), if length 1 how many lines of
 #'   output to show, where \code{-1} means no limit.  If length 2, the first
 #'   value indicates the threshold of screen lines to begin truncating output,

@@ -269,6 +269,13 @@ char_diff <- function(x, y, context=-1L, etc, diff.mode, warn) {
 line_diff <- function(
   target, current, tar.capt, cur.capt, context, etc, warn=TRUE, strip=TRUE
 ) {
+  if(!is.valid.guide.fun(etc@guides))
+    stop(
+      "Logic Error: guides are not a valid guide function; contact maintainer"
+    )
+  etc@guide.lines <-
+    make_guides(target, tar.capt, current, cur.capt, etc@guides)
+
   if(strip) {
     tar.capt <- strip_hz_control(tar.capt, stops=etc@tab.stops)
     cur.capt <- strip_hz_control(cur.capt, stops=etc@tab.stops)

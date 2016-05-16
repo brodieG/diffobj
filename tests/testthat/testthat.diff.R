@@ -157,6 +157,9 @@ local({
     diffObj(iris, iris.3)
     diffObj(iris, iris.3, mode="sidebyside")
 
+    diffPrint(iris, iris.4, mode="sidebyside", guides=function(x, y) integer())
+    diffPrint(iris, iris.4, mode="sidebyside", guides=FALSE)
+
     # Narrow versions to fit side by side
 
     iris.3a <- setNames(iris.3, c("S.L", "S.W", "P.L", "P.W", "Sp"))

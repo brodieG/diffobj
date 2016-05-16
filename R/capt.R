@@ -24,7 +24,6 @@ capture <- function(x, etc, err) {
 
 capt_print <- function(target, current, etc, err, ...){
   dots <- list(...)
-  guides <- etc@guides
   print.match <- try(
     match.call(
       get("print", envir=etc@frame), as.call(c(list(quote(print), x=NULL), dots)),
@@ -55,11 +54,8 @@ capt_print <- function(target, current, etc, err, ...){
     set_mode(etc, tar.capt, cur.capt)
   } else if(etc@mode == "auto") sideBySide(etc) else etc
 
-  if(guides) {
-    tar.guides <- apply_guides(target, tar.capt)
-    cur.guides <- apply_guides(current, cur.capt)
-    etc@guide.lines <- GuideLines(target=tar.guides, current=cur.guides)
-  }
+  if(isTRUE(etc@guides)) etc@guides <- printGuideLines
+
   diff <- line_diff(target, current, tar.capt, cur.capt, etc=etc, warn=TRUE)
   diff
 }
@@ -157,6 +153,8 @@ capt_str <- function(target, current, etc, err, ...){
   safety <- 0L
   warn <- TRUE
 
+  if(isTRUE(etc@guides)) etc@guides <- strGuideLines
+
   repeat{
     if((safety <- safety + 1L) > max.depth && !first.loop)
       stop(
@@ -243,6 +241,7 @@ capt_chr <- function(target, current, etc, err, ...){
   cur.capt <- if(!is.character(current)) as.character(current, ...) else current
 
   etc <- set_mode(etc, tar.capt, cur.capt)
+  if(isTRUE(etc@guides)) etc@guides <- chrGuideLines
 
   line_diff(
     target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
@@ -254,6 +253,7 @@ capt_deparse <- function(target, current, etc, err, ...){
   cur.capt <- deparse(current, ...)
 
   etc <- set_mode(etc, tar.capt, cur.capt)
+  if(isTRUE(etc@guides)) etc@guides <- deparseGuideLines
 
   line_diff(
     target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
