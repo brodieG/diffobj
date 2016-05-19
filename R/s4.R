@@ -371,31 +371,41 @@ setMethod("show", "DiffSummary",
         any(abs(orig.norm - scaled.norm) > threshold)
       }
       # Scale the data down as small as possible provided we don't violate
-      # tolerance.  Start at one line and keep doubling lines until we no
-      # longer violate
+      # tolerance.
 
+      diffs.gz <- diffs > 1L
+      diffs.nz <- diffs[diffs.gz]
       safety <- 10000L
-      lines <- 1L
-      lo.bound <- 0L
-      hi.bound <- 0L
+      tol <- width / 4
+      diffs.scale <- diffs
+
+      lo.bound <- lo <- length(diffs.nz)
+      hi.bound <- hi <- sum(diffs.nz)
+
       offset <- 0L
       scale.err.largest <- 0L
-      while((!hi.bound || lines < hi.bound) && lines > lo.bound) {
+      repeat {
+        mp <- round((hi.bound - lo.bound) / 2) + lo.bound
         safety <- safety - 1L
         if(safety < 0L)
           stop("Logic Error: likely infinite loop; contact maintainer.")
+
         # Need to scale down; we know we need at least one char per value
-        diffs.scale <- round(diffs * width * lines / sum(diffs))
-        diffs.scale[!diffs.scale & !!diffs] <- 1
-        if(scale_err(diffs, diffs.scale, scale.threshold)) {
+        diffs.nz.s <- pmax(
+          round(diffs.nz * (mp - lo) / (hi - lo)), 1L
+        )
+        diffs.scale[diffs.gz] <- diffs.nz.s
+        scale.err <- scale_err(diffs, diffs.scale, scale.threshold)
+        break.cond <- mp <= lo.bound + tol || mp >= hi.bound - tol
+
+        if(scale.err) {
           # error, keep increasing lines
-          lo.bound <- lines
-          lines <- if(hi.bound)
-            lines + ceiling((hi.bound - lo.bound) / 2) else lines * 2
+          lo.bound <- mp
         } else {
           # no error, check if we can generate an error with a smaller value
-          hi.bound <- lines
-          lines <- lines - ceiling((hi.bound - lo.bound) / 2)
+          # note hi.bound is always guaranteed to not produce error
+          if(break.cond) break
+          hi.bound <- mp
         }
       }
       diffs.fin <- diffs.scale
