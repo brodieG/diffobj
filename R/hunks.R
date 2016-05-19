@@ -635,6 +635,9 @@ update_hunks <- function(hunk.grps, A.chr, B.chr) {
         }
   ) )
 }
+# Helper fun
+
+line_count <- function(rng) if(rng[[1L]]) rng[[2L]] - rng[[1L]] + 1L else 0L
 
 # Count how many "lines" of differences there are in the  hunks
 #
@@ -648,13 +651,24 @@ count_diffs <- function(x) {
   sum(
     vapply(
       unlist(x, recursive=FALSE),
-      function(y) {
-        if(y$context) 0L else {
-          (if(y$tar.rng[[1L]]) y$tar.rng[[2L]] - y$tar.rng[[1L]] + 1L else 0L) +
-          (if(y$cur.rng[[1L]]) y$cur.rng[[2L]] - y$cur.rng[[1L]] + 1L else 0L)
-      } },
+      function(y)
+        if(y$context) 0L else line_count(y$tar.rng) + line_count(y$cur.rng) ,
       integer(1L)
 ) ) }
+# More detailed counting of differences; note that context counting is messed
+# up b/c context's are duplicated around each hunk.  This is primarily used for
+# the summary method
+
+count_diffs_detail <- function(x) {
+  x.flat <- unlist(x, recursive=FALSE)
+  guides <- vapply(x.flat, "[[", logical(1L), "guide")
+  vapply(
+    x.flat[!guides],
+    function(y)
+      if(y$context) c(match=line_count(y$tar.rng), delete=0L, add=0L)
+      else c(match=0L, delete=line_count(y$tar.rng), add=line_count(y$cur.rng)),
+    integer(3L)
+) }
 
 count_diff_hunks <- function(x)
   sum(!vapply(unlist(x, recursive=FALSE), "[[", logical(1L), "context"))

@@ -89,8 +89,7 @@ GuideLines <- setClass(
     TRUE
   }
 )
-setClass(
-  "Gutter",
+setClass("Gutter",
   slots= c(
     insert="character", insert.ctd="character",
     delete="character", delete.ctd="character",
@@ -100,8 +99,7 @@ setClass(
     width="integer"
   )
 )
-setClass(
-  "Settings",
+setClass("Settings",
   slots=c(
     mode="character",             # diff output mode
     context="doAutoCOrInt",
@@ -180,8 +178,7 @@ setMethod("sideBySide", "Settings",
 # Object deprecated in favor of list because to slow to instantiate and possible
 # instantiated as many times as there are hunks, + 1
 
-setClass(
-  "DiffDiffs",
+setClass("DiffDiffs",
   slots=c(
     hunks="list",
     count.diffs="integer"  # used for `str` with auto `max.level`
@@ -215,8 +212,7 @@ setClass(
     TRUE
   }
 )
-setClass(
- "Diff",
+setClass("Diff",
   slots=c(
     target="ANY",                 # Actual object
     tar.capt="character",         # The captured representation
@@ -276,6 +272,168 @@ setMethod("show", "Diff",
     invisible(NULL)
   }
 )
+setClass("DiffSummary",
+  slots=c(
+    max.lines="integer", width="integer", style="Style",
+    diffs="matrix", all.eq="character"
+  ),
+  validity=function(object) {
+    if(
+      !is.integer(object@diffs) &&
+      !identical(rownames(object@diffs), c("match", "delete", "add"))
+    )
+      return("Invalid diffs object")
+    TRUE
+  }
+)
+
+#' @export
+
+setMethod("summary", "Diff",
+  function(
+    object, max.lines=10L, width=getOption("width"), ...
+  ) {
+    if(!is.int.1L(max.lines) || max.lines < 1L)
+      stop("Argument `max.lines` must be integer(1L) and strictly positive")
+    max.lines <- as.integer(max.lines)
+    if(!is.int.1L(width) || width < 0L)
+      stop("Argument `width` must be integer(1L) and positive")
+    if(width < 10L) width <- 10L
+
+    diffs.c <- count_diffs_detail(object@diffs$hunks)
+    # remove context hunks that are duplicated
+    match.seq <- rle(!!diffs.c["match", ])
+    match.keep <- unlist(
+      lapply(
+        match.seq$lengths,
+        function(x) if(x == 2L) c(TRUE, FALSE) else TRUE
+    ) )
+    diffs <- diffs.c[, match.keep, drop=FALSE]
+    all.eq <- all.equal(object@target, object@current)
+    new(
+      "DiffSummary", max.lines=max.lines, width=width, style=object@etc@style,
+      diffs=diffs, all.eq=if(isTRUE(all.eq)) character(0L) else all.eq
+    )
+  }
+)
+#' @export
+
+setMethod("show", "DiffSummary",
+  function(object) {
+    hunks <- sum(!object@diffs["match", ])
+    res <- c(apply(object@diffs, 1L, sum))
+
+    if(!hunks) {
+      if(length(object@all.eq)) {
+        eq.txt <- paste0("- ", object@all.eq)
+        cat(
+          c("No visible differences, but objects are not `all.equal`:", eq.txt),
+          sep="\n"
+        )
+      } else {
+        cat("Objects are `all.equal`\n")
+      }
+    } else {
+      cat("\n")
+      cat(
+        sprintf(
+          paste0(
+             "Found differences in %d hunks:\n  %d insertions, %d deletions, ",
+             "%d matches (lines)\n\n"
+          ),
+          hunks, res[["add"]], res[["delete"]], res[["match"]]
+      ) )
+      # Compute character screen display
+
+      pad <- 2L
+      width <- object@width - pad
+
+      max.chars <- object@max.lines * width
+      diffs <- object@diffs
+
+      diffs.fin <- if(max.chars < sum(diffs)) {
+        # Need to scale down; we know we need at least one char per value
+        diffs.scale <- round(diffs * max.chars / sum(diffs))
+        diffs.scale[!diffs.scale & !!diffs] <- 1
+        diffs.max <- diffs.max.i <- max(diffs.scale)
+        while(
+          (diffs.over <- sum(diffs.scale) - max.chars) > 0L &&
+          diffs.max.i > 1L
+        ) {
+          diffs.max.i <- diffs.max.i - 1L
+          diffs.scale[] <- ceiling(diffs.scale * diffs.max.i / diffs.max)
+        }
+        diffs.scale
+      } else diffs
+
+      # Figure out if we're going to be using ANSI
+
+      cat("Diff Map (location and scale approximate):\n")
+
+      diffs.txt <- character(length(diffs.fin))
+      attributes(diffs.txt) <- attributes(diffs.fin)
+      symb <- c(match=".", add="I", delete="D")
+      use.ansi <- FALSE
+
+      for(i in names(symb)) {
+        test <- diffs.txt[i, ] <- vapply(
+          diffs.fin[i, ],
+          function(x) paste0(rep(symb[[i]], x), collapse=""),
+          character(1L)
+        )
+      }
+      # Trim text down to what is displayable in the allowed lines
+
+      txt <- do.call(paste0, as.list(c(diffs.txt)))
+      txt <- substr(txt, 1, max.chars)
+      txt.w <- unlist(wrap(txt, width))
+
+      # If applicable, apply ansi styles
+
+      if(is(object@style, "StyleAnsi")) {
+        old.crayon.opt <-
+          options(crayon.enabled=is(object@style, "StyleAnsi"))
+        on.exit(options(old.crayon.opt), add=TRUE)
+        s.f <- object@style@funs
+        txt.w <- gsub(
+          symb[["match"]], s.f@text.match(symb[["match"]]),
+          gsub(
+            symb[["add"]],
+            s.f@text.insert(s.f@word.insert(symb[["add"]])),
+            gsub(
+              symb[["delete"]],
+              s.f@text.delete(s.f@word.delete(symb[["delete"]])),
+              txt.w, fixed=TRUE
+            ),
+            fixed=TRUE
+          ),
+          fixed=TRUE
+        )
+      }
+      extra <- if(sum(diffs.fin) > max.chars) {
+        diffs.omitted <- diffs.fin
+        diffs.under <- cumsum(diffs.omitted) <= max.chars
+        diffs.omitted[diffs.under] <- 0L
+        res.om <- apply(diffs.omitted, 1L, sum)
+        sprintf(
+          paste0(
+            "omitting %d deletion%s, %d insertion%s, and %d matche%s; ",
+            "increase `max.lines` to %d to show full map"
+          ),
+          res.om[["delete"]], if(res.om[["delete"]] != 1L) "s" else "",
+          res.om[["add"]], if(res.om[["add"]] != 1L) "s" else "",
+          res.om[["match"]], if(res.om[["match"]] != 1L) "s" else "",
+          ceiling(sum(diffs) / width)
+        )
+      } else character(0L)
+
+      cat(paste0("  ", txt.w), sep="\n")
+      if(length(extra)) cat(strwrap(extra, indent=2L, exdent=2L), sep="\n")
+      cat("\n")
+      invisible(NULL)
+  } }
+)
+
 # Compute what fraction of the lines in target and current actually end up
 # in the diff; some of the complexity is driven by repeated context hunks
 
@@ -299,11 +457,15 @@ setMethod("any", "Diff",
     dots <- list(...)
     if(length(dots))
       stop("`any` method for `Diff` supports only one argument")
-    any(
+    res <- any(
       which(
         !vapply(
           unlist(x@diffs$hunks, recursive=FALSE), "[[", logical(1L), "context"
-) ) ) } )
+    ) ) )
+    if(!res && !isTRUE(all.equal(x@target, x@current)))
+      warning("No visible differences, but objects are NOT `all.equal`.")
+    res
+} )
 #' @rdname diffobj_s4method_doc
 
 setMethod("any", "DiffDiffs",
