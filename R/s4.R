@@ -275,7 +275,8 @@ setMethod("show", "Diff",
 setClass("DiffSummary",
   slots=c(
     max.lines="integer", width="integer", style="Style",
-    diffs="matrix", all.eq="character"
+    diffs="matrix", all.eq="character",
+    scale.threshold="numeric"
   ),
   validity=function(object) {
     if(
@@ -291,7 +292,7 @@ setClass("DiffSummary",
 
 setMethod("summary", "Diff",
   function(
-    object, max.lines=10L, width=getOption("width"), ...
+    object, scale.threshold=0.25, max.lines=10L, width=getOption("width"), ...
   ) {
     if(!is.int.1L(max.lines) || max.lines < 1L)
       stop("Argument `max.lines` must be integer(1L) and strictly positive")
@@ -299,6 +300,11 @@ setMethod("summary", "Diff",
     if(!is.int.1L(width) || width < 0L)
       stop("Argument `width` must be integer(1L) and positive")
     if(width < 10L) width <- 10L
+    if(
+      !is.numeric(scale.threshold) || length(scale.threshold) != 1L ||
+      is.na(scale.threshold) || !scale.threshold %bw% c(0, 1)
+    )
+      stop("Argument `scale.threshold` must be numeric(1L) between 0 and 1")
 
     diffs.c <- count_diffs_detail(object@diffs$hunks)
     # remove context hunks that are duplicated
@@ -312,7 +318,8 @@ setMethod("summary", "Diff",
     all.eq <- all.equal(object@target, object@current)
     new(
       "DiffSummary", max.lines=max.lines, width=width, style=object@etc@style,
-      diffs=diffs, all.eq=if(isTRUE(all.eq)) character(0L) else all.eq
+      diffs=diffs, all.eq=if(isTRUE(all.eq)) character(0L) else all.eq,
+      scale.threshold=scale.threshold
     )
   }
 )
@@ -322,6 +329,7 @@ setMethod("show", "DiffSummary",
   function(object) {
     hunks <- sum(!object@diffs["match", ])
     res <- c(apply(object@diffs, 1L, sum))
+    scale.threshold <- object@scale.threshold
 
     if(!hunks) {
       if(length(object@all.eq)) {
@@ -350,23 +358,47 @@ setMethod("show", "DiffSummary",
 
       max.chars <- object@max.lines * width
       diffs <- object@diffs
+      scale.threshold <- object@scale.threshold
 
-      diffs.fin <- if(max.chars < sum(diffs)) {
+      # Helper fun to determine if the scale skewed our data too much
+
+      scale_err <- function(orig, scaled, threshold) {
+        zeroes <- !orig
+        orig.nz <- orig[!zeroes]
+        scaled.nz <- scaled[!zeroes]
+        orig.norm <- orig.nz / max(orig.nz)
+        scaled.norm <- scaled.nz / max(scaled.nz)
+        any(abs(orig.norm - scaled.norm) > threshold)
+      }
+      # Scale the data down as small as possible provided we don't violate
+      # tolerance.  Start at one line and keep doubling lines until we no
+      # longer violate
+
+      safety <- 10000L
+      lines <- 1L
+      lo.bound <- 0L
+      hi.bound <- 0L
+      offset <- 0L
+      scale.err.largest <- 0L
+      while((!hi.bound || lines < hi.bound) && lines > lo.bound) {
+        safety <- safety - 1L
+        if(safety < 0L)
+          stop("Logic Error: likely infinite loop; contact maintainer.")
         # Need to scale down; we know we need at least one char per value
-        diffs.scale <- round(diffs * max.chars / sum(diffs))
+        diffs.scale <- round(diffs * width * lines / sum(diffs))
         diffs.scale[!diffs.scale & !!diffs] <- 1
-        diffs.max <- diffs.max.i <- max(diffs.scale)
-        while(
-          (diffs.over <- sum(diffs.scale) - max.chars) > 0L &&
-          diffs.max.i > 1L
-        ) {
-          diffs.max.i <- diffs.max.i - 1L
-          diffs.scale[] <- ceiling(diffs.scale * diffs.max.i / diffs.max)
+        if(scale_err(diffs, diffs.scale, scale.threshold)) {
+          # error, keep increasing lines
+          lo.bound <- lines
+          lines <- if(hi.bound)
+            lines + ceiling((hi.bound - lo.bound) / 2) else lines * 2
+        } else {
+          # no error, check if we can generate an error with a smaller value
+          hi.bound <- lines
+          lines <- lines - ceiling((hi.bound - lo.bound) / 2)
         }
-        diffs.scale
-      } else diffs
-
-      # Figure out if we're going to be using ANSI
+      }
+      diffs.fin <- diffs.scale
 
       cat("Diff Map (location and scale approximate):\n")
 
@@ -388,7 +420,7 @@ setMethod("show", "DiffSummary",
       txt <- substr(txt, 1, max.chars)
       txt.w <- unlist(wrap(txt, width))
 
-      # If applicable, apply ansi styles
+      # Apply ansi styles if warranted
 
       if(is(object@style, "StyleAnsi")) {
         old.crayon.opt <-
@@ -423,7 +455,7 @@ setMethod("show", "DiffSummary",
           res.om[["delete"]], if(res.om[["delete"]] != 1L) "s" else "",
           res.om[["add"]], if(res.om[["add"]] != 1L) "s" else "",
           res.om[["match"]], if(res.om[["match"]] != 1L) "s" else "",
-          ceiling(sum(diffs) / width)
+          ceiling(sum(diffs.scale) / width)
         )
       } else character(0L)
 
