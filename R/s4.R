@@ -292,7 +292,7 @@ setClass("DiffSummary",
 
 setMethod("summary", "Diff",
   function(
-    object, scale.threshold=0.25, max.lines=10L, width=getOption("width"), ...
+    object, scale.threshold=0.1, max.lines=50L, width=getOption("width"), ...
   ) {
     if(!is.int.1L(max.lines) || max.lines < 1L)
       stop("Argument `max.lines` must be integer(1L) and strictly positive")
@@ -410,7 +410,37 @@ setMethod("show", "DiffSummary",
       }
       diffs.fin <- diffs.scale
 
-      cat("Diff Map (location and scale approximate):\n")
+      # Compute scaling factors
+
+      scale.one <- diffs.scale == 1
+      scale.gt.one <- diffs.scale > 1
+      s.o.txt <- if(any(scale.one)) {
+        s.o.r <- unique(range(diffs[scale.one]))
+        if(length(s.o.r) == 1L)
+          sprintf("%d:1 for single chars", s.o.r)
+        else
+          sprintf("%d-%d:1 for single chars", s.o.r[1L], s.o.r[2L])
+      }
+
+      s.gt.o.txt <- if(any(scale.gt.one)) {
+        s.gt.o.r <- unique(
+          range(round(diffs[scale.gt.one] / diffs.scale[scale.gt.one]))
+        )
+        if(length(s.gt.o.r) == 1L)
+          sprintf("%d:1 for char seqs", s.gt.o.r)
+        else
+          sprintf("%d-%d:1 for char seqs", s.gt.o.r[1L], s.gt.o.r[2L])
+      }
+
+      map.txt <- sprintf(
+        "Diff map (line:char scale is %s%s%s):\n",
+        if(!is.null(s.o.txt)) s.o.txt else "",
+        if(is.null(s.o.txt) && !is.null(s.gt.o.txt)) "" else ", ",
+        if(!is.null(s.gt.o.txt)) s.gt.o.txt else ""
+      )
+      cat(strwrap(map.txt, width=object@width), sep="\n")
+
+      # Render actual map
 
       diffs.txt <- character(length(diffs.fin))
       attributes(diffs.txt) <- attributes(diffs.fin)
@@ -470,7 +500,8 @@ setMethod("show", "DiffSummary",
       } else character(0L)
 
       cat(paste0("  ", txt.w), sep="\n")
-      if(length(extra)) cat(strwrap(extra, indent=2L, exdent=2L), sep="\n")
+      if(length(extra))
+        cat(strwrap(extra, indent=2L, exdent=2L, width=width), sep="\n")
       cat("\n")
       invisible(NULL)
   } }
