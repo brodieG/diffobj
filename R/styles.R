@@ -95,9 +95,9 @@ StyleFuns <- setClass(
   prototype=list(
     container=identity, row=identity,
     banner=identity, banner.insert=identity, banner.delete=identity,
-    line=identity, line.insert=identity, line.delete=identity, 
+    line=identity, line.insert=identity, line.delete=identity,
     line.match=identity, line.guide=identity,
-    text=identity, text.insert=identity, text.delete=identity, 
+    text=identity, text.insert=identity, text.delete=identity,
     text.match=identity, text.guide=identity,
     gutter=identity, gutter.pad=identity,
     gutter.insert=identity, gutter.insert.ctd=identity,
@@ -199,19 +199,23 @@ Style <- setClass(
     ) )
   }
 )
-setMethod("show", "Style",
-  function(object) {
-    mx1 <- mx2 <- matrix(1:50, ncol=2)
-    mx2[c(6, 40)] <- 99L
-    d.p <- diffPrint(mx1, mx2, context=1, line.limit=6, style=object)
-    show(d.p)
-} )
+setClass("Light", contains="VIRTUAL")
+setClass("Dark", contains="VIRTUAL")
+setClass("Neutral", contains="VIRTUAL")
+
+setClass("Ansi", contains="VIRTUAL")
+setClass("Html", contains="VIRTUAL")
+
+setClass("Rgb", contains="VIRTUAL")
+setClass("Yb", contains="VIRTUAL")
+
 #' @export StyleAnsi
 #' @exportClass StyleAnsi
 #' @rdname Style
 
 StyleAnsi <- setClass(
-  "StyleAnsi", contains="Style", prototype=list(funs=StyleFunsAnsi()),
+  "StyleAnsi", contains=c("Style", "Ansi"),
+  prototype=list(funs=StyleFunsAnsi()),
 )
 setMethod(
   "initialize", "StyleAnsi",
@@ -224,13 +228,15 @@ setMethod(
 #' @exportClass StyleAnsi8NeutralRgb
 #' @rdname Style
 
-StyleAnsi8NeutralRgb <- setClass("StyleAnsi8NeutralRgb", contains="StyleAnsi")
+StyleAnsi8NeutralRgb <- setClass(
+  "StyleAnsi8NeutralRgb", contains=c("StyleAnsi", "Neutral", "Rgb")
+)
 #' @export StyleAnsi8NeutralYb
 #' @exportClass StyleAnsi8NeutralYb
 #' @rdname Style
 
 StyleAnsi8NeutralYb <- setClass(
-  "StyleAnsi8NeutralYb", contains="StyleAnsi",
+  "StyleAnsi8NeutralYb", contains=c("StyleAnsi", "Neutral", "Yb"),
   prototype=list(
     funs=StyleFunsAnsi(
       word.insert=crayon::blue, word.delete=crayon::yellow,
@@ -245,7 +251,7 @@ StyleAnsi8NeutralYb <- setClass(
 #' @rdname Style
 
 StyleAnsi256LightRgb <- setClass(
-  "StyleAnsi256LightRgb", contains="StyleAnsi",
+  "StyleAnsi256LightRgb", contains=c("StyleAnsi", "Light", "Rgb"),
   prototype=list(
     funs=StyleFunsAnsi(
       text.insert=crayon::make_style(rgb(4, 5, 4, maxColorValue=5), bg=TRUE),
@@ -263,7 +269,7 @@ StyleAnsi256LightRgb <- setClass(
 #' @rdname Style
 
 StyleAnsi256LightYb <- setClass(
-  "StyleAnsi256LightYb", contains="StyleAnsi",
+  "StyleAnsi256LightYb", contains=c("StyleAnsi", "Light", "Yb"),
   prototype=list(
     funs=StyleFunsAnsi(
       text.insert=crayon::make_style(rgb(3, 3, 5, maxColorValue=5), bg=TRUE),
@@ -281,7 +287,7 @@ StyleAnsi256LightYb <- setClass(
 #' @rdname Style
 
 StyleAnsi256DarkRgb <- setClass(
-  "StyleAnsi256DarkRgb", contains="StyleAnsi",
+  "StyleAnsi256DarkRgb", contains=c("StyleAnsi", "Dark", "Rgb"),
   prototype=list(
     funs=StyleFunsAnsi(
       text.insert=crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE),
@@ -298,7 +304,7 @@ StyleAnsi256DarkRgb <- setClass(
 #' @rdname Style
 
 StyleAnsi256DarkYb <- setClass(
-  "StyleAnsi256DarkYb", contains="StyleAnsi",
+  "StyleAnsi256DarkYb", contains=c("StyleAnsi", "Dark", "Yb"),
   prototype=list(
     funs=StyleFunsAnsi(
       text.insert=crayon::make_style(rgb(0, 0, 1, maxColorValue=5), bg=TRUE),
@@ -316,7 +322,7 @@ StyleAnsi256DarkYb <- setClass(
 #' @rdname Style
 
 StyleHtml <- setClass(
-  "StyleHtml", contains="Style",
+  "StyleHtml", contains=c("Style", "Html"),
   slots=c(
     css="character", css.mode="character", escape.html.entities="logical"
   ),
@@ -414,7 +420,7 @@ setMethod("initialize", "StyleHtml",
 #' @rdname Style
 
 StyleHtmlLightRgb <- setClass(
-  "StyleHtmlLightRgb", contains="StyleHtml"
+  "StyleHtmlLightRgb", contains=c("StyleHtml", "Light", "Rgb")
 )
 setMethod("initialize", "StyleHtmlLightRgb",
   function(.Object, ...) {
@@ -427,7 +433,7 @@ setMethod("initialize", "StyleHtmlLightRgb",
 #' @rdname Style
 
 StyleHtmlLightYb <- setClass(
-  "StyleHtmlLightYb", contains="StyleHtml",
+  "StyleHtmlLightYb", contains=c("StyleHtml", "Light", "Yb"),
 )
 setMethod("initialize", "StyleHtmlLightYb",
   function(.Object, ...) {
@@ -597,3 +603,61 @@ setMethod(
     x@data[[i, j, ..., exact=exact]]
   }
 )
+setMethod("dimnames", "PaletteOfStyles", function(x) dimnames(x@data))
+setMethod("show", "Style",
+  function(object) {
+    cat(sprintf("Object of class `%s`:\n\n", class(object)))
+    mx1 <- mx2 <- matrix(1:50, ncol=2)
+    mx2[c(6, 40)] <- 99L
+    d.p <- diffPrint(
+      mx1, mx2, context=1, line.limit=6, style=object, pager=PagerOff()
+    )
+    d.txt <- capture.output(show(d.p))
+    if(is(object, "Ansi")) {
+      old.crayon.opt <-
+        options(crayon.enabled=TRUE)
+      on.exit(options(old.crayon.opt), add=TRUE)
+      pad.width <- max(crayon_nchar(d.txt))
+      d.txt <- rpad(d.txt, width=pad.width)
+      bgWhite <- crayon::make_style(rgb(1, 1, 1), bg=TRUE)
+      white <- crayon::make_style(rgb(1, 1, 1))
+      if(is(object, "Light")) {
+        d.txt <- bgWhite(crayon::black(d.txt))
+      } else if (is(object, "Dark")) {
+        d.txt <- crayon::bgBlack(white(d.txt))
+      }
+      if(is(object, "Light") || is(object, "Dark")) {
+        d.txt <- c(
+          d.txt, "",
+          strwrap(
+            paste0(
+              "Default bg and fg colors forced to appropriate colors for ",
+              "scheme; this does not happen in actual use."
+            ),
+            width=pad.width + 20L
+    ) ) } }
+    cat(d.txt, sep="\n")
+} )
+setMethod("show", "StyleHtml",
+  function(object) {
+    cat(sprintf("Class `%s` sample output:\n\n", class(object)))
+    cat("[Object Renders in HTML]\n")
+} )
+setMethod("show", "PaletteOfStyles",
+  function(object) {
+    fmt <- dimnames(object)$format
+    brt <- dimnames(object)$brightness
+    clr <- dimnames(object)$color.mode
+
+    for(f in fmt) {
+      for(b in brt) {
+        for(c in clr) {
+          txt <- capture.output(show(object[[f, b, c]]))
+          cat(
+            sprintf("\nformat: %s, brightness: %s, color.mode: %s\n\n", f, b, c)
+          )
+          cat(paste0("  ", txt), sep="\n")
+        }
+      }
+    }
+} )
