@@ -270,7 +270,8 @@ check_args <- function(
     style <- palette.of.styles[[
       format, get_pal_par(format, brightness), get_pal_par(format, color.mode)
     ]]
-  } else stop("Logic Error: unexpected style state; contact maintainer.")
+  } else if(!is(style, "Style"))
+    stop("Logic Error: unexpected style state; contact maintainer.")
 
   # Attach specific pager if it was requested generated; if "auto" just let the
   # existing pager on the style be

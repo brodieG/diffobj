@@ -199,6 +199,13 @@ Style <- setClass(
     ) )
   }
 )
+setMethod("show", "Style",
+  function(object) {
+    mx1 <- mx2 <- matrix(1:50, ncol=2)
+    mx2[c(6, 40)] <- 99L
+    d.p <- diffPrint(mx1, mx2, context=1, line.limit=6, style=object)
+    show(d.p)
+} )
 #' @export StyleAnsi
 #' @exportClass StyleAnsi
 #' @rdname Style
