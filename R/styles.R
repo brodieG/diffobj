@@ -657,7 +657,7 @@ setMethod("show", "PaletteOfStyles",
             sprintf("\nformat: %s, brightness: %s, color.mode: %s\n\n", f, b, c)
           )
           cat(paste0("  ", txt), sep="\n")
-        }
-      }
-    }
-} )
+} } } } )
+setMethod("summary", "PaletteOfStyles",
+  function(object, ...) apply(object@data, 1:3, function(x) class(x[[1L]]))
+)
