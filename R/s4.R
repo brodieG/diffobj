@@ -362,13 +362,17 @@ setMethod("show", "DiffSummary",
 
       # Helper fun to determine if the scale skewed our data too much
 
-      scale_err <- function(orig, scaled, threshold) {
-        zeroes <- !orig
-        orig.nz <- orig[!zeroes]
-        scaled.nz <- scaled[!zeroes]
-        orig.norm <- orig.nz / max(orig.nz)
-        scaled.norm <- scaled.nz / max(scaled.nz)
-        any(abs(orig.norm - scaled.norm) > threshold)
+      scale_err <- function(orig, scaled, threshold, width) {
+        if((width - sum(scaled)) / width > threshold) {
+          TRUE
+        } else {
+          zeroes <- !orig
+          orig.nz <- orig[!zeroes]
+          scaled.nz <- scaled[!zeroes]
+          orig.norm <- orig.nz / max(orig.nz)
+          scaled.norm <- scaled.nz / max(scaled.nz)
+          any(abs(orig.norm - scaled.norm) > threshold)
+        }
       }
       # Scale the data down as small as possible provided we don't violate
       # tolerance.
@@ -382,35 +386,36 @@ setMethod("show", "DiffSummary",
       lo.bound <- lo <- length(diffs.nz)
       hi.bound <- hi <- sum(diffs.nz)
 
-      offset <- 0L
-      scale.err.largest <- 0L
-      repeat {
-        mp <- round((hi.bound - lo.bound) / 2) + lo.bound
-        safety <- safety - 1L
-        if(safety < 0L)
-          stop("Logic Error: likely infinite loop; contact maintainer.")
+      if(sum(diffs.scale) > width) {
+        repeat {
+          mp <- round((hi.bound - lo.bound) / 2) + lo.bound
+          safety <- safety - 1L
+          if(safety < 0L)
+            stop("Logic Error: likely infinite loop; contact maintainer.")
 
-        # Need to scale down; we know we need at least one char per value
-        diffs.nz.s <- pmax(
-          round(diffs.nz * (mp - lo) / (hi - lo)), 1L
-        )
-        diffs.scale[diffs.gz] <- diffs.nz.s
-        scale.err <- scale_err(diffs, diffs.scale, scale.threshold)
-        break.cond <- mp <= lo.bound + tol || mp >= hi.bound - tol
+          # Need to scale down; we know we need at least one char per value
+          diffs.nz.s <- pmax(
+            round(diffs.nz * (mp - lo) / (hi - lo)), 1L
+          )
+          diffs.scale[diffs.gz] <- diffs.nz.s
+          scale.err <- scale_err(diffs, diffs.scale, scale.threshold, width)
+          break.cond <- floor(mp / width) <= floor(lo.bound  / width) ||
+            mp >= hi.bound
 
-        if(scale.err) {
-          # error, keep increasing lines
-          lo.bound <- mp
-        } else {
-          # no error, check if we can generate an error with a smaller value
-          # note hi.bound is always guaranteed to not produce error
-          if(break.cond) break
-          hi.bound <- mp
+          if(scale.err) {
+            # error, keep increasing lines
+            lo.bound <- mp
+          } else {
+            # no error, check if we can generate an error with a smaller value
+            # note hi.bound is always guaranteed to not produce error
+            if(break.cond) break
+            hi.bound <- mp
+          }
         }
       }
       diffs.fin <- diffs.scale
 
-      # Compute scaling factors
+      # Compute scaling factors for display to user
 
       scale.one <- diffs.scale == 1
       scale.gt.one <- diffs.scale > 1
