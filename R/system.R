@@ -14,6 +14,7 @@
     diffobj.pager.mode="threshold",
     diffobj.pager.threshold=-1L,
     diffobj.less.flags="R",
+    diffobj.rds=TRUE,
     diffobj.hunk.limit=-1L,
     diffobj.mode="auto",
     diffobj.silent=FALSE,

@@ -92,7 +92,7 @@ check_args <- function(
   call, tar.exp, cur.exp, mode, context, line.limit, format, brightness,
   color.mode, pager, ignore.white.space, max.diffs, align, disp.width,
   hunk.limit, convert.hz.white.space, tab.stops, style, palette.of.styles,
-  frame, tar.banner, cur.banner, guides
+  frame, tar.banner, cur.banner, guides, rds
 ) {
   err <- make_err_fun(call)
 
@@ -166,7 +166,7 @@ check_args <- function(
 
   # check T F args
 
-  TF.vars <- c("ignore.white.space", "convert.hz.white.space")
+  TF.vars <- c("ignore.white.space", "convert.hz.white.space", "rds")
   msg.base <- "Argument `%s` must be TRUE or FALSE."
   for(x in TF.vars) if(!is.TF(get(x, inherits=FALSE))) err(sprintf(msg.base, x))
 

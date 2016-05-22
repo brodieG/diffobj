@@ -25,6 +25,7 @@ make_diff_fun <- function(capt_fun) {
     color.mode=gdo("color.mode"),
     pager=gdo("pager"),
     guides=gdo("guides"),
+    rds=gdo("rds"),
     max.diffs=gdo("max.diffs"),
     disp.width=gdo("disp.width"),
     ignore.white.space=gdo("ignore.white.space"),
@@ -57,8 +58,15 @@ make_diff_fun <- function(capt_fun) {
       align=align, disp.width=disp.width,
       hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
       tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
-      frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides
+      frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides,
+      rds=rds
     )
+    # If in rds mode, try to see if either target or current reference an RDS
+
+    if(rds) {
+      target <- get_rds(target)
+      current <- get_rds(current)
+    }
     # Force crayon to whatever ansi status we chose; note we must do this after
     # touching vars in case someone passes `options(crayon.enabled=...)` as one
     # of the arguments
@@ -191,6 +199,12 @@ make_diff_fun <- function(capt_fun) {
 #'   are additional context lines that are not strictly part of a hunk, but
 #'   provide important contextual data (e.g. column headers).  See
 #'   \code{\link{printGuideLines}} for more details.
+#' @param rds TRUE (default) or FALSE, if TRUE will check whether
+#'   \code{target} and/or \code{current} point to a file that can be read with
+#'   \code{\link{readRDS}} and if so, loads the R object contained in the file
+#'   and carries out the diff on the object instead of the original argument.
+#'   Currently there is no mechanism for specifying additional arguments to
+#'   \code{readRDS}
 #' @param line.limit integer(2L) or integer(1L), if length 1 how many lines of
 #'   output to show, where \code{-1} means no limit.  If length 2, the first
 #'   value indicates the threshold of screen lines to begin truncating output,
@@ -368,7 +382,7 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 #' \code{read.csv} the files and pass them to \code{diffPrint} yourself.
 #'
 #' @export
-#' @param target character(1L) or file connection with read capability; 
+#' @param target character(1L) or file connection with read capability;
 #'   if character should point to a CSV file
 #' @param current like \code{target}
 #' @inheritParams diffPrint

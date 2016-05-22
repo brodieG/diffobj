@@ -11,7 +11,7 @@ diffPrint(target, current, ...)
 \S4method{diffPrint}{ANY}(target, current, mode = gdo("mode"),
   context = gdo("context"), format = gdo("format"),
   brightness = gdo("brightness"), color.mode = gdo("color.mode"),
-  pager = gdo("pager"), guides = gdo("guides"),
+  pager = gdo("pager"), guides = gdo("guides"), rds = gdo("rds"),
   max.diffs = gdo("max.diffs"), disp.width = gdo("disp.width"),
   ignore.white.space = gdo("ignore.white.space"),
   convert.hz.white.space = gdo("convert.hz.white.space"),
@@ -99,6 +99,13 @@ arguments and requires no more than two arguments.  Guides
 are additional context lines that are not strictly part of a hunk, but
 provide important contextual data (e.g. column headers).  See
 \code{\link{printGuideLines}} for more details.}
+
+\item{rds}{TRUE (default) or FALSE, if TRUE will check whether
+\code{target} and/or \code{current} point to a file that can be read with
+\code{\link{readRDS}} and if so, loads the R object contained in the file
+and carries out the diff on the object instead of the original argument.
+Currently there is no mechanism for specifying additional arguments to
+\code{readRDS}}
 
 \item{max.diffs}{integer(1L), number of differences after which we abandon
 the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
