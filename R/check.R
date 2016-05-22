@@ -288,7 +288,8 @@ check_args <- function(
     max.diffs=max.diffs, align=align, disp.width=disp.width,
     hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
     tab.stops=tab.stops, style=style, frame=frame,
-    tar.exp=tar.exp, cur.exp=cur.exp, guides=guides
+    tar.exp=tar.exp, cur.exp=cur.exp, guides=guides, tar.banner=tar.banner,
+    cur.banner=cur.banner
   )
   etc
 }
