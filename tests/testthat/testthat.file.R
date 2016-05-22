@@ -13,8 +13,9 @@ test_that("RDS", {
   expect_is(diffobj:::get_rds(f1), "matrix")
   expect_is(diffobj:::get_rds(f2), "matrix")
 
-  diffPrint(mx1, f2)
-  diffPrint(f1, f2)
-  diffPrint(f1, mx2)
-  diffPrint(f1, f2, rds=FALSE)
+  ref <- as.character(diffPrint(mx1, mx2))
+  expect_identical(as.character(diffPrint(mx1, f2)), ref)
+  expect_identical(as.character(diffPrint(f1, mx2)), ref)
+  expect_identical(as.character(diffPrint(f1, f2)), ref)
+  expect_true(!identical(as.character(diffPrint(mx1, f2, rds=FALSE)), ref))
 })
