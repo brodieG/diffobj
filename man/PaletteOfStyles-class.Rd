@@ -74,6 +74,8 @@ genarate a default list with \dQuote{"grid"} value appended to the values of
 the \code{format} dimension.
 }
 \examples{
+## Look at all "ansi256" styles (assumes compatible terminal)
+PaletteOfStyles()["ansi256",,]
 ## Create a new style based on existing style by changing
 ## gutter symbols
 my.style <- StyleAnsi256LightRgb()
@@ -86,7 +88,7 @@ defs["ansi256", "light", "rgb"] <- list(my.style) # note `list()`
 ## If so desired, set our new style palette as the default
 ## one; could also pass directly as argument to `diff*` funs
 \dontrun{
-options(diffobj.palette) <- defs
+options(diffobj.palette=defs)
 }
 }
 

@@ -39,6 +39,7 @@ Collate:
     'layout.R'
     'myerssimple.R'
     'rdiff.R'
+    'rds.R'
     'set.R'
     'system.R'
     'text.R'

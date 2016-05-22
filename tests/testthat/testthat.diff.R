@@ -163,7 +163,7 @@ local({
     iris.5 <- iris
     attr(iris.5, "test.attr") <- letters
 
-    diffPrint(iris.5, iris.4, mode="sidebyside", guides=FALSE)
+    diffPrint(iris.5, iris.4, mode="sidebyside")
 
     # Narrow versions to fit side by side
 

@@ -25,6 +25,7 @@ make_diff_fun <- function(capt_fun) {
     color.mode=gdo("color.mode"),
     pager=gdo("pager"),
     guides=gdo("guides"),
+    rds=gdo("rds"),
     max.diffs=gdo("max.diffs"),
     disp.width=gdo("disp.width"),
     ignore.white.space=gdo("ignore.white.space"),
@@ -57,8 +58,15 @@ make_diff_fun <- function(capt_fun) {
       align=align, disp.width=disp.width,
       hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
       tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
-      frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides
+      frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides,
+      rds=rds
     )
+    # If in rds mode, try to see if either target or current reference an RDS
+
+    if(rds) {
+      target <- get_rds(target)
+      current <- get_rds(current)
+    }
     # Force crayon to whatever ansi status we chose; note we must do this after
     # touching vars in case someone passes `options(crayon.enabled=...)` as one
     # of the arguments
@@ -191,6 +199,12 @@ make_diff_fun <- function(capt_fun) {
 #'   are additional context lines that are not strictly part of a hunk, but
 #'   provide important contextual data (e.g. column headers).  See
 #'   \code{\link{printGuideLines}} for more details.
+#' @param rds TRUE (default) or FALSE, if TRUE will check whether
+#'   \code{target} and/or \code{current} point to a file that can be read with
+#'   \code{\link{readRDS}} and if so, loads the R object contained in the file
+#'   and carries out the diff on the object instead of the original argument.
+#'   Currently there is no mechanism for specifying additional arguments to
+#'   \code{readRDS}
 #' @param line.limit integer(2L) or integer(1L), if length 1 how many lines of
 #'   output to show, where \code{-1} means no limit.  If length 2, the first
 #'   value indicates the threshold of screen lines to begin truncating output,
@@ -327,10 +341,73 @@ setMethod("diffChr", signature=c("ANY", "ANY"), make_diff_fun(capt_chr))
 setGeneric(
   "diffDeparse", function(target, current, ...) standardGeneric("diffDeparse")
 )
-
 #' @rdname diffDeparse
 
 setMethod("diffDeparse", signature=c("ANY", "ANY"), make_diff_fun(capt_deparse))
+
+#' Diff Files
+#'
+#' Reads text files and performs a diff on the resulting character vectors.
+#'
+#' @export
+#' @param target character(1L) or file connection with read capability; if
+#'   character should point to a text file
+#' @param current like \code{target}
+#' @inheritParams diffPrint
+#' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
+#'   \code{\link{diffObj}}, \code{link{diffStr}},
+#'   \code{\link{diffChr}} to compare character vectors directly
+#' @return a \code{\link{Diff}} object; this object has a \code{show}
+#'   method that will display the diff to screen
+#' @export
+#' @examples
+#' url.base <- "https://raw.githubusercontent.com/wch/r-source"
+#' f1 <- file.path(url.base, "29f013d1570e1df5dc047fb7ee304ff57c99ea68/README")
+#' f2 <- file.path(url.base, "daf0b5f6c728bd3dbcd0a3c976a7be9beee731d9/README")
+#' diffFile(f1, f2)
+
+setGeneric(
+  "diffFile", function(target, current, ...) standardGeneric("diffFile")
+)
+#' @rdname diffFile
+
+setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
+
+#' Diff CSV Files
+#'
+#' Reads CSV files with \code{\link{read.csv}} and passes the resulting data
+#' frames onto \code{\link{diffPrint}}.  \code{...} arguments are passed to
+#' both \code{read.csv} and \code{print}.  To the extent you wish to use
+#' different \code{...} arguments for each of those functions you will need to
+#' \code{read.csv} the files and pass them to \code{diffPrint} yourself.
+#'
+#' @export
+#' @param target character(1L) or file connection with read capability;
+#'   if character should point to a CSV file
+#' @param current like \code{target}
+#' @inheritParams diffPrint
+#' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
+#'   \code{\link{diffObj}}, \code{link{diffStr}},
+#'   \code{\link{diffChr}} to compare character vectors directly
+#' @return a \code{\link{Diff}} object; this object has a \code{show}
+#'   method that will display the diff to screen
+#' @export
+#' @examples
+#' iris.2 <- iris
+#' iris.2$Sepal.Length[5] <- 99
+#' f1 <- tempfile()
+#' f2 <- tempfile()
+#' write.csv(iris, f1, row.names=FALSE)
+#' write.csv(iris.2, f2, row.names=FALSE)
+#' diffCsv(f1, f2)
+#' unlink(c(f1, f2))
+
+setGeneric(
+  "diffCsv", function(target, current, ...) standardGeneric("diffCsv")
+)
+#' @rdname diffFile
+
+setMethod("diffCsv", signature=c("ANY", "ANY"), make_diff_fun(capt_csv))
 
 #' Diff Objects
 #'

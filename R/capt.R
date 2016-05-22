@@ -260,6 +260,32 @@ capt_deparse <- function(target, current, etc, err, ...){
     etc=etc
   )
 }
+capt_file <- function(target, current, etc, err, ...){
+  tar.capt <- try(readLines(target, ...))
+  if(inherits(tar.capt, "try-error")) err("Unable to read `target` file.")
+  cur.capt <- try(readLines(current, ...))
+  if(inherits(cur.capt, "try-error")) err("Unable to read `current` file.")
+
+  etc <- set_mode(etc, tar.capt, cur.capt)
+  if(isTRUE(etc@guides)) etc@guides <- fileGuideLines
+
+  line_diff(
+    target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
+    etc=etc
+  )
+}
+capt_csv <- function(target, current, etc, err, ...){
+  tar.df <- try(read.csv(target, ...))
+  if(inherits(tar.df, "try-error")) err("Unable to read `target` file.")
+  if(!is.data.frame(tar.df))
+    err("`target` file did not produce a data frame when read")
+  cur.df <- try(read.csv(current, ...))
+  if(inherits(cur.df, "try-error")) err("Unable to read `current` file.")
+  if(!is.data.frame(cur.df))
+    err("`current` file did not produce a data frame when read")
+
+  capt_print(tar.df, cur.df, etc, err, ...)
+}
 # Sets mode to "unified" if stuff is to wide to fit side by side without
 # wrapping otherwise sets it in "sidebyside"
 

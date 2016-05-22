@@ -3,7 +3,8 @@ any(diffPrint(iris, iris.c))
 any(diffPrint(iris, iris.4))
 
 summary(diffPrint(iris, iris.4))
-summary(diffPrint(iris.2, iris.4))
+summary(diffPrint(iris, iris.2))
+summary(diffPrint(iris, iris.3))
 summary(diffPrint(iris, iris.c))
 
 d1 <- d2 <- ggplot2::diamonds[sample(seq_len(nrow(ggplot2::diamonds)), 10000),]
