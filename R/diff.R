@@ -45,13 +45,12 @@ make_diff_fun <- function(capt_fun) {
     # something like options(crayon.enabled=...)
 
     dots <- list(...)
-    call <- sys.call(-1L)
-    call.m <- match.call(call=call)
+    call.dat <- extract_call(sys.calls())
 
     # Check args and evaluate all the auto-selection arguments
 
     etc.proc <- check_args(
-      call=call, tar.exp=call.m[[2L]], cur.exp=call.m[[3L]],
+      call=call.dat$call, tar.exp=call.dat$tar, cur.exp=call.dat$cur,
       mode=mode, context=context, line.limit=line.limit, format=format,
       brightness=brightness, color.mode=color.mode, pager=pager,
       ignore.white.space=ignore.white.space, max.diffs=max.diffs,

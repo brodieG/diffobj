@@ -1,3 +1,32 @@
+# Pull out the first call reading back from sys.calls that is likely to be
+# be the top level call and return the call along with the target and
+# current substituted values.  Part of complexity driven by possibility that
+# there is a user defined method.
+
+extract_call <- function(s.c) {
+  if(!length(s.c)) stop("Logic Error: call stack empty; contact maintainer.")
+
+  r.s.c <- rev(s.c)
+  funs <- vapply(
+    r.s.c, function(x) if(is.name(x[[1L]])) as.character(x[[1L]])[[1L]] else "",
+    character(1L)
+  )
+  possible.calls <- which(
+    !funs %in% c(".local", ".nextMethod", "callNextMethod")
+  )
+  first.call <- if(!length(possible.calls)) 0L else min(possible.calls)
+  # Can't find call, just return the very first one
+
+  found.call <- if(!first.call) {
+    r.s.c[[1L]]
+  } else r.s.c[[first.call]]
+
+  found.call.m <- match.call(
+    definition=get(as.character(found.call[[1L]])), call=found.call
+  )
+  if(length(found.call.m) < 3L) length(found.call.m) <- 3L
+  list(call=found.call.m, tar=found.call.m[[2L]], cur=found.call.m[[3L]])
+}
 # check whether argument list contains non-default formals
 
 has_non_def_formals <- function(arg.list) {
