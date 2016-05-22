@@ -285,13 +285,6 @@ capt_csv <- function(target, current, etc, err, ...){
     err("`current` file did not produce a data frame when read")
 
   capt_print(tar.df, cur.df, etc, err, ...)
-  etc <- set_mode(etc, tar.capt, cur.capt)
-  if(isTRUE(etc@guides)) etc@guides <- printGuideLines
-
-  line_diff(
-    target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
-    etc=etc
-  )
 }
 # Sets mode to "unified" if stuff is to wide to fit side by side without
 # wrapping otherwise sets it in "sidebyside"

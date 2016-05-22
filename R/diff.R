@@ -383,10 +383,10 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 #' iris.2$Sepal.Length[5] <- 99
 #' f1 <- tempfile()
 #' f2 <- tempfile()
-#' write.csv(iris, f1)
-#' write.csv(iris.2, f2)
+#' write.csv(iris, f1, row.names=FALSE)
+#' write.csv(iris.2, f2, row.names=FALSE)
 #' diffCsv(f1, f2)
-#' unlink(f1, f2)
+#' unlink(c(f1, f2))
 
 setGeneric(
   "diffCsv", function(target, current, ...) standardGeneric("diffCsv")
