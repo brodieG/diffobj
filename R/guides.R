@@ -146,9 +146,64 @@ detect_array_guides <- function(txt, dim.n) {
 }
 #' Generic Methods to Implement Flexible Guide Line Computations
 #'
-#' These functions are most useful
+#' Guide lines are context lines that would not normally be shown as part of a
+#' diff because they are too far from any differences, but provide particularly
+#' useful contextual information.  Column headers are a common example.
+#'
+#' \code{Diff} detects these important context lines by looking for patterns in
+#' the text of the diff, and then displays these lines in addition to the
+#' normal diff output.  Guide lines are marked by a tilde in the gutter, and
+#' are typically styled differently than normal context lines.  Keep in mind
+#' that guide lines may be far from the diff hunk they are juxtaposed to.  We
+#' eschew the device of putting the guide lines in the hunk header as
+#' \code{git diff} does because often the column alignment of the guide line is
+#' meaningful.
+#'
+#' Guide lines are detected by the \code{*GuideLines} methods documented here.
+#' Each of the \code{diff*} methods (e.g. \code{\link{diffPrint}}) has a
+#' corresponding \code{*GuideLines} method (e.g.
+#'  \code{\link{printGuideLines}}).  The \code{*GuideLines} methods expect
+#' an R object as the first parameter and the captured display representation
+#' of the object in a charater vector as the second.  This allows them to adapt
+#' what patterns they are looking for in the character representation of the
+#' object.  For example, a \code{list} like object will require a different
+#' guide finding strategy than a \code{matrix} object.
+#'
+#' The default method for \code{printGuideLines} has special handling for 2D
+#' objects (e.g. data frames, matrices), arrays, and lists.  If you dislike the
+#' default handling you can also define your own methods for matrices, arrays,
+#' etc., or alternatively you can pass a guide finding function directly via
+#' the \code{guides} parameter to the \code{diff*} methods.  The default method
+#' for \code{strGuideLines} highlights top level objects.  The default methods
+#' for \code{chrGuideLines} and \code{deparseGuideLines} don't do anything and
+#' exit only as a mechanism for providing custom guide line methods.
+#'
+#' If you have classed objects with special patterns you can define your own
+#' methods for them (see examples), though if your objects are S3 you will need
+#' to use \code{\link{setOldClass}} as the \code{*GuideLines} generics are S4.
+#'
+#' @aliases strGuideLines, chrGuideLines, deparseGuideLines
 #' @export
 #' @rdname guideLines
+#' @param obj an R object
+#' @param obj.as.chr the character representation of \code{obj} that is used
+#'   for computing the diffs
+#' @return integer containing values in \code{seq_along(obj.as.chr)}
+#' @examples
+#' ## Roundabout way of suppressing guide lines for matrices
+#' \dontrun{
+#' setMethod("printGuideLines", c("matrix", "character"),
+#'   function(obj, obj.as.chr) integer(0L)
+#' )
+#' ## Special guides for "zulu" S3 objects that match lines
+#' ## starting in "zulu###" where ### is a nuber
+#' setOldClass("zulu")
+#' setMethod("printGuideLines", c("zulu", "character"),
+#'   function(obj, obj.as.chr) {
+#'     if(length(obj) > 20) grep("^zulu[0-9]*", obj.as.chr)
+#'     else integer(0L)
+#' } )
+#' }
 
 setGeneric(
   "printGuideLines",

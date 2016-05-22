@@ -5,73 +5,50 @@ NULL
 # maybe this shouldn't be an S4 class since the function slot doesn't work
 # for classed functions (e.g. the ones produced by crayon)
 
-#' Customize Appearance of Diff
+#' Functions Used for Styling Diff Components
 #'
-#' Most of the customization is done by specifying functions that operate on
-#' character vectors and return a modified character vector of the same length.
-#' The intended use case is to pass \code{crayon} functions such as
-#' \code{\link{crayon::red}}, although you may pass any function of your liking
-#' that behaves as described.
+#' Except for \code{container} every function specified here should be
+#' vectorized and apply formatting to each element in a character vectors.  The
+#' functions must accept at least one argument and require no more than one
+#' argument.  The text to be formatted will be passed as a character vector
+#' as the first argument to each function.
 #'
-#' The visual representation of the diff has many nested components.  The
-#' functions you specify here will be applied with the function corresponding to
-#' the innermost element applied first.  A schematic of the various component
-#' that represent an inserted line follows:
-#' \preformatted{+- line ----------------------------------------+
-#' |+- line.ins ----------------------------------+|
-#' ||+- gutter ---------+ +- text ---------------+||
-#' |||+- gutter.ins ---+| |+- text.ins ---------+|||
-#' ||||                || ||      +- word.ins -+||||
-#' |||| gutter.ins.txt || || DIFF | TEXT HERE  |||||
-#' ||||                || ||      +------------+||||
-#' |||+----------------+| |+--------------------+|||
-#' ||+------------------+ +----------------------+||
-#' |+---------------------------------------------+|
-#' +-----------------------------------------------+
-#' }
-#' A similar model applies to deleted and matching lines.  The boxes represent
-#' functions.  \code{gutter.ins.txt} represents the text to use in the gutter
-#' and is not a function. \code{DIFF TEXT HERE} is text from the objects being
-#' diffed, with the portion that has different words inside the \code{word.ins}
-#' box provided word diff is enabled, and is obviously not a function either.
-#'
-#' Most of the functions defined here default to \code{\link{identity}}, but
-#' you are given the flexibility to fully format the diff.
-#'
-#' @note in \dQuote{sidebyside} there are two lines per row of text, one showing
-#'   deletions and one showing additions.
+#' @note the slots are set to class \dQuote{ANY} to allow classed functions
+#'   such as those defined in the \code{crayon} package.  Despite this seemingly
+#'   permissive slot definition, you are still required to provide functions
+#'   to populate them.
+#' @param container function used primarily by HTML styles to generate an
+#'   outermost \code{DIV} that allows for CSS targeting of its contents (
+#'   see \code{\link{cont_f}} for a function generator appropriate for use
+#'   here
 #' @param line function
-#' @param line.ins function
-#' @param line.del function
+#' @param line.insert function
+#' @param line.delete function
 #' @param line.match function
+#' @param line.guide function formats guide lines (see \code{\link{guideLines}})
 #' @param text function
-#' @param text.ins function
-#' @param text.del function
+#' @param text.insert function
+#' @param text.delete function
 #' @param text.match function
+#' @param text.guide function formats guide lines (see \code{\link{guideLines}})
 #' @param gutter function
-#' @param gutter.ins function
-#' @param gutter.del function
+#' @param gutter.insert function
+#' @param gutter.delete function
 #' @param gutter.match function
-#' @param hunk.header function to format each hunk header with
-#' @param banner.ins function to format insertion banner
-#' @param banner.del function to format deletion banner
+#' @param gutter.guide function
+#' @param gutter.pad function
+#' @param header function to format each hunk header with
 #' @param banner function to format entire banner
+#' @param banner.insert function to format insertion banner
+#' @param banner.delete function to format deletion banner
 #' @param meta function format meta information lines
-#' @param gutter.ins.txt character(1L) text to use as visual cue to indicate
-#'   whether a diff line is an insertion, defaults to \dQuote{> }
-#' @param gutter.ins.txt.ctd character(1L) if a diff line is wrapped, the
-#'   visual cue shifts to this character to indicate wrapping occured
-#' @param gutter.del.txt character(1L) see \code{gutter.ins.txt} above
-#' @param gutter.del.txt.ctd character(1L) see \code{gutter.ins.txt.ctd} above
-#' @param gutter.match.txt character(1L) see \code{gutter.ins.txt} above
-#' @param gutter.match.txt.ctd character(1L) see \code{gutter.ins.txt.ctd} above
-#' @return Style S4 object
-#' @rdname Style
-#' @name Style
-#' @export Style
-#' @exportClass Style
-
-NULL
+#' @param context.sep function to format the separator used to visually
+#'   distinguish the A and B hunks in \dQuote{context} \code{mode}
+#' @return a StyleFuns S4 object
+#' @seealso \code{\link{Style}}
+#' @rdname StyleFuns
+#' @export StyleFuns
+#' @exportClass StyleFuns
 
 StyleFuns <- setClass(
   "StyleFuns",
@@ -89,8 +66,7 @@ StyleFuns <- setClass(
     gutter.guide="ANY", gutter.guide.ctd="ANY",
     gutter.pad="ANY",
     word.insert="ANY", word.delete="ANY",
-    context.sep="ANY", header="ANY", meta="ANY",
-    guide="ANY"
+    context.sep="ANY", header="ANY", meta="ANY"
   ),
   prototype=list(
     container=identity, row=identity,
@@ -107,8 +83,7 @@ StyleFuns <- setClass(
     word.insert=identity, word.delete=identity,
     header=identity,
     context.sep=identity,
-    meta=identity,
-    guide=identity
+    meta=identity
   ),
   validity=function(object){
     for(i in slotNames(object)) {
@@ -137,6 +112,31 @@ StyleFunsAnsi <- setClass(
     context.sep=crayon::silver
   )
 )
+#' Character Tokens Used in Diffs
+#'
+#' Various character tokens are used throughout diffs to provide visual cues.
+#' For example, gutters will contain characters that denote deletions and
+#' insertions (\code{<} and \code{>} by default).
+#'
+#' @param gutter.insert character(1L) text to use as visual cue to indicate
+#'   whether a diff line is an insertion, defaults to \dQuote{> }
+#' @param gutter.insert.ctd character(1L) if a diff line is wrapped, the
+#'   visual cue shifts to this character to indicate wrapping occured
+#' @param gutter.delete character(1L) see \code{gutter.insert} above
+#' @param gutter.delete.ctd character(1L) see \code{gutter.insert.ctd} above
+#' @param gutter.match character(1L) see \code{gutter.insert} above
+#' @param gutter.match.ctd character(1L) see \code{gutter.insert.ctd} above
+#' @param gutter.guide character(1L) see \code{gutter.insert} above
+#' @param gutter.guide.ctd character(1L) see \code{gutter.insert.ctd} above
+#' @param gutter.pad character(1L) separator between gutter characters and the
+#'   rest of a line in a diff
+#' @param pad.col character(1L) separator between columns in side by side mode
+#' @return a StyleText S4 object
+#' @seealso \code{\link{Style}}
+#' @rdname StyleText
+#' @export StyleText
+#' @exportClass StyleText
+
 StyleText <- setClass(
   "StyleText",
   slots=c(
@@ -163,6 +163,108 @@ StyleText <- setClass(
     TRUE
   }
 )
+#' Customize Appearance of Diff
+#'
+#' S4 objects that expose the formatting controls for \code{\link{Diff}}
+#' objects.  Many predifined formats are defined as classes that extend the
+#' base \code{Style} class.  You may fine tune styles by either extending
+#' the pre-defined classes, or modifying an instance thereof.
+#'
+#' @section Pre-defined Classes:
+#'
+#' See the usage section for a list.  The class names are intended to be
+#' descriptive.  To get a preview of what a style looks like just instantiate
+#' an object; the \code{show} method will output a trivial diff to screen with
+#' styles applied.  Note that for ANSI styles of the dark and light variety
+#' the show method colors the terminal background and foregrounds in compatible
+#' colors.  In normal usage the terminal background and foreground colors are
+#' left untouched so you should not expect light styles to look good on dark
+#' background and vice versa even if they render correctly when showing the
+#' style object.
+#'
+#' @section Style Structure:
+#'
+#' Most of the customization is done by specifying functions that operate on
+#' character vectors and return a modified character vector of the same length.
+#' The intended use case is to pass \code{crayon} functions such as
+#' \code{\link{crayon::red}}, although you may pass any function of your liking
+#' that behaves as described.
+#'
+#' The visual representation of the diff has many nested components.  The
+#' functions you specify here will be applied starting with the innermost ones.
+#' A schematic of the various component that represent an inserted line follows
+#' (note dQuote{insert} abbreviated to \dQuote{ins}, and \dQuote{gutter}
+#' abbreviated to \dQuote{gtr}):
+#' \preformatted{+- line ---------------------------------------------------+
+#' |+- line.ins ---------------------------------------------+|
+#' ||+- gtr ------------------------++- text ---------------+||
+#' |||+- gtr.ins ---++- gtr.pad ---+||+- text.ins ---------+|||
+#' ||||             ||             ||||      +- word.ins -+||||
+#' |||| gtr.ins.txt || gtr.pad.txt |||| DIFF | TEXT HERE  |||||
+#' ||||             ||             ||||      +------------+||||
+#' |||+-------------++-------------+||+--------------------+|||
+#' ||+------------------------------++----------------------+||
+#' |+--------------------------------------------------------+|
+#' +----------------------------------------------------------+
+#' }
+#' A similar model applies to deleted and matching lines.  The boxes represent
+#' functions.  \code{gutter.insert.txt} represents the text to use in the gutter
+#' and is not a function. \code{DIFF TEXT HERE} is text from the objects being
+#' diffed, with the portion that has different words inside the
+#' \code{word.insert} and is obviously not a function either.
+#' \code{gutter.pad} and \code{gutter.pad.txt} are used to separate the gutter
+#' from the text and usually end up resolving to a space.
+#'
+#' Most of the functions defined here default to \code{\link{identity}}, but
+#' you are given the flexibility to fully format the diff.  See
+#' \code{\link{StyleFuns}} and \code{\link{StyleText}} for a full listing of
+#' the adjustable elements.
+#'
+#' In side-by-side mode there are two \dQuote{lines} per screen line, each with
+#' the structure described here.
+#'
+#' The structure described here may change in the future.
+#'
+#' @section HTML Styles:
+#'
+#' Styling functions can just as easily wrap \code{Diff} components in HTML
+#' tags as anything else; however, if you wish to apply your own custom styles
+#' we recommend that you do so via CSS styles as opposed to by modifying the
+#' default styling functions defined for the HTML styles.  For the most part
+#' these functions apply structural HTML tags that follow the outline descibed
+#' in the previous section.  The styling is then done via style sheets.
+#'
+#' See \code{file.path(system.file(package="diffobj"), "css", "diffobj.css")}
+#' for the predefined styles.  The styles are structured so that they are
+#' applied to any element within a container of a particular class.  The
+#' predefined HTML styles use the function returned \code{\link{cont_f}} as the
+#' value for slot \code{@funs@container}.  For example, \code{StyleHtmlLightRgb}
+#' uses \code{@funs@container <- cont_f("light", "rgb")}.  This wraps the entire
+#' diff in a \code{DIV} block with class \dQuote{"diffobj_container light rgb"}
+#' which then allows the CSS style sheet to target the \code{Diff} elements.
+#'
+#' @rdname Style
+#' @export Style
+#' @exportClass Style
+#' @param funs a \code{\link{StyleFuns}} object that contains all the functions
+#'   represented above
+#' @param text a \code{\link{StyleText}} object that contains the non-content
+#'   text used by the diff (e.g. \code{gutter.insert.txt})
+#' @param wrap TRUE or FALSE, whether the text should be hard wrapped to fit in
+#'   the console
+#' @param pad TRUE or FALSE, whether text should be right padded
+#' @param pager what type of \code{\link{Pager}} to use
+#' @param finalizer function that accepts at least two parameters and requires
+#'   no more than two parameters, will receive as the first parameter the
+#'   full text of the diff as a character vector, and the active
+#'   \code{\link{Pager}} as the second argument.  This allows final
+#'   modifications to the character output so that it is displayed correctly
+#'   by the pager.  For example, \code{StyleHtml} objects use it to generate
+#'   HTML headers if the \code{Diff} is destined to be displayed in a browser.
+#'   The \code{Pager} object is passed along to check the intended paging
+#'   output.
+#' @return Style S4 object
+
 Style <- setClass(
   "Style",
   slots=c(
@@ -480,6 +582,15 @@ setMethod("initialize", "StyleHtmlLightYb",
 #'   \item color.mode: \dQuote{rgb} for full color or \dQuote{yb} for
 #'     dichromats (yb stands for Yellow Blue).
 #' }
+#' @section Methods:
+#'
+#' The following methods are implemented:
+#' \itemize{
+#'   \item \code{[}, \code{[<-}, \code{[[}
+#'   \item show
+#'   \item summary
+#'   \item dimnames
+#' }
 #' @section Structural Details:
 #'
 #' The array/list is stored in the \code{data} slot of
@@ -604,6 +715,21 @@ setMethod(
   }
 )
 setMethod("dimnames", "PaletteOfStyles", function(x) dimnames(x@data))
+
+#' Show Method for Style Objects
+#'
+#' Display a small sample diff with the Style object styles applied.  For
+#' ANSI light and dark styles, will also temporarily set the background and
+#' foreground colors to ensure they are compatible with the style, even though
+#' this is not done in normal output (i.e. if you intend on using a
+#' \dQuote{light} style, you should set your terminal background color to be
+#' light or expect sub-optimal rendering).
+#'
+#' @param object a \code{Style} S4 object
+#' @return NULL, invisibly
+#' @examples
+#' StyleAnsi256LightYb()  # assumes ANSI colors supported
+
 setMethod("show", "Style",
   function(object) {
     cat(sprintf("Object of class `%s`:\n\n", class(object)))
@@ -637,11 +763,13 @@ setMethod("show", "Style",
             width=pad.width + 20L
     ) ) } }
     cat(d.txt, sep="\n")
+    invisible(NULL)
 } )
 setMethod("show", "StyleHtml",
   function(object) {
     cat(sprintf("Class `%s` sample output:\n\n", class(object)))
     cat("[Object Renders in HTML]\n")
+    invisible(NULL)
 } )
 setMethod("show", "PaletteOfStyles",
   function(object) {

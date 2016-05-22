@@ -23,6 +23,7 @@ NULL
 #'   property and the value the value.
 #' @return a function that accepts a character parameter.  If applied, each
 #'   element in the character vector will be wrapped in the div tags
+#' @aliases div_f, span_f, cont_f
 #' @examples
 #' ## Assuming class 'ex1' has CSS styles defined elsewhere
 #' tag_f("div", "ex1")(LETTERS[1:5])

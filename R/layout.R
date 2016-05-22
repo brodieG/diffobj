@@ -53,8 +53,6 @@ render_gutters <- function(types, lens, lens.max, etc) {
     types, lens, lens.max
   )
 }
-row_ascii <- function(gutter, pad, text)
-  if(anyNA(gutter)) text else paste0(gutter, pad, text)
 
 render_col <- function(gutter, pad, col, type, etc) {
   lens <- vapply(col, length, integer(1L))

@@ -15,6 +15,34 @@
 \alias{PagerSystemLess,}
 \alias{PagerSystemLess-class}
 \title{Objects for Specifying Pager Settings}
+\arguments{
+\item{pager}{a function that accepts at least one parameter and does not
+require a parameter other than the first parameter.  This function will be
+called with a file name passed as the first argument.  The referenced file
+will contain the text of the diff.  This is a temporary file that will be
+deleted as soon as the pager function completes evaluation.}
+
+\item{file.ext}{character(1L) an extension to append to file name passed to
+\code{pager}, \emph{without} the period.  For example, \code{PagerBrowser}
+uses \dQuote{html} to cause \code{\link{browseURL}} to launch the web
+browser.}
+
+\item{threshold}{integer(1L) number of lines of output that triggers the use
+of the pager; negative values lead to using
+\code{\link{console_lines} + 1}, and zero leads to always using the pager
+irrespective of how many lines the output has.}
+
+\item{flags}{character(1L), only for \code{PagerSystemLess}, what flags to set
+with the \code{LESS} system environment variable.  By default the
+\dQuote{R} flag is set to ensure ANSI escape sequences are interpreted if
+it appears your terminal supports ANSI escape sequences.  If you want to
+leave the output on the screen after you exit the pager you can use
+\dQuote{RX}.  You should only provide the flag letters (e.g. \dQuote{"RX"},
+not \code{"-RX"}).  The system variable is only modified for the duration
+of the evaluation and is reset / unset afterwards. \emph{Note:} you must
+specify this slot via the constructor as in the example.  If you set the
+slot directly it will not have any effect.}
+}
 \description{
 Generate pager configuration objects to use as the \code{pager} argument to
 the \code{\link[=diffObj]{diff*}} methods or as the \code{pager} slot for
@@ -32,36 +60,6 @@ constructor functions:
   \item \code{PagerBrowser}: Use \code{\link{browseURL}} as the pager
 }
 }
-\section{Slots}{
-
-\describe{
-\item{\code{pager}}{a function that accepts at least one parameter and does not
-require a parameter other than the first parameter.  This function will be
-called with a file name passed as the first argument.  The referenced file
-will contain the text of the diff.  This is a temporary file that will be
-deleted as soon as the pager function completes evaluation.}
-
-\item{\code{file.ext}}{character(1L) an extension to append to file name passed to
-\code{pager}, \emph{without} the period.  For example, \code{PagerBrowser}
-uses \dQuote{html} to cause \code{\link{browseURL}} to launch the web
-browser.}
-
-\item{\code{threshold}}{integer(1L) number of lines of output that triggers the use
-of the pager; negative values lead to using
-\code{\link{console_lines} + 1}, and zero leads to always using the pager
-irrespective of how many lines the output has.}
-
-\item{\code{flags}}{character(1L), only for \code{PagerSystemLess}, what flags to set
-with the \code{LESS} system environment variable.  By default the
-\dQuote{R} flag is set to ensure ANSI escape sequences are interpreted if
-it appears your terminal supports ANSI escape sequences.  If you want to
-leave the output on the screen after you exit the pager you can use
-\dQuote{RX}.  You should only provide the flag letters (e.g. \dQuote{"RX"},
-not \code{"-RX"}).  The system variable is only modified for the duration
-of the evaluation and is reset / unset afterwards. \emph{Note:} you must
-specify this slot via the constructor as in the example.  If you set the
-slot directly it will not have any effect.}
-}}
 \section{Custom Pagers}{
 
 
