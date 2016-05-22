@@ -162,12 +162,13 @@ detect_array_guides <- function(txt, dim.n) {
 #' Guide lines are detected by the \code{*GuideLines} methods documented here.
 #' Each of the \code{diff*} methods (e.g. \code{\link{diffPrint}}) has a
 #' corresponding \code{*GuideLines} method (e.g.
-#'  \code{\link{printGuideLines}}).  The \code{*GuideLines} methods expect
-#' an R object as the first parameter and the captured display representation
-#' of the object in a charater vector as the second.  This allows them to adapt
-#' what patterns they are looking for in the character representation of the
-#' object.  For example, a \code{list} like object will require a different
-#' guide finding strategy than a \code{matrix} object.
+#' \code{\link{printGuideLines}}), with the exception of \code{\link{diffCsv}}
+#' since that method uses \cod{diffPrint} internall.  The \code{*GuideLines}
+#' methods expect an R object as the first parameter and the captured display
+#' representation of the object in a charater vector as the second.  This allows
+#' them to adapt what patterns they are looking for in the character
+#' representation of the object.  For example, a \code{list} like object will
+#' require a different guide finding strategy than a \code{matrix} object.
 #'
 #' The default method for \code{printGuideLines} has special handling for 2D
 #' objects (e.g. data frames, matrices), arrays, and lists.  If you dislike the
@@ -253,11 +254,22 @@ setMethod("chrGuideLines", c("ANY", "character"),
 
 setGeneric(
   "deparseGuideLines",
-  function(obj, obj.as.chr) StandardGeneric("chrGuideLines")
+  function(obj, obj.as.chr) StandardGeneric("deparseGuideLines")
 )
 setMethod("deparseGuideLines", c("ANY", "character"),
   function(obj, obj.as.chr) integer(0L)
 )
+#' @export
+#' @rdname guideLines
+
+setGeneric(
+  "fileGuideLines",
+  function(obj, obj.as.chr) StandardGeneric("fileGuideLines")
+)
+setMethod("fileGuideLines", c("ANY", "character"),
+  function(obj, obj.as.chr) integer(0L)
+)
+
 
 # Helper function to verify guide line computation worked out
 

@@ -327,10 +327,73 @@ setMethod("diffChr", signature=c("ANY", "ANY"), make_diff_fun(capt_chr))
 setGeneric(
   "diffDeparse", function(target, current, ...) standardGeneric("diffDeparse")
 )
-
 #' @rdname diffDeparse
 
 setMethod("diffDeparse", signature=c("ANY", "ANY"), make_diff_fun(capt_deparse))
+
+#' Diff Files
+#'
+#' Reads text files and performs a diff on the resulting character vectors.
+#'
+#' @export
+#' @param target character(1L) or file connection with read capability; if
+#'   character should point to a text file
+#' @param current like \code{target}
+#' @inheritParams diffPrint
+#' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
+#'   \code{\link{diffObj}}, \code{link{diffStr}},
+#'   \code{\link{diffChr}} to compare character vectors directly
+#' @return a \code{\link{Diff}} object; this object has a \code{show}
+#'   method that will display the diff to screen
+#' @export
+#' @examples
+#' url.base <- "https://raw.githubusercontent.com/wch/r-source"
+#' f1 <- file.path(url.base, "29f013d1570e1df5dc047fb7ee304ff57c99ea68/README")
+#' f2 <- file.path(url.base, "daf0b5f6c728bd3dbcd0a3c976a7be9beee731d9/README")
+#' diffFile(f1, f2)
+
+setGeneric(
+  "diffFile", function(target, current, ...) standardGeneric("diffFile")
+)
+#' @rdname diffFile
+
+setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
+
+#' Diff CSV Files
+#'
+#' Reads CSV files with \code{\link{read.csv}} and passes the resulting data
+#' frames onto \code{\link{diffPrint}}.  \code{...} arguments are passed to
+#' both \code{read.csv} and \code{print}.  To the extent you wish to use
+#' different \code{...} arguments for each of those functions you will need to
+#' \code{read.csv} the files and pass them to \code{diffPrint} yourself.
+#'
+#' @export
+#' @param target character(1L) or file connection with read capability; 
+#'   if character should point to a CSV file
+#' @param current like \code{target}
+#' @inheritParams diffPrint
+#' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
+#'   \code{\link{diffObj}}, \code{link{diffStr}},
+#'   \code{\link{diffChr}} to compare character vectors directly
+#' @return a \code{\link{Diff}} object; this object has a \code{show}
+#'   method that will display the diff to screen
+#' @export
+#' @examples
+#' iris.2 <- iris
+#' iris.2$Sepal.Length[5] <- 99
+#' f1 <- tempfile()
+#' f2 <- tempfile()
+#' write.csv(iris, f1)
+#' write.csv(iris.2, f2)
+#' diffCsv(f1, f2)
+#' unlink(f1, f2)
+
+setGeneric(
+  "diffCsv", function(target, current, ...) standardGeneric("diffCsv")
+)
+#' @rdname diffFile
+
+setMethod("diffCsv", signature=c("ANY", "ANY"), make_diff_fun(capt_csv))
 
 #' Diff Objects
 #'

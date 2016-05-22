@@ -4,6 +4,7 @@
 \alias{chrGuideLines}
 \alias{chrGuideLines,}
 \alias{deparseGuideLines}
+\alias{fileGuideLines}
 \alias{printGuideLines}
 \alias{strGuideLines}
 \alias{strGuideLines,}
@@ -16,6 +17,8 @@ strGuideLines(obj, obj.as.chr)
 chrGuideLines(obj, obj.as.chr)
 
 deparseGuideLines(obj, obj.as.chr)
+
+fileGuideLines(obj, obj.as.chr)
 }
 \arguments{
 \item{obj}{an R object}
@@ -44,12 +47,13 @@ meaningful.
 Guide lines are detected by the \code{*GuideLines} methods documented here.
 Each of the \code{diff*} methods (e.g. \code{\link{diffPrint}}) has a
 corresponding \code{*GuideLines} method (e.g.
- \code{\link{printGuideLines}}).  The \code{*GuideLines} methods expect
-an R object as the first parameter and the captured display representation
-of the object in a charater vector as the second.  This allows them to adapt
-what patterns they are looking for in the character representation of the
-object.  For example, a \code{list} like object will require a different
-guide finding strategy than a \code{matrix} object.
+\code{\link{printGuideLines}}), with the exception of \code{\link{diffCsv}}
+since that method uses \cod{diffPrint} internall.  The \code{*GuideLines}
+methods expect an R object as the first parameter and the captured display
+representation of the object in a charater vector as the second.  This allows
+them to adapt what patterns they are looking for in the character
+representation of the object.  For example, a \code{list} like object will
+require a different guide finding strategy than a \code{matrix} object.
 
 The default method for \code{printGuideLines} has special handling for 2D
 objects (e.g. data frames, matrices), arrays, and lists.  If you dislike the
