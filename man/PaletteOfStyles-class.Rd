@@ -34,6 +34,18 @@ The array/list dimensions are:
 }
 }
 
+\section{Methods}{
+
+
+The following methods are implemented:
+\itemize{
+  \item \code{[}, \code{[<-}, \code{[[}
+  \item show
+  \item summary
+  \item dimnames
+}
+}
+
 \section{Structural Details}{
 
 

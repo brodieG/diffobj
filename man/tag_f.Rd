@@ -3,7 +3,9 @@
 \name{tag_f}
 \alias{cont_f}
 \alias{div_f}
+\alias{div_f,}
 \alias{span_f}
+\alias{span_f,}
 \alias{tag_f}
 \title{Make Functions That Wrap Text in HTML Tags}
 \usage{

@@ -24,20 +24,20 @@
 #' \code{\link{readline}}), as otherwise the temporary file that contains the
 #' diff will be deleted before the pager has a chance to read it.
 #'
-#' @slot pager a function that accepts at least one parameter and does not
+#' @param pager a function that accepts at least one parameter and does not
 #'   require a parameter other than the first parameter.  This function will be
 #'   called with a file name passed as the first argument.  The referenced file
 #'   will contain the text of the diff.  This is a temporary file that will be
 #'   deleted as soon as the pager function completes evaluation.
-#' @slot file.ext character(1L) an extension to append to file name passed to
+#' @param file.ext character(1L) an extension to append to file name passed to
 #'   \code{pager}, \emph{without} the period.  For example, \code{PagerBrowser}
 #'   uses \dQuote{html} to cause \code{\link{browseURL}} to launch the web
 #'   browser.
-#' @slot threshold integer(1L) number of lines of output that triggers the use
+#' @param threshold integer(1L) number of lines of output that triggers the use
 #'   of the pager; negative values lead to using
 #'   \code{\link{console_lines} + 1}, and zero leads to always using the pager
 #'   irrespective of how many lines the output has.
-#' @slot flags character(1L), only for \code{PagerSystemLess}, what flags to set
+#' @param flags character(1L), only for \code{PagerSystemLess}, what flags to set
 #'   with the \code{LESS} system environment variable.  By default the
 #'   \dQuote{R} flag is set to ensure ANSI escape sequences are interpreted if
 #'   it appears your terminal supports ANSI escape sequences.  If you want to
