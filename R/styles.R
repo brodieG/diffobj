@@ -620,6 +620,8 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' @export PaletteOfStyles
 #' @exportClass PaletteOfStyles
 #' @examples
+#' ## Look at all "ansi256" styles (assumes compatible terminal)
+#' PaletteOfStyles()["ansi256",,]
 #' ## Create a new style based on existing style by changing
 #' ## gutter symbols
 #' my.style <- StyleAnsi256LightRgb()
@@ -632,7 +634,7 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' ## If so desired, set our new style palette as the default
 #' ## one; could also pass directly as argument to `diff*` funs
 #' \dontrun{
-#' options(diffobj.palette) <- defs
+#' options(diffobj.palette=defs)
 #' }
 
 PaletteOfStyles <- setClass(
@@ -704,8 +706,9 @@ setReplaceMethod(
 } )
 setMethod(
   "[", signature=c(x="PaletteOfStyles"),
-  function(x, i, j, ..., drop=TRUE) {
-    x@data[i, j, ..., drop=drop]
+  function(x, i, j, ..., drop=FALSE) {
+    x@data <- x@data[i, j, ..., drop=drop]
+    x
   }
 )
 setMethod(
