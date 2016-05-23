@@ -104,6 +104,7 @@ check_args <- function(
     err(
       "Argument `disp.width` must be integer(1L) and positive, or NULL."
     )
+  disp.width <- as.integer(disp.width)
 
   # Check context
 
