@@ -91,7 +91,7 @@ DIV.diffobj_container.light.yb DIV.line>DIV.insert {
 }
 DIV.diffobj_container.light.yb SPAN.word.delete,
 DIV.diffobj_container.light.yb DIV.line>DIV.delete {
-  background-color: #f0f0a6;
+  background-color: #e0e096;
 }
 DIV.diffobj_container.light.yb DIV.text>DIV.insert {
   background-color: #eaeaff;
@@ -101,7 +101,7 @@ DIV.diffobj_container.light.yb DIV.line>DIV.insert {
   border-left: 1px solid #3333bb;
 }
 DIV.diffobj_container.light.yb DIV.text>DIV.delete {
-  background-color: #eeeecc;
+  background-color: #fbfbcd;
 }
 DIV.diffobj_container.light.yb DIV.text>DIV.delete,
 DIV.diffobj_container.light.yb DIV.line>DIV.delete {
