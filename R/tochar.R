@@ -179,8 +179,8 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
     tar.rng <- find_rng(h.ids.nh, ranges.orig[1:2, , drop=FALSE])
     cur.rng <- find_rng(h.ids.nh, ranges.orig[3:4, , drop=FALSE])
 
-    hh.a <- paste0("-", rng_as_chr(tar.rng))
-    hh.b <- paste0("+", rng_as_chr(cur.rng))
+    hh.a <- paste0(rng_as_chr(tar.rng))
+    hh.b <- paste0(rng_as_chr(cur.rng))
 
     hunk.head <- list(
       if(mode == "sidebyside") {
@@ -189,7 +189,7 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
           type.1=chrt("header"), type.2=chrt("header")
         )
       } else {
-        hunkl(col.1=sprintf("@@ %s %s @@", hh.a, hh.b), type.1=chrt("header"))
+        hunkl(col.1=sprintf("@@ %s / %s @@", hh.a, hh.b), type.1=chrt("header"))
       }
     )
     # Generate hunk contents in aligned form

@@ -47,13 +47,15 @@ capt_print <- function(target, current, etc, err, ...){
   # If dimensioned object, and in auto-mode, switch to side by side if stuff is
   # narrow enough to fit
 
-  cur.capt <- capture(cur.call, etc, err)
-  tar.capt <- capture(tar.call, etc, err)
-
-  etc <- if((!is.null(dim(target)) || !is.null(dim(current)))) {
-    set_mode(etc, tar.capt, cur.capt)
-  } else if(etc@mode == "auto") sideBySide(etc) else etc
-
+  if((!is.null(dim(target)) || !is.null(dim(current)))) {
+    cur.capt <- capture(cur.call, etc, err)
+    tar.capt <- capture(tar.call, etc, err)
+    etc <- set_mode(etc, tar.capt, cur.capt)
+  } else {
+    etc <- if(etc@mode == "auto") sideBySide(etc) else etc
+    cur.capt <- capture(cur.call, etc, err)
+    tar.capt <- capture(tar.call, etc, err)
+  }
   if(isTRUE(etc@guides)) etc@guides <- printGuideLines
 
   diff <- line_diff(target, current, tar.capt, cur.capt, etc=etc, warn=TRUE)

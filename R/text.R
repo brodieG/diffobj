@@ -21,6 +21,31 @@ ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
                      "(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])",
                      "|\\x{001b}[A-M]")
 
+# Helper function to line up data frames with rows; this is kind of sloppy
+# but should be okay in most cases.  Again, failure here is not a big deal
+
+df_row_clean <- function(raw, eq) {
+  pat <- "^[1-9]+\\d*\\s+"
+  r.h.candidate <- grepl(pat, raw)
+  r.h.c.rle <- rle(r.h.candidate)
+  if(
+    sum(r.h.c.rle$values) == 1L && r.h.c.rle$lengths[r.h.c.rle$values] > 1L
+  ) {
+    r.h.cand.fin <- r.h.candidate & grepl(pat, eq)
+    r.nums <- as.integer(
+      regmatches(
+        eq[r.h.cand.fin],
+        regexec(pat, eq[r.h.cand.fin])
+    ) )
+    eq.res <- eq
+    if(all(diff(r.nums) == 1L)) {
+      eq.res[r.h.cand.fin] <- substr(
+        eq[r.h.cand.fin], max(nchar(r.nums)) + 1L, nchar(eq[r.h.cand.fin])
+      )
+      eq.res
+    }
+  } else eq
+}
 # Helper function for align_eq; splits up a vector into matched elements and
 # interstitial elements, including possibly empty interstitial elements when
 # two matches are abutting
@@ -65,6 +90,29 @@ align_eq <- function(A, B, etc) {
   )
   A.eq <- A$eq.chr
   B.eq <- B$eq.chr
+
+  # Strip sequences that are likely row num meta data note these could be
+  # embedded in lists, etc, and it's possible we mess it up, but the cost is
+  # very secondary whereby we inappropriately line up some hunks in pathological
+  # inpu
+
+  if(etc@align@ignore.row.head) {
+    # Matrix / Array row headers and atomci vectors; could check that each hunk
+    # has sequential nums
+
+    A.ma <- grepl("^\\s*\\[\\d+,?\\]", A$raw.chr)
+    A.eq[A.ma] <- gsub("^\\s*\\[\\d+,?\\]", "", A.eq[A.ma])
+    B.ma <- grepl("^\\s*\\[\\d+,?\\]", B$raw.chr)
+    B.eq[B.ma] <- gsub("^\\s*\\[\\d+,?\\]", "", B.eq[B.ma])
+
+    # Data frame numbers; since these are more generic we'll try a little harder
+    # to make sure we're not messing stuff up; some lazyness: we don't support
+    # the case where a data frame wraps within a single hunk
+
+    A.eq <- df_row_clean(A$raw.chr, A.eq)
+    B.eq <- df_row_clean(B$raw.chr, B.eq)
+  }
+  # Remove whitespace
 
   if(etc@ignore.white.space) {
     A.eq <- normalize_whitespace(A.eq)

@@ -163,7 +163,7 @@ detect_array_guides <- function(txt, dim.n) {
 #' Each of the \code{diff*} methods (e.g. \code{\link{diffPrint}}) has a
 #' corresponding \code{*GuideLines} method (e.g.
 #' \code{\link{printGuideLines}}), with the exception of \code{\link{diffCsv}}
-#' since that method uses \cod{diffPrint} internall.  The \code{*GuideLines}
+#' since that method uses \code{diffPrint} internall.  The \code{*GuideLines}
 #' methods expect an R object as the first parameter and the captured display
 #' representation of the object in a charater vector as the second.  This allows
 #' them to adapt what patterns they are looking for in the character

@@ -29,6 +29,12 @@ NULL
 #'   count alpha numeric characters only.  Helps reduce spurious alignment
 #'   caused by meta character sequences such as \dQuote{[[1]]} that would
 #'   otherwise meet the \code{min.chars} limit
+#' @slot ignore.row.head logical(1L) whether to ignore row / atomic vector index
+#'   headers such as \code{[1]} or \code{[1,]}; the implementation is rather
+#'   inelegant and strips things that look like they are row headers
+#'   with not much accounting of whether they really are or just look like them.
+#'   There is some overlap with \code{min.chars} and \code{count.alnum.only} to
+#'   the extent removed row headers do not count towards those parameters.
 #' @export AlignThreshold
 #' @exportClass AlignThreshold
 
@@ -36,7 +42,8 @@ AlignThreshold <- setClass("AlignThreshold",
   slots=c(
     threshold="numeric",
     min.chars="integer",
-    count.alnum.only="logical"
+    count.alnum.only="logical",
+    ignore.row.head="logical"
   ),
   validity=function(object) {
     if(
@@ -48,18 +55,23 @@ AlignThreshold <- setClass("AlignThreshold",
       return("Slot `min.chars` must be integer(1L) and positive")
     if(!is.TF(object@count.alnum.only))
       return("Slot `count.alnum.only` must be TRUE or FALSE")
+    if(!is.TF(object@ignore.row.head))
+      return("Slot `ignore.row.head` must be TRUE or FALSE")
   }
 )
 setMethod(
   "initialize", "AlignThreshold",
   function(
     .Object, threshold=gdo("align.threshold"), min.chars=gdo("align.min.chars"),
-    count.alnum.only=gdo("align.count.alnum.only"), ...) {
-      if(is.numeric(min.chars)) min.chars <- as.integer(min.chars)
-      callNextMethod(
-        .Object, threshold=threshold, min.chars=min.chars,
-        count.alnum.only=count.alnum.only, ...
-      )
+    count.alnum.only=gdo("align.count.alnum.only"),
+    ignore.row.head=gdo("align.ignore.row.head"), ...
+  ) {
+    if(is.numeric(min.chars)) min.chars <- as.integer(min.chars)
+    callNextMethod(
+      .Object, threshold=threshold, min.chars=min.chars,
+      count.alnum.only=count.alnum.only,
+      ignore.row.head=ignore.row.head, ...
+    )
 } )
 
 setClass("AutoContext",

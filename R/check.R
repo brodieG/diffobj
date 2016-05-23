@@ -104,6 +104,7 @@ check_args <- function(
     err(
       "Argument `disp.width` must be integer(1L) and positive, or NULL."
     )
+  disp.width <- as.integer(disp.width)
 
   # Check context
 
@@ -288,7 +289,8 @@ check_args <- function(
     max.diffs=max.diffs, align=align, disp.width=disp.width,
     hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
     tab.stops=tab.stops, style=style, frame=frame,
-    tar.exp=tar.exp, cur.exp=cur.exp, guides=guides
+    tar.exp=tar.exp, cur.exp=cur.exp, guides=guides, tar.banner=tar.banner,
+    cur.banner=cur.banner
   )
   etc
 }
