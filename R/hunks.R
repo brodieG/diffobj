@@ -56,7 +56,8 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
           A.tok.ratio=numeric(0L), B.tok.ratio=numeric(0L),
           context=FALSE, guide=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
           tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
-          tar.rng.trim=integer(2L), cur.rng.trim=integer(2L)
+          tar.rng.trim=integer(2L), cur.rng.trim=integer(2L),
+          completely.empty=FALSE
         )
       )
     } else {
@@ -128,7 +129,8 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
             context=context, guide=FALSE,
             tar.rng=tar.rng, cur.rng=cur.rng,
             tar.rng.sub=tar.rng, cur.rng.sub=cur.rng,
-            tar.rng.trim=tar.rng, cur.rng.trim=cur.rng
+            tar.rng.trim=tar.rng, cur.rng.trim=cur.rng,
+            completely.empty=FALSE
           )
     } ) }
     # Group hunks together based on context, in "auto" mode we find the context
@@ -389,6 +391,73 @@ process_hunks <- function(x, ctx.val, etc) {
   }
   res.fin
 }
+# Account for overhead / side by sideness in width calculations
+# Internal funs
+
+hunk_len <- function(hunk.id, hunks, disp.width, mode) {
+  hunk <- hunks[[hunk.id]]
+  A.lines <- nlines(hunk$A.chr, disp.width, mode)
+  B.lines <- nlines(hunk$B.chr, disp.width, mode)
+
+  # Depending on each mode, figure out how to set up the lines;
+  # straightforward except for context where we need to account for the
+  # fact that all the A of a hunk group are shown first, and then all
+  # the B are shown
+
+  lines.out <- switch(
+    mode,
+    context=c(A.lines, if(!hunk$guide) -B.lines),
+    unified=c(A.lines),
+    sidebyside={
+      max.len <- max(length(A.lines), length(B.lines))
+      length(A.lines) <- length(B.lines) <- max.len
+      c(pmax(A.lines, B.lines, na.rm=TRUE))
+    },
+    stop("Logic Error: unknown mode '", mode, "' contact maintainer")
+  )
+  # Make sure that line.id refers to the position of the line in either
+  # original A or B vector
+
+  l.o.len <- length(lines.out)
+  line.id <- integer(l.o.len)
+  l.gt.z <- lines.out > 0L
+  l.gt.z.w <- which(l.gt.z)
+  line.id[l.gt.z.w] <- seq_along(l.gt.z.w)
+  l.lt.z.w <- which(!l.gt.z)
+  line.id[l.lt.z.w] <- seq_along(l.lt.z.w)
+  cbind(
+    hunk.id=if(length(lines.out)) hunk.id else integer(),
+    line.id=unname(line.id), len=lines.out
+  )
+}
+hunk_grp_len <- function(hunk.grp.id, hunk.grps, disp.width, mode) {
+  hunks <- hunk.grps[[hunk.grp.id]]
+  hunks.proc <- lapply(
+    seq_along(hunks), hunk_len, hunks=hunks, disp.width=disp.width, mode=mode
+  )
+  res.tmp <- do.call(rbind, hunks.proc)
+  res <- cbind(grp.id=if(nrow(res.tmp)) hunk.grp.id else integer(0L), res.tmp)
+
+  # Need to make sure all positives are first, and all negatives second, if
+  # there are negatives (context mode); also, if the first hunk in a hunk
+  # group, add a line for the hunk header, though hunk header itself is added
+  # later
+
+  extra <- if(length(hunks)) 1L else 0L
+  if(identical(mode, "context"))
+    res <- res[order(res[, "len"] < 0L), , drop=FALSE]
+  if(
+    identical(mode, "context") &&
+    length(negs <- which(res[, "len"] < 0L)) &&
+    length(poss <- which(res[, "len"] > 0L))
+  ) {
+    if(length(poss)) res[1L, "len"] <- res[1L, "len"] + extra
+    res[negs[[1L]], "len"] <- res[negs[[1L]], "len"] - extra
+  } else if(nrow(res)) {
+    res[1L, "len"] <- res[1L, "len"] + extra
+  }
+  res
+}
 # Compute how many lines the display version of the diff will take, meta
 # lines (used for hunk guides) are denoted by negatives
 #
@@ -399,74 +468,15 @@ process_hunks <- function(x, ctx.val, etc) {
 get_hunk_chr_lens <- function(hunk.grps, etc) {
   mode <- etc@mode
   disp.width <- etc@disp.width
-  # Account for overhead / side by sideness in width calculations
-  # Internal funs
-
-  hunk_len <- function(hunk.id, hunks) {
-    hunk <- hunks[[hunk.id]]
-    A.lines <- nlines(hunk$A.chr, disp.width, mode)
-    B.lines <- nlines(hunk$B.chr, disp.width, mode)
-
-    # Depending on each mode, figure out how to set up the lines;
-    # straightforward except for context where we need to account for the
-    # fact that all the A of a hunk group are shown first, and then all
-    # the B are shown
-
-    lines.out <- switch(
-      mode,
-      context=c(A.lines, if(!hunk$guide) -B.lines),
-      unified=c(A.lines),
-      sidebyside={
-        max.len <- max(length(A.lines), length(B.lines))
-        length(A.lines) <- length(B.lines) <- max.len
-        c(pmax(A.lines, B.lines, na.rm=TRUE))
-      },
-      stop("Logic Error: unknown mode '", mode, "' contact maintainer")
-    )
-    # Make sure that line.id refers to the position of the line in either
-    # original A or B vector
-
-    l.o.len <- length(lines.out)
-    line.id <- integer(l.o.len)
-    l.gt.z <- lines.out > 0L
-    l.gt.z.w <- which(l.gt.z)
-    line.id[l.gt.z.w] <- seq_along(l.gt.z.w)
-    l.lt.z.w <- which(!l.gt.z)
-    line.id[l.lt.z.w] <- seq_along(l.lt.z.w)
-    cbind(
-      hunk.id=if(length(lines.out)) hunk.id else integer(),
-      line.id=unname(line.id), len=lines.out
-    )
-  }
-  hunk_grp_len <- function(hunk.grp.id) {
-    hunks <- hunk.grps[[hunk.grp.id]]
-    hunks.proc <- lapply(seq_along(hunks), hunk_len, hunks=hunks)
-    res.tmp <- do.call(rbind, hunks.proc)
-    res <- cbind(grp.id=if(nrow(res.tmp)) hunk.grp.id else integer(0L), res.tmp)
-    # Need to make sure all positives are first, and all negatives second, if
-    # there are negatives (context mode); we also add 1 to the first line in
-    # each section to account for the group hunkguide info if required (i.e.
-    # for all hunks except a guide hunk
-
-    extra <- if(length(hunks)) 1L else 0L  # used to be backwards, borked?
-    if(identical(mode, "context"))
-      res <- res[order(res[, "len"] < 0L), , drop=FALSE]
-    if(
-      identical(mode, "context") &&
-      length(negs <- which(res[, "len"] < 0L)) &&
-      length(poss <- which(res[, "len"] > 0L))
-    ) {
-      if(length(poss)) res[1L, "len"] <- res[1L, "len"] + extra
-      res[negs[[1L]], "len"] <- res[negs[[1L]], "len"] - extra
-    } else if(nrow(res)) {
-      res[1L, "len"] <- res[1L, "len"] + extra
-    }
-    res
-  }
   # Generate a matrix with hunk group id, hunk id, and wrapped length of each
   # line that we can use to figure out what to show
 
-  do.call(rbind, lapply(seq_along(hunk.grps), hunk_grp_len))
+  do.call(
+    rbind,
+    lapply(
+      seq_along(hunk.grps), hunk_grp_len, hunk.grps=hunk.grps,
+      disp.width=disp.width, mode=mode
+  ) )
 }
 # Compute total diff length in lines
 
@@ -489,6 +499,18 @@ in_hunk <- function(h, mode) {
     j <- h[[mode]]
     (j > 0L & j %in% tar.seq) | (j < 0L & abs(j) %in% cur.seq)
   })
+}
+# completely.empty used to highlight difference between hunks that technically
+# contain a header and no data vs those that can't even contain a header;
+# unfortunately a legacy of poor design choice in how headers are handled
+
+empty_hunk_grp <- function(h.g) {
+  for(j in seq_along(h.g)) {
+    h.g[[j]][c("tar.rng.trim", "cur.rng.trim")] <-
+      list(integer(2L), integer(2L))
+    h.g[[j]]$completely.empty <- TRUE
+  }
+  h.g
 }
 # Remove hunk groups and atomic hunks that exceed the line limit
 #
@@ -544,10 +566,7 @@ trim_hunks <- function(hunk.grps, etc) {
     # completely trim hunks that will not be shown
 
     grps.to.cut <- setdiff(seq_along(hunk.grps), seq_len(grp.cut))
-    for(i in grps.to.cut)
-      for(j in seq_along(hunk.grps[[i]]))
-        hunk.grps[[i]][[j]][c("tar.rng.trim", "cur.rng.trim")] <-
-          list(integer(2L), integer(2L))
+    for(i in grps.to.cut) hunk.grps[[i]] <- empty_hunk_grp(hunk.grps[[i]])
 
     hunk.grps.used <- grp.cut
     hunk.grps.omitted <- max(0L, hunk.grps.count - grp.cut)
@@ -556,39 +575,47 @@ trim_hunks <- function(hunk.grps, etc) {
     # update the ranges as those should still indicate what the original
     # untrimmed range was
 
+    # special case for first hunk in group since we need to account for hunk
+    # header that takes up a line; this is not ideal, hunk header should be
+    # made part of hunks eventually
+
     if(mode == "context") {
       # Context tricky because every atomic hunk B data is displayed after all
       # the A data
 
       for(i in seq_along(hunk.grps[[grp.cut]])) {
         hunk.atom <- hunk.grps[[grp.cut]][[i]]
+        l.c <- if(i == 1L)
+           if(hunk.cut == 1L) max(0L, line.cut - 1L) else line.cut
         if(!line.neg) {  # means all B blocks must be dropped
           hunk.atom <- trim_hunk(hunk.atom, "cur", 0L)
           if(i > hunk.cut) {
             hunk.atom <- trim_hunk(hunk.atom, "tar", 0L)
           } else if (i == hunk.cut) {
-            hunk.atom <- trim_hunk(hunk.atom, "tar", line.cut)
+            hunk.atom <- trim_hunk(hunk.atom, "tar", l.c)
           }
         } else {
           if(i > hunk.cut) {
             hunk.atom <- trim_hunk(hunk.atom, "cur", 0L)
           } else if (i == hunk.cut) {
-            hunk.atom <- trim_hunk(hunk.atom, "cur", line.cut)
+            hunk.atom <- trim_hunk(hunk.atom, "cur", l.c)
           }
         }
         hunk.grps[[grp.cut]][[i]] <- hunk.atom
       }
     } else {
+      l.c <- if(hunk.cut == 1L) max(0L, line.cut - 1L) else line.cut
+
       hunk.atom <- hunk.grps[[grp.cut]][[hunk.cut]]
-      hunk.atom <- trim_hunk(hunk.atom, "tar", line.cut)
+      hunk.atom <- trim_hunk(hunk.atom, "tar", l.c)
       if(mode == "unified") {
         # Need to share lines between tar and cur in unified mode
-        line.cut <- max(
-          0L, line.cut - if(any(hunk.atom$tar.rng))
+        l.c <- max(
+          0L, l.c - if(any(hunk.atom$tar.rng))
             diff(hunk.atom$tar.rng) + 1L else 0L
         )
       }
-      hunk.atom <- trim_hunk(hunk.atom, "cur", line.cut)
+      hunk.atom <- trim_hunk(hunk.atom, "cur", l.c)
       hunk.grps[[grp.cut]][[hunk.cut]] <- hunk.atom
       null.hunks <- seq_len(length(hunk.grps[[grp.cut]]) - hunk.cut) + hunk.cut
       hunk.grps[[grp.cut]][null.hunks] <- lapply(
@@ -601,7 +628,9 @@ trim_hunks <- function(hunk.grps, etc) {
   } else if (!cut.off) {
     lines.omitted <- lines.total
     hunk.grps.omitted <- hunk.grps.count
-    hunk.grps <- list()
+
+    for(i in seq_along(hunk.grps))
+      hunk.grps[[i]] <- empty_hunk_grp(hunk.grps[[i]])
   }
   diffs.trim <- count_diffs(hunk.grps)
   attr(hunk.grps, "meta") <- list(
