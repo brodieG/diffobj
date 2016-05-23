@@ -62,6 +62,11 @@ local({
     diffPrint(mx.2, mx.4)
     diffPrint(mx.2, mx.4, mode="unified")
 
+    mx.5 <- matrix(1:9, 3)
+    mx.6 <- matrix(12:1, 4)
+    mx.6[4,] <- c(3L, 6L, 9L)
+    diffPrint(mx.5, mx.6)
+
     A <- B <- matrix(sample(1:80), nrow=16)
     B[cbind(sample(5:16, 4), sample(1:5, 4))] <- sample(30:80, 4)
     diffPrint(A, B)
@@ -134,6 +139,11 @@ local({
 
     diffPrint(1:100, 2:101, mode="sidebyside")
     diffPrint(2:101, 1:100)  # add reverse arg?
+
+    int.1 <- int.2 <- 1:100
+    int.2[c(8, 20, 60)] <- 99
+    int.2 <- c(50:1, int.2)
+    diffPrint(int.1, int.2)
 
     iris.2 <- iris.c <- transform(iris, Species=as.character(Species))
     # without rounding this is a bit wild, but good corner case to test
