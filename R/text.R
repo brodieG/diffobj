@@ -96,21 +96,22 @@ align_eq <- function(A, B, etc) {
   # very secondary whereby we inappropriately line up some hunks in pathological
   # inpu
 
-  # Matrix / Array row headers and atomci vectors; could check that each hunk
-  # has sequential nums
+  if(etc@align@ignore.row.head) {
+    # Matrix / Array row headers and atomci vectors; could check that each hunk
+    # has sequential nums
 
-  A.ma <- grepl("^\\s*\\[\\d+,?\\]", A$raw.chr)
-  A.eq[A.ma] <- gsub("^\\s*\\[\\d+,?\\]", "", A.eq[A.ma])
-  B.ma <- grepl("^\\s*\\[\\d+,?\\]", B$raw.chr)
-  B.eq[B.ma] <- gsub("^\\s*\\[\\d+,?\\]", "", B.eq[B.ma])
+    A.ma <- grepl("^\\s*\\[\\d+,?\\]", A$raw.chr)
+    A.eq[A.ma] <- gsub("^\\s*\\[\\d+,?\\]", "", A.eq[A.ma])
+    B.ma <- grepl("^\\s*\\[\\d+,?\\]", B$raw.chr)
+    B.eq[B.ma] <- gsub("^\\s*\\[\\d+,?\\]", "", B.eq[B.ma])
 
-  # Data frame numbers; since these are more generic we'll try a little harder
-  # to make sure we're not messing stuff up; some lazyness: we don't support the
-  # case where a data frame wraps within a single hunk
+    # Data frame numbers; since these are more generic we'll try a little harder
+    # to make sure we're not messing stuff up; some lazyness: we don't support
+    # the case where a data frame wraps within a single hunk
 
-  A.eq <- df_row_clean(A$raw.chr, A.eq)
-  B.eq <- df_row_clean(B$raw.chr, B.eq)
-
+    A.eq <- df_row_clean(A$raw.chr, A.eq)
+    B.eq <- df_row_clean(B$raw.chr, B.eq)
+  }
   # Remove whitespace
 
   if(etc@ignore.white.space) {
