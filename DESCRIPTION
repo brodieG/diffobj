@@ -41,6 +41,7 @@ Collate:
     'rdiff.R'
     'rds.R'
     'set.R'
+    'subset.R'
     'system.R'
     'text.R'
     'tochar.R'

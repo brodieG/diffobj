@@ -235,6 +235,9 @@ setClass("Diff",
     diffs="list",
     trim.dat="list",              # result of trimmaxg
     capt.mode="character",        # whether in print or str mode
+    sub.index="integer",
+    sub.head="integer",
+    sub.tail="integer",
     etc="Settings"
   ),
   prototype=list(

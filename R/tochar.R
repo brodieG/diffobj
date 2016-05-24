@@ -354,7 +354,7 @@ setMethod("as.character", "Diff",
 
     etc.cpy <- x@etc
     etc.cpy@line.limit <- line.limit.a
-    hunk.grps <- trim_hunks(x@diffs$hunks, x@etc)
+    hunk.grps <- trim_hunks(x@diffs$hunks, etc.cpy)
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
 
     # Compact to width of widest element
@@ -577,6 +577,15 @@ setMethod("as.character", "Diff",
     # Finalize
 
     fin <- c(s@funs@container(rows), limit.out, str.fold.out, no.diffs)
+
+    # Apply subsetting as needed
+
+    ind <- seq_along(fin)
+    ind <- if(length(x@sub.index)) ind[x@sub.index] else ind
+    if(length(x@sub.head)) ind <- head(ind, x@sub.head)
+    if(length(x@sub.tail)) ind <- tail(ind, x@sub.tail)
+
+    fin <- fin[ind]
     attr(fin, "meta") <- trim.meta
     fin
 } )

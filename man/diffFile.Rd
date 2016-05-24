@@ -143,7 +143,13 @@ addressable by your tab stops the last tab stop will be repeated.}
 output to show, where \code{-1} means no limit.  If length 2, the first
 value indicates the threshold of screen lines to begin truncating output,
 and the second the number of lines to truncate to, which should be fewer
-than the threshold.}
+than the threshold.  Note that this parameter is implemented on a best-
+efforts basis and should not be relied on to produce the exact number of
+lines requested.  If you want a specific number of lines use \code{[} or
+\code{head}/\code{tail}.  One advantage of \code{line.limit} over these
+other options is that you can combine it with \code{context="auto"} and
+auto \code{max.level} selection (the latter for \code{diffStr}) where as
+the subsetted options simply truncate the final output.}
 
 \item{hunk.limit}{integer(2L) or integer (1L), how many diff hunks to show.
 Behaves similarly to \code{line.limit}.  How many hunks are in a
