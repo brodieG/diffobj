@@ -585,37 +585,33 @@ trim_hunks <- function(hunk.grps, etc) {
 
       for(i in seq_along(hunk.grps[[grp.cut]])) {
         hunk.atom <- hunk.grps[[grp.cut]][[i]]
-        l.c <- if(i == 1L)
-           if(hunk.cut == 1L) max(0L, line.cut - 1L) else line.cut
         if(!line.neg) {  # means all B blocks must be dropped
           hunk.atom <- trim_hunk(hunk.atom, "cur", 0L)
           if(i > hunk.cut) {
             hunk.atom <- trim_hunk(hunk.atom, "tar", 0L)
           } else if (i == hunk.cut) {
-            hunk.atom <- trim_hunk(hunk.atom, "tar", l.c)
+            hunk.atom <- trim_hunk(hunk.atom, "tar", line.cut)
           }
         } else {
           if(i > hunk.cut) {
             hunk.atom <- trim_hunk(hunk.atom, "cur", 0L)
           } else if (i == hunk.cut) {
-            hunk.atom <- trim_hunk(hunk.atom, "cur", l.c)
+            hunk.atom <- trim_hunk(hunk.atom, "cur", line.cut)
           }
         }
         hunk.grps[[grp.cut]][[i]] <- hunk.atom
       }
     } else {
-      l.c <- if(hunk.cut == 1L) max(0L, line.cut - 1L) else line.cut
-
       hunk.atom <- hunk.grps[[grp.cut]][[hunk.cut]]
-      hunk.atom <- trim_hunk(hunk.atom, "tar", l.c)
+      hunk.atom <- trim_hunk(hunk.atom, "tar", line.cut)
       if(mode == "unified") {
         # Need to share lines between tar and cur in unified mode
-        l.c <- max(
-          0L, l.c - if(any(hunk.atom$tar.rng))
+        line.cut <- max(
+          0L, line.cut - if(any(hunk.atom$tar.rng))
             diff(hunk.atom$tar.rng) + 1L else 0L
         )
       }
-      hunk.atom <- trim_hunk(hunk.atom, "cur", l.c)
+      hunk.atom <- trim_hunk(hunk.atom, "cur", line.cut)
       hunk.grps[[grp.cut]][[hunk.cut]] <- hunk.atom
       null.hunks <- seq_len(length(hunk.grps[[grp.cut]]) - hunk.cut) + hunk.cut
       hunk.grps[[grp.cut]][null.hunks] <- lapply(

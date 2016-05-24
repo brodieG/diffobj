@@ -51,7 +51,7 @@ The default color schemes use yellow and blue to symbolize deletions and inserti
 
 ### Structure
 
-The first two lines of a diff (or three lines in `mode="unified"` or `mode="context"`) are meta data that provide contextual information for the diff:
+The first line of a diff (or two lines in `mode="unified"` or `mode="context"`) are meta data that provide contextual information for the diff:
 
 ```{r, results="asis"}
 diffPrint(target=a, current=b, line.limit=2)
