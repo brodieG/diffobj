@@ -576,7 +576,7 @@ setMethod("as.character", "Diff",
 
     # Finalize
 
-    fin <- c(s@funs@container(rows), limit.out, str.fold.out, no.diffs)
+    fin <- c(no.diffs, rows, limit.out, str.fold.out)
 
     # Apply subsetting as needed
 

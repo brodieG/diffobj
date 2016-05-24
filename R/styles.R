@@ -13,14 +13,22 @@ NULL
 #' argument.  The text to be formatted will be passed as a character vector
 #' as the first argument to each function.
 #'
+#' These functions are applied in post processing steps.  The \code{diff*}
+#' methods do not do any of the formatting.  Instead, the formatting is done
+#' only if the user requests to \code{show} the object.  Internally, \code{show}
+#' first converts the object to a character vector using \code{as.character},
+#' which applies every formatting function defined here except for
+#' \code{container}.  Then \code{show} applies \code{container} before
+#' forwarding the result to the screen or pager.
+#'
 #' @note the slots are set to class \dQuote{ANY} to allow classed functions
 #'   such as those defined in the \code{crayon} package.  Despite this seemingly
-#'   permissive slot definition, you are still required to provide functions
-#'   to populate them.
+#'   permissive slot definition, only functions are allowed in the slots by
+#'   the validation functions.
 #' @param container function used primarily by HTML styles to generate an
-#'   outermost \code{DIV} that allows for CSS targeting of its contents (
-#'   see \code{\link{cont_f}} for a function generator appropriate for use
-#'   here
+#'   outermost \code{DIV} that allows for CSS targeting of its contents
+#'   (see \code{\link{cont_f}} for a function generator appropriate for use
+#'   here)
 #' @param line function
 #' @param line.insert function
 #' @param line.delete function
