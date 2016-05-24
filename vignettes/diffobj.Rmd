@@ -14,37 +14,58 @@ vignette: >
 
 ## Introduction
 
-`diffobj` uses the same comparison mechanism used by `git diff` and `diff` to compare the text representation of R objects.  You are shown what the objects as you are used to see them, with the differences highlighted, instead of possibly cryptic difference messages:
+`diffobj` uses the same comparison mechanism used by `git diff` and `diff` to highlight differences between R objects:
 
 ```{r, results="asis"}
 library(diffobj)
 set.seed(1)
 a <- b <- matrix(sample(1:50), 10)
 b[sample(1:50, 5)] <- sample(1:50, 5)
-diffPrint(a, b, mode="sidebyside")
+diffPrint(target=a, current=b)
 ```
 
-The `diffobj` functions were written originally to compare unit test results and quickly identify the nature of test regressions.  They work best with small objects or objects that are mostly alike, but can be used with other objects too.
+`diffobj` comparisons work best when objects have some similarities, or when they are relatively small.  The package was originally developed to help diagnose failed unit tests by comparing test results to reference objects in a human-friendly manner.
 
 ## Function Overview
 
 There are a variety of related functions for comparing objects:
 
-* `diff_print`: use the `print`/`show` output
-* `diff_str`: use the output of `str`
-* `diff_obj`: pick between `print`/`show` and `str` depending on which provides the "best" overview of differences
-* `diff_chr`: use the contents of character vectors instead of their display representations
-* `diff_deparse`: use the deparsed objects
+* `diffPrint`: use the `print`/`show` output
+* `diffStr`: use the output of `str`
+* `diffObj`: pick between `print`/`show` and `str` depending on which provides the "best" overview of differences
+* `diffChr`: use the contents of character vectors instead of their display representations
+* `diffFile`: compare the text content of two files
+* `diffCsv`: load two CSV files into data frames and compare the data frames with `diffPrint`
+* `diffDeparse`: compare the deparsed objects
 * `ses`: compute the element by element shortest edit script on two character vectors
 
+Note the `diff*` functions use lowerCamelCase in keeping with S4 method name convention, whereas the package name itself is all lower case.
+
 ## Output
+
+### Colored Diffs
+
+`diffobj` produces colored diffs on your terminal if it supports ANSI escape sequences, or in your browser if it does not.  By default `diffobj` will output to HTML when run in `knitr`, as is the case here.
+
+The default color schemes use yellow and blue to symbolize deletions and insertions for accessibility to dichromats.  If you prefer the more traditional color scheme you can specify `color.mode="rgb"` in the parameter list, or use `options(diffobj.color.mode="rgb")`.
+
+### Structure
+
+The first two lines of a diff (or three lines in `mode="unified"` or `mode="context"`) are meta data that provide contextual information for the diff:
+
+```{r, results="asis"}
+diffPrint(target=a, current=b, line.limit=2)
+```
+
+The very first line acts as a legend to the diff by associating the colors used to represent differences present in each object with the name of the object.  The symbols in the gutters provide additional cues useful when color is unavailable.  The second line is a hunk header and indicates what lines from the text representations of each of the objects are shown next.  Note these are not the lines you would get from subsetting the object directly; rather, they are those you would get from subsetting the `capture.output` result.
 
 The result of the diff provides the information necessary to transform the
 `target` object into the `current` object.  This involves deletions
 from and additions to `target`.  The deletions and additions are done
-linewise.  Each deleted line will have `- ` prepended to it, and each
-added line will have `+ ` prepended to it.  If your terminal supports
-ANSI escape sequences the additions and deletions will be color coded.
+linewise.  Each deleted line will have `< ` prepended to it, and each
+added line will have `> ` prepended to it.
+
+The output format used here is loosely based on the `git diff` format.
 
 The first lines of output clarify the coding convention by showing the
 `target` object with the deletion symbology, and the `current`
@@ -61,7 +82,8 @@ the `+-` symbols always relate to the original line diff.  The
 word-diff is indicated only by the ANSI escape sequence styling and will not
 be visible if your terminal does not support them or if you disable them.
 
-The output format used here is loosely based on the `git diff` format.
+
+
 
 ## Algorithm
 
