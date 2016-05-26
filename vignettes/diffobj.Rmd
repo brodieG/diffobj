@@ -14,19 +14,80 @@ vignette: >
 
 ## Introduction
 
-`diffobj` uses the same comparison mechanism used by `git diff` and `diff` to highlight differences between R objects:
+`diffobj` uses the same comparison mechanism used by `git diff` and `diff` to highlight differences between _rendered_ R objects:
 
 ```{r, results="asis"}
 library(diffobj)
-set.seed(1)
-a <- b <- matrix(sample(1:50), 10)
-b[sample(1:50, 5)] <- sample(1:50, 5)
+a <- b <- matrix(1:100, ncol=2)
+b[c(20, 45, 68)] <- 999
 diffPrint(target=a, current=b)
 ```
 
 `diffobj` comparisons work best when objects have some similarities, or when they are relatively small.  The package was originally developed to help diagnose failed unit tests by comparing test results to reference objects in a human-friendly manner.
 
-## Function Overview
+If your terminal supports formatting through ANSI escape sequences, `diffobj` will output colored diffs to the terminal.  If not, it will output colored diffs to your browser.
+
+## Interpreting Diffs
+
+### Shortest Edit Script
+
+The output from `diffobj` is a visual representation of the Shotest Edit Script (SES).  An SES is the shortest set of deletion and insertion instructions for converting one sequence of elements into another.  In our case, the elements are lines of text.  We encode the instructions to convert `a` to `b` by deleting lines from `a` (in yellow) and inserting new ones from `b` (in blue).
+
+### Diff Structure
+
+The first line of our diff output acts as a legend to the diff by associating the colors and symbols used to represent differences present in each object with the name of the object:
+
+```{r, results="asis", echo=FALSE}
+diffPrint(target=a, current=b)[1]
+```
+
+After the legend come the hunks, which are portions of the objects that have differences, with nearby matching lines provided for context:
+
+```{r, results="asis", echo=FALSE}
+diffPrint(target=a, current=b)[2:9]
+```
+
+At the top of the hunk is the hunk header: this tells us that the first displayed hunk (including context lines), starts at line 17 and spans 7 lines for both `a` and `b`.  These are display lines, not object row indices, which is why the first row shown of the matrix is row 16.  You might have also noticed that the line after the hunk header is out of place:
+
+```{r, results="asis", echo=FALSE}
+diffPrint(target=a, current=b)[3]
+```
+
+This is a special context line that is not technically part of the hunk, but is shown nonetheless because it is useful in helping understand the data.  The line is styled differently to highlight that it is not part of the hunk.  Since it is not part of the hunk, it is not accounted for in the hunk header.  See `?guideLines` for more details.
+
+The actual mismatched lines are highlighted in the colors of the legend, with additional visual cues in the gutters should colors be unavailable:
+
+```{r, results="asis", echo=FALSE}
+diffPrint(target=a, current=b)[6]
+```
+
+`diffobj` uses a line by line diff to identify which portions of each of the objects are mismatches, so even if only part of a line mismatches it will be considered different.  Subsequent to the line diff, `diffobj` will run a word diff within each paired set of insertions and deletions to attempt to identify which components of the line chnaged.  Here you can see here the number `68` has been replaced by `999`.
+
+### Idiosyncracies
+
+At times diffs will produce outputs that are superficially unintuitive.  For example:
+
+```{r, results="asis"}
+diffPrint(t(matrix(1:12, 3)), t(matrix(2:13, 3)))
+```
+
+Row headers such as `[2,]` are highlighted as being differences, when clearly they have matching values in both objects.  What is happening here is that the diff algorithm prefers to match the `4` from row 2 in the left object to the `4` from row 1 in the right.  To do that the algorithm must delete the `[2,]`, match the `4`, and re-insert the `[2,]`.  Anytime a token is "moved" in this way it will show up as the combination of a deletion and an insertion, which is why both `[2,]` tokens are highlighted as changed.
+
+## Other Diff Functions
+
+### Compare Structure
+
+For complex objects it is often useful to compare structures:
+
+```{r, results="asis"}
+mdl1 <- lm(Sepal.Length ~ Sepal.Width, iris)
+mdl2 <- lm(Sepal.Length ~ Sepal.Width + Species, iris.3)
+diffStr(mdl1$qr, mdl2$qr, line.limit=50)
+```
+
+If you specify a `line.limit` with `diffStr` it will fold nested levels in order to fit under `line.limit`, so long as there remain visible differences.  If you prefer to see all the differences you can leave `line.limit` unspecified.
+
+### Function Overview
 
 There are a variety of related functions for comparing objects:
 
@@ -41,49 +102,78 @@ There are a variety of related functions for comparing objects:
 
 Note the `diff*` functions use lowerCamelCase in keeping with S4 method name convention, whereas the package name itself is all lower case.
 
-## Output
+## Controlling Diffs and Their Appearance
 
-### Colored Diffs
+### Parameters
 
-`diffobj` produces colored diffs on your terminal if it supports ANSI escape sequences, or in your browser if it does not.  By default `diffobj` will output to HTML when run in `knitr`, as is the case here.
+The `diff*` family of methods has an extensive set of parameters that allow you to fine tune how the diff is applied and displayed.  We will review some of the major ones in this section.  For a full description see `?diffPrint`.
 
-The default color schemes use yellow and blue to symbolize deletions and insertions for accessibility to dichromats.  If you prefer the more traditional color scheme you can specify `color.mode="rgb"` in the parameter list, or use `options(diffobj.color.mode="rgb")`.
+We have taken great care to pick sensible defaults for each of these parameters.  Should these defauls be displeasing, you may change them either by specifying your own values for your parameters, or by specifying the corresponding `diffobj.*` option that defines the default.
 
-### Structure
+### Display Mode
 
-The first line of a diff (or two lines in `mode="unified"` or `mode="context"`) are meta data that provide contextual information for the diff:
+There are three built-in display modes that are similar to those found in GNU `diff`: "sidebyside", "unified", and "context".  For example, by varying the `mode` parameter with:
 
-```{r, results="asis"}
-diffPrint(target=a, current=b, line.limit=2)
+```{r, results="asis", eval=FALSE}
+x <- y <- letters[24:26]
+y[2] <- "GREMLINS"
+diffChr(x, y)
 ```
 
-The very first line acts as a legend to the diff by associating the colors used to represent differences present in each object with the name of the object.  The symbols in the gutters provide additional cues useful when color is unavailable.  The second line is a hunk header and indicates what lines from the text representations of each of the objects are shown next.  Note these are not the lines you would get from subsetting the object directly; rather, they are those you would get from subsetting the `capture.output` result.
+we get:
 
-The result of the diff provides the information necessary to transform the
-`target` object into the `current` object.  This involves deletions
-from and additions to `target`.  The deletions and additions are done
-linewise.  Each deleted line will have `< ` prepended to it, and each
-added line will have `> ` prepended to it.
+<table>
+<tr><th>mode="sidebyside"<th>mode="unified"<th>mode="context"
+<tr style="vertical-align: top">
+<td>
+```{r, results="asis", echo=FALSE}
+diffChr(x, y, mode="sidebyside")
+```
+<td>
+```{r, results="asis", echo=FALSE}
+diffChr(x, y, mode="unified")
+```
+<td>
+```{r, results="asis", echo=FALSE}
+diffChr(x, y, mode="context")
+```
+</table>
 
-The output format used here is loosely based on the `git diff` format.
+By default `diffobj` will try to use `mode="sidebyside"` if reasonable given display width, and otherwise will switch to `mode="unified"`.  You can always force a particular display style by specifying it with the `mode` argument.
 
-The first lines of output clarify the coding convention by showing the
-`target` object with the deletion symbology, and the `current`
-object with the addition symbology.  After these lines you will see the
-first and possibly only hunk header.  The format will be `@@ x,y z,w @@`
-where `x` and `z` indicate the starting line of the text in
-the `target` and `current` objects that is shown after the hunk
-header.  `y` and `w` indicate how many lines from each of those
-objects are being shown.
+### Color Mode
 
-In addition to the primary line diff, hunks are themselves word-diffed within
-each hunk to help quickly identify small differences.  Just keep in mind that
-the `+-` symbols always relate to the original line diff.  The
-word-diff is indicated only by the ANSI escape sequence styling and will not
-be visible if your terminal does not support them or if you disable them.
+The default color mode uses yellow and blue to symbolize deletions and insertions for accessibility to dichromats.  If you prefer the more traditional color mode you can specify `color.mode="rgb"` in the parameter list, or use `options(diffobj.color.mode="rgb")`:
+
+```{r, results="asis"}
+diffChr(x, y, color.mode="rgb")
+```
+
+### Output Formats
+
+If your terminal supports it `diffobj` will format with ANSI escape sequences.  `diffobj` uses Gabor Csardi's `[crayon](https://github.com/gaborcsardi/crayon)]` crayon to detect ANSI support and to apply ANSI based formatting.  If your terminal does not support colors, `diffobj` will attempt to output an HTML/CSS formatted diff to your browser using `browseURL`.
+
+You can specify the output format with the `format` parameter set to:
+
+* "raw" for unformatted diffs
+* "ansi8" for standard ANSI 8 color formatting
+* "ans256" for ANSI 256 color formatting
+* "html" for HTML/CSS output and styling
+
+### Brightness
+
+By default, this parameter is really only meaningful for the "ansi256" format, but could be useful under other formats if you build custom styles.  It allows you to pick a color scheme compatible with the background color of your terminal.  The options are:
+
+* "light": for use with light tone terminals
+* "dark": for use with dark tone terminals
+* "neutral": for use with either light or dark terminals
+
+Here is an illustration of the options:
+
+<img src="ansi256brightness.png"></img>
 
 
-
+### Pagers
 
 ## Algorithm
 
@@ -101,3 +191,9 @@ used here is an adaptation of Michael B. Allen's diff program from the
 This algorithm scales with the _square_ of the number of differences
 between compared objects so is most effective when comparing objects
 that are mostly similar.
+
+## Acknowledgements
+
+* Myers
+* MBA
+* Gabor
