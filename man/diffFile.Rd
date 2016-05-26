@@ -2,7 +2,6 @@
 % Please edit documentation in R/diff.R
 \docType{methods}
 \name{diffFile}
-\alias{diffCsv,ANY-method}
 \alias{diffFile}
 \alias{diffFile,ANY-method}
 \title{Diff Files}
@@ -10,18 +9,6 @@
 diffFile(target, current, ...)
 
 \S4method{diffFile}{ANY}(target, current, mode = gdo("mode"),
-  context = gdo("context"), format = gdo("format"),
-  brightness = gdo("brightness"), color.mode = gdo("color.mode"),
-  pager = gdo("pager"), guides = gdo("guides"), rds = gdo("rds"),
-  max.diffs = gdo("max.diffs"), disp.width = gdo("disp.width"),
-  ignore.white.space = gdo("ignore.white.space"),
-  convert.hz.white.space = gdo("convert.hz.white.space"),
-  tab.stops = gdo("tab.stops"), line.limit = gdo("line.limit"),
-  hunk.limit = gdo("hunk.limit"), align = gdo("align"),
-  style = gdo("style"), palette.of.styles = gdo("palette"),
-  frame = parent.frame(), tar.banner = NULL, cur.banner = NULL, ...)
-
-\S4method{diffCsv}{ANY}(target, current, mode = gdo("mode"),
   context = gdo("context"), format = gdo("format"),
   brightness = gdo("brightness"), color.mode = gdo("color.mode"),
   pager = gdo("pager"), guides = gdo("guides"), rds = gdo("rds"),

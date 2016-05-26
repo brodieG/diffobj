@@ -268,6 +268,7 @@ make_diff_fun <- function(capt_fun) {
 #' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen or pager
 #' @rdname diffPrint
+#' @name diffPrint
 #' @export
 
 setGeneric(
@@ -297,6 +298,7 @@ setMethod("diffPrint", signature=c("ANY", "ANY"), make_diff_fun(capt_print))
 #'   \code{\link{diffDeparse}} to compare deparsed objects
 #' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen
+#' @rdname diffStr
 #' @export
 
 setGeneric("diffStr", function(target, current, ...) standardGeneric("diffStr"))
@@ -318,8 +320,9 @@ setMethod("diffStr", signature=c("ANY", "ANY"), make_diff_fun(capt_str))
 #' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
+#' @rdname diffChr
 #' @examples
-#' diff_chr(LETTERS[1:5], LETTERS[2:6])
+#' diffChr(LETTERS[1:5], LETTERS[2:6])
 
 setGeneric("diffChr", function(target, current, ...) standardGeneric("diffChr"))
 
@@ -340,6 +343,7 @@ setMethod("diffChr", signature=c("ANY", "ANY"), make_diff_fun(capt_chr))
 #' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
+#' @rdname diffDeparse
 #' @examples
 #' diffDeparse(matrix(1:9, 3), 1:9)
 
@@ -365,6 +369,7 @@ setMethod("diffDeparse", signature=c("ANY", "ANY"), make_diff_fun(capt_deparse))
 #' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
+#' @rdname diffFile
 #' @examples
 #' url.base <- "https://raw.githubusercontent.com/wch/r-source"
 #' f1 <- file.path(url.base, "29f013d1570e1df5dc047fb7ee304ff57c99ea68/README")
@@ -397,6 +402,7 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 #' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
+#' @rdname diffCsv
 #' @examples
 #' iris.2 <- iris
 #' iris.2$Sepal.Length[5] <- 99
@@ -410,7 +416,7 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 setGeneric(
   "diffCsv", function(target, current, ...) standardGeneric("diffCsv")
 )
-#' @rdname diffFile
+#' @rdname diffCsv
 
 setMethod("diffCsv", signature=c("ANY", "ANY"), make_diff_fun(capt_csv))
 
@@ -427,7 +433,7 @@ setMethod("diffCsv", signature=c("ANY", "ANY"), make_diff_fun(capt_csv))
 #'
 #' @inheritParams diffPrint
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
-#'   \code{link{diffStr}},
+#'   \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly
 #'   \code{\link{diffDeparse}} to compare deparsed objects
 #' @return a \code{\link{Diff}} object; this object has a \code{show}

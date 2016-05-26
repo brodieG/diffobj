@@ -800,3 +800,27 @@ setMethod("show", "PaletteOfStyles",
 setMethod("summary", "PaletteOfStyles",
   function(object, ...) apply(object@data, 1:3, function(x) class(x[[1L]]))
 )
+
+# Helper function to render output for vignette
+
+display_ansi_256_styles <- function() {
+  styles <- lapply(
+    list(
+      StyleAnsi8NeutralYb(), StyleAnsi8NeutralRgb(),
+      StyleAnsi256DarkYb(), StyleAnsi256DarkRgb(),
+      StyleAnsi256LightYb(), StyleAnsi256LightRgb()
+    ),
+    function(x) capture.output(show(x))[3:8]
+  )
+  names <- c("Neutral", "Dark", "Light")
+  cat("\n")
+  lapply(
+    1:3,
+    function(x) {
+      cat(names[x], "\n\n")
+      cat(paste("  ", styles[[x * 2 - 1]], " ", styles[[x * 2]]), sep="\n")
+      cat("\n")
+    }
+  )
+  invisible(NULL)
+}

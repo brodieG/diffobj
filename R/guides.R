@@ -186,6 +186,7 @@ detect_array_guides <- function(txt, dim.n) {
 #' @aliases strGuideLines, chrGuideLines, deparseGuideLines
 #' @export
 #' @rdname guideLines
+#' @name guideLines
 #' @param obj an R object
 #' @param obj.as.chr the character representation of \code{obj} that is used
 #'   for computing the diffs

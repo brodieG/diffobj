@@ -180,7 +180,7 @@ instead of capturing the printed screen output. Each vector element is
 treated as a line of text.
 }
 \examples{
-diff_chr(LETTERS[1:5], LETTERS[2:6])
+diffChr(LETTERS[1:5], LETTERS[2:6])
 }
 \seealso{
 \code{\link{diffPrint}} for details on the \code{diff*} functions,
