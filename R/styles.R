@@ -817,8 +817,8 @@ display_ansi_256_styles <- function() {
   lapply(
     1:3,
     function(x) {
-      cat(names[x], "\n\n")
-      cat(paste("  ", styles[[x * 2 - 1]], " ", styles[[x * 2]]), sep="\n")
+      cat(paste0(" ", names[x]), "\n\n")
+      cat(paste("   ", styles[[x * 2 - 1]], " ", styles[[x * 2]]), sep="\n")
       cat("\n")
     }
   )
