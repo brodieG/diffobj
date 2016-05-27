@@ -41,7 +41,7 @@ The first line of our diff output acts as a legend to the diff by associating th
 diffPrint(target=a, current=b)[1]
 ```
 
-After the legend come the hunks, which are portions of the objects that have differences, with nearby matching lines provided for context:
+After the legend come the hunks, which are portions of the objects that have differences with nearby matching lines provided for context:
 
 ```{r, results="asis", echo=FALSE}
 diffPrint(target=a, current=b)[2:9]
@@ -127,14 +127,20 @@ we get:
 <tr style="vertical-align: top">
 <td>
 ```{r, results="asis", echo=FALSE}
+x <- y <- letters[24:26]
+y[2] <- "GREMLINS"
 diffChr(x, y, mode="sidebyside")
 ```
 <td>
 ```{r, results="asis", echo=FALSE}
+x <- y <- letters[24:26]
+y[2] <- "GREMLINS"
 diffChr(x, y, mode="unified")
 ```
 <td>
 ```{r, results="asis", echo=FALSE}
+x <- y <- letters[24:26]
+y[2] <- "GREMLINS"
 diffChr(x, y, mode="context")
 ```
 </table>
@@ -151,7 +157,7 @@ diffChr(x, y, color.mode="rgb")
 
 ### Output Formats
 
-If your terminal supports it `diffobj` will format with ANSI escape sequences.  `diffobj` uses Gabor Csardi's `[crayon](https://github.com/gaborcsardi/crayon)]` crayon to detect ANSI support and to apply ANSI based formatting.  If your terminal does not support colors, `diffobj` will attempt to output an HTML/CSS formatted diff to your browser using `browseURL`.
+If your terminal supports it `diffobj` will format with ANSI escape sequences.  `diffobj` uses Gabor Csardi's `[crayon](https://github.com/gaborcsardi/crayon)` crayon to detect ANSI support and to apply ANSI based formatting.  If your terminal does not support colors, `diffobj` will attempt to output an HTML/CSS formatted diff to your browser using `browseURL`.
 
 You can specify the output format with the `format` parameter set to:
 
@@ -168,13 +174,19 @@ By default, this parameter is really only meaningful for the "ansi256" format, b
 * "dark": for use with dark tone terminals
 * "neutral": for use with either light or dark terminals
 
-Here is an illustration of the options:
+Here are examples of terminal screen renderings for both "rgb" and "yb" `color.mode` for the three `brightness` levels.
 
 <img src="ansi256brightness.png"></img>
 
+The examples for "light" and "dark" have the backgrounds forcefully set to a color compatible with the scheme.  In actual use the base background and foreground colors are left unchanged, which will look bad if you use "dark" with light colored backgrounds or vice versa.  Since we do not know of a good cross platform way of detecting terminal background color the default `brightness` value is "neutral".
+
+At this time the only `format` that is affected by this parameter is `brightness`.  If you want to specify your own light/dark/neutral schemes you may do so either by specifying a `[style](#custom-styles)` directly or with `[Palette of Styles](#custom-styles)` (see next section).
 
 ### Pagers
 
+If the diff output is very long `diff*` methods will pipe output to a pager. The default action is to create a temporary file with the diff output, and feed that to `file.show`.  If your terminal does not support ANSI escape sequences, the default action is to use your web browser as a pager / terminal irrespective of how big the actual output is.
+
+You can fine tune when, how, and if a pager is used by 
 ## Algorithm
 
 The diff algorithm is Myer's solution to the shortest edit script /
