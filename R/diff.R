@@ -189,10 +189,14 @@ make_diff_fun <- function(capt_fun) {
 #'   \code{brightness} paramter does.
 #' @param pager character(1L), one of \dQuote{auto} or \dQuote{off}, or a
 #'   \code{\link{Pager}} object; controls whether and how a pager is used to
-#'   display the diff output.  If \dQuote{auto} will use a pager if output is
-#'   to console and exceeds screen height, or will always use a pager if in
-#'   interactive mode, not in running in \code{knitr} and in \dQuote{html}
-#'   format.
+#'   display the diff output.  If \dQuote{auto} will use the pager associated
+#'   with the \code{\link{Style} specified via the \code{\link{style}}}
+#'   parametera.  The default will pipe output to \code{link{file.show}} if
+#'   output is taller than the estimated terminal height and your terminal
+#'   supports ANSI escape sequences.  If not, the default is to attempt to pipe
+#'   output to a web browser with \code{\link{browserURL}}.  See
+#'   \code{\link{Pager}}, \code{\link{Style}}, and \code{\link{PaletteOfStyles}}
+#'   for more details.
 #' @param guides TRUE (default), FALSE, or a function that accepts at least two
 #'   arguments and requires no more than two arguments.  Guides
 #'   are additional context lines that are not strictly part of a hunk, but

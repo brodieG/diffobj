@@ -29,7 +29,7 @@ other output.
 }
 \seealso{
 \code{\link{diffPrint}} for details on the \code{diff*} functions,
-  \code{link{diffStr}},
+  \code{\link{diffStr}},
   \code{\link{diffChr}} to compare character vectors directly
   \code{\link{diffDeparse}} to compare deparsed objects
 }

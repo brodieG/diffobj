@@ -22,13 +22,15 @@
 #' allows R code evaluation to continue after it is spawned, you may want to
 #' wrap it in a function that pauses evaluation (e.g. with
 #' \code{\link{readline}}), as otherwise the temporary file that contains the
-#' diff will be deleted before the pager has a chance to read it.
+#' diff may be deleted before the pager has a chance to read it.
 #'
 #' @param pager a function that accepts at least one parameter and does not
 #'   require a parameter other than the first parameter.  This function will be
 #'   called with a file name passed as the first argument.  The referenced file
 #'   will contain the text of the diff.  This is a temporary file that will be
 #'   deleted as soon as the pager function completes evaluation.
+#'   \code{PagerSystem} and \code{PagerSystemLess} use \code{\link{file.show}}
+#'   by default, and \code{PagerBrowser} uses \code{\link{browserURL}}.
 #' @param file.ext character(1L) an extension to append to file name passed to
 #'   \code{pager}, \emph{without} the period.  For example, \code{PagerBrowser}
 #'   uses \dQuote{html} to cause \code{\link{browseURL}} to launch the web
@@ -51,9 +53,11 @@
 #' @aliases PagerOff, PagerSystem, PagerSystemLess, PagerBrowser
 #' @exportClass Pager
 #' @rdname Pager
+#' @name Pager
 #' @examples
 #' ## Assuming system pager is `less` and terminal supports ANSI ESC sequences
-#' diff_print(letters, LETTERS, pager=PagerSystemLess(flags="RFX"))
+#' ## Equivalent to running `less -RFX`
+#' diffPrint(letters, LETTERS, pager=PagerSystemLess(flags="RFX"))
 
 setClass(
   "Pager",
@@ -71,12 +75,14 @@ setClass(
 )
 #' @export PagerOff
 #' @exportClass PagerOff
+#' @usage PagerOff()
 #' @rdname Pager
 
 PagerOff <- setClass("PagerOff", contains="Pager")
 
 #' @export PagerSystem
 #' @exportClass PagerSystem
+#' @usage PagerSystem(pager=file.show, threshold=-1L, file.ext="")
 #' @rdname Pager
 
 PagerSystem <- setClass(
@@ -85,6 +91,7 @@ PagerSystem <- setClass(
 )
 #' @export PagerSystemLess
 #' @exportClass PagerSystemLess
+#' @usage PagerSystemLess(pager=file.show, threshold=-1L, file.ext="", flags="R")
 #' @rdname Pager
 
 PagerSystemLess <- setClass(
@@ -111,6 +118,7 @@ setMethod("initialize", "PagerSystemLess",
 } )
 #' @export PagerBrowser
 #' @exportClass PagerBrowser
+#' @usage PagerBrowser(pager=browseURL, threshold=0L, file.ext="html")
 #' @rdname Pager
 
 PagerBrowser <- setClass(
