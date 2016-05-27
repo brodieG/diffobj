@@ -9,7 +9,8 @@ output:
 vignette: >
   %\VignetteIndexEntry{diffobj}
   %\VignetteEngine{knitr::rmarkdown}
-  %\usepackage[utf8]{inputenc}
+  \usepackage[utf8]{inputenc}
+
 ---
 
 ## Introduction
@@ -108,7 +109,7 @@ Note the `diff*` functions use lowerCamelCase in keeping with S4 method name con
 
 The `diff*` family of methods has an extensive set of parameters that allow you to fine tune how the diff is applied and displayed.  We will review some of the major ones in this section.  For a full description see `?diffPrint`.
 
-We have taken great care to pick sensible defaults for each of these parameters.  Should these defauls be displeasing, you may change them either by specifying your own values for your parameters, or by specifying the corresponding `diffobj.*` option that defines the default.
+While the parameter list is extensive, only the objects being compared are required and all other parameters have hopefully sensible defaults.  The defaults all reference `diffobj.*` options so that you can change them if you dislike them.
 
 ### Display Mode
 
@@ -157,7 +158,7 @@ diffChr(x, y, color.mode="rgb")
 
 ### Output Formats
 
-If your terminal supports it `diffobj` will format with ANSI escape sequences.  `diffobj` uses Gabor Csardi's `[crayon](https://github.com/gaborcsardi/crayon)` crayon to detect ANSI support and to apply ANSI based formatting.  If your terminal does not support colors, `diffobj` will attempt to output an HTML/CSS formatted diff to your browser using `browseURL`.
+If your terminal supports it `diffobj` will format with ANSI escape sequences.  `diffobj` uses Gábor Csárdi's [`crayon`](https://github.com/gaborcsardi/crayon) crayon to detect ANSI support and to apply ANSI based formatting.  If your terminal does not support colors, `diffobj` will attempt to output an HTML/CSS formatted diff to your browser using `browseURL`.
 
 You can specify the output format with the `format` parameter set to:
 
@@ -186,15 +187,16 @@ At this time the only `format` that is affected by this parameter is `brightness
 
 If the diff output is very long `diff*` methods will pipe output to a pager. The default action is to create a temporary file with the diff output, and feed that to `file.show`.  If your terminal does not support ANSI escape sequences, the default action is to use your web browser as a pager / terminal irrespective of how big the actual output is.
 
-You can fine tune when, how, and if a pager is used by 
+You can fine tune when, how, and if a pager is used with the `pager` parameter.  See `?diffPrint` and `?Pager` for more details.
+
 ## Algorithm
 
 The diff algorithm is Myer's solution to the shortest edit script /
 longest common sequence problem with the Hirschberg linear space refinement
 as described in:
+
 > E. Myers, "An O(ND) Difference Algorithm and Its Variations",
 Algorithmica 1, 2 (1986), 251-266.
-\url{http://www.cs.arizona.edu/people/gene/PAPERS/diff.ps}
 
 and should be the same algorithm used by GNU diff.  The implementation
 used here is an adaptation of Michael B. Allen's diff program from the
@@ -206,6 +208,7 @@ that are mostly similar.
 
 ## Acknowledgements
 
-* Myers
-* MBA
-* Gabor
+* Eugene Myers for the algorithm
+* Michael B. Allen for implementing it in C
+* Gábor Csárdi for the `crayon` package
+* Hadley Wickham for the `devtools` and `testthat` packages
