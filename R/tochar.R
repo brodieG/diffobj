@@ -161,28 +161,22 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
   disp.width <- etc@disp.width
   ignore.white.space <- etc@ignore.white.space
 
-  # First check that the hunk group hasn't been completely trimmed
+  max.w <- calc_width(disp.width, mode)
+  capt.width <- calc_width_pad(disp.width, mode)
+  h.ids <- vapply(h.g, "[[", integer(1L), "id")
+  h.head <- vapply(h.g, "[[", logical(1L), "guide")
 
-  all.lines <- sum(
-    unlist(
-      lapply(h.g, function(h.a) unlist(h.a[c("tar.rng.trim", "cur.rng.trim")]))
-  ) )
-  if(!all.lines) {
-    list(hunkl())
-  } else {
-    max.w <- calc_width(disp.width, mode)
-    capt.width <- calc_width_pad(disp.width, mode)
-    h.ids <- vapply(h.g, "[[", integer(1L), "id")
-    h.head <- vapply(h.g, "[[", logical(1L), "guide")
-    # exclude header hunks from contributing to range
-    h.ids.nh <- h.ids[!h.head]
-    tar.rng <- find_rng(h.ids.nh, ranges.orig[1:2, , drop=FALSE])
-    cur.rng <- find_rng(h.ids.nh, ranges.orig[3:4, , drop=FALSE])
+  # exclude header hunks from contributing to range
 
-    hh.a <- paste0(rng_as_chr(tar.rng))
-    hh.b <- paste0(rng_as_chr(cur.rng))
+  h.ids.nh <- h.ids[!h.head]
+  tar.rng <- find_rng(h.ids.nh, ranges.orig[1:2, , drop=FALSE])
+  cur.rng <- find_rng(h.ids.nh, ranges.orig[3:4, , drop=FALSE])
 
-    hunk.head <- list(
+  hh.a <- paste0(rng_as_chr(tar.rng))
+  hh.b <- paste0(rng_as_chr(cur.rng))
+
+  hunk.head <- if(length(h.g) && !h.g[[1L]]$completely.empty) {
+    list(
       if(mode == "sidebyside") {
         hunkl(
           col.1=sprintf("@@ %s @@", hh.a), col.2=sprintf("@@ %s @@", hh.b),
@@ -190,29 +184,27 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
         )
       } else {
         hunkl(col.1=sprintf("@@ %s / %s @@", hh.a, hh.b), type.1=chrt("header"))
-      }
-    )
-    # Generate hunk contents in aligned form
+  } ) }
+  # Generate hunk contents in aligned form
 
-    hunk.res <- lapply(h.g, hunk_atom_as_char, mode=mode, etc=etc)
+  hunk.res <- lapply(h.g, hunk_atom_as_char, mode=mode, etc=etc)
 
-    # Run finalization functions; context mode is different because we need to
-    # re-order across atomic hunks
+  # Run finalization functions; context mode is different because we need to
+  # re-order across atomic hunks
 
-    fin_fun <- switch(
-      mode, unified=fin_fun_unified, sidebyside=fin_fun_sidebyside,
-      context=fin_fun_context
-    )
-    hunk.fin <- if(mode != "context") {
-      lapply(hunk.res, function(x) do.call(fin_fun, x))
-    } else {
-      fin_fun_context(hunk.res)
-    }
-    # Add header and return; this a list of lists, though all sub-lists should
-    # have same format
-
-    c(hunk.head, hunk.fin)
+  fin_fun <- switch(
+    mode, unified=fin_fun_unified, sidebyside=fin_fun_sidebyside,
+    context=fin_fun_context
+  )
+  hunk.fin <- if(mode != "context") {
+    lapply(hunk.res, function(x) do.call(fin_fun, x))
+  } else {
+    fin_fun_context(hunk.res)
   }
+  # Add header and return; this a list of lists, though all sub-lists should
+  # have same format
+
+  c(hunk.head, hunk.fin)
 }
 # helper for in_hunk_diffs
 #
@@ -360,7 +352,9 @@ setMethod("as.character", "Diff",
 
     # Trim hunks to the extent need to make sure we fit in lines
 
-    hunk.grps <- trim_hunks(x@diffs$hunks, x@etc)
+    etc.cpy <- x@etc
+    etc.cpy@line.limit <- line.limit.a
+    hunk.grps <- trim_hunks(x@diffs$hunks, etc.cpy)
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
 
     # Compact to width of widest element
@@ -481,15 +475,13 @@ setMethod("as.character", "Diff",
 
     if(mode == "sidebyside") {
       pre.render[[1L]]$dat <- c(banner.A, pre.render[[1L]]$dat)
-      pre.render[[1L]]$type <-
-        unlist(list(chrt("banner.delete"), pre.render[[1L]]$type))
+      pre.render[[1L]]$type <- c(chrt("banner.delete"), pre.render[[1L]]$type)
       pre.render[[2L]]$dat <- c(banner.B, pre.render[[2L]]$dat)
-      pre.render[[2L]]$type <-
-        unlist(list(chrt("banner.insert"), pre.render[[2L]]$type))
+      pre.render[[2L]]$type <- c(chrt("banner.insert"), pre.render[[2L]]$type)
     } else {
       pre.render[[1L]]$dat <- c(banner.A, banner.B, pre.render[[1L]]$dat)
-      pre.render[[1L]]$type <- unlist(
-        list(chrt("banner.delete", "banner.insert"), pre.render[[1L]]$type)
+      pre.render[[1L]]$type <- c(
+        chrt("banner.delete", "banner.insert"), pre.render[[1L]]$type
       )
     }
     # Generate wrapped version of the text; if in sidebyside, make sure that
@@ -584,7 +576,16 @@ setMethod("as.character", "Diff",
 
     # Finalize
 
-    fin <- c(s@funs@container(rows), limit.out, str.fold.out, no.diffs)
+    fin <- c(no.diffs, rows, limit.out, str.fold.out)
+
+    # Apply subsetting as needed
+
+    ind <- seq_along(fin)
+    ind <- if(length(x@sub.index)) ind[x@sub.index] else ind
+    if(length(x@sub.head)) ind <- head(ind, x@sub.head)
+    if(length(x@sub.tail)) ind <- tail(ind, x@sub.tail)
+
+    fin <- fin[ind]
     attr(fin, "meta") <- trim.meta
     fin
 } )

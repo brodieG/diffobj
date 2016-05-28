@@ -235,6 +235,9 @@ setClass("Diff",
     diffs="list",
     trim.dat="list",              # result of trimmaxg
     capt.mode="character",        # whether in print or str mode
+    sub.index="integer",
+    sub.head="integer",
+    sub.tail="integer",
     etc="Settings"
   ),
   prototype=list(
@@ -271,7 +274,8 @@ setMethod("show", "Diff",
 
     # Finalize and output
 
-    fin <- object@etc@style@finalizer(res.chr, pager)
+    in.cont <- object@etc@style@funs@container(res.chr)
+    fin <- object@etc@style@finalizer(in.cont, pager)
 
     if(use.pager) {
       disp.f <- paste0(tempfile(), ".", pager@file.ext)

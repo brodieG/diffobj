@@ -1,3 +1,21 @@
+# concatenate method for factors
+
+c.factor <- function(..., recursive=FALSE) {
+  dots <- list(...)
+  dots.n.n <- dots[!vapply(dots, is.null, logical(1L))]
+  if(!length(dots)) factor(0L) else {
+    if(
+      !all(vapply(dots.n.n, is, logical(1L), "factor")) ||
+      length(unique(lapply(dots.n.n, levels))) != 1L
+    ) {
+      NextMethod()
+    } else {
+      int.f <- unlist(lapply(dots.n.n, as.integer))
+      lvl <- levels(dots[[1L]])
+      factor(lvl[int.f], levels=lvl)
+    }
+  }
+}
 # Pull out the first call reading back from sys.calls that is likely to be
 # be the top level call and return the call along with the target and
 # current substituted values.  Part of complexity driven by possibility that

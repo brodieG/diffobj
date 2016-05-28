@@ -13,14 +13,22 @@ NULL
 #' argument.  The text to be formatted will be passed as a character vector
 #' as the first argument to each function.
 #'
+#' These functions are applied in post processing steps.  The \code{diff*}
+#' methods do not do any of the formatting.  Instead, the formatting is done
+#' only if the user requests to \code{show} the object.  Internally, \code{show}
+#' first converts the object to a character vector using \code{as.character},
+#' which applies every formatting function defined here except for
+#' \code{container}.  Then \code{show} applies \code{container} before
+#' forwarding the result to the screen or pager.
+#'
 #' @note the slots are set to class \dQuote{ANY} to allow classed functions
 #'   such as those defined in the \code{crayon} package.  Despite this seemingly
-#'   permissive slot definition, you are still required to provide functions
-#'   to populate them.
+#'   permissive slot definition, only functions are allowed in the slots by
+#'   the validation functions.
 #' @param container function used primarily by HTML styles to generate an
-#'   outermost \code{DIV} that allows for CSS targeting of its contents (
-#'   see \code{\link{cont_f}} for a function generator appropriate for use
-#'   here
+#'   outermost \code{DIV} that allows for CSS targeting of its contents
+#'   (see \code{\link{cont_f}} for a function generator appropriate for use
+#'   here)
 #' @param line function
 #' @param line.insert function
 #' @param line.delete function
@@ -172,8 +180,38 @@ StyleText <- setClass(
 #'
 #' @section Pre-defined Classes:
 #'
-#' See the usage section for a list.  The class names are intended to be
-#' descriptive.  To get a preview of what a style looks like just instantiate
+#' Pre-defined classes are used to populate the \code{\link{PaletteOfStyles}}
+#' object, which in turn allows the \code{diff*} methods to pick the
+#' appropriate \code{Style} for each combination of the \code{format},
+#' \code{color.mode}, and \code{brightness} parameters when the \code{style}
+#' parameter is set to \dQuote{auto}.  The following classes are pre-defined:
+#'
+#' \itemize{
+#'   \item \code{Style}: No styles applied
+#'   \item \code{StyleAnsi8NeutralRgb}
+#'   \item \code{StyleAnsi8NeutralYb}
+#'   \item \code{StyleAnsi256LightRgb}
+#'   \item \code{StyleAnsi256LightYb}
+#'   \item \code{StyleAnsi256DarkRgb}
+#'   \item \code{StyleAnsi256DarkYb}
+#'   \item \code{StyleHtmlLightRgb}
+#'   \item \code{StyleHtmlLightYb}
+#' }
+#' Each of these classes has an associated constructor function with the
+#' same name (see examples).  Objects instantiated from these classes
+#' may also be used directly as the value for the \code{style} parameter to the
+#' \code{diff*} methods. This will override the automatic selection process
+#' that uses \code{\link{PaletteOfStyles}}.
+#'
+#' There are predefined classes for most combinations of
+#' \code{format/color.mode/brightness}, but not all.  For example, there are
+#' only \dQuote{light} \code{brightness} defined for the \dQuote{html}
+#' \code{format}, and that class is re-used for all possible
+#' \code{brightness} values.  \code{\link{PaletteOfStyles}} substitutes an
+#' appropriate class when necessary (e.g. \code{StyleAnsi8NeutralYb} for the
+#' neutral yellow-blue Ansi256 entry).
+#'
+#' To get a preview of what a style looks like just instantiate
 #' an object; the \code{show} method will output a trivial diff to screen with
 #' styles applied.  Note that for ANSI styles of the dark and light variety
 #' the show method colors the terminal background and foregrounds in compatible
@@ -261,9 +299,19 @@ StyleText <- setClass(
 #'   modifications to the character output so that it is displayed correctly
 #'   by the pager.  For example, \code{StyleHtml} objects use it to generate
 #'   HTML headers if the \code{Diff} is destined to be displayed in a browser.
-#'   The \code{Pager} object is passed along to check the intended paging
-#'   output.
+#'   The \code{Pager} object is passed along to provide information about the
+#'   paging device to the function.
 #' @return Style S4 object
+#' @examples
+#' ## Create a new style based on existing style by changing
+#' ## gutter symbols and guide color; see `?StyleFuns` and
+#' ## `?StyleText` for a full list of adjustable elements
+#' my.style <- StyleAnsi8NeutralYb()
+#' my.style   ## `show` method gives you a preview of the style
+#' my.style@text@gutter.insert <- "+++"
+#' my.style@text@gutter.delete <- "---"
+#' my.style@funs@text.guide <- crayon::green
+#' my.style   ## Notice gutters and guide color
 
 Style <- setClass(
   "Style",
@@ -602,7 +650,8 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' comply with the descriptions implied by their coordinates, although the
 #' default object provided by the package does comply for the most part.  One
 #' check that is carried out is that any element that has a \dQuote{html}
-#' value in the \code{format} dimension extends \code{StyleHtml}.
+#' value in the \code{format} dimension extends \code{StyleHtml}.  The example
+#' below purposefully subverts this for illustrative purposes.
 #'
 #' Every cell in the list must be populated.  If there is a particular
 #' combination of coordinates that does not have a corresponding defined style
@@ -622,15 +671,15 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' @examples
 #' ## Look at all "ansi256" styles (assumes compatible terminal)
 #' PaletteOfStyles()["ansi256",,]
-#' ## Create a new style based on existing style by changing
-#' ## gutter symbols
-#' my.style <- StyleAnsi256LightRgb()
-#' my.style@text@gutter.ins <- "+"
-#' my.style@text@gutter.del <- "-"
 #' ## Generate the default style object palette, and replace
 #' ## the ansi256 / light / rgb style with our modified one
+#' ## which for illustrative purposes is the raw style
 #' defs <- PaletteOfStyles()
+#' my.style <- Style()   # See `?Style` for custom styles
 #' defs["ansi256", "light", "rgb"] <- list(my.style) # note `list()`
+#' ## Output has no format now for format/color.mode/brightness
+#' ## we modified ...
+#' diffPrint(1:3, 2:5, format="ansi256", color.mode="rgb", brightness="light")
 #' ## If so desired, set our new style palette as the default
 #' ## one; could also pass directly as argument to `diff*` funs
 #' \dontrun{
@@ -792,3 +841,27 @@ setMethod("show", "PaletteOfStyles",
 setMethod("summary", "PaletteOfStyles",
   function(object, ...) apply(object@data, 1:3, function(x) class(x[[1L]]))
 )
+
+# Helper function to render output for vignette
+
+display_ansi_256_styles <- function() {
+  styles <- lapply(
+    list(
+      StyleAnsi8NeutralYb(), StyleAnsi8NeutralRgb(),
+      StyleAnsi256DarkYb(), StyleAnsi256DarkRgb(),
+      StyleAnsi256LightYb(), StyleAnsi256LightRgb()
+    ),
+    function(x) capture.output(show(x))[3:8]
+  )
+  names <- c("Neutral", "Dark", "Light")
+  cat("\n")
+  lapply(
+    1:3,
+    function(x) {
+      cat(paste0(" ", names[x]), "\n\n")
+      cat(paste("   ", styles[[x * 2 - 1]], " ", styles[[x * 2]]), sep="\n")
+      cat("\n")
+    }
+  )
+  invisible(NULL)
+}

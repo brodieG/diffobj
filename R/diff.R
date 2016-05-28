@@ -146,10 +146,10 @@ make_diff_fun <- function(capt_fun) {
 #'       output does not fit in side by side without wrapping
 #'   }
 #' @param context integer(1L) how many lines of context are shown on either side
-#'   of differences, set to \code{-1L} to allow as many as there are.  Set to
-#'   \dQuote{auto} (default) to display as many as 10 lines or as few as 1
-#'   depending on whether total screen lines fit within \code{line.limit} (see
-#'   \code{\link{etc}}), or alternatively pass the return value of
+#'   of differences (defaults to 2).  Set to \code{-1L} to allow as many as
+#'   there are.  Set to \dQuote{auto}  to display as many as 10 lines or as few
+#'   as 1 depending on whether total screen lines fit within the number of lines
+#'   specified in \code{line.limit}.  Alternatively pass the return value of
 #'   \code{\link{auto_context}} to fine tune the parameters of the auto context
 #'   calculation.
 #' @param format character(1L), controls the diff output format, one of:
@@ -165,8 +165,8 @@ make_diff_fun <- function(capt_fun) {
 #'       of ANSI formatting options
 #'     \item \dQuote{html}: color and format using HTML markup
 #'   }
-#'   Defaults to \dQuote{auto}.  See \code{\link{Palette}} for details on
-#'   customization, \code{style} for full control of output format.
+#'   Defaults to \dQuote{auto}.  See \code{\link{PaletteOfStyles}} for details
+#'   on customization, \code{\link{style}} for full control of output format.
 #' @param brightness character, one of \dQuote{light}, \dQuote{dark},
 #'   \dQuote{neutral}, useful for adjusting color scheme to light or dark
 #'   terminals.  \dQuote{neutral} by default.  See \code{\link{Palette}} for
@@ -189,10 +189,14 @@ make_diff_fun <- function(capt_fun) {
 #'   \code{brightness} paramter does.
 #' @param pager character(1L), one of \dQuote{auto} or \dQuote{off}, or a
 #'   \code{\link{Pager}} object; controls whether and how a pager is used to
-#'   display the diff output.  If \dQuote{auto} will use a pager if output is
-#'   to console and exceeds screen height, or will always use a pager if in
-#'   interactive mode, not in running in \code{knitr} and in \dQuote{html}
-#'   format.
+#'   display the diff output.  If \dQuote{auto} will use the pager associated
+#'   with the \code{\link{Style} specified via the \code{\link{style}}}
+#'   parametera.  The default will pipe output to \code{link{file.show}} if
+#'   output is taller than the estimated terminal height and your terminal
+#'   supports ANSI escape sequences.  If not, the default is to attempt to pipe
+#'   output to a web browser with \code{\link{browserURL}}.  See
+#'   \code{\link{Pager}}, \code{\link{Style}}, and \code{\link{PaletteOfStyles}}
+#'   for more details.
 #' @param guides TRUE (default), FALSE, or a function that accepts at least two
 #'   arguments and requires no more than two arguments.  Guides
 #'   are additional context lines that are not strictly part of a hunk, but
@@ -208,7 +212,15 @@ make_diff_fun <- function(capt_fun) {
 #'   output to show, where \code{-1} means no limit.  If length 2, the first
 #'   value indicates the threshold of screen lines to begin truncating output,
 #'   and the second the number of lines to truncate to, which should be fewer
-#'   than the threshold.
+#'   than the threshold.  Note that this parameter is implemented on a
+#'   best- efforts basis and should not be relied on to produce the exact
+#'   number of lines requested.  If you want a specific number of lines use
+#'   \code{[} or \code{head}/\code{tail}.  One advantage of \code{line.limit}
+#'   over these other options is that you can combine it with
+#'   \code{context="auto"} and auto \code{max.level} selection (the latter for
+#'   \code{diffStr}), which allows the diff to dynamically adjust to make best
+#'   use of the available display lines.  \code{[}, \code{head}, and \code{tail}
+#'   just subset the text of the output output.
 #' @param hunk.limit integer(2L) or integer (1L), how many diff hunks to show.
 #'   Behaves similarly to \code{line.limit}.  How many hunks are in a
 #'   particular diff is a function of how many differences, and also how much
@@ -262,6 +274,7 @@ make_diff_fun <- function(capt_fun) {
 #' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen or pager
 #' @rdname diffPrint
+#' @name diffPrint
 #' @export
 
 setGeneric(
@@ -291,6 +304,7 @@ setMethod("diffPrint", signature=c("ANY", "ANY"), make_diff_fun(capt_print))
 #'   \code{\link{diffDeparse}} to compare deparsed objects
 #' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen
+#' @rdname diffStr
 #' @export
 
 setGeneric("diffStr", function(target, current, ...) standardGeneric("diffStr"))
@@ -312,8 +326,9 @@ setMethod("diffStr", signature=c("ANY", "ANY"), make_diff_fun(capt_str))
 #' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
+#' @rdname diffChr
 #' @examples
-#' diff_chr(LETTERS[1:5], LETTERS[2:6])
+#' diffChr(LETTERS[1:5], LETTERS[2:6])
 
 setGeneric("diffChr", function(target, current, ...) standardGeneric("diffChr"))
 
@@ -334,6 +349,7 @@ setMethod("diffChr", signature=c("ANY", "ANY"), make_diff_fun(capt_chr))
 #' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
+#' @rdname diffDeparse
 #' @examples
 #' diffDeparse(matrix(1:9, 3), 1:9)
 
@@ -359,6 +375,7 @@ setMethod("diffDeparse", signature=c("ANY", "ANY"), make_diff_fun(capt_deparse))
 #' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
+#' @rdname diffFile
 #' @examples
 #' url.base <- "https://raw.githubusercontent.com/wch/r-source"
 #' f1 <- file.path(url.base, "29f013d1570e1df5dc047fb7ee304ff57c99ea68/README")
@@ -391,6 +408,7 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 #' @return a \code{\link{Diff}} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
+#' @rdname diffCsv
 #' @examples
 #' iris.2 <- iris
 #' iris.2$Sepal.Length[5] <- 99
@@ -404,7 +422,7 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 setGeneric(
   "diffCsv", function(target, current, ...) standardGeneric("diffCsv")
 )
-#' @rdname diffFile
+#' @rdname diffCsv
 
 setMethod("diffCsv", signature=c("ANY", "ANY"), make_diff_fun(capt_csv))
 
@@ -421,7 +439,7 @@ setMethod("diffCsv", signature=c("ANY", "ANY"), make_diff_fun(capt_csv))
 #'
 #' @inheritParams diffPrint
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
-#'   \code{link{diffStr}},
+#'   \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly
 #'   \code{\link{diffDeparse}} to compare deparsed objects
 #' @return a \code{\link{Diff}} object; this object has a \code{show}

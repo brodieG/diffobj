@@ -72,8 +72,14 @@ pager_settings <- function(
   )
   new("Pager", mode=mode, threshold=threshold, less.flags=less.flags)
 }
-# Check whether system has less as pager; this is an approximation since we
-# do not check that the pager shell script actually calls $PAGER
+#' Check Whether System has less as Pager
+#'
+#' Checks system \code{PAGER} variable and that \code{PAGER_PATH} is pointed
+#' at \dQuote{R_HOME/bin/pager}.  This is an approximation and may return
+#' false positives or negatives depending on your system.
+#'
+#' @return TRUE or FALSE
+#' @export
 
 pager_is_less <- function() {
   PAGER <- Sys.getenv("PAGER")
