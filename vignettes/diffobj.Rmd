@@ -83,7 +83,7 @@ For complex objects it is often useful to compare structures:
 ```{r, results="asis"}
 mdl1 <- lm(Sepal.Length ~ Sepal.Width, iris)
 mdl2 <- lm(Sepal.Length ~ Sepal.Width + Species, iris.3)
-diffStr(mdl1$qr, mdl2$qr, line.limit=50)
+diffStr(mdl1$qr, mdl2$qr, line.limit=15)
 ```
 
 If you specify a `line.limit` with `diffStr` it will fold nested levels in order to fit under `line.limit`, so long as there remain visible differences.  If you prefer to see all the differences you can leave `line.limit` unspecified.
@@ -158,7 +158,7 @@ diffChr(x, y, color.mode="rgb")
 
 ### Output Formats
 
-If your terminal supports it `diffobj` will format with ANSI escape sequences.  `diffobj` uses Gábor Csárdi's [`crayon`](https://github.com/gaborcsardi/crayon) crayon to detect ANSI support and to apply ANSI based formatting.  If your terminal does not support colors, `diffobj` will attempt to output an HTML/CSS formatted diff to your browser using `browseURL`.
+If your terminal supports it `diffobj` will format with ANSI escape sequences.  `diffobj` uses Gábor Csárdi's [`crayon`](https://github.com/gaborcsardi/crayon) package to detect ANSI support and to apply ANSI based formatting.  If your terminal does not support colors, `diffobj` will attempt to output an HTML/CSS formatted diff to your browser using `browseURL`.
 
 You can specify the output format with the `format` parameter set to:
 
@@ -181,13 +181,19 @@ Here are examples of terminal screen renderings for both "rgb" and "yb" `color.m
 
 The examples for "light" and "dark" have the backgrounds forcefully set to a color compatible with the scheme.  In actual use the base background and foreground colors are left unchanged, which will look bad if you use "dark" with light colored backgrounds or vice versa.  Since we do not know of a good cross platform way of detecting terminal background color the default `brightness` value is "neutral".
 
-At this time the only `format` that is affected by this parameter is `brightness`.  If you want to specify your own light/dark/neutral schemes you may do so either by specifying a `[style](#custom-styles)` directly or with `[Palette of Styles](#custom-styles)` (see next section).
+At this time the only `format` that is affected by this parameter is `brightness`.  If you want to specify your own light/dark/neutral schemes you may do so either by specifying a [`style`](#styles) directly or with [`Palette of Styles`](#styles).
 
 ### Pagers
 
 If the diff output is very long `diff*` methods will pipe output to a pager. The default action is to create a temporary file with the diff output, and feed that to `file.show`.  If your terminal does not support ANSI escape sequences, the default action is to use your web browser as a pager / terminal irrespective of how big the actual output is.
 
 You can fine tune when, how, and if a pager is used with the `pager` parameter.  See `?diffPrint` and `?Pager` for more details.
+
+### Styles
+
+You can control almost all aspects of the diff output formatting via the `style` parameter.  To do so, pass an appropriately configured `Style` object.  See `?Style` for more details on how to do this.
+
+The default is to auto pick a style based on the values of the `format`, `color.mode`, and `brightness` parameters.  This is done by using the computed values for each of those parameters to subset the `PaletteOfStyles` object passed as the `palette.of.styles` parameter.  This `PaletteOfStyles` object contains a `Style` object for all the possible permutations of the `style`, `format`, and `color.mode` parameters.  See `?PaletteOfStyles`.
 
 ## Algorithm
 

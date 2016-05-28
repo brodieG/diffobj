@@ -42,10 +42,10 @@ diffChr(target, current, ...)
 }}
 
 \item{context}{integer(1L) how many lines of context are shown on either side
-of differences, set to \code{-1L} to allow as many as there are.  Set to
-\dQuote{auto} (default) to display as many as 10 lines or as few as 1
-depending on whether total screen lines fit within \code{line.limit} (see
-\code{\link{etc}}), or alternatively pass the return value of
+of differences (defaults to 2).  Set to \code{-1L} to allow as many as
+there are.  Set to \dQuote{auto}  to display as many as 10 lines or as few
+as 1 depending on whether total screen lines fit within the number of lines
+specified in \code{line.limit}.  Alternatively pass the return value of
 \code{\link{auto_context}} to fine tune the parameters of the auto context
 calculation.}
 
@@ -62,8 +62,8 @@ calculation.}
     of ANSI formatting options
   \item \dQuote{html}: color and format using HTML markup
 }
-Defaults to \dQuote{auto}.  See \code{\link{Palette}} for details on
-customization, \code{style} for full control of output format.}
+Defaults to \dQuote{auto}.  See \code{\link{PaletteOfStyles}} for details
+on customization, \code{\link{style}} for full control of output format.}
 
 \item{brightness}{character, one of \dQuote{light}, \dQuote{dark},
 \dQuote{neutral}, useful for adjusting color scheme to light or dark
@@ -133,13 +133,15 @@ addressable by your tab stops the last tab stop will be repeated.}
 output to show, where \code{-1} means no limit.  If length 2, the first
 value indicates the threshold of screen lines to begin truncating output,
 and the second the number of lines to truncate to, which should be fewer
-than the threshold.  Note that this parameter is implemented on a best-
-efforts basis and should not be relied on to produce the exact number of
-lines requested.  If you want a specific number of lines use \code{[} or
-\code{head}/\code{tail}.  One advantage of \code{line.limit} over these
-other options is that you can combine it with \code{context="auto"} and
-auto \code{max.level} selection (the latter for \code{diffStr}) where as
-the subsetted options simply truncate the final output.}
+than the threshold.  Note that this parameter is implemented on a
+best- efforts basis and should not be relied on to produce the exact
+number of lines requested.  If you want a specific number of lines use
+\code{[} or \code{head}/\code{tail}.  One advantage of \code{line.limit}
+over these other options is that you can combine it with
+\code{context="auto"} and auto \code{max.level} selection (the latter for
+\code{diffStr}), which allows the diff to dynamically adjust to make best
+use of the available display lines.  \code{[}, \code{head}, and \code{tail}
+just subset the text of the output output.}
 
 \item{hunk.limit}{integer(2L) or integer (1L), how many diff hunks to show.
 Behaves similarly to \code{line.limit}.  How many hunks are in a

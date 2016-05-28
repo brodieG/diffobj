@@ -58,7 +58,8 @@ The array/list must be fully populated with objects that are or extend
 comply with the descriptions implied by their coordinates, although the
 default object provided by the package does comply for the most part.  One
 check that is carried out is that any element that has a \dQuote{html}
-value in the \code{format} dimension extends \code{StyleHtml}.
+value in the \code{format} dimension extends \code{StyleHtml}.  The example
+below purposefully subverts this for illustrative purposes.
 
 Every cell in the list must be populated.  If there is a particular
 combination of coordinates that does not have a corresponding defined style
@@ -76,15 +77,15 @@ the \code{format} dimension.
 \examples{
 ## Look at all "ansi256" styles (assumes compatible terminal)
 PaletteOfStyles()["ansi256",,]
-## Create a new style based on existing style by changing
-## gutter symbols
-my.style <- StyleAnsi256LightRgb()
-my.style@text@gutter.ins <- "+"
-my.style@text@gutter.del <- "-"
 ## Generate the default style object palette, and replace
 ## the ansi256 / light / rgb style with our modified one
+## which for illustrative purposes is the raw style
 defs <- PaletteOfStyles()
+my.style <- Style()   # See `?Style` for custom styles
 defs["ansi256", "light", "rgb"] <- list(my.style) # note `list()`
+## Output has no format now for format/color.mode/brightness
+## we modified ...
+diffPrint(1:3, 2:5, format="ansi256", color.mode="rgb", brightness="light")
 ## If so desired, set our new style palette as the default
 ## one; could also pass directly as argument to `diff*` funs
 \dontrun{
