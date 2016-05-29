@@ -72,7 +72,22 @@ is.valid.palette.param <- function(x, param, palette) {
     )
   else TRUE
 }
-is.valid.guide.fun <- function(x) {
+is.one.arg.fun <- function(x) {
+  if(!is.function(x)) {
+    "is not a function"
+  } else if(length(formals(x)) < 1L) {
+    "does not have at least one arguments"
+  } else if("..." %in% names(formals(x))[1]) {
+    "cannot have `...` as the first argument"
+  } else {
+    nm.forms <- vapply(formals(x), is.name, logical(1L))
+    forms.chr <- character(length(nm.forms))
+    forms.chr[nm.forms] <- as.character(formals(x)[nm.forms])
+    if(any(tail(!nzchar(forms.chr) & nm.forms, -1L)))
+      "cannot have any non-optional arguments other than first one" else TRUE
+  }
+}
+is.valid.guide.fun <- is.two.arg.fun <- function(x) {
   if(!is.function(x)) {
     "is not a function"
   } else if(length(formals(x)) < 2L) {
