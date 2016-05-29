@@ -236,10 +236,11 @@ char_diff <- function(x, y, context=-1L, etc, diff.mode, warn) {
   }
   max.diffs <- etc@max.diffs
   diff <- diff_myers_mba(x.w, y.w, max.diffs)
-  if(etc@ignore.white.space) {
-    diff@a <- x
-    diff@b <- y
-  }
+
+  # Reset given whitespace and other modifications
+
+  diff@a <- x
+  diff@b <- y
   hunks <- as.hunks(diff, etc=etc)
   hit.diffs.max <- FALSE
   if(diff@diffs < 0L) {
