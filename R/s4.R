@@ -101,6 +101,15 @@ GuideLines <- setClass(
     TRUE
   }
 )
+setClass("StripRowHead", slots=c(target="ANY", current="ANY"),
+  validity=function(object) {
+    if(!isTRUE(err <- is.one.arg.fun(object@target)))
+      return(err)
+    if(!isTRUE(err <- is.one.arg.fun(object@current)))
+      return(err)
+    TRUE
+  }
+)
 setClass("Gutter",
   slots= c(
     insert="character", insert.ctd="character",
@@ -130,6 +139,7 @@ setClass("Settings",
     cur.banner="charOrNULL",
     guides="ANY",
     guide.lines="GuideLines",
+    strip.row.head="StripRowHead",
     disp.width="integer",
     line.width="integer",
     text.width="integer",
