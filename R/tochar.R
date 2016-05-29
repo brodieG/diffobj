@@ -258,8 +258,7 @@ in_hunk_diffs <- function(hunk.grps, etc, tar.to.wd, cur.to.wd) {
         B.new <- c(h.a$A.chr[A.neg], h.a$B.chr[B.neg])
 
         new.diff <- diff_word(
-          A.new, B.new, etc=etc, diff.mode="hunk",
-          warn=warn.hit.diffs.max
+          A.new, B.new, etc=etc, diff.mode="hunk", warn=warn.hit.diffs.max
         )
         if(new.diff$hit.diffs.max) warn.hit.diffs.max <- FALSE
 

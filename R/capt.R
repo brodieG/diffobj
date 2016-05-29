@@ -24,9 +24,11 @@ capture <- function(x, etc, err) {
 
 capt_print <- function(target, current, etc, err, ...){
   dots <- list(...)
+  # What about S4?
   print.match <- try(
     match.call(
-      get("print", envir=etc@frame), as.call(c(list(quote(print), x=NULL), dots)),
+      get("print", envir=etc@frame),
+      as.call(c(list(quote(print), x=NULL), dots)),
       envir=etc@frame
   ) )
   if(inherits(print.match, "try-error"))
