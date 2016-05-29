@@ -36,42 +36,6 @@ auto_context <- function(
     stop("Argument `max` must be integer(1L) and not NA")
   new("AutoContext", min=as.integer(min), max=as.integer(max))
 }
-#' Control Under What Circumstances Output is Displayed Through Pager
-#'
-#' Pager is invoked via \code{\link{file.show}}.  This function is intended for
-#' use with the \code{pager} parameter for \code{\link{etc}}.
-#'
-#' @export
-#' @param mode character(1L) one of \itemize{
-#'   \item threshold: use pager if output has more lines than \code{threshold}
-#'   \item always: always use pager
-#'   \item never: never use pager
-#' }
-#' @param threshold integer(1L) if in \code{mode} "threshold", number of lines
-#'   of output that triggers the use of the pager; negative values lead to
-#'   using \code{\link{console_lines}} + 1
-#' @param less.flags character(1L), what flags to set with the \code{LESS}
-#'   system environment variable.  This is only relevant if your system is
-#'   configured to use \code{less} as the pager.  You should only provide the
-#'   flag letters (e.g. \code{"RX"}, not \code{"-RX"}).  Defaults to \code{"R"}
-#'   if it appears that \code{less} is the system pager and the \code{use.ansi}
-#'   setting is TRUE.  The system variable is only modified for the duration of
-#'   the evaluation and is reset / unset afterwards.
-#' @return S4 object for use as the \code{pager} parameter to
-#'   \code{link{etc}}
-
-pager_settings <- function(
-  mode=getOption("diffobj.pager.mode"),
-  threshold=getOption("diffobj.pager.threshold"),
-  less.flags=getOption("diffobj.less.flags")
-) {
-  if(!is.pager_mode(mode)) stop("Argument `mode` is not a valid pager mode")
-  if(!is.less_flags(less.flags)) stop("Argument `less.flags` is not valid")
-  if(!is.int.1L(threshold)) stop(
-    "Argument `threshold` should be integer(1L) and not NA"
-  )
-  new("Pager", mode=mode, threshold=threshold, less.flags=less.flags)
-}
 #' Check Whether System has less as Pager
 #'
 #' Checks system \code{PAGER} variable and that \code{PAGER_PATH} is pointed
