@@ -21,7 +21,9 @@ detect_2d_guides <- function(txt) {
       integer(2L)
     )
     # Which of the sets of true and false head rows have the same repeating
-    # sequence as the first?
+    # sequence as the first?  One thing to think about is what happens when
+    # print gets truncated; should allow last in sequence to have fewer rows,
+    # but we don't do that yet...
 
     valid.rep <- max(
       which(
