@@ -1,3 +1,21 @@
+# Returns the indices of the original rle object that correspond to the
+# ind rle values
+
+rle_sub <- function(rle, ind) {
+  ind <- if(is.numeric(ind)) {
+    as.integer(ind)
+  } else if(is.logical(ind)) {
+    which(ind)
+  } else stop("Logic Error: unexpected `ind` input")
+  if(!all(ind) > 0 || !all(diff(ind) > 0))
+    stop("Logic Error: `ind` should be monotonically increasing")
+
+  len.cum <- cumsum(rle$lengths)
+  all.ind <- Map(
+    seq, from=c(1L, head(len.cum, -1L) + 1L), to=len.cum, by=1L
+  )
+  unname(all.ind[ind])
+}
 # concatenate method for factors
 
 c.factor <- function(..., recursive=FALSE) {
