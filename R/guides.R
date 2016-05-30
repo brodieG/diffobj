@@ -95,20 +95,29 @@ detect_matrix_guides <- function(txt, dim.n) {
   row.types[r.h] <- 1L                   # row meta / col headers
   row.types[c.h] <- 2L                   # col meta
 
-  mx.start.num <- if(is.null(n.d.n)) 1L else 2L
-  mx.start <- head(which(row.types == mx.start.num), 1L)
+  mx.starts <- if(is.null(n.d.n)){
+    mx.start.num <- 1L
+    which(row.types == mx.start.num)
+  } else {
+    mx.start.num <- 2L
+    tmp <- which(row.types == mx.start.num)
+    if(sum(r.h) == sum(c.h) && identical(which(c.h) + 1L, which(r.h))) {
+      tmp
+    } else integer(0L)
+  }
+  mx.start <- head(mx.starts, 1L)
 
   if(length(mx.start)) {
     # Now  try to see if pattern repeats to identify the full list of wrapped
     # guides, and return the indices that are part of repeating pattern
 
-    mx.end <- head(
-      which(row.types == mx.start.num & seq_along(row.types) > mx.start)
-    )
-    if(length(mx.end) && mx.end > mx.start + 1L) {
-      pat.inds <- mx.start:(mx.end - 1L)
+    mx.end <- head(mx.starts[which(mx.starts > mx.start)], 1L) - 1L
+    if(!length(mx.end)) mx.end <- length(txt)
+
+    if(mx.end > mx.start + 1L) {
+      pat.inds <- mx.start:(mx.end)
       template <- rep(
-        row.types[pat.inds], 
+        row.types[pat.inds],
         floor((length(txt) - mx.start + 1L) / length(pat.inds))
       )
       which(row.types[pat.inds] == template & !!template) + mx.start - 1L
@@ -125,73 +134,35 @@ detect_array_guides <- function(txt, dim.n) {
     is.list(dim.n) || is.null(dim.n),
     (is.character(n.d.n) && length(n.d.n) > 2L) || is.null(n.d.n)
   )
-  if(length(txt) > 2L) {
-    if(!is.null(n.d.n)) {
-      # try to guard against dimnames that contain regex
-      n.p <- "(\\[|\\]|\\(|\\)|\\{|\\}|\\*|\\+|\\?|\\.|\\^|\\$|\\\\|\\|)"
-      row.pat <- sprintf("^%s\\s+\\S+", gsub(n.p, "\\\1", n.d.n[[1L]]))
-      col.pat <- sprintf("^\\s{2,}%s$", gsub(n.p, "\\\1", n.d.n[[2L]]))
-      # identify which lines could be row and col headers
-      r.h <- grepl(row.pat, txt)
-      c.h <- grepl(col.pat, txt)
-    } else {
-      c.h <- rep(FALSE, length(txt))
-      r.h <- grepl("^\\s+\\S+", txt)
-    }
-    # Classify each line depending on what pattern it matches so we can then
-    # analyze sequences and determine which are valid
+  # Detect patterns for higher dimensions, and then use the matrix guide
+  # finding functions to get additional guides
 
-    row.types <- integer(length(txt))
-    row.types[!nzchar(txt)] <- 1L          # blanks
-    row.types[grepl("^, , ", txt)] <- 2L   # high dim header
-    row.types[r.h] <- 3L                   # row meta / col headers
-    row.types[c.h] <- 4L                   # col meta
+  dim.guides <- which(grepl("^, ,", txt))
+  blanks <- which(txt == "")
 
-    row.chain <- paste0(row.types, collapse="") # assumes all values 1 char long
-    p.simple <- "2130*1"    # no dimnames names
-    p.cols <- "21430*1"     # both row and col dimnames
+  if(
+    length(dim.guides) && length(blanks) &&
+    all(dim.guides + 1L %in% blanks) &&
+    length(dim.delta <- unique(diff(dim.guides))) == 1L &&
+    dim.delta > 4L
+  ) {
+    rng.start <- dim.guides + 2L
+    rng.end <- dim.guides + dim.delta - 1L
 
-    p.test <- if(!is.null(n.d.n)) p.cols else p.simple
-
-    # not perfect, since we could check that matched tokens match dimensions...
-    # there should only be one sequence of the repeating pattern
-
+    rng <- Map(seq, rng.start, rng.end, by=1L)
+    heads <- lapply(
+      rng, function(x) detect_matrix_guides(txt[x], head(dim.n, 2L))
+    )
     if(
-      length(
-        unlist(
-          arr.coord <- gregexpr(sprintf("(%s)+", p.test), row.chain)
-      ) ) == 1L
+      all(vapply(heads, identical, logical(1L), heads[[1L]])) &&
+      all(vapply(heads, length, integer(1L)))
     ) {
-      arr.core <- unlist(regmatches(row.chain, arr.coord))
-      if(length(arr.core) != 1L)
-        stop("Logic Error: array repeat pattern problem; contact maintainer.")
-      # Now replace everything except the front part of the match with zeroes
-      core.match <- gregexpr(p.test, arr.core)
-      core.pieces <- regmatches(arr.core, core.match)
-      if(length(core.pieces) != 1L)
-        stop("Logic Error: array repeat pattern problem; contact maintainer.")
-      core.proc <- lapply(
-        unlist(core.pieces),
-        function(x) {
-          x.u <- unlist(strsplit(unlist(x), ""))
-          if(!length(x.u)) "" else {
-            x.u[!!cumsum(x.u == "0")] <- "0" # anything after zero turned to zero
-            paste0(x.u, collapse="")
-          }
-      } )
-      regmatches(arr.core, core.match) <- core.proc
-
-      # generate new version of chain with all zeros to sub back in
-
-      row.chain.z <- paste0(rep("0", nchar(row.chain)), collapse="")
-      regmatches(row.chain.z, arr.coord) <- arr.core
-
-      # Convert back to vector
-
-      which(unlist(strsplit(row.chain.z, "")) != "0")
-    } else {
-      integer(0L)
-    }
+      sort(
+        c(
+          dim.guides, dim.guides + 1L,
+          unlist(Map("+", heads, rng.start - 1L))
+      ) )
+    } else integer(0L)
   } else integer(0L)
 }
 #' Generic Methods to Implement Flexible Guide Line Computations

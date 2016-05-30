@@ -45,6 +45,16 @@ test_that("detect_matrix_guides", {
   expect_equal(
     diffobj:::detect_matrix_guides(mx5.c, dimnames(mx5)), c(1, 5)
   )
+  # Simple matrices that don't wrap
+
+  mx6 <- mx7 <- matrix(1:4, 2)
+  dimnames(mx7) <- list(A=letters[1:2], B=LETTERS[25:26])
+
+  mx6.c <- capture.output(mx6)
+  expect_equal(diffobj:::detect_matrix_guides(mx6.c, dimnames(mx6)), 1)
+
+  mx7.c <- capture.output(mx7)
+  expect_equal(diffobj:::detect_matrix_guides(mx7.c, dimnames(mx7)), c(1, 2))
 })
 test_that("detect_array_guides", {
   a.1 <- array(1:6, dim=c(2, 1, 3))
