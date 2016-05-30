@@ -19,8 +19,12 @@ test_that("Atomic", {
   )
 })
 test_that("Table", {
-  x <- capture.output(array(1:8, rep(2, 3)))
-  diffobj:::strip_table_rh(x)
+  x <- capture.output(array(1:6, c(3, 1, 2)))
+  expect_equal(
+    diffobj:::strip_table_rh(x),
+
+  )
+
 })
 
 
