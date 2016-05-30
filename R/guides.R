@@ -67,6 +67,77 @@ detect_list_guides <- function(txt) {
     which(valid.pat)
   } else integer(0L)
 }
+# Matrices
+
+detect_matrix_guides <- function(txt, dim.n) {
+  stopifnot(
+    is.character(txt), !anyNA(txt),
+    is.null(dim.n) || (is.list(dim.n) && length(dim.n) == 2L)
+  )
+
+  n.d.n <- names(dim.n)
+  if(!is.null(n.d.n)) {
+    # try to guard against dimnames that contain regex
+    n.p <- "(\\[|\\]|\\(|\\)|\\{|\\}|\\*|\\+|\\?|\\.|\\^|\\$|\\\\|\\|)"
+    row.pat <- sprintf("^%s\\s+\\S+", gsub(n.p, "\\\1", n.d.n[[1L]]))
+    col.pat <- sprintf("^\\s{2,}%s$", gsub(n.p, "\\\1", n.d.n[[2L]]))
+    # identify which lines could be row and col headers
+    r.h <- grepl(row.pat, txt)
+    c.h <- grepl(col.pat, txt)
+  } else {
+    c.h <- rep(FALSE, length(txt))
+    r.h <- grepl("^\\s+\\S", txt)
+  }
+  # Classify each line depending on what pattern it matches so we can then
+  # analyze sequences and determine which are valid
+
+  row.types <- integer(length(txt))
+  row.types[r.h] <- 1L                   # row meta / col headers
+  row.types[c.h] <- 2L                   # col meta
+
+  row.chain <- paste0(row.types, collapse="") # assumes all values 1 char long
+  p.simple <- "10*"    # no dimnames names
+  p.cols <- "210*"     # both row and col dimnames
+
+  p.test <- if(!is.null(n.d.n)) p.cols else p.simple
+
+  if(
+    length(
+      unlist(
+        mx.coord <- gregexpr(sprintf("(%s)+", p.test), row.chain)
+    ) ) == 1L
+  ) {
+    mx.core <- unlist(regmatches(row.chain, mx.coord))
+    if(length(mx.core) != 1L)
+      stop("Logic Error: array repeat pattern problem; contact maintainer.")
+    # Now replace everything except the front part of the match with zeroes
+    core.match <- gregexpr(p.test, mx.core)
+    core.pieces <- regmatches(mx.core, core.match)
+    if(length(core.pieces) != 1L)
+      stop("Logic Error: array repeat pattern problem; contact maintainer.")
+    core.proc <- lapply(
+      unlist(core.pieces),
+      function(x) {
+        x.u <- unlist(strsplit(unlist(x), ""))
+        if(!length(x.u)) "" else {
+          x.u[!!cumsum(x.u == "0")] <- "0" # anything after zero turned to zero
+          paste0(x.u, collapse="")
+        }
+    } )
+    regmatches(mx.core, core.match) <- core.proc
+
+    # generate new version of chain with all zeros to sub back in
+
+    row.chain.z <- paste0(rep("0", nchar(row.chain)), collapse="")
+    regmatches(row.chain.z, mx.coord) <- mx.core
+
+    # Convert back to vector
+
+    which(unlist(strsplit(row.chain.z, "")) != "0")
+  } else {
+    integer(0L)
+  }
+}
 # Here we want to get the high dimension counter as well as the column headers
 # of each sub-dimension
 

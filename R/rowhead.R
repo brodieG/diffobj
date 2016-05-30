@@ -1,6 +1,7 @@
 # Detect and remove atomic headers
 
 .pat.atom <- "^\\s*\\[[1-9][0-9]*\\]\\s"
+.pat.mat <- "^\\s*\\[[1-9]+[0-9]*,\\]\\s"
 
 which_atomic_rh <- function(x) {
   stopifnot(is.character(x), !anyNA(x))
@@ -118,7 +119,7 @@ wtr_help <- function(x, pat) {
 which_table_rh <- function(x) {
   stopifnot(is.character(x), !anyNA(x))
 
-  pat.1 <- "^\\s*\\[[1-9]+[0-9]*,\\]\\s"  # matrix / arrays
+  pat.1 <- .pat.mat # matrix / arrays
   pat.2 <- "^\\s*[1-9]+[0-9]*:?\\s"       # dfs/tables colon for data.table
 
   res <- wtr_help(x, pat.1)
@@ -142,6 +143,37 @@ strip_table_rh <- function(x) {
     x
   }
 }
+# Handle arrays
+
+which_array_rh <- function(x, dim.names.x) {
+  arr.h <- detect_array_guides(x, dim.names.x)
+  if(length(arr.h)) {
+    # Look for the stuff between array guides; those should be matrix like
+    # objects
+
+    seq.x <- seq_along(x)
+    grp.ids <- cumsum(c(0L, diff((!seq.x %in% arr.h) & seq.x > min(arr.h)) > 0))
+    grp.split <- split(x, grp.ids)
+    grp.keep <- split(!seq.x %in% arr.h, grp.ids)
+    grp.start <- vapply(head(split(seq.x, grp.ids), -1L), "[[", integer(1L), 1L)
+    grp.tmp <- tail(Map("[", grp.split, grp.keep), -1L)
+    # Add back header proxy since 
+
+    grp.fin <- lapply(grp.tmp, function(y) c("  <header proxy>"))
+
+    # Now leverage the table stuff; then need to remap back to the original
+    # indices
+
+    grp.idx <- lapply(grps.fin, which_table_rh)
+    if(
+      length(unique(grp.len <- vapply(grps.idx, length, integer(1L)))) == 1L &&
+      grp.len[[1L]]
+    ) {
+      unlist(Map("+", grps.idx, grp.start - 1L))
+    } else integer(0L)
+  } else integer(0L)
+}
+
 setGeneric("stripRowHead",
   function(obj, obj.as.chr) StandardGeneric("stripRowHead")
 )

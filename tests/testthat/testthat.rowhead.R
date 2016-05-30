@@ -19,14 +19,6 @@ test_that("Atomic", {
   )
 })
 test_that("Table", {
-  x <- capture.output(array(1:6, c(3, 1, 2)))
-  # Ultimately will need to change this when we switch array funs to own table
-  # expect_equal(
-  #   diffobj:::strip_table_rh(x),
-  #   c(", , 1", "", "     [,1]", "   1", "   2", "   3", "", ", , 2", "", "     [,1]", "   4", "   5", "   6", "")
-  # )
-  # Matrices
-
   mx1 <- mx2 <- matrix(1:3, 3)
   attr(mx2, "blah") <- matrix(1:2, 2)
   expect_equal(
@@ -92,6 +84,14 @@ test_that("Table", {
     diffobj:::strip_table_rh(capture.output(df2)),
     capture.output(df2)
   )
+})
+test_that("Array", {
+  a <- array(1:6, c(3, 1, 2))
+  a.c <- capture.output(a)
+  expect_equal(
+    diffobj:::which_array_rh(a.c, dimnames(a)),
+  )
+
 })
 
 
