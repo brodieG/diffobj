@@ -20,11 +20,78 @@ test_that("Atomic", {
 })
 test_that("Table", {
   x <- capture.output(array(1:6, c(3, 1, 2)))
+  # Ultimately will need to change this when we switch array funs to own table
+  # expect_equal(
+  #   diffobj:::strip_table_rh(x),
+  #   c(", , 1", "", "     [,1]", "   1", "   2", "   3", "", ", , 2", "", "     [,1]", "   4", "   5", "   6", "")
+  # )
+  # Matrices
+
+  mx1 <- mx2 <- matrix(1:3, 3)
+  attr(mx2, "blah") <- matrix(1:2, 2)
   expect_equal(
-    diffobj:::strip_table_rh(x),
-
+    diffobj:::strip_table_rh(capture.output(mx1)),
+    c("     [,1]", "   1", "   2", "   3")
   )
+  # shouldn't strip headers from attributes
+  expect_equal(
+    diffobj:::strip_table_rh(capture.output(mx2)),
+    c("     [,1]", "   1", "   2", "   3", "attr(,\"blah\")", "     [,1]", "[1,]    1", "[2,]    2")
+  )
+  # Matrices that wrap
 
+  mx3 <- mx4 <- mx5 <- mx6 <- matrix(
+    c(
+      "averylongwordthatcanlahblah", "causeasinglewidecolumnblah",
+      "matrixtowrapseveraltimes", "inarrowscreen", "onceuponatime",
+      "agreenduckflew", "overthemountains", "inalongofantelopes",
+      "ineedthreemore", "entriesactually", "nowonlytwomore", "iwaswrongearlier"
+    ),
+    nrow=3
+  )
+  old.opt <- options(width=30)
+  on.exit(options(old.opt))
+
+  expect_equal(
+    diffobj:::strip_table_rh(capture.output(mx3)),
+    c("     [,1]                         ", "\"averylongwordthatcanlahblah\"", "\"causeasinglewidecolumnblah\" ", "\"matrixtowrapseveraltimes\"   ", "     [,2]            ", "\"inarrowscreen\" ", "\"onceuponatime\" ", "\"agreenduckflew\"", "     [,3]                ", "\"overthemountains\"  ", "\"inalongofantelopes\"", "\"ineedthreemore\"    ", "     [,4]              ", "\"entriesactually\" ", "\"nowonlytwomore\"  ", "\"iwaswrongearlier\"")
+  )
+  # Add rownames; should no longer strip
+
+  rownames(mx4) <- 2:4
+  expect_equal(
+    diffobj:::strip_table_rh(capture.output(mx4)),
+    capture.output(mx4)
+  )
+  # Rownames that start from one and sequential, should get stripped; also,
+  # colon allowed
+
+  rownames(mx5) <- paste0(1:3, ":")
+  expect_equal(
+    diffobj:::strip_table_rh(capture.output(mx5)),
+    c("   [,1]                         ", "\"averylongwordthatcanlahblah\"", "\"causeasinglewidecolumnblah\" ", "\"matrixtowrapseveraltimes\"   ", "   [,2]            ", "\"inarrowscreen\" ", "\"onceuponatime\" ", "\"agreenduckflew\"", "   [,3]                ", "\"overthemountains\"  ", "\"inalongofantelopes\"", "\"ineedthreemore\"    ", "   [,4]              ", "\"entriesactually\" ", "\"nowonlytwomore\"  ", "\"iwaswrongearlier\"")
+  )
+  # Attributes don't have stuff stripped
+
+  attr(mx6, "blah") <- letters[1:15]
+
+  expect_equal(
+    diffobj:::strip_table_rh(capture.output(mx6)),
+    c("     [,1]                         ", "\"averylongwordthatcanlahblah\"", "\"causeasinglewidecolumnblah\" ", "\"matrixtowrapseveraltimes\"   ", "     [,2]            ", "\"inarrowscreen\" ", "\"onceuponatime\" ", "\"agreenduckflew\"", "     [,3]                ", "\"overthemountains\"  ", "\"inalongofantelopes\"", "\"ineedthreemore\"    ", "     [,4]              ", "\"entriesactually\" ", "\"nowonlytwomore\"  ", "\"iwaswrongearlier\"", "attr(,\"blah\")", " [1] \"a\" \"b\" \"c\" \"d\" \"e\" \"f\"", " [7] \"g\" \"h\" \"i\" \"j\" \"k\" \"l\"", "[13] \"m\" \"n\" \"o\"")
+  )
+  # Data frames
+
+  df1 <- as.data.frame(mx3)
+  expect_equal(
+    diffobj:::strip_table_rh(capture.output(df1)),
+    c("                           V1", "averylongwordthatcanlahblah", " causeasinglewidecolumnblah", "   matrixtowrapseveraltimes", "              V2", " inarrowscreen", " onceuponatime", "agreenduckflew", "                  V3", "  overthemountains", "inalongofantelopes", "    ineedthreemore", "                V4", " entriesactually", "  nowonlytwomore", "iwaswrongearlier")
+  )
+  df2 <- df1[c(2, 1, 3), ]
+
+  expect_equal(
+    diffobj:::strip_table_rh(capture.output(df2)),
+    capture.output(df2)
+  )
 })
 
 

@@ -43,12 +43,12 @@ strip_atomic_rh <- function(x) {
 # Detect table row headers; a bit lazy, combining all table like into one
 # function when in reality more subtlety is warranted; also, we only care about
 # numeric row headers.  This will also do arrays, but not arrays that require
-# wrapping of matrix display components as that gets even more complicated
+# wrapping of matrix display components as that gets even more complicated.
 
 wtr_help <- function(x, pat) {
   # Should expect to find pattern repeated some number of times, and then whole
   # pattern possibly repeated the same number of times separated by the same
-  # gap
+  # gap each time if the table is too wide and wraps.
 
   w.pat <- grepl(pat, x)
   w.pat.rle <- rle(w.pat)
@@ -65,7 +65,7 @@ wtr_help <- function(x, pat) {
 
     # Only take matches they if alternate T/F
 
-    match.break <- min(
+    match.break <- max(
       which(
         match.blocks != rep(c(FALSE, TRUE), length.out=length(match.blocks))
       ),
@@ -75,27 +75,28 @@ wtr_help <- function(x, pat) {
       head(match.blocks, match.break - 1L)
     } else match.blocks
 
-    # Make sure that all interstitial blocks are same length
+    # Make sure that all interstitial blocks are same length and that they all
+    # start with at least one space
 
     interstitial <- which(
       !match.valid & seq_along(match.valid) > 1L &
       seq_along(match.valid) != length(match.valid)
     )
     if(
-      length(interstitial) &&
-      length(unique(w.pat.rle$lengths[interstitial])) == 1L
+      !length(interstitial) || (
+        length(interstitial) &&
+        length(unique(w.pat.rle$lengths[interstitial])) == 1L &&
+        all(grepl("^\\s", x[unlist(rle_sub(w.pat.rle, interstitial))]))
+      )
     ) {
       # Make sure row headers are the same for each repeating block; start by
       # extracting the actual headers; need to get a list of each sequence of
       # headers
 
       max.valid <- max(which(match.valid))
-      lens <- w.pat.rle$lengths[seq.int(max.valid)]
-      vals <- w.pat.rle$values[seq.int(max.valid)]
-      seq.start <- cumsum(lens)[!vals] + 1L
-      seq.end <- cumsum(lens)[vals]
-      ranges <- Map(seq, seq.start, seq.end, 1L)
-
+      ranges <- rle_sub(
+        w.pat.rle, seq_along(w.pat.rle$lengths) <= max.valid & w.pat.rle$value
+      )
       heads.l <- regmatches(x, regexec(pat, x))
       heads <- character(length(heads.l))
       heads[w.pat] <- as.character(heads.l[w.pat])
@@ -108,7 +109,7 @@ wtr_help <- function(x, pat) {
       all.one.apart <-
         vapply(head.ranges, function(x) all(diff(x) == 1L), logical(1L))
 
-      if(all.identical && all.one.apart) {
+      if(all.identical && all.one.apart && head.ranges[[1L]][1L] == 1L) {
         unlist(ranges)
       } else integer(0L)
     } else integer(0L)
@@ -137,7 +138,8 @@ strip_table_rh <- function(x) {
     pat <- attr(w, "pat")
     if(!is.chr.1L(pat))
       stop("Logic Error: unexpected row header pattern; contact maintainer.")
-    sub(pat, "", x)
+    x[w] <- sub(pat, "", x[w])
+    x
   }
 }
 setGeneric("stripRowHead",

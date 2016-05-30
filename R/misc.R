@@ -14,7 +14,7 @@ rle_sub <- function(rle, ind) {
   all.ind <- Map(
     seq, from=c(1L, head(len.cum, -1L) + 1L), to=len.cum, by=1L
   )
-  unname(all.ind[ind])
+  all.ind[ind]
 }
 # concatenate method for factors
 
