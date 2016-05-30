@@ -24,7 +24,7 @@ test_that("detect_list_guides", {
 })
 test_that("detect_matrix_guides", {
   mx3 <- mx4 <- mx5 <- matrix(
-    c(
+   c(
       "averylongwordthatcanlahblah", "causeasinglewidecolumnblah",
       "matrixtowrapseveraltimes", "inarrowscreen", "onceuponatime",
       "agreenduckflew", "overthemountains", "inalongofantelopes",
@@ -37,8 +37,14 @@ test_that("detect_matrix_guides", {
 
   dimnames(mx4) <- list(A=NULL, B=NULL)
   mx4.c <- capture.output(mx4)
-  expect_equal(diffobj:::detect_matrix_guides(mx4), c(1, 2, 6, 7))
-
+  expect_equal(
+    diffobj:::detect_matrix_guides(mx4.c, dimnames(mx4)), c(1, 2, 6, 7)
+  )
+  attr(mx5, "blah") <- letters[1:10]
+  mx5.c <- capture.output(mx5)
+  expect_equal(
+    diffobj:::detect_matrix_guides(mx5.c, dimnames(mx5)), c(1, 5)
+  )
 })
 test_that("detect_array_guides", {
   a.1 <- array(1:6, dim=c(2, 1, 3))

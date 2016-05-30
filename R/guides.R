@@ -86,7 +86,7 @@ detect_matrix_guides <- function(txt, dim.n) {
     c.h <- grepl(col.pat, txt)
   } else {
     c.h <- rep(FALSE, length(txt))
-    r.h <- grepl("^\\s+\\S", txt)
+    r.h <- grepl("^\\s+\\[,[1-9]+[0-9]*\\]\\s", txt)
   }
   # Classify each line depending on what pattern it matches so we can then
   # analyze sequences and determine which are valid
@@ -95,48 +95,25 @@ detect_matrix_guides <- function(txt, dim.n) {
   row.types[r.h] <- 1L                   # row meta / col headers
   row.types[c.h] <- 2L                   # col meta
 
-  row.chain <- paste0(row.types, collapse="") # assumes all values 1 char long
-  p.simple <- "10*"    # no dimnames names
-  p.cols <- "210*"     # both row and col dimnames
+  mx.start.num <- if(is.null(n.d.n)) 1L else 2L
+  mx.start <- head(which(row.types == mx.start.num), 1L)
 
-  p.test <- if(!is.null(n.d.n)) p.cols else p.simple
+  if(length(mx.start)) {
+    # Now  try to see if pattern repeats to identify the full list of wrapped
+    # guides, and return the indices that are part of repeating pattern
 
-  if(
-    length(
-      unlist(
-        mx.coord <- gregexpr(sprintf("(%s)+", p.test), row.chain)
-    ) ) == 1L
-  ) {
-    mx.core <- unlist(regmatches(row.chain, mx.coord))
-    if(length(mx.core) != 1L)
-      stop("Logic Error: array repeat pattern problem; contact maintainer.")
-    # Now replace everything except the front part of the match with zeroes
-    core.match <- gregexpr(p.test, mx.core)
-    core.pieces <- regmatches(mx.core, core.match)
-    if(length(core.pieces) != 1L)
-      stop("Logic Error: array repeat pattern problem; contact maintainer.")
-    core.proc <- lapply(
-      unlist(core.pieces),
-      function(x) {
-        x.u <- unlist(strsplit(unlist(x), ""))
-        if(!length(x.u)) "" else {
-          x.u[!!cumsum(x.u == "0")] <- "0" # anything after zero turned to zero
-          paste0(x.u, collapse="")
-        }
-    } )
-    regmatches(mx.core, core.match) <- core.proc
-
-    # generate new version of chain with all zeros to sub back in
-
-    row.chain.z <- paste0(rep("0", nchar(row.chain)), collapse="")
-    regmatches(row.chain.z, mx.coord) <- mx.core
-
-    # Convert back to vector
-
-    which(unlist(strsplit(row.chain.z, "")) != "0")
-  } else {
-    integer(0L)
-  }
+    mx.end <- head(
+      which(row.types == mx.start.num & seq_along(row.types) > mx.start)
+    )
+    if(length(mx.end) && mx.end > mx.start + 1L) {
+      pat.inds <- mx.start:(mx.end - 1L)
+      template <- rep(
+        row.types[pat.inds], 
+        floor((length(txt) - mx.start + 1L) / length(pat.inds))
+      )
+      which(row.types[pat.inds] == template & !!template) + mx.start - 1L
+    } else integer(0L)
+  } else integer(0L)
 }
 # Here we want to get the high dimension counter as well as the column headers
 # of each sub-dimension
