@@ -190,26 +190,16 @@ detect_array_guides <- function(txt, dim.n) {
     length(dim.delta <- unique(diff(dim.guides))) == 1L &&
     dim.delta > 4L
   ) {
-    rng.start <- dim.guides + 2L
-    rng.end <- dim.guides + dim.delta - 1L
-
-    rng <- Map(seq, rng.start, rng.end, by=1L)
-    heads <- lapply(
-      rng, function(x) detect_matrix_guides(txt[x], head(dim.n, 2L))
-    )
     # We confirm that all the matrices inside the array have the same
     # dim guides, but we don't actually return them
 
+    dim.guide.fin <- sort(c(dim.guides, dim.guides + 1L))
+    sub.dat <- split_by_guides(txt, dim.guide.fin)
+    heads <- lapply(sub.dat, detect_matrix_guides, head(dim.n, 2L))
     if(
       all(vapply(heads, identical, logical(1L), heads[[1L]])) &&
       all(vapply(heads, length, integer(1L)))
-    ) {
-      sort(
-        c(
-          dim.guides, dim.guides + 1L,
-          unlist(Map("+", heads, rng.start - 1L))
-      ) )
-    } else integer(0L)
+    ) dim.guide.fin else integer(0L)
   } else integer(0L)
 }
 #' Generic Methods to Implement Flexible Guide Line Computations
