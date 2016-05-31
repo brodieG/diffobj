@@ -23,14 +23,14 @@ test_that("detect_list_guides", {
   )
 })
 test_that("detect_matrix_guides", {
-  mx3 <- mx4 <- mx5 <- matrix(
+  mx3 <- mx4 <- mx5 <- mx5a <- matrix(
    c(
       "averylongwordthatcanlahblah", "causeasinglewidecolumnblah",
       "matrixtowrapseveraltimes", "inarrowscreen", "onceuponatime",
       "agreenduckflew", "overthemountains", "inalongofantelopes",
       "ineedthreemore", "entriesactually", "nowonlytwomore", "iwaswrongearlier"
     ),
-    nrow=3
+    nrow=3, ncol=4
   )
   mx3.c <- capture.output(mx3)
   expect_equal(diffobj:::detect_matrix_guides(mx3.c, NULL), c(1, 5))
@@ -47,14 +47,42 @@ test_that("detect_matrix_guides", {
   )
   # Simple matrices that don't wrap
 
-  mx6 <- mx7 <- matrix(1:4, 2)
-  dimnames(mx7) <- list(A=letters[1:2], B=LETTERS[25:26])
+  mx6 <- mx7 <- mx7.1 <- matrix(1:4, 2)
 
   mx6.c <- capture.output(mx6)
   expect_equal(diffobj:::detect_matrix_guides(mx6.c, dimnames(mx6)), 1)
 
+  dimnames(mx7) <- list(A=letters[1:2], B=LETTERS[25:26])
   mx7.c <- capture.output(mx7)
   expect_equal(diffobj:::detect_matrix_guides(mx7.c, dimnames(mx7)), c(1, 2))
+
+  dimnames(mx7.1) <- list(letters[1:2], B=LETTERS[25:26])
+  mx7.1.c <- capture.output(mx7.1)
+  expect_equal(diffobj:::detect_matrix_guides(mx7.1.c, dimnames(mx7.1)), c(1, 2))
+
+  # Single col matrix
+
+  mx8 <- matrix(1:2, 2)
+
+  mx8.c <- capture.output(mx8)
+  expect_equal(diffobj:::detect_matrix_guides(mx8.c, dimnames(mx8)), 1)
+
+  # Wrapping matrices with colnames
+
+  mx9 <- mx3
+  dimnames(mx9) <- list(A=letters[1:3], B=LETTERS[20:23])
+  mx9.c <- capture.output(mx9)
+  expect_equal(
+    diffobj:::detect_matrix_guides(mx9.c, dimnames(mx9)), c(1:2, 6:7)
+  )
+
+  mx10 <- mx9
+  attr(mx10, "blah") <- matrix(1:4, 2)
+  mx10.c <- capture.output(mx10)
+  expect_equal(
+    diffobj:::detect_matrix_guides(mx10.c, dimnames(mx10)), c(1:2, 6:7)
+  )
+
 })
 test_that("detect_array_guides", {
   a.1 <- array(1:6, dim=c(2, 1, 3))
@@ -80,7 +108,7 @@ test_that("detect_array_guides", {
   # viz_dag(c.a.2, a.2)
   # viz_dag(c.a.3, a.3)
   # viz_dag(c.a.4, a.4)
-  viz_dag(c.a.5, a.5)
+  # viz_dag(c.a.5, a.5)
   expect_equal(
     diffobj:::detect_array_guides(c.a.1, dimnames(a.1)),
     c(1L, 2L, 3L, 7L, 8L, 9L, 13L, 14L, 15L)

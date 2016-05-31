@@ -74,19 +74,28 @@ detect_matrix_guides <- function(txt, dim.n) {
     is.character(txt), !anyNA(txt),
     is.null(dim.n) || (is.list(dim.n) && length(dim.n) == 2L)
   )
-
   n.d.n <- names(dim.n)
-  if(!is.null(n.d.n)) {
-    # try to guard against dimnames that contain regex
-    n.p <- "(\\[|\\]|\\(|\\)|\\{|\\}|\\*|\\+|\\?|\\.|\\^|\\$|\\\\|\\|)"
-    row.pat <- sprintf("^%s\\s+\\S+", gsub(n.p, "\\\1", n.d.n[[1L]]))
-    col.pat <- sprintf("^\\s{2,}%s$", gsub(n.p, "\\\1", n.d.n[[2L]]))
-    # identify which lines could be row and col headers
-    r.h <- grepl(row.pat, txt)
-    c.h <- grepl(col.pat, txt)
+  row.n <- n.d.n[1L]
+  col.n <- n.d.n[2L]
+  # try to guard against dimnames that contain regex
+  # identify which lines could be row and col headers
+
+  n.p <- "(\\[|\\]|\\(|\\)|\\{|\\}|\\*|\\+|\\?|\\.|\\^|\\$|\\\\|\\|)"
+  c.h <- if(!is.null(col.n) && nchar(col.n)) {
+    col.pat <- sprintf("^\\s{2,}%s$", gsub(n.p, "\\\1", col.n))
+    grepl(col.pat, txt)
   } else {
-    c.h <- rep(FALSE, length(txt))
-    r.h <- grepl("^\\s+\\[,[1-9]+[0-9]*\\]\\s", txt)
+    rep(FALSE, length(txt))
+  }
+  r.h <- if(!is.null(row.n) && nchar(row.n)) {
+    # a bit lazy, should include col headers as well
+    row.pat <- sprintf("^%s\\s+\\S+", gsub(n.p, "\\\1", row.n))
+    grepl(row.pat, txt)
+  } else {
+    pat.extra <- if(!is.null(dim.n[[2L]]) && is.character(dim.n[[2L]])) {
+      paste0(c("", gsub(n.p, "\\\1", dim.n[[2L]])), collapse="|")
+    }
+    grepl(paste0("^\\s+(\\[,[1-9]+[0-9]*\\]", pat.extra, ")(\\s|$)"), txt)
   }
   # Classify each line depending on what pattern it matches so we can then
   # analyze sequences and determine which are valid
@@ -95,7 +104,7 @@ detect_matrix_guides <- function(txt, dim.n) {
   row.types[r.h] <- 1L                   # row meta / col headers
   row.types[c.h] <- 2L                   # col meta
 
-  mx.starts <- if(is.null(n.d.n)){
+  mx.starts <- if(is.null(n.d.n)) {
     mx.start.num <- 1L
     which(row.types == mx.start.num)
   } else {
