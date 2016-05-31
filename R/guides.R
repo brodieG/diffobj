@@ -246,7 +246,9 @@ setMethod(
   function(obj, obj.as.chr) {
     if(anyNA(obj.as.chr))
       stop("Cannot compute guides if `obj.as.chr` contains NAs")
-    if(length(dim(obj)) == 2L) {
+    if(is.matrix(obj)) {
+      detect_matrix_guides(obj.as.chr, dimnames(obj))
+    } if(length(dim(obj)) == 2L || is.ts(obj)) {
       detect_2d_guides(obj.as.chr)
     } else if (is.array(obj)) {
       detect_array_guides(obj.as.chr, dimnames(obj))
