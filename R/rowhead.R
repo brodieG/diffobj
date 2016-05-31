@@ -43,8 +43,10 @@ strip_atomic_rh <- function(x) {
 }
 # Detect table row headers; a bit lazy, combining all table like into one
 # function when in reality more subtlety is warranted; also, we only care about
-# numeric row headers.  This will also do arrays, but not arrays that require
-# wrapping of matrix display components as that gets even more complicated.
+# numeric row headers.
+#
+# Matrices used to be done here as well, but then got split off so the `pat`
+# argument is legacy
 
 wtr_help <- function(x, pat) {
   # Should expect to find pattern repeated some number of times, and then whole
@@ -118,17 +120,10 @@ wtr_help <- function(x, pat) {
 }
 which_table_rh <- function(x) {
   stopifnot(is.character(x), !anyNA(x))
-
-  pat.1 <- .pat.mat # matrix / arrays
   pat.2 <- "^\\s*[1-9]+[0-9]*:?\\s"       # dfs/tables colon for data.table
 
-  res <- wtr_help(x, pat.1)
-  if(length(res)) {
-    attr(res, "pat") <- pat.1
-    res
-  } else if(length(res <- wtr_help(x, pat.2))) {
-    attr(res, "pat") <- pat.2
-  } else integer(0L)
+  res <- wtr_help(x, pat.2)
+  if(length(res)) attr(res, "pat") <- pat.2
   res
 }
 strip_table_rh <- function(x) {
@@ -142,6 +137,16 @@ strip_table_rh <- function(x) {
     x[w] <- sub(pat, "", x[w])
     x
   }
+}
+# Matrices; should really try to leverage logic in wtr_help, but not quite the
+# same
+
+which_matrix_rh <- function(x, dim.names.x) {
+  guides <- detect_matrix_guides(x, dim.names.x)
+  if(length(guides)) {
+
+  }
+
 }
 # Handle arrays
 
