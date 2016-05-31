@@ -93,11 +93,13 @@ test_that("detect_array_guides", {
   )
   a.4 <- `attr<-`(a.3, "hello", "random attribute")
   a.5 <- array(1:36, dim=c(6, 2, 3))
+  a.6 <- array(1:2, c(2, 1, 1))
   c.a.1 <- capture.output(a.1)
   c.a.2 <- capture.output(a.2)
   c.a.3 <- capture.output(a.3)
   c.a.4 <- capture.output(a.4)
   c.a.5 <- capture.output(a.5)
+  k
   # # helper funs to vizualize the guide line detection
   # viz_dag <- function(capt, obj)
   #   cbind(

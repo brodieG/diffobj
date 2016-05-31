@@ -1,3 +1,38 @@
+# Split by guides; used by nested structures to retrieve contents within
+# guides.  Each element has an attribute indicating the indices from the
+# text element it was drawn from
+
+split_by_guides <- function(txt, guides) {
+  stopifnot(
+    is.character(txt), !anyNA(txt), is.integer(guides),
+    all(guides %in% seq_along(txt))
+  )
+  empty <- list(`attr<-`(txt, "idx", seq_along(txt)))
+
+  if(!length(guides)) {
+    empty
+  } else {
+    guide.l <- logical(length(txt))
+    guide.l[guides] <- TRUE
+    sections <- cumsum(c(if(guides[1L] == 1L) 1L else 0L, diff(guide.l) == 1L))
+    ids <- seq_along(txt)
+
+    # remove actual guidelines
+
+    ids.net <- ids[-guides]
+    sec.net <- sections[-guides]
+    txt.net <- txt[-guides]
+
+    # split and drop leading stuff if it exists (those with section == 0)
+
+    dat <- tail(unname(split(txt.net, sec.net)), max(sec.net))
+    ind <- tail(unname(split(ids.net, sec.net)), max(sec.net))
+
+    # Generate indices and attach them to each element of list
+
+    Map(`attr<-`, dat, "idx", ind )
+  }
+}
 # Detect which rows are likely to be meta data rows (e.g. headers) in tabular
 # data
 #
@@ -162,6 +197,9 @@ detect_array_guides <- function(txt, dim.n) {
     heads <- lapply(
       rng, function(x) detect_matrix_guides(txt[x], head(dim.n, 2L))
     )
+    # We confirm that all the matrices inside the array have the same
+    # dim guides, but we don't actually return them
+
     if(
       all(vapply(heads, identical, logical(1L), heads[[1L]])) &&
       all(vapply(heads, length, integer(1L)))
@@ -248,7 +286,7 @@ setMethod(
       stop("Cannot compute guides if `obj.as.chr` contains NAs")
     if(is.matrix(obj)) {
       detect_matrix_guides(obj.as.chr, dimnames(obj))
-    } if(length(dim(obj)) == 2L || is.ts(obj)) {
+    } else if(length(dim(obj)) == 2L || is.ts(obj)) {
       detect_2d_guides(obj.as.chr)
     } else if (is.array(obj)) {
       detect_array_guides(obj.as.chr, dimnames(obj))
