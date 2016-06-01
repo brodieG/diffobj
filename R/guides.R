@@ -34,13 +34,15 @@ split_by_guides <- function(txt, guides) {
   }
 }
 # Detect which rows are likely to be meta data rows (e.g. headers) in tabular
-# data
+# data (data.frames, timeseries with freq > 1).
+#
+# note due to ts use, can't use rownames, colnames, etc.
 #
 # Should be raw data stripped of ANSI characters
 
 detect_2d_guides <- function(txt) {
   stopifnot(is.character(txt))
-  space.rows <- !grepl("^\\s+\\[\\d+,\\]\\s|^\\S", txt)
+  space.rows <- grepl("^\\s+\\S+", txt)
   head.row <- min(which(space.rows))
   first.row <- min(which(!space.rows & seq_along(space.rows) > head.row))
   last.row <- max(which(!space.rows))
@@ -52,7 +54,8 @@ detect_2d_guides <- function(txt) {
   res <- if(last.row > head.row) {
     space.bw <- space.rows[head.row:last.row]
     seq.dat <- vapply(
-      split(space.bw, cumsum(space.bw)), FUN=function(x) c(sum(x), sum(!x)),
+      split(space.bw, cumsum(c(TRUE, diff(space.bw) == 1L))),
+      FUN=function(x) c(sum(x), sum(!x)),
       integer(2L)
     )
     # Which of the sets of true and false head rows have the same repeating
@@ -187,19 +190,19 @@ detect_array_guides <- function(txt, dim.n) {
   if(
     length(dim.guides) && length(blanks) &&
     all(dim.guides + 1L %in% blanks) &&
-    length(dim.delta <- unique(diff(dim.guides))) == 1L &&
-    dim.delta > 4L
+    (length(dim.guides) == 1L || length(unique(diff(dim.guides)) == 1L))
   ) {
-    # We confirm that all the matrices inside the array have the same
-    # dim guides, but we don't actually return them
+    # Make sure within each array section there is a matrix representation
 
     dim.guide.fin <- sort(c(dim.guides, dim.guides + 1L))
     sub.dat <- split_by_guides(txt, dim.guide.fin)
     heads <- lapply(sub.dat, detect_matrix_guides, head(dim.n, 2L))
+
     if(
       all(vapply(heads, identical, logical(1L), heads[[1L]])) &&
       all(vapply(heads, length, integer(1L)))
-    ) dim.guide.fin else integer(0L)
+    )
+      dim.guide.fin else integer(0L)
   } else integer(0L)
 }
 #' Generic Methods to Implement Flexible Guide Line Computations
@@ -276,7 +279,10 @@ setMethod(
       stop("Cannot compute guides if `obj.as.chr` contains NAs")
     if(is.matrix(obj)) {
       detect_matrix_guides(obj.as.chr, dimnames(obj))
-    } else if(length(dim(obj)) == 2L || is.ts(obj)) {
+    } else if(
+      length(dim(obj)) == 2L ||
+      (is.ts(obj) && frequency(obj) > 1)
+    ) {
       detect_2d_guides(obj.as.chr)
     } else if (is.array(obj)) {
       detect_array_guides(obj.as.chr, dimnames(obj))
