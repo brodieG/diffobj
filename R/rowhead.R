@@ -143,10 +143,43 @@ strip_table_rh <- function(x) {
 
 which_matrix_rh <- function(x, dim.names.x) {
   guides <- detect_matrix_guides(x, dim.names.x)
+  res <- integer(0L)
   if(length(guides)) {
-
-  }
-
+    pieces <- split_by_guides(x, guides)
+    if(!length(pieces)) stop("Logic Error: no matrix pieces")
+    # Get all rows matching the matrix row header so long as they are adjacent;
+    # this is only really different if there is an attribute in the last piece
+    pat.ind <- lapply(
+      pieces,
+      function(y) {
+        pat.match <- grep(.pat.mat, y)
+        if(length(pat.match) > 1)
+          pat.match[c(TRUE, !cumsum(diff(pat.match) != 1L))]
+        else pat.match
+      }
+    )
+    if(
+      all(vapply(pat.ind, identical, logical(1L), pat.ind[[1L]])) &&
+      (length(pat.ind[[1L]]) == 1L || all(diff(pat.ind[[1L]]) == 1L))
+    ) {
+      piece.nums <- as.integer(
+        sub(".*([0-9]+).*", "\\1", pieces[[1L]][pat.ind[[1L]]])
+      )
+      if(
+        length(piece.nums) && piece.nums[1L] == 1L &&
+        (length(piece.nums) == 1L || all(diff(piece.nums) == 1L))
+      ) {
+        res <- unlist(
+          lapply(seq_along(pieces), function(i)
+            attr(pieces[[i]], "idx")[pat.ind[[i]]]
+  ) ) } } }
+  res
+}
+strip_matrix_rh <- function(x, dim.names.x) {
+  to.rep <- which_matrix_rh(x, dim.names.x)
+  res <- x
+  res[to.rep] <- sub(.pat.mat, "", x[to.rep])
+  res
 }
 # Handle arrays
 
@@ -162,7 +195,7 @@ which_array_rh <- function(x, dim.names.x) {
     grp.keep <- split(!seq.x %in% arr.h, grp.ids)
     grp.start <- vapply(head(split(seq.x, grp.ids), -1L), "[[", integer(1L), 1L)
     grp.tmp <- tail(Map("[", grp.split, grp.keep), -1L)
-    # Add back header proxy since 
+    # Add back header proxy since
 
     grp.fin <- lapply(grp.tmp, function(y) c("  <header proxy>"))
 
