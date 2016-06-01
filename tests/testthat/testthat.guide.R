@@ -22,7 +22,7 @@ test_that("detect_list_guides", {
   )
 })
 test_that("detect_matrix_guides", {
-  mx3 <- mx4 <- mx5 <- mx5a <- matrix(
+  mx3 <- mx4 <- mx5 <- mx5a <- mx11 <- matrix(
    c(
       "averylongwordthatcanlahblah", "causeasinglewidecolumnblah",
       "matrixtowrapseveraltimes", "inarrowscreen", "onceuponatime",
@@ -82,6 +82,14 @@ test_that("detect_matrix_guides", {
     diffobj:::detect_matrix_guides(mx10.c, dimnames(mx10)), c(1:2, 6:7)
   )
 
+  old.opt <- options(width=30L)
+  on.exit(options(old.opt))
+  attr(mx11, "blah") <- letters[1:15]
+  mx11.c <- capture.output(mx11)
+
+  expect_equal(
+    diffobj:::detect_matrix_guides(mx11.c, dimnames(mx11)), c(1, 5, 9, 13)
+  )
 })
 test_that("detect_array_guides", {
   a.1 <- array(1:6, dim=c(2, 1, 3))

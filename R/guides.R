@@ -167,7 +167,8 @@ detect_matrix_guides <- function(txt, dim.n) {
         row.types[pat.inds],
         floor((length(txt) - mx.start + 1L) / length(pat.inds))
       )
-      which(row.types[pat.inds] == template & !!template) + mx.start - 1L
+      which(head(row.types, length(template)) == template & !!template) +
+        mx.start - 1L
     } else integer(0L)
   } else integer(0L)
 }
