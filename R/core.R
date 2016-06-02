@@ -277,6 +277,8 @@ line_diff <- function(
   etc@guide.lines <-
     make_guides(target, tar.capt, current, cur.capt, etc@guides)
 
+  # need to move strip to very end
+
   if(strip) {
     tar.capt <- strip_hz_control(tar.capt, stops=etc@tab.stops)
     cur.capt <- strip_hz_control(cur.capt, stops=etc@tab.stops)

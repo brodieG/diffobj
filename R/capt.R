@@ -59,6 +59,7 @@ capt_print <- function(target, current, etc, err, ...){
     tar.capt <- capture(tar.call, etc, err)
   }
   if(isTRUE(etc@guides)) etc@guides <- printGuideLines
+  if(isTRUE(etc@trim)) etc@trim <- printTrim
 
   diff <- line_diff(target, current, tar.capt, cur.capt, etc=etc, warn=TRUE)
   diff
