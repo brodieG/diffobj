@@ -239,9 +239,15 @@ setClass("Diff",
     target="ANY",                 # Actual object
     tar.capt="character",         # The captured representation
     tar.capt.def="charOrNULL",    # ^^, but using default print method
+    tar.capt.trim="character",
+    tar.capt.word.diff.word="character",
+    tar.capt.word.diff.locs="list",
     current="ANY",
     cur.capt="character",
     cur.capt.def="charOrNULL",
+    cur.capt.trim="character",
+    cur.capt.word.diff.word="character",
+    cur.capt.word.diff.locs="list",
     diffs="list",
     trim.dat="list",              # result of trimmaxg
     capt.mode="character",        # whether in print or str mode

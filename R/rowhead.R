@@ -202,21 +202,62 @@ strip_array_rh <- function(x, dim.names.x) {
   res[inds] <- sub(.pat.mat, "", x[inds])
   res
 }
+#' Trim Method for Printed Objects
+#'
+#' @param obj the object
+#' @param obj.as.chr charcter the \code{print}ed representation of the object
+#' @return a \code{length(obj.as.chr) * 2} integer matrix with the start (first
+#'   column and end (second column) character positions of the sub string to
+#'   run diffs on.
 
-setGeneric("stripRowHead",
-  function(obj, obj.as.chr) StandardGeneric("stripRowHead")
+setGeneric("printTrim",
+  function(obj, obj.as.chr) StandardGeneric("printTrim")
 )
 setMethod(
-  "stripRowHead", c("ANY", "character"),
+  "printTrim", c("ANY", "character"),
   function(obj, obj.as.chr) {
-    if(anyNA(obj.as.chr))
-      stop("Cannot compute guides if `obj.as.chr` contains NAs")
-    if(length(dim(obj)) == 2L) {
-      detect_2d_guides(obj.as.chr)
+    # Remove the stuff we don't want
+
+    stripped <- if(is.matrix(obj)) {
+      strip_matrix_rh(obj.as.chr, dimnames(obj))
+    } else if(
+      length(dim(obj)) == 2L ||
+      (is.ts(obj) && frequency(obj) > 1)
+    ) {
+      strip_table_rh(obj.as.chr)
     } else if (is.array(obj)) {
-      detect_array_guides(obj.as.chr, dimnames(obj))
-    } else if (is.atomic(obj)) {
-      detect_list_guides(obj.as.chr)
+      strip_array_rh(obj.as.chr, dimnames(obj))
     } else obj.as.chr
+
+    # Figure out the indices that correspond to what we want, knowing that all
+    # removals should have occured at front of string
+
+    if(length(obj.as.chr) != length(stripped))
+      stop(
+        "Logic Error: trimmed string does not have same number of elements as ",
+        "original; contact maintainer"
+      )
+    stripped.chars <- nchar(stripped)
+    char.diff <- nchar(obj.as.char) - stripped.chars
+    sub.start <- char.diff + 1L
+    sub.end <- sub.start - 1L + stripped.chars
+
+    if(!all(substr(obj.as.char, sub.start, sub.end), stripped))
+      stop(
+        "Logic Error: trimmed string is not a substring of orginal, ",
+        "contact maintainer"
+      )
+    cbind(sub.start, sub.end)
+  }
+)
+setReplaceMethod(
+  "printTrim", c("ANY", "character"),
+  function(obj, obj.as.chr, value) {
+    # Nooot efficient
+
+    base <- printTrim(obj.as.chr)
+
+    base.mode <- substr(obj.as.chr, 1, nchar(obj
+
   }
 )
