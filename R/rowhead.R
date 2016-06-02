@@ -163,7 +163,7 @@ which_matrix_rh <- function(x, dim.names.x) {
       (length(pat.ind[[1L]]) == 1L || all(diff(pat.ind[[1L]]) == 1L))
     ) {
       piece.nums <- as.integer(
-        sub(".*([0-9]+).*", "\\1", pieces[[1L]][pat.ind[[1L]]])
+        sub(".*?([0-9]+).*", "\\1", pieces[[1L]][pat.ind[[1L]]], perl=TRUE)
       )
       if(
         length(piece.nums) && piece.nums[1L] == 1L &&
@@ -185,31 +185,22 @@ strip_matrix_rh <- function(x, dim.names.x) {
 
 which_array_rh <- function(x, dim.names.x) {
   arr.h <- detect_array_guides(x, dim.names.x)
-  if(length(arr.h)) {
-    # Look for the stuff between array guides; those should be matrix like
-    # objects
+  dat <- split_by_guides(x, arr.h)
 
-    seq.x <- seq_along(x)
-    grp.ids <- cumsum(c(0L, diff((!seq.x %in% arr.h) & seq.x > min(arr.h)) > 0))
-    grp.split <- split(x, grp.ids)
-    grp.keep <- split(!seq.x %in% arr.h, grp.ids)
-    grp.start <- vapply(head(split(seq.x, grp.ids), -1L), "[[", integer(1L), 1L)
-    grp.tmp <- tail(Map("[", grp.split, grp.keep), -1L)
-    # Add back header proxy since
+  # Look for the stuff between array guides; those should be matrix like
+  # and have the same rows in each one
 
-    grp.fin <- lapply(grp.tmp, function(y) c("  <header proxy>"))
+  m.h <- lapply(dat, which_matrix_rh, head(dim.names.x, 2L))
 
-    # Now leverage the table stuff; then need to remap back to the original
-    # indices
-
-    grp.idx <- lapply(grps.fin, which_table_rh)
-    if(
-      length(unique(grp.len <- vapply(grps.idx, length, integer(1L)))) == 1L &&
-      grp.len[[1L]]
-    ) {
-      unlist(Map("+", grps.idx, grp.start - 1L))
-    } else integer(0L)
+  if(length(m.h) && all(vapply(m.h, identical, logical(1L), m.h[[1L]]))) {
+    unlist(Map(function(y, z) attr(y, "idx")[z], dat, m.h))
   } else integer(0L)
+}
+strip_array_rh <- function(x, dim.names.x) {
+  inds <- which_array_rh(x, dim.names.x)
+  res <- x
+  res[inds] <- sub(.pat.mat, "", x[inds])
+  res
 }
 
 setGeneric("stripRowHead",

@@ -88,17 +88,67 @@ test_that("Table", {
   df3 <- df1
   rownames(df3) <- paste0(1:3, ":")
   expect_equal(
-    diffobj:::strip_table_rh(capture.output(df3), dimnames(df3)),
-    c("   [,1]                         ", "\"averylongwordthatcanlahblah\"", "\"causeasinglewidecolumnblah\" ", "\"matrixtowrapseveraltimes\"   ", "   [,2]            ", "\"inarrowscreen\" ", "\"onceuponatime\" ", "\"agreenduckflew\"", "   [,3]                ", "\"overthemountains\"  ", "\"inalongofantelopes\"", "\"ineedthreemore\"    ", "   [,4]              ", "\"entriesactually\" ", "\"nowonlytwomore\"  ", "\"iwaswrongearlier\"")
+    diffobj:::strip_table_rh(capture.output(df3)),
+    c("                            V1", "averylongwordthatcanlahblah", " causeasinglewidecolumnblah", "   matrixtowrapseveraltimes", "               V2", " inarrowscreen", " onceuponatime", "agreenduckflew", "                   V3", "  overthemountains", "inalongofantelopes", "    ineedthreemore", "                 V4", " entriesactually", "  nowonlytwomore", "iwaswrongearlier")
+  )
+  # Try ts
+
+  expect_equal(
+    diffobj:::strip_table_rh(capture.output(USAccDeaths)),
+    capture.output(USAccDeaths)
+  )
+  # Set it so first year is 1
+
+  USAD2 <- USAccDeaths
+  tsp(USAD2)[1:2] <- tsp(USAD2)[1:2] - 1972
+
+  expect_equal(
+    diffobj:::strip_table_rh(capture.output(USAD2)),
+    c("    Jan   Feb   Mar   Apr", " 9007  8106  8928  9137", " 7750  6981  8038  8422", " 8162  7306  8124  7870", " 7717  7461  7767  7925", " 7792  6957  7726  8106", " 7836  6892  7791  8192", "    May   Jun   Jul   Aug", "10017 10826 11317 10744", " 8714  9512 10120  9823", " 9387  9556 10093  9620", " 8623  8945 10078  9179", " 8890  9299 10625  9302", " 9115  9434 10484  9827", "    Sep   Oct   Nov   Dec", " 9713  9938  9161  8927", " 8743  9129  8710  8680", " 8285  8466  8160  8034", " 8037  8488  7874  8647", " 8314  8850  8265  8796", " 9110  9070  8633  9240")
   )
 })
 test_that("Array", {
   a <- array(1:6, c(3, 1, 2))
   a.c <- capture.output(a)
   expect_equal(
-    diffobj:::which_array_rh(a.c, dimnames(a)),
+    diffobj:::strip_array_rh(a.c, dimnames(a)),
+    c(", , 1", "", "     [,1]", "   1", "   2", "   3", "", ", , 2", "", "     [,1]", "   4", "   5", "   6", "")
   )
+  viz_sarh <- function(capt, obj)
+    cbind(
+      capt,
+      as.integer(
+        seq_along(capt) %in% diffobj:::which_array_rh(capt, dimnames(obj))
+      )
+    )
+  a1 <- a2 <- a3 <- a4 <- array(
+    "averylongphrasethatwillforcemytwocolumnarraytowrapblahblah", c(2, 2, 2)
+  )
+  ca1 <- capture.output(a1)
+  viz_sarh(ca1, a1)
+  expect_equal(
+    diffobj:::which_array_rh(ca1, dimnames(a1)),
+    c(4L, 5L, 7L, 8L, 13L, 14L, 16L, 17L)
+  )
+  colnames(a2) <- c("ABC", "DEF")
+  ca2 <- capture.output(a2)
+  viz_sarh(ca2, a2)
+  expect_equal(
+    diffobj:::which_array_rh(ca2, dimnames(a2)),
+    c(4L, 5L, 7L, 8L, 13L, 14L, 16L, 17L)
+  )
+  rownames(a3) <- 1:2
+  ca3 <- capture.output(a3)
+  viz_sarh(ca3, a3)
+  expect_equal(diffobj:::which_array_rh(ca3, dimnames(a3)), integer(0L))
 
+  attr(a4, "blahblah") <- matrix(1:4, 2)
+  ca4 <- capture.output(a4)
+  viz_sarh(ca4, a4)
+  expect_equal(
+    diffobj:::which_array_rh(ca4, dimnames(a4)),
+    c(4L, 5L, 7L, 8L, 13L, 14L, 16L, 17L)
+  )
 })
 
 
