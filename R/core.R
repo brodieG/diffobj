@@ -277,16 +277,31 @@ line_diff <- function(
   etc@guide.lines <-
     make_guides(target, tar.capt, current, cur.capt, etc@guides)
 
+  tar.trim.ind <- apply_trim(target, tar.capt, etc@trim)
+  tar.trim <- do.call(substr(tar.capt, tar.trim.ind[, 1L], tar.trim.ind[, 2L]))
+  cur.trim.ind <- apply_trim(curget, cur.capt, etc@trim)
+  cur.trim <- do.call(substr(cur.capt, cur.trim.ind[, 1L], cur.trim.ind[, 2L]))
+
   # need to move strip to very end
 
   if(strip) {
     tar.capt <- strip_hz_control(tar.capt, stops=etc@tab.stops)
     cur.capt <- strip_hz_control(cur.capt, stops=etc@tab.stops)
   }
-  diffs <- char_diff(tar.capt, cur.capt, etc=etc, diff.mode="line", warn=warn)
+  diffs <- char_diff(tar.trim, cur.trim, etc=etc, diff.mode="line", warn=warn)
   new(
-    "Diff", diffs=diffs, target=target, current=current,
-    tar.capt=tar.capt, cur.capt=cur.capt, etc=etc
+    "Diff", diffs=diffs, tar=target, cur=current,
+    tar.dat=list(
+      raw=tar.capt, trim=tar.trim, trim.ind=tar.trim.ind, eq=tar.trim,
+      word.diff=replicate(length(tar.capt), character()),
+      word.diff.ind=replicate(length(tar.capt), integer())
+    ),
+    cur.dat=list(
+      raw=cur.capt, trim=cur.trim, trim.ind=cur.trim.ind, eq=cur.trim,
+      word.diff=replicate(length(cur.capt), character()),
+      word.diff.ind=replicate(length(cur.capt), integer())
+    ),
+    etc=etc
   )
 }
 # Helper function encodes matches within mismatches so that we can later word
