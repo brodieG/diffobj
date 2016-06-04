@@ -260,11 +260,8 @@ valid_dat <- function(x) {
       )
     ){
       sprintf("element `%s` should be list", char.cols[not.char][[1L]])
-    } else if (
-      !is.matrix(x$trim.ind) || ncol(x$trim.ind) != 2L ||
-      !is.integer(x$trim.ind)
-    ) {
-      "element `trim.ind` should be a two column integer matrix"
+    } else if (!isTRUE(val.trim <- valid_trim_ind(x$trim.ind))) {
+      sprintf("element `trim.ind` is invalid: %s", val.trim)
     } else if (
       !all(
         vapply(
@@ -311,9 +308,9 @@ setClass("Diff",
     )
       return("slot `trim.dat` in incorrect format")
     if(!istrue(tar.dat.val <- valid_dat(object@tar.dat)))
-      return("slot `tar.dat` not valid ", tar.dat.val)
+      return("slot `tar.dat` not valid: ", tar.dat.val)
     if(!istrue(cur.dat.val <- valid_dat(object@cur.dat)))
-      return("slot `cur.dat` not valid ", cur.dat.val)
+      return("slot `cur.dat` not valid: ", cur.dat.val)
 
     TRUE
 } )

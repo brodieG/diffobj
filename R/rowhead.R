@@ -250,14 +250,28 @@ setMethod(
     cbind(sub.start, sub.end)
   }
 )
-setReplaceMethod(
-  "printTrim", c("ANY", "character"),
-  function(obj, obj.as.chr, value) {
-    # Nooot efficient
+valid_trim_ind <- function(x)
+  if(
+    !is.integer(x) || !is.matrix(tar.trim.ind) || anyNA(tar.trim.ind) ||
+    !ncol(x) == 2L
+  ) {
+    "must be a two column integer matrix with no NAs"
+  } else TRUE
 
-    base <- printTrim(obj.as.chr)
-
-    base.mode <- substr(obj.as.chr, 1, nchar(obj
-
-  }
-)
+apply_trim <- function(obj, obj.as.chr, trim_fun) {
+  trim <- try(trim_fun(obj, obj.as.chr))
+  msg.extra <-
+    "If you did not define custom `*trim` methods contact maintainer."
+  if(inherits(trim, "try-error"))
+    stop(
+      "`*trim` method produced an error when attempting to trim ; ", msg.extra
+    )
+  if(!isTRUE(trim.check <- valid_trim_ind(trim)))
+    stop("`*trim` method ", trim.check, "; ", msg.extra)
+  if(nrow(trim) != length(obj.as.chr))
+    stop(
+      "`*trim` method output matrix must have as many rows as object ",
+      "character representation has elements; ", msg.extra
+    )
+  trim
+}
