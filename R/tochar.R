@@ -351,9 +351,8 @@ setMethod("as.character", "Diff",
 
     # Trim hunks to the extent need to make sure we fit in lines
 
-    etc.cpy <- x@etc
-    etc.cpy@line.limit <- line.limit.a
-    hunk.grps <- trim_hunks(x@diffs$hunks, etc.cpy)
+    x@etc@line.limit <- line.limit.a
+    hunk.grps <- trimHunks(x)
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
 
     # Compact to width of widest element

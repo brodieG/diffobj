@@ -50,9 +50,7 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
 
       list(
         list(
-          id=1L, A=integer(0L), B=integer(0L), A.chr=character(0L),
-          B.chr=character(0L), A.eq.chr=character(0L), B.eq.chr=character(0L),
-          A.raw.chr=character(0L), B.raw.chr=character(0L),
+          id=1L, A=integer(0L), B=integer(0L), 
           A.tok.ratio=numeric(0L), B.tok.ratio=numeric(0L),
           context=FALSE, guide=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
           tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
@@ -103,18 +101,6 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
             etc@mode, context=cur, unified=integer(), sidebyside=cur,
             stop("Logic Error: unknown mode; contact maintainer.")
           )
-          # Retrieve the character values
-
-          get_chr <- function(ids) {
-            chr <- character(length(ids))
-            chr[ids > 0L] <- x@a[ids[ids > 0]]
-            chr[ids < 0L] <- x@b[abs(ids[ids < 0])]
-            chr[ids == 0L] <- NA_character_
-            chr
-          }
-          A.chr <- get_chr(A)
-          B.chr <- get_chr(B)
-
           # compute ranges
 
           tar.rng <- cur.rng <- integer(2L)
@@ -122,9 +108,7 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
           if(cur.len) cur.rng <- c(B.start + 1L, B.start + cur.len)
 
           list(
-            id=i, A=A, B=B, A.chr=A.chr, B.chr=B.chr,
-            A.eq.chr=A.chr, B.eq.chr=B.chr,
-            A.raw.chr=A.chr, B.raw.chr=B.chr,
+            id=i, A=A, B=B, 
             A.tok.ratio=numeric(length(A)), B.tok.ratio=numeric(length(B)),
             context=context, guide=FALSE,
             tar.rng=tar.rng, cur.rng=cur.rng,
@@ -215,10 +199,7 @@ hunk_sub <- function(hunk, op, n) {
   hunk.len <- diff(hunk$tar.rng.sub) + 1L
   len.diff <- hunk.len - n
   if(len.diff >= 0) {
-    nm <- c(
-      "A", "B", "A.chr", "B.chr", "A.eq.chr", "B.eq.chr",
-      "A.raw.chr", "B.raw.chr", "A.tok.ratio", "B.tok.ratio"
-    )
+    nm <- c("A", "B", "A.tok.ratio", "B.tok.ratio")
     hunk[nm] <- lapply(hunk[nm], op, n)
 
     # Need to recompute ranges
@@ -394,10 +375,13 @@ process_hunks <- function(x, ctx.val, etc) {
 # Account for overhead / side by sideness in width calculations
 # Internal funs
 
-hunk_len <- function(hunk.id, hunks, disp.width, mode) {
+hunk_len <- function(hunk.id, hunks, x) {
+  disp.width <- x@etc@disp.width
+  mode <- x@etc@mode
+
   hunk <- hunks[[hunk.id]]
-  A.lines <- nlines(hunk$A.chr, disp.width, mode)
-  B.lines <- nlines(hunk$B.chr, disp.width, mode)
+  A.lines <- nlines(unlist(get_dat(x, hunk$A, "raw")), disp.width, mode)
+  B.lines <- nlines(unlist(get_dat(x, hunk$B, "raw")), disp.width, mode)
 
   # Depending on each mode, figure out how to set up the lines;
   # straightforward except for context where we need to account for the
@@ -430,7 +414,8 @@ hunk_len <- function(hunk.id, hunks, disp.width, mode) {
     line.id=unname(line.id), len=lines.out
   )
 }
-hunk_grp_len <- function(hunk.grp.id, hunk.grps, disp.width, mode) {
+hunk_grp_len <- function(hunk.grp.id, x, disp.width, mode) {
+  hunk.grps <- x@diffs$hunks
   hunks <- hunk.grps[[hunk.grp.id]]
   hunks.proc <- lapply(
     seq_along(hunks), hunk_len, hunks=hunks, disp.width=disp.width, mode=mode
@@ -465,7 +450,9 @@ hunk_grp_len <- function(hunk.grp.id, hunk.grps, disp.width, mode) {
 # hunks off; note that "negative" lengths indicate the lines being counted
 # originated from the B hunk in context mode
 
-get_hunk_chr_lens <- function(hunk.grps, etc) {
+get_hunk_chr_lens <- function(x) {
+  stopifnot(is(x, "Diff"))
+  etc <- x@etc
   mode <- etc@mode
   disp.width <- etc@disp.width
   # Generate a matrix with hunk group id, hunk id, and wrapped length of each
@@ -474,7 +461,7 @@ get_hunk_chr_lens <- function(hunk.grps, etc) {
   do.call(
     rbind,
     lapply(
-      seq_along(hunk.grps), hunk_grp_len, hunk.grps=hunk.grps,
+      seq_along(hunk.grps), hunk_grp_len, x=x,
       disp.width=disp.width, mode=mode
   ) )
 }
@@ -530,7 +517,14 @@ trim_hunk <- function(hunk, type, line.id) {
   }
   hunk
 }
-trim_hunks <- function(hunk.grps, etc) {
+trim_hunks <- function(x) {
+  stopifnot(is(x, "Diff"))
+
+  # Originally we did not pass full `Diff` object, first steps are just to
+  # shim into legacy code
+
+  hunk.grps <- x@diffs$hunks
+  etc <- x@etc
   mode <- etc@mode
   disp.width <- etc@disp.width
   hunk.limit <- etc@hunk.limit
@@ -545,7 +539,8 @@ trim_hunks <- function(hunk.grps, etc) {
   hunk.grps.used <- min(hunk.grps.count, hunk.limit.act)
   hunk.grps <- hunk.grps[seq_len(hunk.grps.used)]
 
-  lines <- get_hunk_chr_lens(hunk.grps, etc)
+  x@diff$hunks <- hunk.grps
+  lines <- get_hunk_chr_lens(x)
   cum.len <- cumsum(abs(lines[, "len"]))
   cut.off <- -1L
   lines.omitted <- 0L
