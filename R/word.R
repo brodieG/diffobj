@@ -314,3 +314,18 @@ diff_color <- function(x, ins.fun, del.fun) {
 
   list(A=A.chr, B=B.chr, A.eq=A.eq, B.eq=B.eq)
 }
+# Add word diff highlighting
+
+word_color <- function(txt, inds, fun) {
+  word.list <- regmatches(txt, inds)
+  word.lens <- vapply(word.list, length, integer(1L))
+
+  words.c <- fun(unlist(word.list))
+  words.res <- vector("list", length(word.list))
+  words.res[!!word.lens] <- split(
+    words.c, rep(seq_along(word.lens), times=word.lens)
+  )
+  words.res[!word.lens] <- list(character(0L))
+  regmatches(txt, inds) <- words.res
+  txt
+}

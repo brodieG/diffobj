@@ -243,13 +243,15 @@ setClass("DiffDiffs",
     TRUE
   }
 )
-.diff.dat.cols <- c("raw", "trim", "trim.ind", "eq", "word.ind")
-
+.diff.dat.cols <- c(
+  "raw", "trim", "trim.ind", "eq", "word.ind", "fin", "tok.rat"
+)
 # Validate the *.dat slots of the Diff objects
 
 valid_dat <- function(x) {
-  char.cols <- c("raw", "trim", "eq")
+  char.cols <- c("raw", "trim", "eq", "fin")
   list.cols <- c("word.ind")
+  zerotoone.cols <- "tok.rat"
   mx.cols <- c("trim.ind")
 
   if(!is.list(x)) {
@@ -260,7 +262,9 @@ valid_dat <- function(x) {
     length(
       unique(
         c(
-          vapply(x[c(char.cols, list.cols)], length, integer(1L)),
+          vapply(
+            x[c(char.cols, list.cols, zerotoone.cols)], length, integer(1L)
+          ),
           vapply(x[c(mx.cols)], nrow, integer(1L))
     ) ) ) != 1L
   ) {
@@ -276,7 +280,7 @@ valid_dat <- function(x) {
       length(
         not.list <- which(!vapply(x[list.cols], is.list, logical(1L)))
       )
-    ){
+    ) {
       sprintf("element `%s` should be list", char.cols[not.char][[1L]])
     } else if (!isTRUE(val.trim <- valid_trim_ind(x$trim.ind))) {
       sprintf("element `trim.ind` is invalid: %s", val.trim)
@@ -291,17 +295,25 @@ valid_dat <- function(x) {
       ) )
     ) {
       "element `word.ind` is not in expected format"
-    } else TRUE
+    } else if (
+      !is.numeric(x$tok.rat) || anyNA(x$tok.rat) || !all(x$to.rat %bw% c(0, 1))
+    ) {
+      "element `tok.rat` should be numeric with all values between 0 and 1"
+    }
+    else TRUE
   }
 }
 setClass("Diff",
   slots=c(
-    tar="ANY",                    # Actual object
+    target="ANY",                    # Actual object
     tar.dat="list",
-    cur="ANY",
+    current="ANY",
     cur.dat="list",
     diffs="list",
     trim.dat="list",              # result of trimmaxg
+    sub.index="integer",
+    sub.head="integer",
+    sub.tail="integer",
     capt.mode="character",        # whether in print or str mode
     etc="Settings"
   ),
@@ -392,7 +404,7 @@ setMethod("summary", "Diff",
     )
       stop("Argument `scale.threshold` must be numeric(1L) between 0 and 1")
 
-    diffs.c <- count_diffs_detail(object@diffs$hunks)
+    diffs.c <- count_diffs_detail(object@diffs)
     # remove context hunks that are duplicated
     match.seq <- rle(!!diffs.c["match", ])
     match.keep <- unlist(
@@ -606,7 +618,7 @@ setMethod("lineCoverage", "Diff",
   function(x) {
     lines_in_hunk <- function(z, ind)
       if(z[[ind]][[1L]]) z[[ind]][[1L]]:z[[ind]][[2L]]
-    hunks.f <- unlist(x@diffs$hunks, recursive=FALSE)
+    hunks.f <- unlist(x@diffs, recursive=FALSE)
     lines.tar <- length(
       unique(unlist(lapply(hunks.f, lines_in_hunk, "tar.rng.sub")))
     )
@@ -624,7 +636,7 @@ setMethod("any", "Diff",
     res <- any(
       which(
         !vapply(
-          unlist(x@diffs$hunks, recursive=FALSE), "[[", logical(1L), "context"
+          unlist(x@diffs, recursive=FALSE), "[[", logical(1L), "context"
     ) ) )
     if(!res && !isTRUE(all.equal(x@target, x@current)))
       warning("No visible differences, but objects are NOT `all.equal`.")

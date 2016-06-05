@@ -191,7 +191,7 @@ hunk_as_char <- function(h.g, ranges.orig, x) {
   } ) }
   # Generate hunk contents in aligned form
 
-  hunk.res <- lapply(h.g, hunk_atom_as_char, mode=mode, x=x)
+  hunk.res <- lapply(h.g, hunk_atom_as_char, x=x)
 
   # Run finalization functions; context mode is different because we need to
   # re-order across atomic hunks
@@ -325,14 +325,16 @@ setMethod("as.character", "Diff",
 
     s <- x@etc@style  # shorthand
 
-    len.max <- max(length(x@tar.capt), length(x@cur.capt))
-    no.diffs <- if(!any(x)) {
-      msg <- "No visible differences between objects."
-      if(!ignore.white.space && !identical(x@tar.capt, x@cur.capt)) {
+    len.max <- max(length(x@tar.dat$raw), length(x@cur.dat$raw))
+    no.diffs <- if(!suppressWarnings(any(x))) {
+      msg <- "No visible differences between objects"
+      disp.eq <- all.equal(x@target, x@current)
+      msg.extra <- if(!disp.eq) {
+        ", but objects are _not_ `all.equal`"
+      } else if(ignore.white.space && !all.equal(x@tar.capt, y@cur.capt)) {
         msg <- paste0(
-          "Only visible differences between objects are horizontal white ",
-          "spaces. You can re-run diff with `ignore.white.space=FALSE` to show ",
-          "them."
+          ", but there are white space differences; re-run diff with ",
+          "`ignore.white.space=FALSE` to show them."
       ) }
       res <- s@funs@meta(msg)
     }
@@ -436,14 +438,6 @@ setMethod("as.character", "Diff",
     tar.max <- max(ranges[2L, ], 0L)
     cur.max <- max(ranges[4L, ], 0L)
 
-    cur.body <- tar.body <- character(0L)
-    cur.rest <- show.range.cur <- seq_len(cur.max)
-    tar.rest <- show.range.tar <- seq_len(tar.max)
-
-    # Word diffs should be done at the as.hunk
-
-    warning("Re-do word diffs at hunk level")
-
     # At this point we need to actually reconstitute the final output string by:
     # - Applying word diffs
     # - Reconstructing untrimmed strings
@@ -455,16 +449,22 @@ setMethod("as.character", "Diff",
     # legacy from when we used to do the wrap diff and can probably be
     # simplified since we will do this for every hunk
 
-    tar.to.wd <- which(ranges[1L,] %in% tar.rest)
-    cur.to.wd <- which(ranges[3L,] %in% cur.rest)
-    hunk.grps.d <-
-      in_hunk_diffs(hunk.grps=hunk.grps, etc=x@etc, tar.to.wd, cur.to.wd)
+    f.f <- x@etc@style@funs
+    tar.w.c <- word_color(x@tar.dat$trim, x@tar.dat$word.ind, f.f@word.delete)
+    cur.w.c <- word_color(x@cur.dat$trim, x@cur.dat$word.ind, f.f@word.insert)
+
+    substr(
+      x@tar.dat$fin, x@tar.dat$trim.ind[, 1L], x@tar.dat$trim.ind[, 2L]
+    ) <- tar.w.c
+    substr(
+      x@cur.dat$fin, x@cur.dat$trim.ind[, 1L], x@cur.dat$trim.ind[, 2L]
+    ) <- cur.w.c
 
     # Generate the pre-rendered hunk data as text columns; a bit complicated
     # as we need to unnest stuff; use rbind to make it a little easier.
 
     pre.render.raw <- unlist(
-      lapply(hunk.grps.d, hunk_as_char, ranges.orig=ranges.orig, x=x),
+      lapply(hunk.grps, hunk_as_char, ranges.orig=ranges.orig, x=x),
       recursive=FALSE
     )
     pre.render.mx <- do.call(rbind, pre.render.raw)

@@ -16,7 +16,7 @@ get_dat <- function(x, ind, type) {
   # zero indices anymore
 
   setNames(
-    lapply(type, function(y) get_dar_raw(ind, x@tar.dat[[y]], y@cur.dat[[y]])),
+    lapply(type, function(y) get_dat_raw(ind, x@tar.dat[[y]], x@cur.dat[[y]])),
     type
   )
 }

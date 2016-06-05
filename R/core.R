@@ -351,22 +351,32 @@ line_diff <- function(
     word.diffs$tar[h.a.tar.ind] <- h.a.w.d$tar
     word.diffs$cur[h.a.cur.ind] <- h.a.w.d$cur
   }
+  # Compute the token ratios
+
+  tok_ratio_compute <- function(z) vapply(
+    z,
+    function(y) if(is.null(wc <- attr(y, "word.count"))) 1 else length(y) / wc,
+    numeric(1L)
+  )
+  tar.tok.ratio <- tok_ratio_compute(word.diffs$tar)
+  cur.tok.ratio <- tok_ratio_compute(word.diffs$cur)
+
   # Instantiate result
 
   hunk.grps <- group_hunks(
     hunks.flat, etc=etc, tar.capt=tar.capt, cur.capt=cur.capt
   )
   new(
-    "Diff", diffs=hunk.grps, tar=target, cur=current,
+    "Diff", diffs=hunk.grps, target=target, current=current,
     tar.dat=list(
       raw=tar.capt, trim=tar.trim, trim.ind=tar.trim.ind,
       eq=`regmatches<-`(tar.trim, word.diffs$tar, value=""),
-      word.ind=word.diffs$tar
+      word.ind=word.diffs$tar, fin=tar.capt, tok.rat=tar.tok.ratio
     ),
     cur.dat=list(
       raw=cur.capt, trim=cur.trim, trim.ind=cur.trim.ind,
       eq=`regmatches<-`(cur.trim, word.diffs$cur, value=""),
-      word.ind=word.diffs$cur
+      word.ind=word.diffs$cur, fin=cur.capt, tok.rat=cur.tok.ratio
     ),
     etc=etc
   )

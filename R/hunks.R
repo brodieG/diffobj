@@ -526,7 +526,7 @@ trim_hunks <- function(x) {
   # Originally we did not pass full `Diff` object, first steps are just to
   # shim into legacy code
 
-  hunk.grps <- x@diffs$hunks
+  hunk.grps <- x@diffs
   etc <- x@etc
   mode <- etc@mode
   disp.width <- etc@disp.width
@@ -542,8 +542,10 @@ trim_hunks <- function(x) {
   hunk.grps.used <- min(hunk.grps.count, hunk.limit.act)
   hunk.grps <- hunk.grps[seq_len(hunk.grps.used)]
 
-  x@diff$hunks <- hunk.grps
-  lines <- get_hunk_chr_lens(x)
+  x@diffs <- hunk.grps
+  lines <- get_hunk_chr_lens(
+    hunk.grps, etc=etc, tar.capt=x@tar.dat$raw, cur.capt=x@cur.dat$raw
+  )
   cum.len <- cumsum(abs(lines[, "len"]))
   cut.off <- -1L
   lines.omitted <- 0L
