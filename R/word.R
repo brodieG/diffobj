@@ -178,11 +178,12 @@ diff_word2 <- function(
     # Not whitespaces that doesn't include quotes
     "[^ \"]+|",
     # Quoted phrases as structured in atomic character vectors
-    if(match.quotes) "((?<= )|(?<=^))\"([^\"]|\\\")*?\"((?= )|(?=$))|",
+    if(match.quotes) "(?:(?<= )|(?<=^))\"(?:[^\"]|\\\")*?\"(?:(?= )|(?=$))|",
     # Other quoted phrases we might see in expressions or deparsed chr vecs,
     # this is a bit lazy currently b/c we're not forcing precise matching b/w
     # starting and ending delimiters
-    "((?<=[ ([,{])|(?<=^))\"([^\"]|\\\"|\"(?=[^ ]))*?\"((?=[ ,)\\]}])|(?=$))|",
+    "(?:(?<=[ ([,{])|(?<=^))\"(?:[^\"]|\\\"|\"(?=[^ ]))*?",
+    "\"(?:(?=[ ,)\\]}])|(?=$))|",
     # Other otherwise 'illegal' quotes that couldn't be matched to one of the
     # known valid quote structures
     "\""
@@ -223,19 +224,27 @@ diff_word2 <- function(
 
   reg.pull <-  function(reg, start, end, mismatch) {
     ind <- mismatch[mismatch %bw% c(start, end)] - start + 1L
-    reg.out <- reg[ind]
-    attr(reg.out, "match.length") <- attr(reg, "match.length")[ind]
+    if(length(ind)) {
+      reg.out <- reg[ind]
+      match.len <- attr(reg, "match.length")[ind]
+    } else {
+      reg.out <- -1L
+      match.len <- -1L
+    }
+    attr(reg.out, "match.length") <- match.len
     attr(reg.out, "useBytes") <- attr(reg, "useBytes")
     attr(reg.out, "word.count") <- end - start + 1L
     reg.out
   }
+  tar.ends <- cumsum(tar.lens)
+  cur.ends <- cumsum(cur.lens)
   tar.reg.fin <- Map(
-    reg.pull, tar.reg, c(1L, head(tar.lens, -1L) + 1L),
-    tar.lens, MoreArgs=list(mismatch=tar.mism)
+    reg.pull, tar.reg, c(1L, head(tar.ends, -1L) + 1L),
+    tar.ends, MoreArgs=list(mismatch=tar.mism)
   )
   cur.reg.fin <- Map(
-    reg.pull, cur.reg, c(1L, head(cur.lens, -1L) + 1L),
-    cur.lens, MoreArgs=list(mismatch=cur.mism)
+    reg.pull, cur.reg, c(1L, head(cur.ends, -1L) + 1L),
+    cur.ends, MoreArgs=list(mismatch=cur.mism)
   )
   list(tar=tar.reg.fin, cur=cur.reg.fin, hit.diffs.max=diffs$hit.diffs.max)
 }

@@ -289,7 +289,7 @@ line_diff <- function(
   tar.trim <- do.call(
     substr, list(tar.capt, tar.trim.ind[, 1L], tar.trim.ind[, 2L])
   )
-  cur.trim.ind <- apply_trim(curget, cur.capt, etc@trim)
+  cur.trim.ind <- apply_trim(current, cur.capt, etc@trim)
   cur.trim <- do.call(
     substr, list(cur.capt, cur.trim.ind[, 1L], cur.trim.ind[, 2L])
   )
@@ -301,9 +301,10 @@ line_diff <- function(
 
   word.diff.atom <- -1L
   attr(word.diff.atom, "match.length") <- -1L
-  word.diff.tpl <- replicate(length(tar.capt), word.diff.atom, simplify=FALSE)
-  word.diffs <- list(tar=word.diff.tpl, cur=word.diff.tpl)
-
+  word.diffs <- list(
+    tar=replicate(length(tar.capt), word.diff.atom, simplify=FALSE),
+    cur=replicate(length(cur.capt), word.diff.atom, simplify=FALSE)
+  )
   if(
     is.atomic(target) && is.atomic(current) &&
     length(tar.rh <- which_atomic_rh(tar.capt)) &&

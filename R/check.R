@@ -107,7 +107,7 @@ check_args <- function(
   call, tar.exp, cur.exp, mode, context, line.limit, format, brightness,
   color.mode, pager, ignore.white.space, max.diffs, align, disp.width,
   hunk.limit, convert.hz.white.space, tab.stops, style, palette.of.styles,
-  frame, tar.banner, cur.banner, guides, rds
+  frame, tar.banner, cur.banner, guides, rds, trim
 ) {
   err <- make_err_fun(call)
 
@@ -179,6 +179,13 @@ check_args <- function(
     err("Argument `guides` ", g.f.err)
   if(!is.function(guides) && !guides)
     guides <- function(obj, obj.as.chr) integer(0L)
+
+  if(!is.TF(trim) && !is.function(trim))
+    err("Argument `trim` must be TRUE, FALSE, or a function")
+  if(is.function(trim) && !isTRUE(t.f.err <- is.two.arg.fun(trim)))
+    err("Argument `trim` ", t.f.err)
+  if(!is.function(trim) && !trim)
+    trim <- function(obj, obj.as.chr) obj.as.chr
 
   # check T F args
 
@@ -305,7 +312,7 @@ check_args <- function(
     hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
     tab.stops=tab.stops, style=style, frame=frame,
     tar.exp=tar.exp, cur.exp=cur.exp, guides=guides, tar.banner=tar.banner,
-    cur.banner=cur.banner
+    cur.banner=cur.banner, trim=trim
   )
   etc
 }

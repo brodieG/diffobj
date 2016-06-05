@@ -207,6 +207,10 @@ strip_array_rh <- function(x, dim.names.x) {
 #' @note \code{obj.as.chr} will be post \code{strip_hz_control}
 #' @param obj the object
 #' @param obj.as.chr charcter the \code{print}ed representation of the object
+#' @rdname trim
+#' @name trim
+#' @aliases printTrim
+#' @export
 #' @return a \code{length(obj.as.chr) * 2} integer matrix with the start (first
 #'   column and end (second column) character positions of the sub string to
 #'   run diffs on.
@@ -239,11 +243,11 @@ setMethod(
         "original; contact maintainer"
       )
     stripped.chars <- nchar(stripped)
-    char.diff <- nchar(obj.as.char) - stripped.chars
+    char.diff <- nchar(obj.as.chr) - stripped.chars
     sub.start <- char.diff + 1L
     sub.end <- sub.start - 1L + stripped.chars
 
-    if(!all(substr(obj.as.char, sub.start, sub.end), stripped))
+    if(!all(substr(obj.as.chr, sub.start, sub.end) == stripped))
       stop(
         "Logic Error: trimmed string is not a substring of orginal, ",
         "contact maintainer"
@@ -260,8 +264,10 @@ valid_trim_ind <- function(x)
 
 apply_trim <- function(obj, obj.as.chr, trim_fun) {
   trim <- try(trim_fun(obj, obj.as.chr))
-  msg.extra <-
-    "If you did not define custom `*trim` methods contact maintainer."
+  msg.extra <- paste0(
+    "If you did not define custom `*trim` methods contact maintainer ",
+    "(see `?trim`)."
+  )
   if(inherits(trim, "try-error"))
     stop(
       "`*trim` method produced an error when attempting to trim ; ", msg.extra
