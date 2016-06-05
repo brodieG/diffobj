@@ -139,6 +139,7 @@ setClass("Settings",
     cur.banner="charOrNULL",
     guides="ANY",
     guide.lines="GuideLines",
+    trim="ANY",
     strip.row.head="StripRowHead",
     disp.width="integer",
     line.width="integer",
@@ -150,7 +151,8 @@ setClass("Settings",
   prototype=list(
     disp.width=0L, text.width=0L, line.width=0L,
     text.width.half=0L, line.width.half=0L,
-    guides=function(obj, obj.as.chr) integer(0L)
+    guides=function(obj, obj.as.chr) integer(0L),
+    trim=function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr))
   ),
   validity=function(object){
     int.1L.and.pos <- c(
@@ -168,9 +170,16 @@ setClass("Settings",
       return("Slot `guides` must be TRUE, FALSE, or a function")
     if(
       is.function(object@guides) &&
-      !isTRUE(v.g <- is.valid.guide.fun(object@guides))
+      !isTRUE(v.g <- is.two.arg.fun(object@guides))
     )
       return(sprintf("Slot `guides` is not a valid guide function (%s)", v.g))
+    if(!is.TF(object@trim) && !is.function(object@trim))
+      return("Slot `trim` must be TRUE, FALSE, or a function")
+    if(
+      is.function(object@trim) &&
+      !isTRUE(v.t <- is.two.arg.fun(object@trim))
+    )
+      return(sprintf("Slot `trim` is not a valid trim function (%s)", v.t))
     TRUE
   }
 )

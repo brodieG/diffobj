@@ -175,7 +175,7 @@ check_args <- function(
 
   if(!is.TF(guides) && !is.function(guides))
     err("Argument `guides` must be TRUE, FALSE, or a function")
-  if(is.function(guides) && !isTRUE(g.f.err <- is.valid.guide.fun(guides)))
+  if(is.function(guides) && !isTRUE(g.f.err <- is.two.arg.fun(guides)))
     err("Argument `guides` ", g.f.err)
   if(!is.function(guides) && !guides)
     guides <- function(obj, obj.as.chr) integer(0L)

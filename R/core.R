@@ -226,7 +226,6 @@ char_diff <- function(x, y, context=-1L, etc, diff.mode, warn) {
     diff.mode %in% c("line", "hunk", "wrap"),
     isTRUE(warn) || identical(warn, FALSE)
   )
-  diff.param <- c(line="max.diffs")
   if(etc@ignore.white.space) {
     x.w <- normalize_whitespace(x)
     y.w <- normalize_whitespace(y)
@@ -259,10 +258,7 @@ char_diff <- function(x, y, context=-1L, etc, diff.mode, warn) {
   }
   # used to be a `DiffDiffs` object, but too slow
 
-  list(
-    hunks=hunks, diffs=count_diffs(hunks), diffs.max=0L,
-    hit.diffs.max=hit.diffs.max
-  )
+  list(hunks=hunks, hit.diffs.max=hit.diffs.max)
 }
 # Variation on `char_diff` used for the overall diff where we don't need
 # to worry about overhead from creating the `Diff` object
@@ -290,17 +286,21 @@ line_diff <- function(
   # Apply trimming to remove row heads, etc
 
   tar.trim.ind <- apply_trim(target, tar.capt, etc@trim)
-  tar.trim <- do.call(substr(tar.capt, tar.trim.ind[, 1L], tar.trim.ind[, 2L]))
+  tar.trim <- do.call(
+    substr, list(tar.capt, tar.trim.ind[, 1L], tar.trim.ind[, 2L])
+  )
   cur.trim.ind <- apply_trim(curget, cur.capt, etc@trim)
-  cur.trim <- do.call(substr(cur.capt, cur.trim.ind[, 1L], cur.trim.ind[, 2L]))
-
+  cur.trim <- do.call(
+    substr, list(cur.capt, cur.trim.ind[, 1L], cur.trim.ind[, 2L])
+  )
   # Word diff is done in three steps: create an empty template vector structured
   # as the result of a call to `gregexpr` without matches, if dealing with
   # compliant atomic vectors in print mode, then update with the word diff
   # matches, finally, update with in-hunk word diffs for hunks that don't have
   # any existing word diffs:
 
-  word.diff.atom <- "attr<-"("match.length", -1L, -1L)
+  word.diff.atom <- -1L
+  attr(word.diff.atom, "match.length") <- -1L
   word.diff.tpl <- replicate(length(tar.capt), word.diff.atom, simplify=FALSE)
   word.diffs <- list(tar=word.diff.tpl, cur=word.diff.tpl)
 
@@ -310,7 +310,7 @@ line_diff <- function(
     length(cur.rh <- which_atomic_rh(cur.capt))
   ) {
     atom.w.d <- diff_word2(
-      tar.trim[tar.rh], cur.trim[cur.rh], diff.mode="wrap", warn=warn
+      tar.trim[tar.rh], cur.trim[cur.rh], diff.mode="wrap", warn=warn, etc=etc
     )
     word.diffs$tar[tar.rh] <- atom.w.d$tar
     word.diffs$cur[cur.rh] <- atom.w.d$cur
@@ -328,7 +328,7 @@ line_diff <- function(
   cur.l.w.d <- which(vapply(word.diffs$cur, "[", integer(1L), 1L) != -1L)
   all.l.w.d <- c(tar.l.w.d, -cur.l.w.d)
 
-  hunks.flat <- unlist(diffs$hunks, recursive=FALSE)
+  hunks.flat <- diffs$hunks
   hunks.w.o.w.diff <- vapply(
     hunks.flat,
     function(y) !y$context && !any(unlist(y[c("A", "B")]) %in% all.l.w.d),
@@ -337,13 +337,15 @@ line_diff <- function(
   # For each of those hunks, run the word diffs and store the results in the
   # word.diffs list
 
+  browser()
   for(i in which(hunks.w.o.w.diff)) {
     h.a <- hunks.flat[[i]]
     h.a.ind <- c(h.a$A, h.a$B)
     h.a.tar.ind <- h.a.ind[h.a.ind > 0]
     h.a.cur.ind <- abs(h.a.ind[h.a.ind < 0])
     h.a.w.d <- diff_word2(
-      tar.trim[h.a.tar.ind], cur.trim[h.a.cur.ind], diff.mode="hunk", warn=warn
+      tar.trim[h.a.tar.ind], cur.trim[h.a.cur.ind], diff.mode="hunk", warn=warn,
+      etc=etc
     )
     warn <- !h.a.w.d$hit.diffs.max
     word.diffs$tar[h.a.tar.ind] <- h.a.w.d$tar
@@ -351,8 +353,11 @@ line_diff <- function(
   }
   # Instantiate result
 
+  hunk.grps <- group_hunks(
+    hunks.flat, etc=etc, tar.capt=tar.capt, cur.capt=cur.capt
+  )
   new(
-    "Diff", diffs=diffs, tar=target, cur=current,
+    "Diff", diffs=hunk.grps, tar=target, cur=current,
     tar.dat=list(
       raw=tar.capt, trim=tar.trim, trim.ind=tar.trim.ind,
       eq=`regmatches<-`(tar.trim, word.diffs$tar, ""),

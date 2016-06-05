@@ -467,10 +467,15 @@ body(diff_obj) <- quote({
   res.print <- eval(call.print, parent.frame())
   res.str <- eval(call.str, parent.frame())
 
-  diff.p <- count_diff_hunks(res.print@diffs$hunks)
-  diff.s <- count_diff_hunks(res.str@diffs$hunks)
-  diff.l.p <- diff_line_len(res.print@diffs$hunks, res.print@etc)
-  diff.l.s <- diff_line_len(res.str@diffs$hunks, res.str@etc)
+  diff.p <- count_diff_hunks(res.print@diffs)
+  diff.s <- count_diff_hunks(res.str@diffs)
+  diff.l.p <- diff_line_len(
+    res.print@diffs, res.print@etc, tar.capt=res.print@tar.dat$raw,
+    cur.capt=res.print@cur.dat$raw
+  )
+  diff.l.s <- diff_line_len(
+    res.str@diffs, res.str@etc
+  )
 
   # How many lines of the input are in the diffs, vs how many lines of input
 

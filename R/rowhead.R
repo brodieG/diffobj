@@ -253,8 +253,7 @@ setMethod(
 )
 valid_trim_ind <- function(x)
   if(
-    !is.integer(x) || !is.matrix(tar.trim.ind) || anyNA(tar.trim.ind) ||
-    !ncol(x) == 2L
+    !is.integer(x) || !is.matrix(x) || anyNA(x) || !ncol(x) == 2L
   ) {
     "must be a two column integer matrix with no NAs"
   } else TRUE

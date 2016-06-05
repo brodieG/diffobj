@@ -212,7 +212,7 @@ diff_word2 <- function(
   )
   # Need to figure out which elements match, and which ones do not
 
-  hunks.flat <- unlist(diffs$hunks, recursive=FALSE)
+  hunks.flat <- diffs$hunks
   tar.mism <- unlist(lapply(hunks.flat, function(x) if(!x$context) x$A))
   cur.mism <- abs(unlist(lapply(hunks.flat, function(x) if(!x$context) x$B)))
 

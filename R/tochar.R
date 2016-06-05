@@ -349,7 +349,8 @@ setMethod("as.character", "Diff",
     # Trim hunks to the extent need to make sure we fit in lines
 
     x@etc@line.limit <- line.limit.a
-    hunk.grps <- trimHunks(x)
+    diff.count.orig <- count_diffs(x@diffs)
+    hunk.grps <- trim_hunks(x)
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
 
     # Compact to width of widest element, so retrieve all char values
@@ -401,10 +402,10 @@ setMethod("as.character", "Diff",
     ll <- !!lim.line[[1L]]
     lh <- !!lim.hunk[[1L]]
     diff.count <- count_diffs(hunk.grps)
-    str.fold.out <- if(x@diffs$diffs.max > diff.count) {
+    str.fold.out <- if(diff.count.orig > diff.count) {
       crayon_style(
         paste0(
-          x@diffs$diffs.max - diff.count,
+          diff.count.orig  - diff.count,
           " differences are hidden by our use of `max.level`"
         ),
         "silver"
@@ -459,7 +460,6 @@ setMethod("as.character", "Diff",
     hunk.grps.d <-
       in_hunk_diffs(hunk.grps=hunk.grps, etc=x@etc, tar.to.wd, cur.to.wd)
 
-    # Now that we have both wrap and unwrapped word diffs
     # Generate the pre-rendered hunk data as text columns; a bit complicated
     # as we need to unnest stuff; use rbind to make it a little easier.
 

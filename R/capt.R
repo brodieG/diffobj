@@ -189,9 +189,9 @@ capt_str <- function(target, current, etc, err, ...){
     }
     if(line.limit[[1L]] < 1L) break
 
-    line.len <-
-      diff_line_len(diffs.str$hunks, etc=etc)
-
+    line.len <- diff_line_len(
+      diffs.str$hunks, etc=etc, tar.capt=tar.str, cur.capt=cur.str
+    )
     # We need a higher level if we don't have diffs
 
     if(!has.diff && prev.lvl.hi - lvl > 1L) {

@@ -2,35 +2,21 @@
 # Convert ses data into raw hunks that include both match hunks as well as
 # actual hunks
 #
-# @return a list containing lists of atomic hunks.  Each of these sub-lists
-#   of atomic hunks is treated as a "hunk", but is really a combination of
-#   context and hunks which we will refer to as "hunk group".  In each hunk
-#   group, There may be as little as one hunk with no context, or many hunks and
-#   context if the context between hunks is not sufficient to meet the requested
-#   context, in which case the hunks bleed together forming these hunk groups.
+# These hunks are then processed into hunk groups in a separate step
+# (see `group_hunks`).
 #
-#   The hunks within the groups contain integer vectors A and B, as well as
-#   an indication of whether this is a context hunk or a diff hunk.  Vectors
-#   A and B are computed based on what type of diff mode we're in.  Positive
-#   values reference strings from the original target string, and negative ones
-#   from the current string.
+# @return a list of atomic hunks, each containing integer vectors A and B where
+#   positive numbers reference character lines from target and negative ones
+#   from current.  For "context" and "sidebyside" mode the A vector will contain
+#   the lines from target, and the B vector the lines from current.  For
+#   "unified" only the A vector is populated.  In addition to the A and B
+#   vectors some other meta data is tracked, such as the range of the hunks is
+#   also stored as tar.rng and cur.rng; mostly inferrable from the actual data
+#   in the hunks, except that in unified mode we no longer have the actual
+#   context strings from the `current` vector.
 #
-#   In addition to the indices referencing the original character vectors, the
-#   actual character values are also retained, though these may be modified
-#   over the course of processing by being wrapped, having colors added, etc.
-#   The tok.ratio entries indicate the ratio of matching tokens out of total
-#   tokens in any given line after a word diff.
-#
-#   Important: context atomic hunks are duplicated anytime there is enough
-#   context that we only show part of the context hunk.
-#
-#   Notes for rendering:
-#   1. determine if chunk is context or not
-#   2. if not, positive values are "target" strings, negative "current strings"
-#   3. the range of the hunks is also stored as tar.rng and cur.rng; mostly
-#      inferrable from the actual data in the hunks, except that in unified
-#      mode we no longer have the actual context strings from the `current`
-#      vector.
+# starting to have second thoughts about removing all the non index data from
+# hunks, particularly because it makes the line length calc a pita.
 
 setGeneric("as.hunks", function(x, etc, ...) standardGeneric("as.hunks"))
 setMethod("as.hunks", c("MyersMbaSes", "Settings"),
@@ -50,8 +36,7 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
 
       list(
         list(
-          id=1L, A=integer(0L), B=integer(0L), 
-          A.tok.ratio=numeric(0L), B.tok.ratio=numeric(0L),
+          id=1L, A=integer(0L), B=integer(0L),
           context=FALSE, guide=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
           tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
           tar.rng.trim=integer(2L), cur.rng.trim=integer(2L),
@@ -108,72 +93,84 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
           if(cur.len) cur.rng <- c(B.start + 1L, B.start + cur.len)
 
           list(
-            id=i, A=A, B=B, 
-            A.tok.ratio=numeric(length(A)), B.tok.ratio=numeric(length(B)),
-            context=context, guide=FALSE,
+            id=i, A=A, B=B, context=context, guide=FALSE,
             tar.rng=tar.rng, cur.rng=cur.rng,
             tar.rng.sub=tar.rng, cur.rng.sub=cur.rng,
             tar.rng.trim=tar.rng, cur.rng.trim=cur.rng,
             completely.empty=FALSE
           )
     } ) }
-    # Group hunks together based on context, in "auto" mode we find the context
-    # that maximizes lines displayed while adhering to line and hunk limits
-    # Definitely not very efficient since we re-run code multiple times we
-    # probably don't need to.
-
-    context <- etc@context
-    line.limit <- etc@line.limit
-    ctx.val <- if(is(context, "AutoContext")) {
-      len <- diff_line_len(
-        p_and_t_hunks(res.l, ctx.val=context@max, etc=etc),
-        etc=etc
-      )
-      len.min <- diff_line_len(
-        p_and_t_hunks(res.l, ctx.val=context@min, etc=etc),
-        etc=etc
-      )
-      if(line.limit[[1L]] < 0L) {
-        context@max
-      } else if(len.min > line.limit[[1L]]) {
-        context@min
-      } else {
-        ctx.max <- ctx.hi <- ctx <- context@max
-        ctx.lo <- context@min
-        safety <- 0L
-
-        repeat {
-          if((safety <- safety + 1L) > ctx.max)
-            stop(
-              "Logic Error: stuck trying to find auto-context; contact ",
-              "maintainer."
-            )
-          if(len > line.limit[[1L]] && ctx - ctx.lo > 1L) {
-            ctx.hi <- ctx
-            ctx <- as.integer((ctx - ctx.lo) / 2)
-          } else if (len < line.limit[[1L]] && ctx.hi - ctx > 1L) {
-            ctx.lo <- ctx
-            ctx <- ctx + as.integer(ceiling(ctx.hi - ctx) / 2)
-          } else if (len > line.limit[[1L]]) {
-            # unable to get something small enough, but we know min context
-            # works from inital test
-            ctx <- context@min
-            break
-          } else if (len <= line.limit[[1L]]) {
-            break
-          }
-          len <- diff_line_len(
-            p_and_t_hunks(res.l, ctx.val=ctx, etc=etc),
-            etc=etc
-          )
-        }
-        ctx
-      }
-    } else context
-
-    res <- process_hunks(res.l, ctx.val=ctx.val, etc=etc)
-    res
+    res.l
 } )
+
+# Group hunks together based on context, in "auto" mode we find the context
+# that maximizes lines displayed while adhering to line and hunk limits
+# Definitely not very efficient since we re-run code multiple times we
+# probably don't need to.
+#
+#   Important: context atomic hunks are duplicated anytime there is enough
+#   context that we only show part of the context hunk.
+#
+# @return a list containing lists of atomic hunks.  Each of these sub-lists
+#   of atomic hunks is treated as a "hunk", but is really a combination of
+#   context and hunks which we will refer to as "hunk group".  In each hunk
+#   group, There may be as little as one hunk with no context, or many hunks and
+#   context if the context between hunks is not sufficient to meet the requested
+#   context, in which case the hunks bleed together forming these hunk groups.
+
+group_hunks <- function(hunks, etc, tar.capt, cur.capt) {
+  context <- etc@context
+  line.limit <- etc@line.limit
+  ctx.val <- if(is(context, "AutoContext")) {
+    len <- diff_line_len(
+      p_and_t_hunks(hunks, ctx.val=context@max, etc=etc),
+      etc=etc, tar.capt=tar.capt, cur.capt=cur.capt
+    )
+    len.min <- diff_line_len(
+      p_and_t_hunks(hunks, ctx.val=context@min, etc=etc),
+      etc=etc, tar.capt=tar.capt
+    )
+    if(line.limit[[1L]] < 0L) {
+      context@max
+    } else if(len.min > line.limit[[1L]]) {
+      context@min
+    } else {
+      ctx.max <- ctx.hi <- ctx <- context@max
+      ctx.lo <- context@min
+      safety <- 0L
+
+      repeat {
+        if((safety <- safety + 1L) > ctx.max)
+          stop(
+            "Logic Error: stuck trying to find auto-context; contact ",
+            "maintainer."
+          )
+        if(len > line.limit[[1L]] && ctx - ctx.lo > 1L) {
+          ctx.hi <- ctx
+          ctx <- as.integer((ctx - ctx.lo) / 2)
+        } else if (len < line.limit[[1L]] && ctx.hi - ctx > 1L) {
+          ctx.lo <- ctx
+          ctx <- ctx + as.integer(ceiling(ctx.hi - ctx) / 2)
+        } else if (len > line.limit[[1L]]) {
+          # unable to get something small enough, but we know min context
+          # works from inital test
+          ctx <- context@min
+          break
+        } else if (len <= line.limit[[1L]]) {
+          break
+        }
+        len <- diff_line_len(
+          p_and_t_hunks(hunks, ctx.val=ctx, etc=etc),
+          etc=etc, tar.capt=tar.capt, cur.capt=cur.capt
+        )
+      }
+      ctx
+    }
+  } else context
+
+  res <- process_hunks(hunks, ctx.val=ctx.val, etc=etc)
+  res
+}
 # process the hunks and also drop off groups that exceed limit
 #
 # used exclusively when we are trying to auto-calculate context
@@ -375,14 +372,16 @@ process_hunks <- function(x, ctx.val, etc) {
 # Account for overhead / side by sideness in width calculations
 # Internal funs
 
-hunk_len <- function(hunk.id, hunks, x) {
-  disp.width <- x@etc@disp.width
-  mode <- x@etc@mode
-
+hunk_len <- function(hunk.id, hunks, tar.capt, cur.capt, etc) {
+  disp.width <- etc@disp.width
+  mode <- etc@mode
   hunk <- hunks[[hunk.id]]
-  A.lines <- nlines(unlist(get_dat(x, hunk$A, "raw")), disp.width, mode)
-  B.lines <- nlines(unlist(get_dat(x, hunk$B, "raw")), disp.width, mode)
-
+  A.lines <- nlines(
+    unlist(get_dat_raw(hunk$A, tar.capt, cur.capt)), disp.width, mode
+  )
+  B.lines <- nlines(
+    unlist(get_dat_raw(hunk$B, tar.capt, cur.capt)), disp.width, mode
+  )
   # Depending on each mode, figure out how to set up the lines;
   # straightforward except for context where we need to account for the
   # fact that all the A of a hunk group are shown first, and then all
@@ -414,11 +413,13 @@ hunk_len <- function(hunk.id, hunks, x) {
     line.id=unname(line.id), len=lines.out
   )
 }
-hunk_grp_len <- function(hunk.grp.id, x, disp.width, mode) {
-  hunk.grps <- x@diffs$hunks
+hunk_grp_len <- function(
+  hunk.grp.id, hunk.grps, etc, tar.capt, cur.capt
+) {
   hunks <- hunk.grps[[hunk.grp.id]]
   hunks.proc <- lapply(
-    seq_along(hunks), hunk_len, hunks=hunks, disp.width=disp.width, mode=mode
+    seq_along(hunks), hunk_len, hunks=hunks, etc=etc,
+    tar.capt=tar.capt, cur.capt=cur.capt
   )
   res.tmp <- do.call(rbind, hunks.proc)
   res <- cbind(grp.id=if(nrow(res.tmp)) hunk.grp.id else integer(0L), res.tmp)
@@ -450,9 +451,8 @@ hunk_grp_len <- function(hunk.grp.id, x, disp.width, mode) {
 # hunks off; note that "negative" lengths indicate the lines being counted
 # originated from the B hunk in context mode
 
-get_hunk_chr_lens <- function(x) {
+get_hunk_chr_lens <- function(hunk.grps, etc, tar.capt, cur.capt) {
   stopifnot(is(x, "Diff"))
-  etc <- x@etc
   mode <- etc@mode
   disp.width <- etc@disp.width
   # Generate a matrix with hunk group id, hunk id, and wrapped length of each
@@ -461,16 +461,16 @@ get_hunk_chr_lens <- function(x) {
   do.call(
     rbind,
     lapply(
-      seq_along(hunk.grps), hunk_grp_len, x=x,
-      disp.width=disp.width, mode=mode
+      seq_along(hunk.grps), hunk_grp_len, etc=etc, tar.capt=tar.capt,
+      cur.capt=cur.capt, hunk.grps=hunk.grps
   ) )
 }
 # Compute total diff length in lines
 
-diff_line_len <- function(hunk.grps, etc) {
+diff_line_len <- function(hunk.grps, etc, tar.capt, cur.capt) {
   max(
     0L,
-    cumsum(get_hunk_chr_lens(hunk.grps, etc)[, "len"])
+    cumsum(get_hunk_chr_lens(hunk.grps, etc, tar.capt, cur.capt)[, "len"])
   ) + banner_len(etc@mode)
 }
 # Return which of the values in the data vectors within an atomic hunk are
