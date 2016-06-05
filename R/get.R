@@ -25,6 +25,6 @@ get_dat_raw <- function(ind, tar, cur) {
   template <- tar[0L]
   length(template) <- length(ind)
   template[which(ind < 0L)] <-  cur[abs(ind[ind < 0L])]
-  template[which(ind > 0L)] <-  tar[abs(ind[ind < 0L])]
+  template[which(ind > 0L)] <-  tar[abs(ind[ind > 0L])]
   template
 }

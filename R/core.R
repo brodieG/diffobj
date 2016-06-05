@@ -337,7 +337,6 @@ line_diff <- function(
   # For each of those hunks, run the word diffs and store the results in the
   # word.diffs list
 
-  browser()
   for(i in which(hunks.w.o.w.diff)) {
     h.a <- hunks.flat[[i]]
     h.a.ind <- c(h.a$A, h.a$B)
@@ -360,13 +359,13 @@ line_diff <- function(
     "Diff", diffs=hunk.grps, tar=target, cur=current,
     tar.dat=list(
       raw=tar.capt, trim=tar.trim, trim.ind=tar.trim.ind,
-      eq=`regmatches<-`(tar.trim, word.diffs$tar, ""),
-      word.diff.ind=word.diffs$tar
+      eq=`regmatches<-`(tar.trim, word.diffs$tar, value=""),
+      word.ind=word.diffs$tar
     ),
     cur.dat=list(
       raw=cur.capt, trim=cur.trim, trim.ind=cur.trim.ind,
-      eq=`regmatches<-`(cur.trim, word.diffs$cur, ""),
-      word.diff.ind=word.diffs$cur
+      eq=`regmatches<-`(cur.trim, word.diffs$cur, value=""),
+      word.ind=word.diffs$cur
     ),
     etc=etc
   )

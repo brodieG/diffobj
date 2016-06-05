@@ -128,7 +128,7 @@ group_hunks <- function(hunks, etc, tar.capt, cur.capt) {
     )
     len.min <- diff_line_len(
       p_and_t_hunks(hunks, ctx.val=context@min, etc=etc),
-      etc=etc, tar.capt=tar.capt
+      etc=etc, tar.capt=tar.capt, cur.capt=cur.capt
     )
     if(line.limit[[1L]] < 0L) {
       context@max
@@ -452,7 +452,6 @@ hunk_grp_len <- function(
 # originated from the B hunk in context mode
 
 get_hunk_chr_lens <- function(hunk.grps, etc, tar.capt, cur.capt) {
-  stopifnot(is(x, "Diff"))
   mode <- etc@mode
   disp.width <- etc@disp.width
   # Generate a matrix with hunk group id, hunk id, and wrapped length of each
@@ -470,7 +469,11 @@ get_hunk_chr_lens <- function(hunk.grps, etc, tar.capt, cur.capt) {
 diff_line_len <- function(hunk.grps, etc, tar.capt, cur.capt) {
   max(
     0L,
-    cumsum(get_hunk_chr_lens(hunk.grps, etc, tar.capt, cur.capt)[, "len"])
+    cumsum(
+      get_hunk_chr_lens(
+        hunk.grps, etc=etc, tar.capt=tar.capt, cur.capt=cur.capt
+      )[, "len"]
+    )
   ) + banner_len(etc@mode)
 }
 # Return which of the values in the data vectors within an atomic hunk are

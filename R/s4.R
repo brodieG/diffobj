@@ -248,15 +248,24 @@ setClass("DiffDiffs",
 # Validate the *.dat slots of the Diff objects
 
 valid_dat <- function(x) {
+  char.cols <- c("raw", "trim", "eq")
+  list.cols <- c("word.ind")
+  mx.cols <- c("trim.ind")
+
   if(!is.list(x)) {
     "should be a list"
   } else if(!identical(names(x), .diff.dat.cols)) {
     paste0("should have names ", dep(.diff.dat.cols))
-  } else if(length(unique(vapply(x, length, integer(1L)))) != 1L) {
+  } else if(
+    length(
+      unique(
+        c(
+          vapply(x[c(char.cols, list.cols)], length, integer(1L)),
+          vapply(x[c(mx.cols)], nrow, integer(1L))
+    ) ) ) != 1L
+  ) {
     "should have equal length components"
   } else {
-    char.cols <- c("raw", "trim", "eq")
-    list.cols <- c("word.ind")
     if(
       length(
         not.char <- which(!vapply(x[char.cols], is.character, logical(1L)))
@@ -282,8 +291,6 @@ valid_dat <- function(x) {
       ) )
     ) {
       "element `word.ind` is not in expected format"
-    } else if(!all(vapply(x$word.diff, is.character(logical(1L))))) {
-      "element `word.diff` may only contain character vectors"
     } else TRUE
   }
 }
@@ -296,9 +303,6 @@ setClass("Diff",
     diffs="list",
     trim.dat="list",              # result of trimmaxg
     capt.mode="character",        # whether in print or str mode
-    sub.index="integer",
-    sub.head="integer",
-    sub.tail="integer",
     etc="Settings"
   ),
   prototype=list(
@@ -316,10 +320,10 @@ setClass("Diff",
       !all(vapply(object@trim.dat, length, integer(1L)) == 2L)
     )
       return("slot `trim.dat` in incorrect format")
-    if(!istrue(tar.dat.val <- valid_dat(object@tar.dat)))
-      return("slot `tar.dat` not valid: ", tar.dat.val)
-    if(!istrue(cur.dat.val <- valid_dat(object@cur.dat)))
-      return("slot `cur.dat` not valid: ", cur.dat.val)
+    if(!isTRUE(tar.dat.val <- valid_dat(object@tar.dat)))
+      return(paste0("slot `tar.dat` not valid: ", tar.dat.val))
+    if(!isTRUE(cur.dat.val <- valid_dat(object@cur.dat)))
+      return(paste0("slot `cur.dat` not valid: ", cur.dat.val))
 
     TRUE
 } )
