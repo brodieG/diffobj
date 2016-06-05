@@ -22,7 +22,7 @@ find_rng <- function(ids, rng.o) {
     c(min(rng.o[1L, intersect(ids, with.rng)]), max(rng.o[2L, ids]))
   }
 }
-# Create a text representation of a file line range
+# Create a text representation of a file line range to use in the hunk header
 
 rng_as_chr <- function(range) {
   a <- range[[1L]]
@@ -131,7 +131,9 @@ fin_fun_sidebyside <- function(A, B, context, guide) {
 }
 # Convert a hunk group into text representation
 
-hunk_atom_as_char <- function(h.a, mode, etc) {
+hunk_atom_as_char <- function(h.a, x) {
+  etc <- x@etc
+  mode <- x@etc@mode
   if(mode=="context") {
     ghd.mode.1 <- "A"
     ghd.mode.2 <- "B"
@@ -146,17 +148,19 @@ hunk_atom_as_char <- function(h.a, mode, etc) {
     ghd.type.1 <- "pos"
     ghd.type.2 <- "neg"
   }
-  A.dat <- get_hunk_dat(h.a, mode=ghd.mode.1, ghd.type.1)
-  B.dat <- get_hunk_dat(h.a, mode=ghd.mode.2, ghd.type.2)
+  A.ind <- get_hunk_ind(h.a, mode=ghd.mode.1, ghd.type.1)
+  B.ind <- get_hunk_ind(h.a, mode=ghd.mode.2, ghd.type.2)
 
   # Align the lines accounting for partial matching post word-diff,
   # each diff style has a different finalization function
 
-  dat.align <- align_eq(A.dat, B.dat, etc=etc)
+  dat.align <- align_eq(A.ind, B.ind, x=x)
   list(A=dat.align$A, B=dat.align$B, context=h.a$context, guide=h.a$guide)
 }
+hunk_as_char <- function(h.g, ranges.orig, x) {
+  stopifnot(is(x, "Diff"))
 
-hunk_as_char <- function(h.g, ranges.orig, etc) {
+  etc <- x@etc
   mode <- etc@mode
   disp.width <- etc@disp.width
   ignore.white.space <- etc@ignore.white.space
@@ -187,7 +191,7 @@ hunk_as_char <- function(h.g, ranges.orig, etc) {
   } ) }
   # Generate hunk contents in aligned form
 
-  hunk.res <- lapply(h.g, hunk_atom_as_char, mode=mode, etc=etc)
+  hunk.res <- lapply(h.g, hunk_atom_as_char, mode=mode, x=x)
 
   # Run finalization functions; context mode is different because we need to
   # re-order across atomic hunks
@@ -281,12 +285,9 @@ in_hunk_diffs <- function(hunk.grps, etc, tar.to.wd, cur.to.wd) {
 # Get trimmed character ranges; positives are originally from target, and
 # negatives from current
 
-.valid_sub <- c("chr", "eq.chr", "raw.chr", "tok.ratio")
-get_hunk_dat <- function(h.a, mode, type="both", sub=.valid_sub) {
+get_hunk_ind <- function(h.a, mode, type="both") {
   stopifnot(
     mode %in% LETTERS[1:2], length(mode) == 1L,
-    is.character(sub), !anyNA(sub),
-    all(sub %in% .valid_sub),
     is.chr.1L(type), type %in% c("both", "pos", "neg")
   )
   rng <- c(
@@ -295,11 +296,7 @@ get_hunk_dat <- function(h.a, mode, type="both", sub=.valid_sub) {
     if(type %in% c("neg", "both"))
       -seq(h.a$cur.rng.trim[[1L]], h.a$cur.rng.trim[[2L]])
   )
-  chr.ind <- sprintf("%s.%s", mode, sub)
-  setNames(
-    lapply(h.a[chr.ind], function(x) x[match(rng, h.a[[mode]], nomatch=0L)]),
-    sub
-  )
+  rng
 }
 #' @rdname diffobj_s4method_doc
 
@@ -355,10 +352,12 @@ setMethod("as.character", "Diff",
     hunk.grps <- trimHunks(x)
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
 
-    # Compact to width of widest element
+    # Compact to width of widest element, so retrieve all char values
 
-    chr.dat <- unlist(lapply(hunks.flat, "[", c("A.chr", "B.chr")))
+    chr.ind <- unlist(lapply(hunks.flat, "[", c("A", "B")))
+    chr.dat <- get_dat(x, chr.ind, "raw")
     chr.size <- integer(length(chr.dat))
+
     if(s@wrap) {
       is.ansi <- is(x@etc@style, "StyleAnsi") &
         grepl(ansi_regex, chr.dat, perl=TRUE)
@@ -440,6 +439,15 @@ setMethod("as.character", "Diff",
     cur.rest <- show.range.cur <- seq_len(cur.max)
     tar.rest <- show.range.tar <- seq_len(tar.max)
 
+    # Word diffs should be done at the as.hunk
+
+    warning("Re-do word diffs at hunk level")
+
+    # At this point we need to actually reconstitute the final output string by:
+    # - Applying word diffs
+    # - Reconstructing untrimmed strings
+
+    # OLD comments:
     # Figure out which hunks are still eligible to be word diffed; note we
     # will word-diff even if other hunk is completely missing (most commonly
     # in context mode where we line.limit and the B portion is lost); this is
@@ -451,11 +459,12 @@ setMethod("as.character", "Diff",
     hunk.grps.d <-
       in_hunk_diffs(hunk.grps=hunk.grps, etc=x@etc, tar.to.wd, cur.to.wd)
 
+    # Now that we have both wrap and unwrapped word diffs
     # Generate the pre-rendered hunk data as text columns; a bit complicated
     # as we need to unnest stuff; use rbind to make it a little easier.
 
     pre.render.raw <- unlist(
-      lapply(hunk.grps.d, hunk_as_char, ranges.orig=ranges.orig, etc=x@etc),
+      lapply(hunk.grps.d, hunk_as_char, ranges.orig=ranges.orig, x=x),
       recursive=FALSE
     )
     pre.render.mx <- do.call(rbind, pre.render.raw)

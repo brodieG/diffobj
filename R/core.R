@@ -235,7 +235,7 @@ char_diff <- function(x, y, context=-1L, etc, diff.mode, warn) {
     y.w <- y
   }
   max.diffs <- etc@max.diffs
-  diff <- diff_myers_mba(x.w, y.w, max.diffs)
+  diff <- diff_myers_mba(x.w, y.w, max.diffs)  # probably shouldn't generate S4
 
   # Reset given whitespace and other modifications
 
@@ -247,7 +247,7 @@ char_diff <- function(x, y, context=-1L, etc, diff.mode, warn) {
     hit.diffs.max <- TRUE
     diff@diffs <- -diff@diffs
     diff.msg <- c(
-      line="overall", hunk="in-hunk word", wrap="word"
+      line="overall", hunk="in-hunk word", wrap="atomic wrap-word"
     )
     if(warn)
       warning(
@@ -277,29 +277,91 @@ line_diff <- function(
   etc@guide.lines <-
     make_guides(target, tar.capt, current, cur.capt, etc@guides)
 
-  tar.trim.ind <- apply_trim(target, tar.capt, etc@trim)
-  tar.trim <- do.call(substr(tar.capt, tar.trim.ind[, 1L], tar.trim.ind[, 2L]))
-  cur.trim.ind <- apply_trim(curget, cur.capt, etc@trim)
-  cur.trim <- do.call(substr(cur.capt, cur.trim.ind[, 1L], cur.trim.ind[, 2L]))
-
-  # need to move strip to very end
+  # Some debate as to whether we want to do this first, or last.  First has
+  # many benefits so that everything is consistent, width calcs can work fine,
+  # etc., but only issue is that user provided trim functions might not expect
+  # the transformation of the data; this needs to be documented with the trim
+  # docs.
 
   if(strip) {
     tar.capt <- strip_hz_control(tar.capt, stops=etc@tab.stops)
     cur.capt <- strip_hz_control(cur.capt, stops=etc@tab.stops)
   }
+  # Apply trimming to remove row heads, etc
+
+  tar.trim.ind <- apply_trim(target, tar.capt, etc@trim)
+  tar.trim <- do.call(substr(tar.capt, tar.trim.ind[, 1L], tar.trim.ind[, 2L]))
+  cur.trim.ind <- apply_trim(curget, cur.capt, etc@trim)
+  cur.trim <- do.call(substr(cur.capt, cur.trim.ind[, 1L], cur.trim.ind[, 2L]))
+
+  # Word diff is done in three steps: create an empty template vector structured
+  # as the result of a call to `gregexpr` without matches, if dealing with
+  # compliant atomic vectors in print mode, then update with the word diff
+  # matches, finally, update with in-hunk word diffs for hunks that don't have
+  # any existing word diffs:
+
+  word.diff.atom <- "attr<-"("match.length", -1L, -1L)
+  word.diff.tpl <- replicate(length(tar.capt), word.diff.atom, simplify=FALSE)
+  word.diffs <- list(tar=word.diff.tpl, cur=word.diff.tpl)
+
+  if(
+    is.atomic(target) && is.atomic(current) &&
+    length(tar.rh <- which_atomic_rh(tar.capt)) &&
+    length(cur.rh <- which_atomic_rh(cur.capt))
+  ) {
+    atom.w.d <- diff_word2(
+      tar.trim[tar.rh], cur.trim[cur.rh], diff.mode="wrap", warn=warn
+    )
+    word.diffs$tar[tar.rh] <- atom.w.d$tar
+    word.diffs$cur[cur.rh] <- atom.w.d$cur
+    warn <- !atom.w.d$hit.diffs.max
+  }
+  # Actual line diff
+
   diffs <- char_diff(tar.trim, cur.trim, etc=etc, diff.mode="line", warn=warn)
+  warn <- !diffs$hit.diffs.max
+
+  # Word diffs on hunks; check first which lines already have diffs and identify
+  # the diff hunks that don't contain any of those lines
+
+  tar.l.w.d <- which(vapply(word.diffs$tar, "[", integer(1L), 1L) != -1L)
+  cur.l.w.d <- which(vapply(word.diffs$cur, "[", integer(1L), 1L) != -1L)
+  all.l.w.d <- c(tar.l.w.d, -cur.l.w.d)
+
+  hunks.flat <- unlist(diffs$hunks, recursive=FALSE)
+  hunks.w.o.w.diff <- vapply(
+    hunks.flat,
+    function(y) !y$context && !any(unlist(y[c("A", "B")]) %in% all.l.w.d),
+    logical(1L)
+  )
+  # For each of those hunks, run the word diffs and store the results in the
+  # word.diffs list
+
+  for(i in which(hunks.w.o.w.diff)) {
+    h.a <- hunks.flat[[i]]
+    h.a.ind <- c(h.a$A, h.a$B)
+    h.a.tar.ind <- h.a.ind[h.a.ind > 0]
+    h.a.cur.ind <- abs(h.a.ind[h.a.ind < 0])
+    h.a.w.d <- diff_word2(
+      tar.trim[h.a.tar.ind], cur.trim[h.a.cur.ind], diff.mode="hunk", warn=warn
+    )
+    warn <- !h.a.w.d$hit.diffs.max
+    word.diffs$tar[h.a.tar.ind] <- h.a.w.d$tar
+    word.diffs$cur[h.a.cur.ind] <- h.a.w.d$cur
+  }
+  # Instantiate result
+
   new(
     "Diff", diffs=diffs, tar=target, cur=current,
     tar.dat=list(
-      raw=tar.capt, trim=tar.trim, trim.ind=tar.trim.ind, eq=tar.trim,
-      word.diff=replicate(length(tar.capt), character()),
-      word.diff.ind=replicate(length(tar.capt), integer())
+      raw=tar.capt, trim=tar.trim, trim.ind=tar.trim.ind,
+      eq=`regmatches<-`(tar.trim, word.diffs$tar, ""),
+      word.diff.ind=word.diffs$tar
     ),
     cur.dat=list(
-      raw=cur.capt, trim=cur.trim, trim.ind=cur.trim.ind, eq=cur.trim,
-      word.diff=replicate(length(cur.capt), character()),
-      word.diff.ind=replicate(length(cur.capt), integer())
+      raw=cur.capt, trim=cur.trim, trim.ind=cur.trim.ind,
+      eq=`regmatches<-`(cur.trim, word.diffs$cur, ""),
+      word.diff.ind=word.diffs$cur
     ),
     etc=etc
   )

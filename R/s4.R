@@ -234,7 +234,7 @@ setClass("DiffDiffs",
     TRUE
   }
 )
-.diff.dat.cols <- c("raw", "trim", "trim.ind", "eq", "word.diff", "word.ind")
+.diff.dat.cols <- c("raw", "trim", "trim.ind", "eq", "word.ind")
 
 # Validate the *.dat slots of the Diff objects
 
@@ -246,8 +246,8 @@ valid_dat <- function(x) {
   } else if(length(unique(vapply(x, length, integer(1L)))) != 1L) {
     "should have equal length components"
   } else {
-    char.cols <- c("raw", "trim" "eq")
-    list.cols <- c("word.diff", "word.ind")
+    char.cols <- c("raw", "trim", "eq")
+    list.cols <- c("word.ind")
     if(
       length(
         not.char <- which(!vapply(x[char.cols], is.character, logical(1L)))

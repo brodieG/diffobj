@@ -76,7 +76,7 @@ align_split <- function(v, m) {
 #
 # Will also apply colors to fully mismatching lines
 
-align_eq <- function(A, B, etc) {
+align_eq <- function(A, B, x) {
   stopifnot(
     is.list(A), is.list(B), length(A) == length(B),
     identical(names(B), names(A)), identical(names(A), .valid_sub),
@@ -86,32 +86,12 @@ align_eq <- function(A, B, etc) {
     all(vapply(c(A[1:3], B[1:3]), is.character, logical(1L))),
     is.numeric(nums <- c(A[[4]], B[[4]])),
     all(nums >= 0 & nums <= 1),
-    is(etc, "Settings")
+    is(x, "Diff")
   )
-  A.eq <- A$eq.chr
+  etc <- x@etc
+  A.eq <- get_dat(x, A, "eq")
   B.eq <- B$eq.chr
 
-  # Strip sequences that are likely row num meta data note these could be
-  # embedded in lists, etc, and it's possible we mess it up, but the cost is
-  # very secondary whereby we inappropriately line up some hunks in pathological
-  # inpu
-
-  if(etc@align@ignore.row.head) {
-    # Matrix / Array row headers and atomci vectors; could check that each hunk
-    # has sequential nums
-
-    A.ma <- grepl("^\\s*\\[\\d+,?\\]", A$raw.chr)
-    A.eq[A.ma] <- gsub("^\\s*\\[\\d+,?\\]", "", A.eq[A.ma])
-    B.ma <- grepl("^\\s*\\[\\d+,?\\]", B$raw.chr)
-    B.eq[B.ma] <- gsub("^\\s*\\[\\d+,?\\]", "", B.eq[B.ma])
-
-    # Data frame numbers; since these are more generic we'll try a little harder
-    # to make sure we're not messing stuff up; some lazyness: we don't support
-    # the case where a data frame wraps within a single hunk
-
-    A.eq <- df_row_clean(A$raw.chr, A.eq)
-    B.eq <- df_row_clean(B$raw.chr, B.eq)
-  }
   # Remove whitespace
 
   if(etc@ignore.white.space) {

@@ -204,6 +204,7 @@ strip_array_rh <- function(x, dim.names.x) {
 }
 #' Trim Method for Printed Objects
 #'
+#' @note \code{obj.as.chr} will be post \code{strip_hz_control}
 #' @param obj the object
 #' @param obj.as.chr charcter the \code{print}ed representation of the object
 #' @return a \code{length(obj.as.chr) * 2} integer matrix with the start (first

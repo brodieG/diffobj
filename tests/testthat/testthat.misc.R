@@ -55,6 +55,3 @@ test_that("rle_sub", {
   expect_true(all(x[unlist(diffobj:::rle_sub(r, r$values == 2L))] == 2))
   expect_true(all(x[unlist(diffobj:::rle_sub(r, r$values == 3L))] == 3))
 })
-
-
-}

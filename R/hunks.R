@@ -692,3 +692,4 @@ count_diffs_detail <- function(x) {
 
 count_diff_hunks <- function(x)
   sum(!vapply(unlist(x, recursive=FALSE), "[[", logical(1L), "context"))
+
