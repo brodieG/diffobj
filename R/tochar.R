@@ -327,16 +327,19 @@ setMethod("as.character", "Diff",
 
     len.max <- max(length(x@tar.dat$raw), length(x@cur.dat$raw))
     no.diffs <- if(!suppressWarnings(any(x))) {
+      # This needs to account for "trim" effects
+
       msg <- "No visible differences between objects"
       disp.eq <- all.equal(x@target, x@current)
-      msg.extra <- if(!disp.eq) {
-        ", but objects are _not_ `all.equal`"
+      msg.extra <- if(!isTRUE(disp.eq)) {
+        ", but objects are _not_ `all.equal`."
       } else if(ignore.white.space && !all.equal(x@tar.capt, y@cur.capt)) {
         msg <- paste0(
           ", but there are white space differences; re-run diff with ",
           "`ignore.white.space=FALSE` to show them."
-      ) }
-      res <- s@funs@meta(msg)
+        )
+      } else "."
+      res <- s@funs@meta(paste0(msg, msg.extra))
     }
     # Basic width computation and banner size; start by computing gutter so we
     # can figure out what's left
