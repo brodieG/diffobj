@@ -374,6 +374,7 @@ setMethod("as.character", "Diff",
       x@etc@text.width <- max.w
       x@etc@line.width <- max.w + gutter.dat@width
       s <- x@etc@style
+      etc <- x@etc
     }
     # Make the object banner and compute more detailed widths post trim
 
@@ -441,13 +442,6 @@ setMethod("as.character", "Diff",
     # At this point we need to actually reconstitute the final output string by:
     # - Applying word diffs
     # - Reconstructing untrimmed strings
-
-    # OLD comments:
-    # Figure out which hunks are still eligible to be word diffed; note we
-    # will word-diff even if other hunk is completely missing (most commonly
-    # in context mode where we line.limit and the B portion is lost); this is
-    # legacy from when we used to do the wrap diff and can probably be
-    # simplified since we will do this for every hunk
 
     f.f <- x@etc@style@funs
     tar.w.c <- word_color(x@tar.dat$trim, x@tar.dat$word.ind, f.f@word.delete)

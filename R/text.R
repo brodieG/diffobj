@@ -78,16 +78,16 @@ align_split <- function(v, m) {
 
 align_eq <- function(A, B, x) {
   stopifnot(
-    is.integer(A), is.integer(B), !anyNA(c(A, B)), all(!!c(A, B)),
+    is.integer(A), is.integer(B), !anyNA(c(A, B)),
     is(x, "Diff")
   )
   etc <- x@etc
-  A.eq <- unlist(get_dat(x, A, "eq"))
-  B.eq <- unlist(get_dat(x, B, "eq"))
-  A.fin <- unlist(get_dat(x, A, "fin"))
-  B.fin <- unlist(get_dat(x, B, "fin"))
-  A.tok.ratio <- unlist(get_dat(x, A, "tok.rat"))
-  B.tok.ratio <- unlist(get_dat(x, B, "tok.rat"))
+  A.eq <- get_dat(x, A, "eq")
+  B.eq <- get_dat(x, B, "eq")
+  A.fin <- get_dat(x, A, "fin")
+  B.fin <- get_dat(x, B, "fin")
+  A.tok.ratio <- get_dat(x, A, "tok.rat")
+  B.tok.ratio <- get_dat(x, B, "tok.rat")
 
   # Remove whitespace
 

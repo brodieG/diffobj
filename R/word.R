@@ -222,7 +222,7 @@ diff_word2 <- function(
   # each line to reconstruct this; also record original line length so we
   # can compute token ratios
 
-  reg.pull <-  function(reg, start, end, mismatch) {
+  reg_pull <- function(reg, start, end, mismatch) {
     ind <- mismatch[mismatch %bw% c(start, end)] - start + 1L
     if(length(ind)) {
       reg.out <- reg[ind]
@@ -236,16 +236,19 @@ diff_word2 <- function(
     attr(reg.out, "word.count") <- end - start + 1L
     reg.out
   }
+  reg_apply <- function(reg, ends, mismatch) {
+    if(length(ends)) {
+      Map(
+        reg_pull, reg, c(1L, head(ends, -1L) + 1L), ends,
+        MoreArgs=list(mismatch=mismatch)
+      )
+    } else list()
+  }
   tar.ends <- cumsum(tar.lens)
   cur.ends <- cumsum(cur.lens)
-  tar.reg.fin <- Map(
-    reg.pull, tar.reg, c(1L, head(tar.ends, -1L) + 1L),
-    tar.ends, MoreArgs=list(mismatch=tar.mism)
-  )
-  cur.reg.fin <- Map(
-    reg.pull, cur.reg, c(1L, head(cur.ends, -1L) + 1L),
-    cur.ends, MoreArgs=list(mismatch=cur.mism)
-  )
+  tar.reg.fin <- reg_apply(tar.reg, tar.ends, tar.mism)
+  cur.reg.fin <- reg_apply(cur.reg, cur.ends, cur.mism)
+
   list(tar=tar.reg.fin, cur=cur.reg.fin, hit.diffs.max=diffs$hit.diffs.max)
 }
 # Apply line colors; returns a list with the A and B vectors colored,
