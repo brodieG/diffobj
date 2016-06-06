@@ -290,13 +290,13 @@ get_hunk_ind <- function(h.a, mode, type="both") {
     mode %in% LETTERS[1:2], length(mode) == 1L,
     is.chr.1L(type), type %in% c("both", "pos", "neg")
   )
-  rng <- c(
+  rng.raw <- c(
     if(type %in% c("pos", "both"))
       seq(h.a$tar.rng.trim[[1L]], h.a$tar.rng.trim[[2L]]),
     if(type %in% c("neg", "both"))
       -seq(h.a$cur.rng.trim[[1L]], h.a$cur.rng.trim[[2L]])
   )
-  rng
+  rng.raw[rng.raw %in% h.a[[mode]]]
 }
 #' @rdname diffobj_s4method_doc
 

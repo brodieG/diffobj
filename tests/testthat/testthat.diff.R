@@ -71,6 +71,7 @@ local({
     mx.6 <- matrix(12:1, 4)
     mx.6[4,] <- c(3L, 6L, 9L)
     diffPrint(mx.5, mx.6)
+    diffPrint(mx.5, mx.6, mode="unified")
 
     A <- B <- matrix(sample(1:80), nrow=16)
     B[cbind(sample(5:16, 4), sample(1:5, 4))] <- sample(30:80, 4)
