@@ -232,6 +232,8 @@ setMethod(
       strip_table_rh(obj.as.chr)
     } else if (is.array(obj)) {
       strip_array_rh(obj.as.chr, dimnames(obj))
+    } else if(is.atomic(obj)) {
+      strip_atomic_rh(obj.as.chr)
     } else obj.as.chr
 
     # Figure out the indices that correspond to what we want, knowing that all
