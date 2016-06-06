@@ -453,12 +453,8 @@ setMethod("as.character", "Diff",
     tar.w.c <- word_color(x@tar.dat$trim, x@tar.dat$word.ind, f.f@word.delete)
     cur.w.c <- word_color(x@cur.dat$trim, x@cur.dat$word.ind, f.f@word.insert)
 
-    substr(
-      x@tar.dat$fin, x@tar.dat$trim.ind[, 1L], x@tar.dat$trim.ind[, 2L]
-    ) <- tar.w.c
-    substr(
-      x@cur.dat$fin, x@cur.dat$trim.ind[, 1L], x@cur.dat$trim.ind[, 2L]
-    ) <- cur.w.c
+    x@tar.dat$fin <- untrim(x@tar.dat$fin, tar.w.c, x@tar.dat$trim.ind)
+    x@cur.dat$fin <- untrim(x@cur.dat$fin, cur.w.c, x@cur.dat$trim.ind)
 
     # Generate the pre-rendered hunk data as text columns; a bit complicated
     # as we need to unnest stuff; use rbind to make it a little easier.

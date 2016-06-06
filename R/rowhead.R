@@ -255,6 +255,14 @@ setMethod(
     cbind(sub.start, sub.end)
   }
 )
+# Re-insert the trimmed stuff back into the original string
+
+untrim <- function(raw, trim, ind)
+  paste0(
+    substr(raw, 0, ind[, 1L] - 1L), trim,
+    substr(raw, ind[, 2L] + 1L, nchar(raw) + 1L)
+  )
+
 valid_trim_ind <- function(x)
   if(
     !is.integer(x) || !is.matrix(x) || anyNA(x) || !ncol(x) == 2L
