@@ -333,10 +333,19 @@ word_color <- function(txt, inds, fun) {
   word.list <- regmatches(txt, inds)
   word.lens <- vapply(word.list, length, integer(1L))
 
-  words.c <- fun(unlist(word.list))
+  # remove leading space before coloring
+  words.u <- unlist(word.list)
+  words.u.trim.ind <- regexpr("\\S.*", words.u)
+  words.u.trim <- regmatches(words.u, words.u.trim.ind)
+
+  # color and re-insert back into space
+  words.c.trim <- fun(words.u.trim)
+  regmatches(words.u, words.u.trim.ind) <- words.c.trim
+
+  # split back into original lines
   words.res <- vector("list", length(word.list))
   words.res[!!word.lens] <- split(
-    words.c, rep(seq_along(word.lens), times=word.lens)
+    words.u, rep(seq_along(word.lens), times=word.lens)
   )
   words.res[!word.lens] <- list(character(0L))
   regmatches(txt, inds) <- words.res
