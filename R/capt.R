@@ -58,8 +58,8 @@ capt_print <- function(target, current, etc, err, ...){
     cur.capt <- capture(cur.call, etc, err)
     tar.capt <- capture(tar.call, etc, err)
   }
-  if(isTRUE(etc@guides)) etc@guides <- printGuideLines
-  if(isTRUE(etc@trim)) etc@trim <- printTrim
+  if(isTRUE(etc@guides)) etc@guides <- guidesPrint
+  if(isTRUE(etc@trim)) etc@trim <- trimPrint
 
   diff <- line_diff(target, current, tar.capt, cur.capt, etc=etc, warn=TRUE)
   diff
@@ -158,8 +158,8 @@ capt_str <- function(target, current, etc, err, ...){
   safety <- 0L
   warn <- TRUE
 
-  if(isTRUE(etc@guides)) etc@guides <- strGuideLines
-  if(isTRUE(etc@trim)) etc@trim <- strTrim
+  if(isTRUE(etc@guides)) etc@guides <- guidesStr
+  if(isTRUE(etc@trim)) etc@trim <- trimStr
 
   repeat{
     if((safety <- safety + 1L) > max.depth && !first.loop)
@@ -242,7 +242,7 @@ capt_chr <- function(target, current, etc, err, ...){
   cur.capt <- if(!is.character(current)) as.character(current, ...) else current
 
   etc <- set_mode(etc, tar.capt, cur.capt)
-  if(isTRUE(etc@guides)) etc@guides <- chrGuideLines
+  if(isTRUE(etc@guides)) etc@guides <- guidesChr
 
   line_diff(
     target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
@@ -254,7 +254,7 @@ capt_deparse <- function(target, current, etc, err, ...){
   cur.capt <- deparse(current, ...)
 
   etc <- set_mode(etc, tar.capt, cur.capt)
-  if(isTRUE(etc@guides)) etc@guides <- deparseGuideLines
+  if(isTRUE(etc@guides)) etc@guides <- guidesDeparse
 
   line_diff(
     target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
@@ -268,7 +268,7 @@ capt_file <- function(target, current, etc, err, ...){
   if(inherits(cur.capt, "try-error")) err("Unable to read `current` file.")
 
   etc <- set_mode(etc, tar.capt, cur.capt)
-  if(isTRUE(etc@guides)) etc@guides <- fileGuideLines
+  if(isTRUE(etc@guides)) etc@guides <- guidesFile
 
   line_diff(
     target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),

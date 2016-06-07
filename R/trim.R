@@ -209,17 +209,17 @@ strip_array_rh <- function(x, dim.names.x) {
 #' @param obj.as.chr charcter the \code{print}ed representation of the object
 #' @rdname trim
 #' @name trim
-#' @aliases printTrim, strTrim, chrTrim, deparseTrim, fileTrim
+#' @aliases trimPrint, trimStr, trimChr, trimDeparse, trimFile
 #' @export
 #' @return a \code{length(obj.as.chr) * 2} integer matrix with the start (first
 #'   column and end (second column) character positions of the sub string to
 #'   run diffs on.
 
-setGeneric("printTrim",
-  function(obj, obj.as.chr) StandardGeneric("printTrim")
+setGeneric("trimPrint",
+  function(obj, obj.as.chr) StandardGeneric("trimPrint")
 )
 setMethod(
-  "printTrim", c("ANY", "character"),
+  "trimPrint", c("ANY", "character"),
   function(obj, obj.as.chr) {
     # Remove the stuff we don't want
 
@@ -239,11 +239,11 @@ setMethod(
     trim_sub(obj.as.chr, stripped)
   }
 )
-setGeneric("strTrim",
-  function(obj, obj.as.chr) StandardGeneric("strTrim")
+setGeneric("trimStr",
+  function(obj, obj.as.chr) StandardGeneric("trimStr")
 )
 setMethod(
-  "strTrim", c("ANY", "character"),
+  "trimStr", c("ANY", "character"),
   function(obj, obj.as.chr) {
     # Remove the stuff we don't want
 
@@ -256,11 +256,11 @@ setMethod(
     trim_sub(obj.as.chr, stripped)
   }
 )
-setGeneric("strTrim",
-  function(obj, obj.as.chr) StandardGeneric("strTrim")
+setGeneric("trimStr",
+  function(obj, obj.as.chr) StandardGeneric("trimStr")
 )
 setMethod(
-  "strTrim", c("ANY", "character"),
+  "trimStr", c("ANY", "character"),
   function(obj, obj.as.chr) {
     # Remove the stuff we don't want
 
@@ -277,30 +277,30 @@ setMethod(
 #' @rdname trim
 
 setGeneric(
-  "chrTrim",
-  function(obj, obj.as.chr) StandardGeneric("chrTrim")
+  "trimChr",
+  function(obj, obj.as.chr) StandardGeneric("trimChr")
 )
-setMethod("chrTrim", c("ANY", "character"),
+setMethod("trimChr", c("ANY", "character"),
   function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr))
 )
 #' @export
 #' @rdname trim
 
 setGeneric(
-  "deparseTrim",
-  function(obj, obj.as.chr) StandardGeneric("deparseTrim")
+  "trimDeparse",
+  function(obj, obj.as.chr) StandardGeneric("trimDeparse")
 )
-setMethod("deparseTrim", c("ANY", "character"),
+setMethod("trimDeparse", c("ANY", "character"),
   function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr))
 )
 #' @export
 #' @rdname trim
 
 setGeneric(
-  "fileTrim",
-  function(obj, obj.as.chr) StandardGeneric("fileTrim")
+  "trimFile",
+  function(obj, obj.as.chr) StandardGeneric("trimFile")
 )
-setMethod("fileTrim", c("ANY", "character"),
+setMethod("trimFile", c("ANY", "character"),
   function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr))
 )
 # Helper fun used by trim functions that remove font of strings and rely on

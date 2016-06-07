@@ -208,23 +208,23 @@ detect_array_guides <- function(txt, dim.n) {
 }
 #' Generic Methods to Implement Flexible Guide Line Computations
 #'
-#' Guide lines are context lines that would not normally be shown as part of a
+#' Guides are context lines that would not normally be shown as part of a
 #' diff because they are too far from any differences, but provide particularly
 #' useful contextual information.  Column headers are a common example.
 #'
 #' \code{Diff} detects these important context lines by looking for patterns in
 #' the text of the diff, and then displays these lines in addition to the
-#' normal diff output.  Guide lines are marked by a tilde in the gutter, and
+#' normal diff output.  Guides are marked by a tilde in the gutter, and
 #' are typically styled differently than normal context lines.  Keep in mind
-#' that guide lines may be far from the diff hunk they are juxtaposed to.  We
-#' eschew the device of putting the guide lines in the hunk header as
+#' that guides may be far from the diff hunk they are juxtaposed to.  We
+#' eschew the device of putting the guides in the hunk header as
 #' \code{git diff} does because often the column alignment of the guide line is
 #' meaningful.
 #'
-#' Guide lines are detected by the \code{*GuideLines} methods documented here.
+#' Guides are detected by the \code{*GuideLines} methods documented here.
 #' Each of the \code{diff*} methods (e.g. \code{\link{diffPrint}}) has a
 #' corresponding \code{*GuideLines} method (e.g.
-#' \code{\link{printGuideLines}}), with the exception of \code{\link{diffCsv}}
+#' \code{\link{guidesPrint}}), with the exception of \code{\link{diffCsv}}
 #' since that method uses \code{diffPrint} internall.  The \code{*GuideLines}
 #' methods expect an R object as the first parameter and the captured display
 #' representation of the object in a charater vector as the second.  This allows
@@ -232,37 +232,37 @@ detect_array_guides <- function(txt, dim.n) {
 #' representation of the object.  For example, a \code{list} like object will
 #' require a different guide finding strategy than a \code{matrix} object.
 #'
-#' The default method for \code{printGuideLines} has special handling for 2D
+#' The default method for \code{guidesPrint} has special handling for 2D
 #' objects (e.g. data frames, matrices), arrays, and lists.  If you dislike the
 #' default handling you can also define your own methods for matrices, arrays,
 #' etc., or alternatively you can pass a guide finding function directly via
 #' the \code{guides} parameter to the \code{diff*} methods.  The default method
-#' for \code{strGuideLines} highlights top level objects.  The default methods
-#' for \code{chrGuideLines} and \code{deparseGuideLines} don't do anything and
+#' for \code{guidesStr} highlights top level objects.  The default methods
+#' for \code{guidesChr} and \code{guidesDeparse} don't do anything and
 #' exit only as a mechanism for providing custom guide line methods.
 #'
 #' If you have classed objects with special patterns you can define your own
 #' methods for them (see examples), though if your objects are S3 you will need
 #' to use \code{\link{setOldClass}} as the \code{*GuideLines} generics are S4.
 #'
-#' @aliases strGuideLines, chrGuideLines, deparseGuideLines
+#' @aliases guidesStr, guidesChr, guidesDeparse
 #' @export
-#' @rdname guideLines
-#' @name guideLines
+#' @rdname guides
+#' @name guides
 #' @param obj an R object
 #' @param obj.as.chr the character representation of \code{obj} that is used
 #'   for computing the diffs
 #' @return integer containing values in \code{seq_along(obj.as.chr)}
 #' @examples
-#' ## Roundabout way of suppressing guide lines for matrices
+#' ## Roundabout way of suppressing guides for matrices
 #' \dontrun{
-#' setMethod("printGuideLines", c("matrix", "character"),
+#' setMethod("guidesPrint", c("matrix", "character"),
 #'   function(obj, obj.as.chr) integer(0L)
 #' )
 #' ## Special guides for "zulu" S3 objects that match lines
 #' ## starting in "zulu###" where ### is a nuber
 #' setOldClass("zulu")
-#' setMethod("printGuideLines", c("zulu", "character"),
+#' setMethod("guidesPrint", c("zulu", "character"),
 #'   function(obj, obj.as.chr) {
 #'     if(length(obj) > 20) grep("^zulu[0-9]*", obj.as.chr)
 #'     else integer(0L)
@@ -270,11 +270,11 @@ detect_array_guides <- function(txt, dim.n) {
 #' }
 
 setGeneric(
-  "printGuideLines",
-  function(obj, obj.as.chr) StandardGeneric("printGuideLines")
+  "guidesPrint",
+  function(obj, obj.as.chr) StandardGeneric("guidesPrint")
 )
 setMethod(
-  "printGuideLines", c("ANY", "character"),
+  "guidesPrint", c("ANY", "character"),
   function(obj, obj.as.chr) {
     if(anyNA(obj.as.chr))
       stop("Cannot compute guides if `obj.as.chr` contains NAs")
@@ -293,13 +293,13 @@ setMethod(
   }
 )
 #' @export
-#' @rdname guideLines
+#' @rdname guides
 
 setGeneric(
-  "strGuideLines",
-  function(obj, obj.as.chr) StandardGeneric("strGuideLines")
+  "guidesStr",
+  function(obj, obj.as.chr) StandardGeneric("guidesStr")
 )
-setMethod("strGuideLines", c("ANY", "character"),
+setMethod("guidesStr", c("ANY", "character"),
   function(obj, obj.as.chr) {
     if(anyNA(obj.as.chr))
       stop("Cannot compute guides if `obj.as.chr` contains NAs")
@@ -308,33 +308,33 @@ setMethod("strGuideLines", c("ANY", "character"),
 } )
 
 #' @export
-#' @rdname guideLines
+#' @rdname guides
 
 setGeneric(
-  "chrGuideLines",
-  function(obj, obj.as.chr) StandardGeneric("chrGuideLines")
+  "guidesChr",
+  function(obj, obj.as.chr) StandardGeneric("guidesChr")
 )
-setMethod("chrGuideLines", c("ANY", "character"),
+setMethod("guidesChr", c("ANY", "character"),
   function(obj, obj.as.chr) integer(0L)
 )
 #' @export
-#' @rdname guideLines
+#' @rdname guides
 
 setGeneric(
-  "deparseGuideLines",
-  function(obj, obj.as.chr) StandardGeneric("deparseGuideLines")
+  "guidesDeparse",
+  function(obj, obj.as.chr) StandardGeneric("guidesDeparse")
 )
-setMethod("deparseGuideLines", c("ANY", "character"),
+setMethod("guidesDeparse", c("ANY", "character"),
   function(obj, obj.as.chr) integer(0L)
 )
 #' @export
-#' @rdname guideLines
+#' @rdname guides
 
 setGeneric(
-  "fileGuideLines",
-  function(obj, obj.as.chr) StandardGeneric("fileGuideLines")
+  "guidesFile",
+  function(obj, obj.as.chr) StandardGeneric("guidesFile")
 )
-setMethod("fileGuideLines", c("ANY", "character"),
+setMethod("guidesFile", c("ANY", "character"),
   function(obj, obj.as.chr) integer(0L)
 )
 

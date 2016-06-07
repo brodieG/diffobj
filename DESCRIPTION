@@ -41,12 +41,12 @@ Collate:
     'myerssimple.R'
     'rdiff.R'
     'rds.R'
-    'rowhead.R'
     'set.R'
     'subset.R'
     'system.R'
     'text.R'
     'tochar.R'
+    'trim.R'
     'word.R'
 Imports:
     crayon (>= 1.3.1)
