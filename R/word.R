@@ -172,6 +172,11 @@ diff_word2 <- function(
   # Compute the char by char diffs for each line
 
   reg <- paste0(
+    # grab leading spaces for each word; these will be stripped before actual
+    # word diff, but we want them to be part of mismatch so they are removed
+    # when we construct the equal strings as that allows better matching b/w
+    # strings with differences removed; could do trailing spaces instead
+    "\\s*(?:",
     # Some attempt at matching R identifiers; note we explicitly chose not to
     # match `.` or `..`, etc, since those could easily be punctuation
     sprintf("%s|", .reg.r.ident),
@@ -186,7 +191,7 @@ diff_word2 <- function(
     "\"(?:(?=[ ,)\\]}])|(?=$))|",
     # Other otherwise 'illegal' quotes that couldn't be matched to one of the
     # known valid quote structures
-    "\""
+    "\")"
   )
   tar.reg <- gregexpr(reg, tar.chr, perl=TRUE)
   cur.reg <- gregexpr(reg, cur.chr, perl=TRUE)
@@ -204,6 +209,11 @@ diff_word2 <- function(
   cur.unsplit <- unlist(cur.split)
   if(is.null(tar.unsplit)) tar.unsplit <- character(0L)
   if(is.null(cur.unsplit)) cur.unsplit <- character(0L)
+
+  # Remove the leading spaces we grabbed for each word
+
+  tar.unsplit <- sub("^\\s*", "", tar.unsplit)
+  cur.unsplit <- sub("^\\s*", "", cur.unsplit)
 
   etc@line.limit <- etc@hunk.limit <- etc@context <- -1L
   etc@mode <- "context"

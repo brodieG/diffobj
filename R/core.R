@@ -355,7 +355,9 @@ line_diff <- function(
 
   tok_ratio_compute <- function(z) vapply(
     z,
-    function(y) if(is.null(wc <- attr(y, "word.count"))) 1 else length(y) / wc,
+    function(y)
+      if(is.null(wc <- attr(y, "word.count"))) 1
+      else max(0, (wc - length(y)) / wc),
     numeric(1L)
   )
   tar.tok.ratio <- tok_ratio_compute(word.diffs$tar)

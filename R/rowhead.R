@@ -264,7 +264,7 @@ setMethod(
   function(obj, obj.as.chr) {
     # Remove the stuff we don't want
 
-    pat <- "^ (?: \\.\\.)*\\$ "
+    pat <- "^ (?: \\.\\.)*(?:\\$|-) "
     stripped <- gsub(pat, "", obj.as.chr, perl=TRUE)
 
     # Figure out the indices that correspond to what we want, knowing that all
