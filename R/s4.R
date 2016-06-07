@@ -315,11 +315,13 @@ setClass("Diff",
     sub.head="integer",
     sub.tail="integer",
     capt.mode="character",        # whether in print or str mode
+    hit.diffs.max="logical",
     etc="Settings"
   ),
   prototype=list(
     capt.mode="print",
-    trim.dat=list(lines=integer(2L), hunks=integer(2L), diffs=integer(2L))
+    trim.dat=list(lines=integer(2L), hunks=integer(2L), diffs=integer(2L)),
+    hit.diffs.max=FALSE
   ),
   validity=function(object) {
     # Most of the validation is done by `check_args`
@@ -336,6 +338,8 @@ setClass("Diff",
       return(paste0("slot `tar.dat` not valid: ", tar.dat.val))
     if(!isTRUE(cur.dat.val <- valid_dat(object@cur.dat)))
       return(paste0("slot `cur.dat` not valid: ", cur.dat.val))
+    if(!is.TF(object@hit.diffs.max))
+      return("slot `hit.diffs.max` must be TRUE or FALSE")
 
     TRUE
 } )

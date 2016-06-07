@@ -368,6 +368,7 @@ line_diff <- function(
   )
   new(
     "Diff", diffs=hunk.grps, target=target, current=current,
+    hit.diffs.max=!warn,
     tar.dat=list(
       raw=tar.capt, trim=tar.trim, trim.ind=tar.trim.ind,
       eq=`regmatches<-`(tar.trim, word.diffs$tar, value=""),

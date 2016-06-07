@@ -159,6 +159,7 @@ capt_str <- function(target, current, etc, err, ...){
   warn <- TRUE
 
   if(isTRUE(etc@guides)) etc@guides <- strGuideLines
+  if(isTRUE(etc@trim)) etc@trim <- strTrim
 
   repeat{
     if((safety <- safety + 1L) > max.depth && !first.loop)
@@ -170,13 +171,10 @@ capt_str <- function(target, current, etc, err, ...){
     cur.str <- cur.capt[cur.lvls <= lvl]
 
     diff.obj <- line_diff(target, current, tar.str, cur.str, etc=etc, warn=warn)
-    diffs.str <- diff.obj@diffs
 
-    if(diffs.str$hit.diffs.max) warn <- FALSE
-    has.diff <- any(
-      !vapply(
-        unlist(diffs.str$hunks, recursive=FALSE), "[[", logical(1L), "context"
-    ) )
+    if(diff.obj@hit.diffs.max) warn <- FALSE
+    has.diff <- any(diff.obj)
+
     if(first.loop) {
       diff.obj.first <- diff.obj
       first.loop <- FALSE
@@ -190,7 +188,7 @@ capt_str <- function(target, current, etc, err, ...){
     if(line.limit[[1L]] < 1L) break
 
     line.len <- diff_line_len(
-      diffs.str$hunks, etc=etc, tar.capt=tar.str, cur.capt=cur.str
+      diff.obj@diffs, etc=etc, tar.capt=tar.str, cur.capt=cur.str
     )
     # We need a higher level if we don't have diffs
 
@@ -224,8 +222,6 @@ capt_str <- function(target, current, etc, err, ...){
     lvl <- NULL
     break
   }
-  diff.obj@diffs$diffs.max <- count_diffs(diff.obj@diffs$hunks)
-
   if(auto.mode) {
     str.match[[max.level.pos]] <- lvl
   } else if (!max.level.supplied) {

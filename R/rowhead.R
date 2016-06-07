@@ -209,7 +209,7 @@ strip_array_rh <- function(x, dim.names.x) {
 #' @param obj.as.chr charcter the \code{print}ed representation of the object
 #' @rdname trim
 #' @name trim
-#' @aliases printTrim
+#' @aliases printTrim, strTrim, chrTrim, deparseTrim, fileTrim
 #' @export
 #' @return a \code{length(obj.as.chr) * 2} integer matrix with the start (first
 #'   column and end (second column) character positions of the sub string to
@@ -236,29 +236,95 @@ setMethod(
       strip_atomic_rh(obj.as.chr)
     } else obj.as.chr
 
+    trim_sub(obj.as.chr, stripped)
+  }
+)
+setGeneric("strTrim",
+  function(obj, obj.as.chr) StandardGeneric("strTrim")
+)
+setMethod(
+  "strTrim", c("ANY", "character"),
+  function(obj, obj.as.chr) {
+    # Remove the stuff we don't want
+
+    pat <- "^ (?: \\.\\.)*\\$ "
+    stripped <- gsub(pat, "", obj.as.chr, perl=TRUE)
+
     # Figure out the indices that correspond to what we want, knowing that all
     # removals should have occured at front of string
 
-    if(length(obj.as.chr) != length(stripped))
-      stop(
-        "Logic Error: trimmed string does not have same number of elements as ",
-        "original; contact maintainer"
-      )
-    stripped.chars <- nchar(stripped)
-    char.diff <- nchar(obj.as.chr) - stripped.chars
-    sub.start <- char.diff + 1L
-    sub.end <- sub.start - 1L + stripped.chars
-
-    if(!all(substr(obj.as.chr, sub.start, sub.end) == stripped))
-      stop(
-        "Logic Error: trimmed string is not a substring of orginal, ",
-        "contact maintainer"
-      )
-    cbind(sub.start, sub.end)
+    trim_sub(obj.as.chr, stripped)
   }
 )
-# Re-insert the trimmed stuff back into the original string
+setGeneric("strTrim",
+  function(obj, obj.as.chr) StandardGeneric("strTrim")
+)
+setMethod(
+  "strTrim", c("ANY", "character"),
+  function(obj, obj.as.chr) {
+    # Remove the stuff we don't want
 
+    pat <- "^ (?: \\.\\.)*\\$ "
+    stripped <- gsub(pat, "", obj.as.chr, perl=TRUE)
+
+    # Figure out the indices that correspond to what we want, knowing that all
+    # removals should have occured at front of string
+
+    trim_sub(obj.as.chr, stripped)
+  }
+)
+#' @export
+#' @rdname trim
+
+setGeneric(
+  "chrTrim",
+  function(obj, obj.as.chr) StandardGeneric("chrTrim")
+)
+setMethod("chrTrim", c("ANY", "character"),
+  function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr))
+)
+#' @export
+#' @rdname trim
+
+setGeneric(
+  "deparseTrim",
+  function(obj, obj.as.chr) StandardGeneric("deparseTrim")
+)
+setMethod("deparseTrim", c("ANY", "character"),
+  function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr))
+)
+#' @export
+#' @rdname trim
+
+setGeneric(
+  "fileTrim",
+  function(obj, obj.as.chr) StandardGeneric("fileTrim")
+)
+setMethod("fileTrim", c("ANY", "character"),
+  function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr))
+)
+# Helper fun used by trim functions that remove font of strings and rely on
+# string comparison to determine trim indices
+
+trim_sub <- function(obj.as.chr, obj.stripped) {
+  if(length(obj.as.chr) != length(obj.stripped))
+    stop(
+      "Logic Error: trimmed string does not have same number of elements as ",
+      "original; contact maintainer"
+    )
+  stripped.chars <- nchar(obj.stripped)
+  char.diff <- nchar(obj.as.chr) - stripped.chars
+  sub.start <- char.diff + 1L
+  sub.end <- sub.start - 1L + stripped.chars
+
+  if(!all(substr(obj.as.chr, sub.start, sub.end) == obj.stripped))
+    stop(
+      "Logic Error: trimmed string is not a substring of orginal, ",
+      "contact maintainer"
+    )
+  cbind(sub.start, sub.end)
+}
+# Re-insert the trimmed stuff back into the original string
 untrim <- function(raw, trim, ind)
   paste0(
     substr(raw, 0, ind[, 1L] - 1L), trim,
