@@ -76,42 +76,19 @@ align_split <- function(v, m) {
 #
 # Will also apply colors to fully mismatching lines
 
-align_eq <- function(A, B, etc) {
+align_eq <- function(A, B, x) {
   stopifnot(
-    is.list(A), is.list(B), length(A) == length(B),
-    identical(names(B), names(A)), identical(names(A), .valid_sub),
-    length(unique(vapply(A, length, integer(1L)))) == 1L,
-    length(unique(vapply(B, length, integer(1L)))) == 1L,
-    !anyNA(unlist(c(A, B))),
-    all(vapply(c(A[1:3], B[1:3]), is.character, logical(1L))),
-    is.numeric(nums <- c(A[[4]], B[[4]])),
-    all(nums >= 0 & nums <= 1),
-    is(etc, "Settings")
+    is.integer(A), is.integer(B), !anyNA(c(A, B)),
+    is(x, "Diff")
   )
-  A.eq <- A$eq.chr
-  B.eq <- B$eq.chr
+  etc <- x@etc
+  A.eq <- get_dat(x, A, "eq")
+  B.eq <- get_dat(x, B, "eq")
+  A.fin <- get_dat(x, A, "fin")
+  B.fin <- get_dat(x, B, "fin")
+  A.tok.ratio <- get_dat(x, A, "tok.rat")
+  B.tok.ratio <- get_dat(x, B, "tok.rat")
 
-  # Strip sequences that are likely row num meta data note these could be
-  # embedded in lists, etc, and it's possible we mess it up, but the cost is
-  # very secondary whereby we inappropriately line up some hunks in pathological
-  # inpu
-
-  if(etc@align@ignore.row.head) {
-    # Matrix / Array row headers and atomci vectors; could check that each hunk
-    # has sequential nums
-
-    A.ma <- grepl("^\\s*\\[\\d+,?\\]", A$raw.chr)
-    A.eq[A.ma] <- gsub("^\\s*\\[\\d+,?\\]", "", A.eq[A.ma])
-    B.ma <- grepl("^\\s*\\[\\d+,?\\]", B$raw.chr)
-    B.eq[B.ma] <- gsub("^\\s*\\[\\d+,?\\]", "", B.eq[B.ma])
-
-    # Data frame numbers; since these are more generic we'll try a little harder
-    # to make sure we're not messing stuff up; some lazyness: we don't support
-    # the case where a data frame wraps within a single hunk
-
-    A.eq <- df_row_clean(A$raw.chr, A.eq)
-    B.eq <- df_row_clean(B$raw.chr, B.eq)
-  }
   # Remove whitespace
 
   if(etc@ignore.white.space) {
@@ -136,24 +113,13 @@ align_eq <- function(A, B, etc) {
   # the possible tokens and could be spurious; we should probably do this
   # ahead of the for loop since we could probably save some iterations
 
-  # Remove non-alnums if requested for threshold comparisons
-
-  A.eq.clean <- if(etc@align@count.alnum.only)
-    gsub("[^[:alnum:]]", "", A.eq, perl=TRUE) else A.eq
-
   # TBD wither nchar here should be ansi-aware
 
-  B.tr <- B$tok.ratio[match(align, seq_along(B$tok.ratio))]
+  B.tr <- B.tok.ratio[match(align, seq_along(B.tok.ratio))]
   is.na(B.tr) <- 1
-  disallow.match <- nchar(A.eq.clean) < etc@align@min.chars |
-    A$tok.ratio < etc@align@threshold | B.tr < etc@align@threshold
+  disallow.match <- nchar(A.eq) < etc@align@min.chars |
+    A.tok.ratio < etc@align@threshold | B.tr < etc@align@threshold
   align[disallow.match] <- 0L
-
-  # Actually, now testing allowing the word coloring now that we have color
-  # schemes for lines and words
-
-  A.fin <- A$chr
-  B.fin <- B$chr
 
   # Group elements together; only one match per group, mismatches are put
   # in interstitial buckets.  We number the interstitial buckest as the

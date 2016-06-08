@@ -101,6 +101,15 @@ GuideLines <- setClass(
     TRUE
   }
 )
+setClass("StripRowHead", slots=c(target="ANY", current="ANY"),
+  validity=function(object) {
+    if(!isTRUE(err <- is.one.arg.fun(object@target)))
+      return(err)
+    if(!isTRUE(err <- is.one.arg.fun(object@current)))
+      return(err)
+    TRUE
+  }
+)
 setClass("Gutter",
   slots= c(
     insert="character", insert.ctd="character",
@@ -130,6 +139,8 @@ setClass("Settings",
     cur.banner="charOrNULL",
     guides="ANY",
     guide.lines="GuideLines",
+    trim="ANY",
+    strip.row.head="StripRowHead",
     disp.width="integer",
     line.width="integer",
     text.width="integer",
@@ -140,7 +151,8 @@ setClass("Settings",
   prototype=list(
     disp.width=0L, text.width=0L, line.width=0L,
     text.width.half=0L, line.width.half=0L,
-    guides=function(obj, obj.as.chr) integer(0L)
+    guides=function(obj, obj.as.chr) integer(0L),
+    trim=function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr))
   ),
   validity=function(object){
     int.1L.and.pos <- c(
@@ -158,9 +170,16 @@ setClass("Settings",
       return("Slot `guides` must be TRUE, FALSE, or a function")
     if(
       is.function(object@guides) &&
-      !isTRUE(v.g <- is.valid.guide.fun(object@guides))
+      !isTRUE(v.g <- is.two.arg.fun(object@guides))
     )
       return(sprintf("Slot `guides` is not a valid guide function (%s)", v.g))
+    if(!is.TF(object@trim) && !is.function(object@trim))
+      return("Slot `trim` must be TRUE, FALSE, or a function")
+    if(
+      is.function(object@trim) &&
+      !isTRUE(v.t <- is.two.arg.fun(object@trim))
+    )
+      return(sprintf("Slot `trim` is not a valid trim function (%s)", v.t))
     TRUE
   }
 )
@@ -224,25 +243,85 @@ setClass("DiffDiffs",
     TRUE
   }
 )
+.diff.dat.cols <- c(
+  "raw", "trim", "trim.ind", "eq", "word.ind", "fin", "tok.rat"
+)
+# Validate the *.dat slots of the Diff objects
+
+valid_dat <- function(x) {
+  char.cols <- c("raw", "trim", "eq", "fin")
+  list.cols <- c("word.ind")
+  zerotoone.cols <- "tok.rat"
+  mx.cols <- c("trim.ind")
+
+  if(!is.list(x)) {
+    "should be a list"
+  } else if(!identical(names(x), .diff.dat.cols)) {
+    paste0("should have names ", dep(.diff.dat.cols))
+  } else if(
+    length(
+      unique(
+        c(
+          vapply(
+            x[c(char.cols, list.cols, zerotoone.cols)], length, integer(1L)
+          ),
+          vapply(x[c(mx.cols)], nrow, integer(1L))
+    ) ) ) != 1L
+  ) {
+    "should have equal length components"
+  } else {
+    if(
+      length(
+        not.char <- which(!vapply(x[char.cols], is.character, logical(1L)))
+      )
+    ){
+      sprintf("element `%s` should be character", char.cols[not.char][[1L]])
+    } else if (
+      length(
+        not.list <- which(!vapply(x[list.cols], is.list, logical(1L)))
+      )
+    ) {
+      sprintf("element `%s` should be list", char.cols[not.char][[1L]])
+    } else if (!isTRUE(val.trim <- valid_trim_ind(x$trim.ind))) {
+      sprintf("element `trim.ind` is invalid: %s", val.trim)
+    } else if (
+      !all(
+        vapply(
+          x$word.ind,
+          function(y)
+            is.integer(y) && is.integer(attr(y, "match.length")) &&
+            length(y) == length(attr(y, "match.length")),
+          logical(1L)
+      ) )
+    ) {
+      "element `word.ind` is not in expected format"
+    } else if (
+      !is.numeric(x$tok.rat) || anyNA(x$tok.rat) || !all(x$to.rat %bw% c(0, 1))
+    ) {
+      "element `tok.rat` should be numeric with all values between 0 and 1"
+    }
+    else TRUE
+  }
+}
 setClass("Diff",
   slots=c(
-    target="ANY",                 # Actual object
-    tar.capt="character",         # The captured representation
-    tar.capt.def="charOrNULL",    # ^^, but using default print method
+    target="ANY",                    # Actual object
+    tar.dat="list",
     current="ANY",
-    cur.capt="character",
-    cur.capt.def="charOrNULL",
+    cur.dat="list",
     diffs="list",
     trim.dat="list",              # result of trimmaxg
-    capt.mode="character",        # whether in print or str mode
     sub.index="integer",
     sub.head="integer",
     sub.tail="integer",
+    capt.mode="character",        # whether in print or str mode
+    hit.diffs.max="logical",
     etc="Settings"
   ),
   prototype=list(
     capt.mode="print",
-    trim.dat=list(lines=integer(2L), hunks=integer(2L), diffs=integer(2L))
+    trim.dat=list(lines=integer(2L), hunks=integer(2L), diffs=integer(2L)),
+    hit.diffs.max=FALSE
   ),
   validity=function(object) {
     # Most of the validation is done by `check_args`
@@ -255,6 +334,13 @@ setClass("Diff",
       !all(vapply(object@trim.dat, length, integer(1L)) == 2L)
     )
       return("slot `trim.dat` in incorrect format")
+    if(!isTRUE(tar.dat.val <- valid_dat(object@tar.dat)))
+      return(paste0("slot `tar.dat` not valid: ", tar.dat.val))
+    if(!isTRUE(cur.dat.val <- valid_dat(object@cur.dat)))
+      return(paste0("slot `cur.dat` not valid: ", cur.dat.val))
+    if(!is.TF(object@hit.diffs.max))
+      return("slot `hit.diffs.max` must be TRUE or FALSE")
+
     TRUE
 } )
 setMethod("show", "Diff",
@@ -322,7 +408,7 @@ setMethod("summary", "Diff",
     )
       stop("Argument `scale.threshold` must be numeric(1L) between 0 and 1")
 
-    diffs.c <- count_diffs_detail(object@diffs$hunks)
+    diffs.c <- count_diffs_detail(object@diffs)
     # remove context hunks that are duplicated
     match.seq <- rle(!!diffs.c["match", ])
     match.keep <- unlist(
@@ -536,7 +622,7 @@ setMethod("lineCoverage", "Diff",
   function(x) {
     lines_in_hunk <- function(z, ind)
       if(z[[ind]][[1L]]) z[[ind]][[1L]]:z[[ind]][[2L]]
-    hunks.f <- unlist(x@diffs$hunks, recursive=FALSE)
+    hunks.f <- unlist(x@diffs, recursive=FALSE)
     lines.tar <- length(
       unique(unlist(lapply(hunks.f, lines_in_hunk, "tar.rng.sub")))
     )
@@ -554,7 +640,7 @@ setMethod("any", "Diff",
     res <- any(
       which(
         !vapply(
-          unlist(x@diffs$hunks, recursive=FALSE), "[[", logical(1L), "context"
+          unlist(x@diffs, recursive=FALSE), "[[", logical(1L), "context"
     ) ) )
     if(!res && !isTRUE(all.equal(x@target, x@current)))
       warning("No visible differences, but objects are NOT `all.equal`.")

@@ -72,7 +72,22 @@ is.valid.palette.param <- function(x, param, palette) {
     )
   else TRUE
 }
-is.valid.guide.fun <- function(x) {
+is.one.arg.fun <- function(x) {
+  if(!is.function(x)) {
+    "is not a function"
+  } else if(length(formals(x)) < 1L) {
+    "does not have at least one arguments"
+  } else if("..." %in% names(formals(x))[1]) {
+    "cannot have `...` as the first argument"
+  } else {
+    nm.forms <- vapply(formals(x), is.name, logical(1L))
+    forms.chr <- character(length(nm.forms))
+    forms.chr[nm.forms] <- as.character(formals(x)[nm.forms])
+    if(any(tail(!nzchar(forms.chr) & nm.forms, -1L)))
+      "cannot have any non-optional arguments other than first one" else TRUE
+  }
+}
+is.valid.guide.fun <- is.two.arg.fun <- function(x) {
   if(!is.function(x)) {
     "is not a function"
   } else if(length(formals(x)) < 2L) {
@@ -92,7 +107,7 @@ check_args <- function(
   call, tar.exp, cur.exp, mode, context, line.limit, format, brightness,
   color.mode, pager, ignore.white.space, max.diffs, align, disp.width,
   hunk.limit, convert.hz.white.space, tab.stops, style, palette.of.styles,
-  frame, tar.banner, cur.banner, guides, rds
+  frame, tar.banner, cur.banner, guides, rds, trim
 ) {
   err <- make_err_fun(call)
 
@@ -160,10 +175,17 @@ check_args <- function(
 
   if(!is.TF(guides) && !is.function(guides))
     err("Argument `guides` must be TRUE, FALSE, or a function")
-  if(is.function(guides) && !isTRUE(g.f.err <- is.valid.guide.fun(guides)))
+  if(is.function(guides) && !isTRUE(g.f.err <- is.two.arg.fun(guides)))
     err("Argument `guides` ", g.f.err)
   if(!is.function(guides) && !guides)
     guides <- function(obj, obj.as.chr) integer(0L)
+
+  if(!is.TF(trim) && !is.function(trim))
+    err("Argument `trim` must be TRUE, FALSE, or a function")
+  if(is.function(trim) && !isTRUE(t.f.err <- is.two.arg.fun(trim)))
+    err("Argument `trim` ", t.f.err)
+  if(!is.function(trim) && !trim)
+    trim <- function(obj, obj.as.chr) obj.as.chr
 
   # check T F args
 
@@ -290,7 +312,7 @@ check_args <- function(
     hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
     tab.stops=tab.stops, style=style, frame=frame,
     tar.exp=tar.exp, cur.exp=cur.exp, guides=guides, tar.banner=tar.banner,
-    cur.banner=cur.banner
+    cur.banner=cur.banner, trim=trim
   )
   etc
 }

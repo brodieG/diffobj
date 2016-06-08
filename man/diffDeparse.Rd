@@ -11,8 +11,9 @@ diffDeparse(target, current, ...)
 \S4method{diffDeparse}{ANY}(target, current, mode = gdo("mode"),
   context = gdo("context"), format = gdo("format"),
   brightness = gdo("brightness"), color.mode = gdo("color.mode"),
-  pager = gdo("pager"), guides = gdo("guides"), rds = gdo("rds"),
-  max.diffs = gdo("max.diffs"), disp.width = gdo("disp.width"),
+  pager = gdo("pager"), guides = gdo("guides"), trim = gdo("trim"),
+  rds = gdo("rds"), max.diffs = gdo("max.diffs"),
+  disp.width = gdo("disp.width"),
   ignore.white.space = gdo("ignore.white.space"),
   convert.hz.white.space = gdo("convert.hz.white.space"),
   tab.stops = gdo("tab.stops"), line.limit = gdo("line.limit"),
@@ -102,7 +103,14 @@ for more details.}
 arguments and requires no more than two arguments.  Guides
 are additional context lines that are not strictly part of a hunk, but
 provide important contextual data (e.g. column headers).  See
-\code{\link{printGuideLines}} for more details.}
+\code{\link{guideLines}} for more details.}
+
+\item{trim}{TRUE (default), FALSE, or a function that accepts at least two
+arguments and requires no more than two arguments.  Function should compute
+for each line in captured output what portion of those lines should be
+diffed.  By default, this is used to remove row meta data differences
+(e.g. \code{[1,]}) so they alone do not show up as differences in the 
+diff.  See \code{\link{trim}} for more details.}
 
 \item{rds}{TRUE (default) or FALSE, if TRUE will check whether
 \code{target} and/or \code{current} point to a file that can be read with

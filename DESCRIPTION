@@ -34,6 +34,7 @@ Collate:
     's4.R'
     'core.R'
     'diff.R'
+    'get.R'
     'guides.R'
     'hunks.R'
     'layout.R'
@@ -45,6 +46,7 @@ Collate:
     'system.R'
     'text.R'
     'tochar.R'
+    'trim.R'
     'word.R'
 Imports:
     crayon (>= 1.3.1)

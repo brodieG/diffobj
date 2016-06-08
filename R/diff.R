@@ -25,6 +25,7 @@ make_diff_fun <- function(capt_fun) {
     color.mode=gdo("color.mode"),
     pager=gdo("pager"),
     guides=gdo("guides"),
+    trim=gdo("trim"),
     rds=gdo("rds"),
     max.diffs=gdo("max.diffs"),
     disp.width=gdo("disp.width"),
@@ -58,7 +59,7 @@ make_diff_fun <- function(capt_fun) {
       hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
       tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
       frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides,
-      rds=rds
+      rds=rds, trim=trim
     )
     # If in rds mode, try to see if either target or current reference an RDS
 
@@ -201,7 +202,13 @@ make_diff_fun <- function(capt_fun) {
 #'   arguments and requires no more than two arguments.  Guides
 #'   are additional context lines that are not strictly part of a hunk, but
 #'   provide important contextual data (e.g. column headers).  See
-#'   \code{\link{printGuideLines}} for more details.
+#'   \code{\link{guideLines}} for more details.
+#' @param trim TRUE (default), FALSE, or a function that accepts at least two
+#'   arguments and requires no more than two arguments.  Function should compute
+#'   for each line in captured output what portion of those lines should be
+#'   diffed.  By default, this is used to remove row meta data differences
+#'   (e.g. \code{[1,]}) so they alone do not show up as differences in the 
+#'   diff.  See \code{\link{trim}} for more details.
 #' @param rds TRUE (default) or FALSE, if TRUE will check whether
 #'   \code{target} and/or \code{current} point to a file that can be read with
 #'   \code{\link{readRDS}} and if so, loads the R object contained in the file
@@ -467,10 +474,16 @@ body(diff_obj) <- quote({
   res.print <- eval(call.print, parent.frame())
   res.str <- eval(call.str, parent.frame())
 
-  diff.p <- count_diff_hunks(res.print@diffs$hunks)
-  diff.s <- count_diff_hunks(res.str@diffs$hunks)
-  diff.l.p <- diff_line_len(res.print@diffs$hunks, res.print@etc)
-  diff.l.s <- diff_line_len(res.str@diffs$hunks, res.str@etc)
+  diff.p <- count_diff_hunks(res.print@diffs)
+  diff.s <- count_diff_hunks(res.str@diffs)
+  diff.l.p <- diff_line_len(
+    res.print@diffs, res.print@etc, tar.capt=res.print@tar.dat$raw,
+    cur.capt=res.print@cur.dat$raw
+  )
+  diff.l.s <- diff_line_len(
+    res.str@diffs, res.str@etc, tar.capt=res.str@tar.dat$raw,
+    cur.capt=res.str@cur.dat$raw
+  )
 
   # How many lines of the input are in the diffs, vs how many lines of input
 

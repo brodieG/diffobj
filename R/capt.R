@@ -24,9 +24,11 @@ capture <- function(x, etc, err) {
 
 capt_print <- function(target, current, etc, err, ...){
   dots <- list(...)
+  # What about S4?
   print.match <- try(
     match.call(
-      get("print", envir=etc@frame), as.call(c(list(quote(print), x=NULL), dots)),
+      get("print", envir=etc@frame),
+      as.call(c(list(quote(print), x=NULL), dots)),
       envir=etc@frame
   ) )
   if(inherits(print.match, "try-error"))
@@ -56,7 +58,8 @@ capt_print <- function(target, current, etc, err, ...){
     cur.capt <- capture(cur.call, etc, err)
     tar.capt <- capture(tar.call, etc, err)
   }
-  if(isTRUE(etc@guides)) etc@guides <- printGuideLines
+  if(isTRUE(etc@guides)) etc@guides <- guidesPrint
+  if(isTRUE(etc@trim)) etc@trim <- trimPrint
 
   diff <- line_diff(target, current, tar.capt, cur.capt, etc=etc, warn=TRUE)
   diff
@@ -155,7 +158,8 @@ capt_str <- function(target, current, etc, err, ...){
   safety <- 0L
   warn <- TRUE
 
-  if(isTRUE(etc@guides)) etc@guides <- strGuideLines
+  if(isTRUE(etc@guides)) etc@guides <- guidesStr
+  if(isTRUE(etc@trim)) etc@trim <- trimStr
 
   repeat{
     if((safety <- safety + 1L) > max.depth && !first.loop)
@@ -167,13 +171,10 @@ capt_str <- function(target, current, etc, err, ...){
     cur.str <- cur.capt[cur.lvls <= lvl]
 
     diff.obj <- line_diff(target, current, tar.str, cur.str, etc=etc, warn=warn)
-    diffs.str <- diff.obj@diffs
 
-    if(diffs.str$hit.diffs.max) warn <- FALSE
-    has.diff <- any(
-      !vapply(
-        unlist(diffs.str$hunks, recursive=FALSE), "[[", logical(1L), "context"
-    ) )
+    if(diff.obj@hit.diffs.max) warn <- FALSE
+    has.diff <- any(diff.obj)
+
     if(first.loop) {
       diff.obj.first <- diff.obj
       first.loop <- FALSE
@@ -186,9 +187,9 @@ capt_str <- function(target, current, etc, err, ...){
     }
     if(line.limit[[1L]] < 1L) break
 
-    line.len <-
-      diff_line_len(diffs.str$hunks, etc=etc)
-
+    line.len <- diff_line_len(
+      diff.obj@diffs, etc=etc, tar.capt=tar.str, cur.capt=cur.str
+    )
     # We need a higher level if we don't have diffs
 
     if(!has.diff && prev.lvl.hi - lvl > 1L) {
@@ -221,8 +222,6 @@ capt_str <- function(target, current, etc, err, ...){
     lvl <- NULL
     break
   }
-  diff.obj@diffs$diffs.max <- count_diffs(diff.obj@diffs$hunks)
-
   if(auto.mode) {
     str.match[[max.level.pos]] <- lvl
   } else if (!max.level.supplied) {
@@ -243,7 +242,7 @@ capt_chr <- function(target, current, etc, err, ...){
   cur.capt <- if(!is.character(current)) as.character(current, ...) else current
 
   etc <- set_mode(etc, tar.capt, cur.capt)
-  if(isTRUE(etc@guides)) etc@guides <- chrGuideLines
+  if(isTRUE(etc@guides)) etc@guides <- guidesChr
 
   line_diff(
     target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
@@ -255,7 +254,7 @@ capt_deparse <- function(target, current, etc, err, ...){
   cur.capt <- deparse(current, ...)
 
   etc <- set_mode(etc, tar.capt, cur.capt)
-  if(isTRUE(etc@guides)) etc@guides <- deparseGuideLines
+  if(isTRUE(etc@guides)) etc@guides <- guidesDeparse
 
   line_diff(
     target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
@@ -269,7 +268,7 @@ capt_file <- function(target, current, etc, err, ...){
   if(inherits(cur.capt, "try-error")) err("Unable to read `current` file.")
 
   etc <- set_mode(etc, tar.capt, cur.capt)
-  if(isTRUE(etc@guides)) etc@guides <- fileGuideLines
+  if(isTRUE(etc@guides)) etc@guides <- guidesFile
 
   line_diff(
     target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),

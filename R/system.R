@@ -32,6 +32,7 @@
     diffobj.disp.width=NULL,      # NULL == getOption("width")
     diffobj.palette=NULL,         # NULL == PaletteOfStyles()
     diffobj.guides=TRUE,
+    diffobj.trim=TRUE,
     diffobj.html.escape.html.entities=TRUE,
     diffobj.html.css=
       file.path(system.file(package="diffobj"), "css", "diffobj.css"),

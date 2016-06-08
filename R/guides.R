@@ -1,11 +1,48 @@
+# Split by guides; used by nested structures to retrieve contents within
+# guides.  Each element has an attribute indicating the indices from the
+# text element it was drawn from
+
+split_by_guides <- function(txt, guides) {
+  stopifnot(
+    is.character(txt), !anyNA(txt), is.integer(guides),
+    all(guides %in% seq_along(txt))
+  )
+  empty <- list(`attr<-`(txt, "idx", seq_along(txt)))
+
+  if(!length(guides)) {
+    empty
+  } else {
+    guide.l <- logical(length(txt))
+    guide.l[guides] <- TRUE
+    sections <- cumsum(c(if(guides[1L] == 1L) 1L else 0L, diff(guide.l) == 1L))
+    ids <- seq_along(txt)
+
+    # remove actual guidelines
+
+    ids.net <- ids[-guides]
+    sec.net <- sections[-guides]
+    txt.net <- txt[-guides]
+
+    # split and drop leading stuff if it exists (those with section == 0)
+
+    dat <- tail(unname(split(txt.net, sec.net)), max(sec.net))
+    ind <- tail(unname(split(ids.net, sec.net)), max(sec.net))
+
+    # Generate indices and attach them to each element of list
+
+    Map(`attr<-`, dat, "idx", ind )
+  }
+}
 # Detect which rows are likely to be meta data rows (e.g. headers) in tabular
-# data
+# data (data.frames, timeseries with freq > 1).
+#
+# note due to ts use, can't use rownames, colnames, etc.
 #
 # Should be raw data stripped of ANSI characters
 
 detect_2d_guides <- function(txt) {
   stopifnot(is.character(txt))
-  space.rows <- !grepl("^\\s+\\[\\d+,\\]\\s|^\\S", txt)
+  space.rows <- grepl("^\\s+\\S+", txt)
   head.row <- min(which(space.rows))
   first.row <- min(which(!space.rows & seq_along(space.rows) > head.row))
   last.row <- max(which(!space.rows))
@@ -17,11 +54,14 @@ detect_2d_guides <- function(txt) {
   res <- if(last.row > head.row) {
     space.bw <- space.rows[head.row:last.row]
     seq.dat <- vapply(
-      split(space.bw, cumsum(space.bw)), FUN=function(x) c(sum(x), sum(!x)),
+      split(space.bw, cumsum(c(TRUE, diff(space.bw) == 1L))),
+      FUN=function(x) c(sum(x), sum(!x)),
       integer(2L)
     )
     # Which of the sets of true and false head rows have the same repeating
-    # sequence as the first?
+    # sequence as the first?  One thing to think about is what happens when
+    # print gets truncated; should allow last in sequence to have fewer rows,
+    # but we don't do that yet...
 
     valid.rep <- max(
       which(
@@ -65,6 +105,73 @@ detect_list_guides <- function(txt) {
     which(valid.pat)
   } else integer(0L)
 }
+# Matrices
+
+detect_matrix_guides <- function(txt, dim.n) {
+  stopifnot(
+    is.character(txt), !anyNA(txt),
+    is.null(dim.n) || (is.list(dim.n) && length(dim.n) == 2L)
+  )
+  n.d.n <- names(dim.n)
+  row.n <- n.d.n[1L]
+  col.n <- n.d.n[2L]
+  # try to guard against dimnames that contain regex
+  # identify which lines could be row and col headers
+
+  n.p <- "(\\[|\\]|\\(|\\)|\\{|\\}|\\*|\\+|\\?|\\.|\\^|\\$|\\\\|\\|)"
+  c.h <- if(!is.null(col.n) && nchar(col.n)) {
+    col.pat <- sprintf("^\\s{2,}%s$", gsub(n.p, "\\\1", col.n))
+    grepl(col.pat, txt)
+  } else {
+    rep(FALSE, length(txt))
+  }
+  r.h <- if(!is.null(row.n) && nchar(row.n)) {
+    # a bit lazy, should include col headers as well
+    row.pat <- sprintf("^%s\\s+\\S+", gsub(n.p, "\\\1", row.n))
+    grepl(row.pat, txt)
+  } else {
+    pat.extra <- if(!is.null(dim.n[[2L]]) && is.character(dim.n[[2L]])) {
+      paste0(c("", gsub(n.p, "\\\1", dim.n[[2L]])), collapse="|")
+    }
+    grepl(paste0("^\\s+(\\[,[1-9]+[0-9]*\\]", pat.extra, ")(\\s|$)"), txt)
+  }
+  # Classify each line depending on what pattern it matches so we can then
+  # analyze sequences and determine which are valid
+
+  row.types <- integer(length(txt))
+  row.types[r.h] <- 1L                   # row meta / col headers
+  row.types[c.h] <- 2L                   # col meta
+
+  mx.starts <- if(is.null(n.d.n)) {
+    mx.start.num <- 1L
+    which(row.types == mx.start.num)
+  } else {
+    mx.start.num <- 2L
+    tmp <- which(row.types == mx.start.num)
+    if(sum(r.h) == sum(c.h) && identical(which(c.h) + 1L, which(r.h))) {
+      tmp
+    } else integer(0L)
+  }
+  mx.start <- head(mx.starts, 1L)
+
+  if(length(mx.start)) {
+    # Now  try to see if pattern repeats to identify the full list of wrapped
+    # guides, and return the indices that are part of repeating pattern
+
+    mx.end <- head(mx.starts[which(mx.starts > mx.start)], 1L) - 1L
+    if(!length(mx.end)) mx.end <- length(txt)
+
+    if(mx.end > mx.start + 1L) {
+      pat.inds <- mx.start:(mx.end)
+      template <- rep(
+        row.types[pat.inds],
+        floor((length(txt) - mx.start + 1L) / length(pat.inds))
+      )
+      which(head(row.types, length(template)) == template & !!template) +
+        mx.start - 1L
+    } else integer(0L)
+  } else integer(0L)
+}
 # Here we want to get the high dimension counter as well as the column headers
 # of each sub-dimension
 
@@ -75,132 +182,87 @@ detect_array_guides <- function(txt, dim.n) {
     is.list(dim.n) || is.null(dim.n),
     (is.character(n.d.n) && length(n.d.n) > 2L) || is.null(n.d.n)
   )
-  if(length(txt) > 2L) {
-    if(!is.null(n.d.n)) {
-      # try to guard against dimnames that contain regex
-      n.p <- "(\\[|\\]|\\(|\\)|\\{|\\}|\\*|\\+|\\?|\\.|\\^|\\$|\\\\|\\|)"
-      row.pat <- sprintf("^%s\\s+\\S+", gsub(n.p, "\\\1", n.d.n[[1L]]))
-      col.pat <- sprintf("^\\s{2,}%s$", gsub(n.p, "\\\1", n.d.n[[2L]]))
-      # identify which lines could be row and col headers
-      r.h <- grepl(row.pat, txt)
-      c.h <- grepl(col.pat, txt)
-    } else {
-      c.h <- rep(FALSE, length(txt))
-      r.h <- grepl("^\\s+\\S+", txt)
-    }
-    # Classify each line depending on what pattern it matches so we can then
-    # analyze sequences and determine which are valid
+  # Detect patterns for higher dimensions, and then use the matrix guide
+  # finding functions to get additional guides
 
-    row.types <- integer(length(txt))
-    row.types[!nzchar(txt)] <- 1L          # blanks
-    row.types[grepl("^, , ", txt)] <- 2L   # high dim header
-    row.types[r.h] <- 3L                   # row meta / col headers
-    row.types[c.h] <- 4L                   # col meta
+  dim.guides <- which(grepl("^, ,", txt))
+  blanks <- which(txt == "")
 
-    row.chain <- paste0(row.types, collapse="") # assumes all values 1 char long
-    p.simple <- "2130*1"    # no dimnames names
-    p.cols <- "21430*1"     # both row and col dimnames
+  if(
+    length(dim.guides) && length(blanks) &&
+    all(dim.guides + 1L %in% blanks) &&
+    (length(dim.guides) == 1L || length(unique(diff(dim.guides)) == 1L))
+  ) {
+    # Make sure within each array section there is a matrix representation
 
-    p.test <- if(!is.null(n.d.n)) p.cols else p.simple
-
-    # not perfect, since we could check that matched tokens match dimensions...
-    # there should only be one sequence of the repeating pattern
+    dim.guide.fin <- sort(c(dim.guides, dim.guides + 1L))
+    sub.dat <- split_by_guides(txt, dim.guide.fin)
+    heads <- lapply(sub.dat, detect_matrix_guides, head(dim.n, 2L))
 
     if(
-      length(
-        unlist(
-          arr.coord <- gregexpr(sprintf("(%s)+", p.test), row.chain)
-      ) ) == 1L
-    ) {
-      arr.core <- unlist(regmatches(row.chain, arr.coord))
-      if(length(arr.core) != 1L)
-        stop("Logic Error: array repeat pattern problem; contact maintainer.")
-      # Now replace everything except the front part of the match with zeroes
-      core.match <- gregexpr(p.test, arr.core)
-      core.pieces <- regmatches(arr.core, core.match)
-      if(length(core.pieces) != 1L)
-        stop("Logic Error: array repeat pattern problem; contact maintainer.")
-      core.proc <- lapply(
-        unlist(core.pieces),
-        function(x) {
-          x.u <- unlist(strsplit(unlist(x), ""))
-          if(!length(x.u)) "" else {
-            x.u[!!cumsum(x.u == "0")] <- "0" # anything after zero turned to zero
-            paste0(x.u, collapse="")
-          }
-      } )
-      regmatches(arr.core, core.match) <- core.proc
-
-      # generate new version of chain with all zeros to sub back in
-
-      row.chain.z <- paste0(rep("0", nchar(row.chain)), collapse="")
-      regmatches(row.chain.z, arr.coord) <- arr.core
-
-      # Convert back to vector
-
-      which(unlist(strsplit(row.chain.z, "")) != "0")
-    } else {
-      integer(0L)
-    }
+      all(vapply(heads, identical, logical(1L), heads[[1L]])) &&
+      all(vapply(heads, length, integer(1L)))
+    )
+      dim.guide.fin else integer(0L)
   } else integer(0L)
 }
 #' Generic Methods to Implement Flexible Guide Line Computations
 #'
-#' Guide lines are context lines that would not normally be shown as part of a
+#' Guides are context lines that would not normally be shown as part of a
 #' diff because they are too far from any differences, but provide particularly
 #' useful contextual information.  Column headers are a common example.
 #'
 #' \code{Diff} detects these important context lines by looking for patterns in
 #' the text of the diff, and then displays these lines in addition to the
-#' normal diff output.  Guide lines are marked by a tilde in the gutter, and
+#' normal diff output.  Guides are marked by a tilde in the gutter, and
 #' are typically styled differently than normal context lines.  Keep in mind
-#' that guide lines may be far from the diff hunk they are juxtaposed to.  We
-#' eschew the device of putting the guide lines in the hunk header as
+#' that guides may be far from the diff hunk they are juxtaposed to.  We
+#' eschew the device of putting the guides in the hunk header as
 #' \code{git diff} does because often the column alignment of the guide line is
 #' meaningful.
 #'
-#' Guide lines are detected by the \code{*GuideLines} methods documented here.
+#' Guides are detected by the \code{guides*} methods documented here.
 #' Each of the \code{diff*} methods (e.g. \code{\link{diffPrint}}) has a
-#' corresponding \code{*GuideLines} method (e.g.
-#' \code{\link{printGuideLines}}), with the exception of \code{\link{diffCsv}}
-#' since that method uses \code{diffPrint} internall.  The \code{*GuideLines}
+#' corresponding \code{guides*} method (e.g.
+#' \code{\link{guidesPrint}}), with the exception of \code{\link{diffCsv}}
+#' since that method uses \code{diffPrint} internall.  The \code{guides*}
 #' methods expect an R object as the first parameter and the captured display
 #' representation of the object in a charater vector as the second.  This allows
 #' them to adapt what patterns they are looking for in the character
 #' representation of the object.  For example, a \code{list} like object will
 #' require a different guide finding strategy than a \code{matrix} object.
 #'
-#' The default method for \code{printGuideLines} has special handling for 2D
+#' The default method for \code{guidesPrint} has special handling for 2D
 #' objects (e.g. data frames, matrices), arrays, and lists.  If you dislike the
 #' default handling you can also define your own methods for matrices, arrays,
 #' etc., or alternatively you can pass a guide finding function directly via
 #' the \code{guides} parameter to the \code{diff*} methods.  The default method
-#' for \code{strGuideLines} highlights top level objects.  The default methods
-#' for \code{chrGuideLines} and \code{deparseGuideLines} don't do anything and
+#' for \code{guidesStr} highlights top level objects.  The default methods
+#' for \code{guidesChr} and \code{guidesDeparse} don't do anything and
 #' exit only as a mechanism for providing custom guide line methods.
 #'
 #' If you have classed objects with special patterns you can define your own
 #' methods for them (see examples), though if your objects are S3 you will need
-#' to use \code{\link{setOldClass}} as the \code{*GuideLines} generics are S4.
+#' to use \code{\link{setOldClass}} as the \code{guides*} generics are S4.
 #'
-#' @aliases strGuideLines, chrGuideLines, deparseGuideLines
+#' @aliases guidesStr, guidesChr, guidesDeparse
 #' @export
-#' @rdname guideLines
-#' @name guideLines
+#' @rdname guides
+#' @name guides
 #' @param obj an R object
 #' @param obj.as.chr the character representation of \code{obj} that is used
 #'   for computing the diffs
 #' @return integer containing values in \code{seq_along(obj.as.chr)}
 #' @examples
-#' ## Roundabout way of suppressing guide lines for matrices
+#' ## Roundabout way of suppressing guides for matrices
 #' \dontrun{
-#' setMethod("printGuideLines", c("matrix", "character"),
+#' setMethod("guidesPrint", c("matrix", "character"),
 #'   function(obj, obj.as.chr) integer(0L)
 #' )
 #' ## Special guides for "zulu" S3 objects that match lines
 #' ## starting in "zulu###" where ### is a nuber
 #' setOldClass("zulu")
-#' setMethod("printGuideLines", c("zulu", "character"),
+#' setMethod("guidesPrint", c("zulu", "character"),
 #'   function(obj, obj.as.chr) {
 #'     if(length(obj) > 20) grep("^zulu[0-9]*", obj.as.chr)
 #'     else integer(0L)
@@ -208,15 +270,20 @@ detect_array_guides <- function(txt, dim.n) {
 #' }
 
 setGeneric(
-  "printGuideLines",
-  function(obj, obj.as.chr) StandardGeneric("printGuideLines")
+  "guidesPrint",
+  function(obj, obj.as.chr) StandardGeneric("guidesPrint")
 )
 setMethod(
-  "printGuideLines", c("ANY", "character"),
+  "guidesPrint", c("ANY", "character"),
   function(obj, obj.as.chr) {
     if(anyNA(obj.as.chr))
       stop("Cannot compute guides if `obj.as.chr` contains NAs")
-    if(length(dim(obj)) == 2L) {
+    if(is.matrix(obj)) {
+      detect_matrix_guides(obj.as.chr, dimnames(obj))
+    } else if(
+      length(dim(obj)) == 2L ||
+      (is.ts(obj) && frequency(obj) > 1)
+    ) {
       detect_2d_guides(obj.as.chr)
     } else if (is.array(obj)) {
       detect_array_guides(obj.as.chr, dimnames(obj))
@@ -226,13 +293,13 @@ setMethod(
   }
 )
 #' @export
-#' @rdname guideLines
+#' @rdname guides
 
 setGeneric(
-  "strGuideLines",
-  function(obj, obj.as.chr) StandardGeneric("strGuideLines")
+  "guidesStr",
+  function(obj, obj.as.chr) StandardGeneric("guidesStr")
 )
-setMethod("strGuideLines", c("ANY", "character"),
+setMethod("guidesStr", c("ANY", "character"),
   function(obj, obj.as.chr) {
     if(anyNA(obj.as.chr))
       stop("Cannot compute guides if `obj.as.chr` contains NAs")
@@ -241,33 +308,33 @@ setMethod("strGuideLines", c("ANY", "character"),
 } )
 
 #' @export
-#' @rdname guideLines
+#' @rdname guides
 
 setGeneric(
-  "chrGuideLines",
-  function(obj, obj.as.chr) StandardGeneric("chrGuideLines")
+  "guidesChr",
+  function(obj, obj.as.chr) StandardGeneric("guidesChr")
 )
-setMethod("chrGuideLines", c("ANY", "character"),
+setMethod("guidesChr", c("ANY", "character"),
   function(obj, obj.as.chr) integer(0L)
 )
 #' @export
-#' @rdname guideLines
+#' @rdname guides
 
 setGeneric(
-  "deparseGuideLines",
-  function(obj, obj.as.chr) StandardGeneric("deparseGuideLines")
+  "guidesDeparse",
+  function(obj, obj.as.chr) StandardGeneric("guidesDeparse")
 )
-setMethod("deparseGuideLines", c("ANY", "character"),
+setMethod("guidesDeparse", c("ANY", "character"),
   function(obj, obj.as.chr) integer(0L)
 )
 #' @export
-#' @rdname guideLines
+#' @rdname guides
 
 setGeneric(
-  "fileGuideLines",
-  function(obj, obj.as.chr) StandardGeneric("fileGuideLines")
+  "guidesFile",
+  function(obj, obj.as.chr) StandardGeneric("guidesFile")
 )
-setMethod("fileGuideLines", c("ANY", "character"),
+setMethod("guidesFile", c("ANY", "character"),
   function(obj, obj.as.chr) integer(0L)
 )
 
@@ -277,11 +344,11 @@ setMethod("fileGuideLines", c("ANY", "character"),
 apply_guides <- function(obj, obj.as.chr, guide_fun) {
   guide <- try(guide_fun(obj, obj.as.chr))
   msg.extra <- paste0(
-    "If you did not define custom `*GuideLines` methods contact maintainer."
+    "If you did not define custom `guides*` methods contact maintainer."
   )
   if(inherits(guide, "try-error"))
     stop(
-      "`*GuideLines` method produced an error when attempting to compute guide ",
+      "`guides*` method produced an error when attempting to compute guide ",
       "lines; ", msg.extra
     )
   if(
@@ -289,7 +356,7 @@ apply_guides <- function(obj, obj.as.chr, guide_fun) {
     !all(guide %in% seq_along(obj.as.chr))
   )
     stop(
-      "`*GuideLines` method must produce an integer vector containing unique ",
+      "`guides*` method must produce an integer vector containing unique ",
       "index values for the `obj.as.chr` vector; ", msg.extra
     )
   guide

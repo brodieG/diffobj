@@ -46,3 +46,12 @@ test_that("trim_str", {
   # )
 })
 
+test_that("rle_sub", {
+  x <- c(1, 1, 1, 2, 2, 1, 1, 3, 3, 4, 4, 4, 5, 2, 2)
+  r <- rle(x)
+  expect_equal(diffobj:::rle_sub(r, r$values == 1L), list(1:3, 6:7))
+  expect_equal(diffobj:::rle_sub(r, r$values == 2L), list(4:5, 14:15))
+  expect_true(all(x[unlist(diffobj:::rle_sub(r, r$values == 1L))] == 1))
+  expect_true(all(x[unlist(diffobj:::rle_sub(r, r$values == 2L))] == 2))
+  expect_true(all(x[unlist(diffobj:::rle_sub(r, r$values == 3L))] == 3))
+})

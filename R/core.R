@@ -226,7 +226,6 @@ char_diff <- function(x, y, context=-1L, etc, diff.mode, warn) {
     diff.mode %in% c("line", "hunk", "wrap"),
     isTRUE(warn) || identical(warn, FALSE)
   )
-  diff.param <- c(line="max.diffs")
   if(etc@ignore.white.space) {
     x.w <- normalize_whitespace(x)
     y.w <- normalize_whitespace(y)
@@ -235,18 +234,19 @@ char_diff <- function(x, y, context=-1L, etc, diff.mode, warn) {
     y.w <- y
   }
   max.diffs <- etc@max.diffs
-  diff <- diff_myers_mba(x.w, y.w, max.diffs)
-  if(etc@ignore.white.space) {
-    diff@a <- x
-    diff@b <- y
-  }
+  diff <- diff_myers_mba(x.w, y.w, max.diffs)  # probably shouldn't generate S4
+
+  # Reset given whitespace and other modifications
+
+  diff@a <- x
+  diff@b <- y
   hunks <- as.hunks(diff, etc=etc)
   hit.diffs.max <- FALSE
   if(diff@diffs < 0L) {
     hit.diffs.max <- TRUE
     diff@diffs <- -diff@diffs
     diff.msg <- c(
-      line="overall", hunk="in-hunk word", wrap="word"
+      line="overall", hunk="in-hunk word", wrap="atomic wrap-word"
     )
     if(warn)
       warning(
@@ -258,10 +258,7 @@ char_diff <- function(x, y, context=-1L, etc, diff.mode, warn) {
   }
   # used to be a `DiffDiffs` object, but too slow
 
-  list(
-    hunks=hunks, diffs=count_diffs(hunks), diffs.max=0L,
-    hit.diffs.max=hit.diffs.max
-  )
+  list(hunks=hunks, hit.diffs.max=hit.diffs.max)
 }
 # Variation on `char_diff` used for the overall diff where we don't need
 # to worry about overhead from creating the `Diff` object
@@ -276,14 +273,115 @@ line_diff <- function(
   etc@guide.lines <-
     make_guides(target, tar.capt, current, cur.capt, etc@guides)
 
+  # Some debate as to whether we want to do this first, or last.  First has
+  # many benefits so that everything is consistent, width calcs can work fine,
+  # etc., but only issue is that user provided trim functions might not expect
+  # the transformation of the data; this needs to be documented with the trim
+  # docs.
+
   if(strip) {
     tar.capt <- strip_hz_control(tar.capt, stops=etc@tab.stops)
     cur.capt <- strip_hz_control(cur.capt, stops=etc@tab.stops)
   }
-  diffs <- char_diff(tar.capt, cur.capt, etc=etc, diff.mode="line", warn=warn)
+  # Apply trimming to remove row heads, etc
+
+  tar.trim.ind <- apply_trim(target, tar.capt, etc@trim)
+  tar.trim <- do.call(
+    substr, list(tar.capt, tar.trim.ind[, 1L], tar.trim.ind[, 2L])
+  )
+  cur.trim.ind <- apply_trim(current, cur.capt, etc@trim)
+  cur.trim <- do.call(
+    substr, list(cur.capt, cur.trim.ind[, 1L], cur.trim.ind[, 2L])
+  )
+  # Word diff is done in three steps: create an empty template vector structured
+  # as the result of a call to `gregexpr` without matches, if dealing with
+  # compliant atomic vectors in print mode, then update with the word diff
+  # matches, finally, update with in-hunk word diffs for hunks that don't have
+  # any existing word diffs:
+
+  word.diff.atom <- -1L
+  attr(word.diff.atom, "match.length") <- -1L
+  word.diffs <- list(
+    tar=replicate(length(tar.capt), word.diff.atom, simplify=FALSE),
+    cur=replicate(length(cur.capt), word.diff.atom, simplify=FALSE)
+  )
+  if(
+    is.atomic(target) && is.atomic(current) &&
+    length(tar.rh <- which_atomic_rh(tar.capt)) &&
+    length(cur.rh <- which_atomic_rh(cur.capt))
+  ) {
+    atom.w.d <- diff_word2(
+      tar.trim[tar.rh], cur.trim[cur.rh], diff.mode="wrap", warn=warn, etc=etc
+    )
+    word.diffs$tar[tar.rh] <- atom.w.d$tar
+    word.diffs$cur[cur.rh] <- atom.w.d$cur
+    warn <- !atom.w.d$hit.diffs.max
+  }
+  # Actual line diff
+
+  diffs <- char_diff(tar.trim, cur.trim, etc=etc, diff.mode="line", warn=warn)
+  warn <- !diffs$hit.diffs.max
+
+  # Word diffs on hunks; check first which lines already have diffs and identify
+  # the diff hunks that don't contain any of those lines
+
+  tar.l.w.d <- which(vapply(word.diffs$tar, "[", integer(1L), 1L) != -1L)
+  cur.l.w.d <- which(vapply(word.diffs$cur, "[", integer(1L), 1L) != -1L)
+  all.l.w.d <- c(tar.l.w.d, -cur.l.w.d)
+
+  hunks.flat <- diffs$hunks
+  hunks.w.o.w.diff <- vapply(
+    hunks.flat,
+    function(y) !y$context && !any(unlist(y[c("A", "B")]) %in% all.l.w.d),
+    logical(1L)
+  )
+  # For each of those hunks, run the word diffs and store the results in the
+  # word.diffs list
+
+  for(i in which(hunks.w.o.w.diff)) {
+    h.a <- hunks.flat[[i]]
+    h.a.ind <- c(h.a$A, h.a$B)
+    h.a.tar.ind <- h.a.ind[h.a.ind > 0]
+    h.a.cur.ind <- abs(h.a.ind[h.a.ind < 0])
+    h.a.w.d <- diff_word2(
+      tar.trim[h.a.tar.ind], cur.trim[h.a.cur.ind], diff.mode="hunk", warn=warn,
+      etc=etc
+    )
+    warn <- !h.a.w.d$hit.diffs.max
+    word.diffs$tar[h.a.tar.ind] <- h.a.w.d$tar
+    word.diffs$cur[h.a.cur.ind] <- h.a.w.d$cur
+  }
+  # Compute the token ratios
+
+  tok_ratio_compute <- function(z) vapply(
+    z,
+    function(y)
+      if(is.null(wc <- attr(y, "word.count"))) 1
+      else max(0, (wc - length(y)) / wc),
+    numeric(1L)
+  )
+  tar.tok.ratio <- tok_ratio_compute(word.diffs$tar)
+  cur.tok.ratio <- tok_ratio_compute(word.diffs$cur)
+
+  # Instantiate result
+
+  hunk.grps <- group_hunks(
+    hunks.flat, etc=etc, tar.capt=tar.capt, cur.capt=cur.capt
+  )
   new(
-    "Diff", diffs=diffs, target=target, current=current,
-    tar.capt=tar.capt, cur.capt=cur.capt, etc=etc
+    "Diff", diffs=hunk.grps, target=target, current=current,
+    hit.diffs.max=!warn,
+    tar.dat=list(
+      raw=tar.capt, trim=tar.trim, trim.ind=tar.trim.ind,
+      eq=`regmatches<-`(tar.trim, word.diffs$tar, value=""),
+      word.ind=word.diffs$tar, fin=tar.capt, tok.rat=tar.tok.ratio
+    ),
+    cur.dat=list(
+      raw=cur.capt, trim=cur.trim, trim.ind=cur.trim.ind,
+      eq=`regmatches<-`(cur.trim, word.diffs$cur, value=""),
+      word.ind=word.diffs$cur, fin=cur.capt, tok.rat=cur.tok.ratio
+    ),
+    etc=etc
   )
 }
 # Helper function encodes matches within mismatches so that we can later word

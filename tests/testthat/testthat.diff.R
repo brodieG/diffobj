@@ -55,9 +55,14 @@ local({
     mx.3 <- matrix(runif(100), ncol=2)
     mx.4 <- mx.3 <- mx.2
     mx.3[31, 2] <- 111L
+    mx.3a <- mx.3[-31, ]
+
     mx.4[cbind(sample(1:50, 6), sample(1:2, 6, replace=TRUE))] <-
       sample(-(1:50), 6)
+
     diffPrint(mx.2, mx.3)
+    diffPrint(mx.2, mx.3a)
+    diffPrint(mx.2, mx.3a, mode="unified")
     diffPrint(mx.2, mx.3, mode="unified")
     diffPrint(mx.2, mx.4)
     diffPrint(mx.2, mx.4, mode="unified")
@@ -66,6 +71,7 @@ local({
     mx.6 <- matrix(12:1, 4)
     mx.6[4,] <- c(3L, 6L, 9L)
     diffPrint(mx.5, mx.6)
+    diffPrint(mx.5, mx.6, mode="unified")
 
     A <- B <- matrix(sample(1:80), nrow=16)
     B[cbind(sample(5:16, 4), sample(1:5, 4))] <- sample(30:80, 4)

@@ -153,6 +153,114 @@ diff_word <- function(
     hit.diffs.max=diffs$hit.diffs.max
   )
 }
+# working on alternate to diff_word that returns the coordinates of the word
+# differences instead of the colored words
+#
+# Should return a list with, for each of tar and cur, a list of the
+# `gregexpr` elements that constitute the word differences.  There is some
+# inefficiency here since we junk the text we use to do the word differences
+# and we'll re-retrieve them later, but oh well
+
+diff_word2 <- function(
+  tar.chr, cur.chr, etc, match.quotes=FALSE, diff.mode, warn=TRUE
+) {
+  stopifnot(
+    is.character(tar.chr), is.character(cur.chr),
+    all(!is.na(tar.chr)), all(!is.na(cur.chr)),
+    is.TF(match.quotes), is.TF(warn)
+  )
+  # Compute the char by char diffs for each line
+
+  reg <- paste0(
+    # grab leading spaces for each word; these will be stripped before actual
+    # word diff, but we want them to be part of mismatch so they are removed
+    # when we construct the equal strings as that allows better matching b/w
+    # strings with differences removed; could do trailing spaces instead
+    "\\s*(?:",
+    # Some attempt at matching R identifiers; note we explicitly chose not to
+    # match `.` or `..`, etc, since those could easily be punctuation
+    sprintf("%s|", .reg.r.ident),
+    # Not whitespaces that doesn't include quotes
+    "[^ \"]+|",
+    # Quoted phrases as structured in atomic character vectors
+    if(match.quotes) "(?:(?<= )|(?<=^))\"(?:[^\"]|\\\")*?\"(?:(?= )|(?=$))|",
+    # Other quoted phrases we might see in expressions or deparsed chr vecs,
+    # this is a bit lazy currently b/c we're not forcing precise matching b/w
+    # starting and ending delimiters
+    "(?:(?<=[ ([,{])|(?<=^))\"(?:[^\"]|\\\"|\"(?=[^ ]))*?",
+    "\"(?:(?=[ ,)\\]}])|(?=$))|",
+    # Other otherwise 'illegal' quotes that couldn't be matched to one of the
+    # known valid quote structures
+    "\")"
+  )
+  tar.reg <- gregexpr(reg, tar.chr, perl=TRUE)
+  cur.reg <- gregexpr(reg, cur.chr, perl=TRUE)
+
+  tar.split <- regmatches(tar.chr, tar.reg)
+  cur.split <- regmatches(cur.chr, cur.reg)
+
+  # Collapse into one line if to do the diff across lines, but record
+  # item counts so we can reconstitute the lines at the end
+
+  tar.lens <- vapply(tar.split, length, integer(1L))
+  cur.lens <- vapply(cur.split, length, integer(1L))
+
+  tar.unsplit <- unlist(tar.split)
+  cur.unsplit <- unlist(cur.split)
+  if(is.null(tar.unsplit)) tar.unsplit <- character(0L)
+  if(is.null(cur.unsplit)) cur.unsplit <- character(0L)
+
+  # Remove the leading spaces we grabbed for each word
+
+  tar.unsplit <- sub("^\\s*", "", tar.unsplit)
+  cur.unsplit <- sub("^\\s*", "", cur.unsplit)
+
+  etc@line.limit <- etc@hunk.limit <- etc@context <- -1L
+  etc@mode <- "context"
+
+  diffs <- char_diff(
+    tar.unsplit, cur.unsplit, etc=etc, diff.mode=diff.mode, warn=warn
+  )
+  # Need to figure out which elements match, and which ones do not
+
+  hunks.flat <- diffs$hunks
+  tar.mism <- unlist(lapply(hunks.flat, function(x) if(!x$context) x$A))
+  cur.mism <- abs(unlist(lapply(hunks.flat, function(x) if(!x$context) x$B)))
+
+  # Figure out which line each of these elements came from, and what index
+  # in each of those lines they are; we use the recorded lengths in words of
+  # each line to reconstruct this; also record original line length so we
+  # can compute token ratios
+
+  reg_pull <- function(reg, start, end, mismatch) {
+    ind <- mismatch[mismatch %bw% c(start, end)] - start + 1L
+    if(length(ind)) {
+      reg.out <- reg[ind]
+      match.len <- attr(reg, "match.length")[ind]
+    } else {
+      reg.out <- -1L
+      match.len <- -1L
+    }
+    attr(reg.out, "match.length") <- match.len
+    attr(reg.out, "useBytes") <- attr(reg, "useBytes")
+    attr(reg.out, "word.count") <- end - start + 1L
+    reg.out
+  }
+  reg_apply <- function(reg, ends, mismatch) {
+    if(length(ends)) {
+      Map(
+        reg_pull, reg, c(1L, head(ends, -1L) + 1L), ends,
+        MoreArgs=list(mismatch=mismatch)
+      )
+    } else list()
+  }
+  tar.ends <- cumsum(tar.lens)
+  cur.ends <- cumsum(cur.lens)
+  tar.reg.fin <- reg_apply(tar.reg, tar.ends, tar.mism)
+  cur.reg.fin <- reg_apply(cur.reg, cur.ends, cur.mism)
+
+  list(tar=tar.reg.fin, cur=cur.reg.fin, hit.diffs.max=diffs$hit.diffs.max)
+}
 # Apply line colors; returns a list with the A and B vectors colored,
 # note that all hunks will be collapsed.
 #
@@ -218,4 +326,28 @@ diff_color <- function(x, ins.fun, del.fun) {
   B.chr[B.red] <- tail(AB.red, length(B.red))
 
   list(A=A.chr, B=B.chr, A.eq=A.eq, B.eq=B.eq)
+}
+# Add word diff highlighting
+
+word_color <- function(txt, inds, fun) {
+  word.list <- regmatches(txt, inds)
+  word.lens <- vapply(word.list, length, integer(1L))
+
+  # remove leading space before coloring
+  words.u <- unlist(word.list)
+  words.u.trim.ind <- regexpr("\\S.*", words.u)
+  words.u.trim <- regmatches(words.u, words.u.trim.ind)
+
+  # color and re-insert back into space
+  words.c.trim <- fun(words.u.trim)
+  regmatches(words.u, words.u.trim.ind) <- words.c.trim
+
+  # split back into original lines
+  words.res <- vector("list", length(word.list))
+  words.res[!!word.lens] <- split(
+    words.u, rep(seq_along(word.lens), times=word.lens)
+  )
+  words.res[!word.lens] <- list(character(0L))
+  regmatches(txt, inds) <- words.res
+  txt
 }

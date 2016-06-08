@@ -46,8 +46,8 @@ full text of the diff as a character vector, and the active
 modifications to the character output so that it is displayed correctly
 by the pager.  For example, \code{StyleHtml} objects use it to generate
 HTML headers if the \code{Diff} is destined to be displayed in a browser.
-The \code{Pager} object is passed along to check the intended paging
-output.}
+The \code{Pager} object is passed along to provide information about the
+paging device to the function.}
 }
 \value{
 Style S4 object
@@ -81,7 +81,7 @@ parameter is set to \dQuote{auto}.  The following classes are pre-defined:
 Each of these classes has an associated constructor function with the
 same name (see examples).  Objects instantiated from these classes
 may also be used directly as the value for the \code{style} parameter to the
-\code{diff*} methods, which will override the automatic selection process
+\code{diff*} methods. This will override the automatic selection process
 that uses \code{\link{PaletteOfStyles}}.
 
 There are predefined classes for most combinations of
