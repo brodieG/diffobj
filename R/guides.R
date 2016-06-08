@@ -221,11 +221,11 @@ detect_array_guides <- function(txt, dim.n) {
 #' \code{git diff} does because often the column alignment of the guide line is
 #' meaningful.
 #'
-#' Guides are detected by the \code{*GuideLines} methods documented here.
+#' Guides are detected by the \code{guides*} methods documented here.
 #' Each of the \code{diff*} methods (e.g. \code{\link{diffPrint}}) has a
-#' corresponding \code{*GuideLines} method (e.g.
+#' corresponding \code{guides*} method (e.g.
 #' \code{\link{guidesPrint}}), with the exception of \code{\link{diffCsv}}
-#' since that method uses \code{diffPrint} internall.  The \code{*GuideLines}
+#' since that method uses \code{diffPrint} internall.  The \code{guides*}
 #' methods expect an R object as the first parameter and the captured display
 #' representation of the object in a charater vector as the second.  This allows
 #' them to adapt what patterns they are looking for in the character
@@ -243,7 +243,7 @@ detect_array_guides <- function(txt, dim.n) {
 #'
 #' If you have classed objects with special patterns you can define your own
 #' methods for them (see examples), though if your objects are S3 you will need
-#' to use \code{\link{setOldClass}} as the \code{*GuideLines} generics are S4.
+#' to use \code{\link{setOldClass}} as the \code{guides*} generics are S4.
 #'
 #' @aliases guidesStr, guidesChr, guidesDeparse
 #' @export
@@ -344,11 +344,11 @@ setMethod("guidesFile", c("ANY", "character"),
 apply_guides <- function(obj, obj.as.chr, guide_fun) {
   guide <- try(guide_fun(obj, obj.as.chr))
   msg.extra <- paste0(
-    "If you did not define custom `*GuideLines` methods contact maintainer."
+    "If you did not define custom `guides*` methods contact maintainer."
   )
   if(inherits(guide, "try-error"))
     stop(
-      "`*GuideLines` method produced an error when attempting to compute guide ",
+      "`guides*` method produced an error when attempting to compute guide ",
       "lines; ", msg.extra
     )
   if(
@@ -356,7 +356,7 @@ apply_guides <- function(obj, obj.as.chr, guide_fun) {
     !all(guide %in% seq_along(obj.as.chr))
   )
     stop(
-      "`*GuideLines` method must produce an integer vector containing unique ",
+      "`guides*` method must produce an integer vector containing unique ",
       "index values for the `obj.as.chr` vector; ", msg.extra
     )
   guide

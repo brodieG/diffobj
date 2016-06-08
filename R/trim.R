@@ -202,8 +202,18 @@ strip_array_rh <- function(x, dim.names.x) {
   res[inds] <- sub(.pat.mat, "", x[inds])
   res
 }
-#' Trim Method for Printed Objects
+#' Methods to Remove Unsemantic Text Prior to Diff
 #'
+#' Targets portions of text that are unrelated to content that may cause false
+#' positive diffs, such as row index headers for matrices.  For example, if you
+#' insert a row into a matrix, all rows after the insertion will show as
+#' differences because the \code{[1,]} style row headers will be incremented by
+#' one in the object with the row inserted.  In reality, one would expect those
+#' rows to still match the same rows in the object without the insertion.
+#'
+#' By default the \code{\link{diff*}} 
+#' Currently only \code{trimPrint} and \code{trimStr} do anything meaningful.
+#' \code{trimPrint} removes 
 #' @note \code{obj.as.chr} will be post \code{strip_hz_control}
 #' @param obj the object
 #' @param obj.as.chr charcter the \code{print}ed representation of the object
@@ -239,23 +249,9 @@ setMethod(
     trim_sub(obj.as.chr, stripped)
   }
 )
-setGeneric("trimStr",
-  function(obj, obj.as.chr) StandardGeneric("trimStr")
-)
-setMethod(
-  "trimStr", c("ANY", "character"),
-  function(obj, obj.as.chr) {
-    # Remove the stuff we don't want
+#' @export
+#' @rdname trim
 
-    pat <- "^ (?: \\.\\.)*\\$ "
-    stripped <- gsub(pat, "", obj.as.chr, perl=TRUE)
-
-    # Figure out the indices that correspond to what we want, knowing that all
-    # removals should have occured at front of string
-
-    trim_sub(obj.as.chr, stripped)
-  }
-)
 setGeneric("trimStr",
   function(obj, obj.as.chr) StandardGeneric("trimStr")
 )
