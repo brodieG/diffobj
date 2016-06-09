@@ -316,6 +316,35 @@ line_diff <- function(
     word.diffs$tar[tar.rh] <- atom.w.d$tar
     word.diffs$cur[cur.rh] <- atom.w.d$cur
     warn <- !atom.w.d$hit.diffs.max
+
+    # Need to group each row into diff and non-diff hunks, and we then need to
+    # match up the diff hunks between target and current.  A row containing
+    # word diffs will be matched to rows that contain matching words adjacent
+    # to the diffs.  The indeces of those adjacent words are contained in the
+    # tar/cur.ind entries in `atom.w.d`.  Start by generating the indices
+    # contained in each row
+
+    get_line_inds <- function(diffs) {
+      ref.lens <- vapply(diffs, "attr", integer(1L), "word.count")
+      ref.ends <- cumsum(ref.lens)
+      ref.starts <- c(1L, head(ref.ends, -1L))
+      cbind(ref.starts, ref.ends)
+      line.inds <- Map(seq, from=ref.starts, to=ref.ends, by=1L)
+    }
+    tar.l.ind <- get_line_inds(word.diffs$tar)
+    cur.l.ind <- get_line_inds(word.diffs$cur)
+
+    tar.w.d <- vapply(word.diffs$tar, "[", integer(1L)) != -1L
+    cur.w.d <- vapply(word.diffs$cur, "[", integer(1L)) != -1L
+
+    # Split into groups w/diffs
+
+    tar.d.g <- cumsum(c(tar.w.d[[1L]], diff(!!tar.w.d)))
+    cur.d.g <- cumsum(c(cur.w.d[[1L]], diff(!!cur.w.d)))
+
+    tar.d.i.g <- split(word.diff$tar.ind[tar.w.d], tar.d.g[tar.w.d])
+    cur.d.i.g <- split(word.diff$cur.ind[cur.w.d], cur.d.g[cur.w.d])
+
   }
   # Actual line diff
 

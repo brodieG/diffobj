@@ -215,6 +215,9 @@ diff_word2 <- function(
   tar.unsplit <- sub("^\\s*", "", tar.unsplit)
   cur.unsplit <- sub("^\\s*", "", cur.unsplit)
 
+  # Run the word diff as a line diff configured in a manner compatible for the
+  # word diff
+
   etc@line.limit <- etc@hunk.limit <- etc@context <- -1L
   etc@mode <- "context"
 
@@ -246,20 +249,64 @@ diff_word2 <- function(
     attr(reg.out, "word.count") <- end - start + 1L
     reg.out
   }
-  reg_apply <- function(reg, ends, mismatch) {
+  # Pull indices adjacent to differences; note this one doesn't actually use
+  # the `reg` param
+
+  reg_ind <- function(reg, start, end, mismatch) {
+    rng <- seq(from=start, to=end, by=1L)
+    msm <- mismatch[mismatch %in% rng] - start + 1L
+    if(!length(msm)) integer(0L) else {
+      msm.min <- min(msm)
+      msm.max <- max(msm)
+      rng[!rng %bw% c(msm.min, msm.max)]
+    }
+  }
+  # 
+  # Generate the indices in each row and apply the pulling functions
+
+  reg_apply <- function(reg, ends, mismatch, fun) {
     if(length(ends)) {
       Map(
-        reg_pull, reg, c(1L, head(ends, -1L) + 1L), ends,
+        fun, reg, c(1L, head(ends, -1L) + 1L), ends,
         MoreArgs=list(mismatch=mismatch)
       )
     } else list()
   }
   tar.ends <- cumsum(tar.lens)
   cur.ends <- cumsum(cur.lens)
-  tar.reg.fin <- reg_apply(tar.reg, tar.ends, tar.mism)
-  cur.reg.fin <- reg_apply(cur.reg, cur.ends, cur.mism)
+  tar.reg.fin <- reg_apply(tar.reg, tar.ends, tar.mism, reg_pull)
+  cur.reg.fin <- reg_apply(cur.reg, cur.ends, cur.mism, reg_pull)
+  tar.reg.ind <- reg_apply(1L, tar.ends, tar.mism, reg_ind)
+  cur.reg.ind <- reg_apply(1L, cur.ends, cur.mism, reg_ind)
 
-  list(tar=tar.reg.fin, cur=cur.reg.fin, hit.diffs.max=diffs$hit.diffs.max)
+  # Generate indices for each word; matching words are numbered sequentially
+  # from one up.  Mismatching words are numbered with their mismatch group
+  # number in negative. Since we're running in context mode we should have
+  # indices from both tar and cur
+
+  tar.inds <- integer(length(tar.chr))
+  cur.inds <- integer(length(cur.chr))
+  match.idx <- unlist(lapply(hunks.flat, function(h.a) if(h.a$context) c(A, B)))
+  tar.m.idx <- match.idx[match.idx > 0]
+  cur.m.idx <- match.idx[match.idx < 0]
+  if(length(tar.m.idx) != length(cur.m.idx))
+    stop("Logic Error: match indices should be same length in word diff")
+  tar.inds[tar.m.idx] <- seq_along(which(tar.m.idx))
+  cur.inds[cur.m.idx] <- seq_along(which(cur.m.idx))
+
+  match.count <- 0L
+  for(h.a in hunks.flat) {
+    if(h.a$context) {
+      match.inds <- seq_along(h.a$A) + match.count
+      match.count <- max(match.inds)
+      tar.inds[] <- match.inds
+    }
+
+  }
+  list(
+    tar=tar.reg.fin, cur=cur.reg.fin, tar.ind=tar.reg.ind, cur.ind=cur.reg.ind,
+    hit.diffs.max=diffs$hit.diffs.max
+  )
 }
 # Apply line colors; returns a list with the A and B vectors colored,
 # note that all hunks will be collapsed.
