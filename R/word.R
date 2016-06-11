@@ -32,16 +32,18 @@ find_brackets <- function(x) {
 .reg.r.ident <- "(?:\\.[[:alpha:]]|[[:alpha:]])[[:alnum:]_.]*"
 
 # Helper function when lining up word in a word diff to the lines they came from
-# lines is a list of what lines are in each hunk, cont is a vector of same
-# length as lines denoting whether a particular value in lines is context or
-# diff
+#
+# lines: is a list of what lines are in each hunk,
+# cont: is a logical vector of same length as lines denoting whether a
+#   particular value in lines is context or diff
 
 reassign_lines <- function(lines, cont) {
-  for(i in lines) {
+  h.c <- length(cont)
+  for(i in seq_along(lines)) {
     if(cont[[i]]) {
-      if(hunk.count > i && length(lines[[i]])) {
+      if(h.c > i && length(lines[[i]])) {
         if(
-          hunk.count > i + 1L && length(lines[[i + 2L]]) &&
+          h.c > i + 1L && length(lines[[i + 2L]]) &&
           min(lines[[i + 2L]]) == max(lines[[i]])
         ) {
           # Line spans a diff; assign the line to the diff hunk
@@ -49,7 +51,7 @@ reassign_lines <- function(lines, cont) {
           if(!length(lines[[i + 1L]]))
             lines[[i + 1L]] <- max(lines[[i + 2L]])
           lines[[i]] <- head(lines[[i]], -1L)
-          lines[[i + 2L]] <- tail(lines[[i]], -1L)
+          lines[[i + 2L]] <- tail(lines[[i + 2L]], -1L)
         } else if (
           length(lines[[i + 1L]]) &&
           max(lines[[i]]) == min(lines[[i + 1]])
@@ -64,7 +66,9 @@ reassign_lines <- function(lines, cont) {
 #
 # Used when we're doing a wrapped diff for atomic vectors.
 
-word_to_line_map <- function(hunks, tar.dat, cur.dat, tar.ends, cur.ends) {
+word_to_line_map <- function(
+  hunks, tar.dat, cur.dat, tar.ends, cur.ends, tar.ind, cur.ind
+) {
   find_word_line <- function(h, pos, ends) {
     inds <- c(h$A, h$B)
     inds.lookup <- if(pos) inds[inds > 0] else abs(inds[inds < 0])
@@ -105,9 +109,9 @@ word_to_line_map <- function(hunks, tar.dat, cur.dat, tar.ends, cur.ends) {
       c.len <- length(cur.lines.p[[i]])
       len.diff <- abs(t.len - c.len)
       if(t.len > c.len) {
-        cur.lines.p[[i]] <- pad_cont(cur.lines.p[[i]], t.len, i, hunk.count)
+        cur.lines.p[[i]] <- pad_cont(cur.lines.p[[i]], t.len, i, h.c)
       } else if (t.len < c.len){
-        tar.lines.p[[i]] <- pad_cont(tar.lines.p[[i]], c.len, i, hunk.count)
+        tar.lines.p[[i]] <- pad_cont(tar.lines.p[[i]], c.len, i, h.c)
   } } }
   # Augment the input vectors by the blanks we added; these blanks are
   # represented by NAs in our index vector so should be easy to do
@@ -120,17 +124,36 @@ word_to_line_map <- function(hunks, tar.dat, cur.dat, tar.ends, cur.ends) {
     lines.len <- length(lines.u)
     for(i in names(dat)) {
       i.vec <- dat[[i]]
-      hd <- i.vec[seq_along(i.vec) < min(ind)]
-      tl <- i.vec[seq_along(i.vec) > max(ind)]
-      bod <- vector(typeof(i.vec), length(ind))
-      bod[!is.na(ind)] <- i.vec
+      hd.ind <- seq_along(i.vec) < min(ind)
+      tl.ind <- seq_along(i.vec) > max(ind)
+      hd <- i.vec[hd.ind]
+      tl <- i.vec[tl.ind]
+      bod <- vector(typeof(i.vec), length(lines.u))
+      bod[!is.na(lines.u)] <- i.vec
       if(i == "word.diff") {
-        bod[is.na(ind)] <- list(word.diff.atom)
+        bod[is.na(lines.u)] <- list(word.diff.atom)
       } else if (i == "pad") {
-        bod[is.na(ind)] <- TRUE
-  } } }
+        # warning: this is also used/subverted for augmenting the original
+        # indices so think before you change it
+        bod[is.na(lines.u)] <- TRUE
+      }
+      dat[[i]] <- c(hd, bod, tl)
+    }
+    dat
+  }
   tar.dat <- augment(tar.dat, tar.lines.p, tar.ind)
   cur.dat <- augment(cur.dat, cur.lines.p, cur.ind)
+
+  # Also need to augment the indices so we can re-insert properly; we subvert
+  # the pad logic since that will make sure
+
+  tar.ind.a <-
+    augment(list(pad=!logical(length(tar.ind))), tar.lines.p, tar.ind)
+  tar.ind.a.l <- unname(unlist(tar.ind.a))
+  cur.ind.a <-
+    augment(list(pad=!logical(length(cur.ind))), cur.lines.p, cur.ind)
+  cur.ind.a.l <- unname(unlist(cur.ind.a))
+  browser()
 
   # Generate the final vectors to do the diffs on; these should be unique
   # and matching for the matches, and unique and mismatching for the
@@ -138,20 +161,24 @@ word_to_line_map <- function(hunks, tar.dat, cur.dat, tar.ends, cur.ends) {
 
   tar.nums <- unlist(tar.lines.p)
   cur.nums <- unlist(cur.lines.p)
-  nums <- unique(tar.nums, cur.nums)
-  strings <- make_unique_strings(nums, c(tar.chr, cur.chr))
-  pos.nums <- nums[nums > 0L]
-  if(pos.nums != seq_along(pos.nums))
+
+  pos.nums <- length(unlist(tar.lines.p[h.cont]))
+  if(pos.nums != length(unlist(cur.lines.p[h.cont])))
     stop("Logic Error: pos nums incorrect; contact maintainer")
-  strings.pos <- strings[seq_along(pos.nums)]
-  strings.neg <- tail(strings, -length(pos.nums))
-  if(length(strings.pos) + length(strings.neg) != length(strings))
+  neg.nums <- length(unlist(c(tar.lines.p[!h.cont], cur.lines.p[!h.cont])))
+
+  strings <-
+    make_unique_strings(pos.nums + neg.nums, c(tar.dat$raw, cur.dat$raw))
+  strings.pos <- strings[seq.int(pos.nums)]
+  strings.neg <- tail(strings, neg.nums)
+  if(neg.nums + pos.nums != length(strings))
     stop("Logic Error: num-string maping failed; contact maintainer")
-  tar.dat$comp[tar.ind][tar.nums > 0] <- strings.pos
-  cur.dat$comp[cur.ind][cur.nums > 0] <- strings.pos
-  tar.dat$comp[tar.ind][tar.nums < 0] <-
+
+  tar.dat$comp[tar.ind.a.l][which(tar.nums > 0)] <- strings.pos
+  cur.dat$comp[cur.ind.a.l][which(cur.nums > 0)] <- strings.pos
+  tar.dat$comp[tar.ind.a.l][which(tar.nums < 0)] <-
     head(strings.neg, length(which(tar.nums < 0)))
-  cur.dat$comp[cur.ind][cur.nums < 0] <-
+  cur.dat$comp[cur.ind.a.l][which(cur.nums < 0)] <-
     tail(strings.neg, length(which(cur.nums < 0)))
   list(tar.dat=tar.dat, cur.dat=cur.dat)
 }
@@ -184,7 +211,7 @@ reg_apply <- function(reg, ends, mismatch, fun) {
 # Modify `tar.dat` and `cur.dat` by generating `regmatches` indices for the
 # words that are different
 #
-# If `diff.mode` is "word", then line up lines based on the word matches and
+# If `diff.mode` is "wrap", then line up lines based on the word matches and
 # mismatches contained there-in.  This is done by generating new strings
 # that match or don't depending on the word contents, and then passing those
 # back as the `comp` component of the `tar.dat` and `cur.dat` returned.  The
@@ -204,7 +231,7 @@ diff_word2 <- function(
 ) {
   stopifnot(
     is.TF(match.quotes), is.TF(warn),
-    isTRUE(valid.dat(tar.dat)), isTRUE(valid.dat(cur.dat)) # expensive validation?
+    isTRUE(valid_dat(tar.dat)), isTRUE(valid_dat(cur.dat)) # expensive?
   )
   # Compute the char by char diffs for each line
 
@@ -277,7 +304,7 @@ diff_word2 <- function(
   tar.ends <- cumsum(tar.lens)
   cur.ends <- cumsum(cur.lens)
   tar.dat$word.ind[tar.ind] <- reg_apply(tar.reg, tar.ends, tar.mism, reg_pull)
-  cur.dat$word.ind[tar.ind] <- reg_apply(cur.reg, cur.ends, cur.mism, reg_pull)
+  cur.dat$word.ind[cur.ind] <- reg_apply(cur.reg, cur.ends, cur.mism, reg_pull)
 
   # If in word mode (which is really atomic mode), generate a spoofed
   # `comp` vector that will force the line diff to align in a way that respects
@@ -285,9 +312,10 @@ diff_word2 <- function(
   # huge benefit of allowing us to plug in the wrapped diff into our existing
   # line diff infrastructure
 
-  if(diff.mode == "word") {
-    word.line.mapped <-
-      word_to_line_map(hunks.flat, tar.dat, cur.dat, tar.ends, cur.ends)
+  if(diff.mode == "wrap") {
+    word.line.mapped <- word_to_line_map(
+      hunks.flat, tar.dat, cur.dat, tar.ends, cur.ends, tar.ind, cur.ind
+    )
     tar.dat <- word.line.mapped$tar.dat
     cur.dat <- word.line.mapped$cur.dat
   }
@@ -315,7 +343,7 @@ make_unique_strings <- function(n, invalid) {
   repeat {
     dat[rows, ] <-
       matrix(sample(pool, cols * length(rows), replace=TRUE), ncol=cols)
-    dat.chr <- do.call(paste0, split(dat, row(dat)))
+    dat.chr <- do.call(paste0, split(dat, col(dat)))
     rows <- which(duplicated(dat.chr) | dat.chr %in% invalid)
     if(!length(rows)) break
     if(safety <- safety + 1 > 100)
