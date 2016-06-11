@@ -229,57 +229,6 @@ update_hunk_atom <- function(h.a, new.diff, A.pos, A.neg, B.pos, B.neg, ind) {
 
   h.a
 }
-# Compute diffs in hunks
-
-in_hunk_diffs <- function(hunk.grps, etc, tar.to.wd, cur.to.wd) {
-  if(length(tar.to.wd) || length(cur.to.wd)) {
-    wd.max <- min(head(tar.to.wd, 1L), head(cur.to.wd, 1L), 0L)
-    warn.hit.diffs.max <- TRUE
-
-    # We need to compare the +s to the -s, and then reconstruct back into
-    # the original A and B vectors
-
-    for(i in seq_along(hunk.grps)) {
-      for(j in seq_along(hunk.grps[[i]])) {
-        h.a <- hunk.grps[[i]][[j]]
-        # Skip context or those that have been wrap diffed or non-context
-        # hunks that are being trimmed
-        if(
-          h.a$id < wd.max || h.a$context ||
-          (!length(h.a$A) && !length(h.a$B))
-        ) next
-        # Do word diff on each non-context hunk; real messy because the
-        # stuff from `tar` and `cur` are mixed in in A and B (well, really
-        # only in unified mode) so we have to separate it back out before
-        # we do the diff
-
-        A.pos <- which(h.a$A > 0L)
-        B.pos <- which(h.a$B > 0L)
-        A.neg <- which(h.a$A < 0L)
-        B.neg <- which(h.a$B < 0L)
-
-        A.new <- c(h.a$A.chr[A.pos], h.a$B.chr[B.pos])
-        B.new <- c(h.a$A.chr[A.neg], h.a$B.chr[B.neg])
-
-        new.diff <- diff_word(
-          A.new, B.new, etc=etc, diff.mode="hunk", warn=warn.hit.diffs.max
-        )
-        if(new.diff$hit.diffs.max) warn.hit.diffs.max <- FALSE
-
-        # Update hunk atom with the word diff info; we need to remap from
-        # tar/cur back to A/B
-
-        ind.sub <- c("chr", "eq.chr", "tok.ratio")
-        for(k in seq_along(ind.sub)) {
-          h.a <- update_hunk_atom(
-            h.a, new.diff, A.pos, A.neg, B.pos, B.neg, ind.sub[[k]]
-        ) }
-        # Update the hunk group with the modified hunk atom
-
-        hunk.grps[[i]][[j]] <- h.a
-  } } }
-  hunk.grps
-}
 # Helper functions for 'as.character'
 
 # Get trimmed character ranges; positives are originally from target, and
