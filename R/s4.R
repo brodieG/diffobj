@@ -244,12 +244,12 @@ setClass("DiffDiffs",
   }
 )
 .diff.dat.cols <- c(
-  "raw", "trim", "trim.ind", "eq", "word.ind", "fin", "tok.rat"
+  "raw", "trim", "trim.ind", "comp", "eq", "fin", "pad", "word.ind", "tok.rat"
 )
 # Validate the *.dat slots of the Diff objects
 
 valid_dat <- function(x) {
-  char.cols <- c("raw", "trim", "eq", "fin")
+  char.cols <- c("raw", "trim", "eq", "comp", "fin")
   list.cols <- c("word.ind")
   zerotoone.cols <- "tok.rat"
   mx.cols <- c("trim.ind")
@@ -299,6 +299,8 @@ valid_dat <- function(x) {
       !is.numeric(x$tok.rat) || anyNA(x$tok.rat) || !all(x$to.rat %bw% c(0, 1))
     ) {
       "element `tok.rat` should be numeric with all values between 0 and 1"
+    } else if (!is.logical(x$pad) || anyNA(x$pad)) {
+      "element `pad` should be logical and not contain NAs"
     }
     else TRUE
   }

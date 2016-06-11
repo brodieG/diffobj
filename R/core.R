@@ -301,61 +301,58 @@ line_diff <- function(
 
   word.diff.atom <- -1L
   attr(word.diff.atom, "match.length") <- -1L
-  word.diffs <- list(
-    tar=replicate(length(tar.capt), word.diff.atom, simplify=FALSE),
-    cur=replicate(length(cur.capt), word.diff.atom, simplify=FALSE)
+
+  # Set up data lists with all relevant info; need to pass to diff_word so it
+  # can be modified.
+  # - raw: the original captured text line by line
+  # - trim: as above, but with row meta data removed
+  # - trim.ind: the indices used to re-insert `trim` into `raw`
+  # - comp: the strings that will have the line diffs run on
+  # - eq: the portion of `trim` that is equal post word-diff
+  # - fin: the final character string for display to user
+  # - word.ind: for use by `regmatches<-` to re-insert colored words
+  # - tok.rat: for use by `align_eq` when lining up lines within hunks
+
+  tar.dat <- list(
+    raw=tar.capt, trim=tar.trim, trim.ind=tar.trim.ind, comp=tar.trim,
+    eq=tar.trim, fin=tar.capt, pad=logical(length(tar.capt)),
+    word.ind=replicate(length(tar.capt), word.diff.atom, simplify=FALSE),
+    tok.rat=rep(1, length(tar.capt))
   )
+  cur.dat <- list(
+    raw=cur.capt, trim=cur.trim, trim.ind=cur.trim.ind, comp=cur.trim,
+    eq=cur.trim, fin=cur.capt, pad=logical(length(tar.capt)),
+    word.ind=replicate(length(cur.capt), word.diff.atom, simplify=FALSE),
+    tok.rat=rep(1, length(cur.capt))
+  )
+  # Word diffs in wrapped form is atomic; note this will potentially change
+  # the length of the vectors
+
   if(
     is.atomic(target) && is.atomic(current) &&
     length(tar.rh <- which_atomic_rh(tar.capt)) &&
     length(cur.rh <- which_atomic_rh(cur.capt))
   ) {
-    atom.w.d <- diff_word2(
-      tar.trim[tar.rh], cur.trim[cur.rh], diff.mode="wrap", warn=warn, etc=etc
+    diff.word <- diff_word2(
+      tar.dat, cur.dat, tar.ind=tar.rh, cur.ind=cur.rh,
+      diff.mode="wrap", warn=warn, etc=etc
     )
-    word.diffs$tar[tar.rh] <- atom.w.d$tar
-    word.diffs$cur[cur.rh] <- atom.w.d$cur
-    warn <- !atom.w.d$hit.diffs.max
-
-    # Need to group each row into diff and non-diff hunks, and we then need to
-    # match up the diff hunks between target and current.  A row containing
-    # word diffs will be matched to rows that contain matching words adjacent
-    # to the diffs.  The indeces of those adjacent words are contained in the
-    # tar/cur.ind entries in `atom.w.d`.  Start by generating the indices
-    # contained in each row
-
-    get_line_inds <- function(diffs) {
-      ref.lens <- vapply(diffs, "attr", integer(1L), "word.count")
-      ref.ends <- cumsum(ref.lens)
-      ref.starts <- c(1L, head(ref.ends, -1L))
-      cbind(ref.starts, ref.ends)
-      line.inds <- Map(seq, from=ref.starts, to=ref.ends, by=1L)
-    }
-    tar.l.ind <- get_line_inds(word.diffs$tar)
-    cur.l.ind <- get_line_inds(word.diffs$cur)
-
-    tar.w.d <- vapply(word.diffs$tar, "[", integer(1L)) != -1L
-    cur.w.d <- vapply(word.diffs$cur, "[", integer(1L)) != -1L
-
-    # Split into groups w/diffs
-
-    tar.d.g <- cumsum(c(tar.w.d[[1L]], diff(!!tar.w.d)))
-    cur.d.g <- cumsum(c(cur.w.d[[1L]], diff(!!cur.w.d)))
-
-    tar.d.i.g <- split(word.diff$tar.ind[tar.w.d], tar.d.g[tar.w.d])
-    cur.d.i.g <- split(word.diff$cur.ind[cur.w.d], cur.d.g[cur.w.d])
-
+    warn <- !diff.word$hit.diffs.max
+    tar.dat <- diff.word$tar.dat
+    cur.dat <- diff.word$cur.dat
   }
   # Actual line diff
 
-  diffs <- char_diff(tar.trim, cur.trim, etc=etc, diff.mode="line", warn=warn)
+  diffs <- char_diff(
+    tar.dat$comp, cur.dat$comp, etc=etc, diff.mode="line", warn=warn
+  )
   warn <- !diffs$hit.diffs.max
 
   # Word diffs on hunks; check first which lines already have diffs and identify
   # the diff hunks that don't contain any of those lines
 
-  tar.l.w.d <- which(vapply(word.diffs$tar, "[", integer(1L), 1L) != -1L)
-  cur.l.w.d <- which(vapply(word.diffs$cur, "[", integer(1L), 1L) != -1L)
+  tar.l.w.d <- which(vapply(tar.dat$word.ind, "[", integer(1L), 1L) != -1L)
+  cur.l.w.d <- which(vapply(cur.dat$word.ind, "[", integer(1L), 1L) != -1L)
   all.l.w.d <- c(tar.l.w.d, -cur.l.w.d)
 
   hunks.flat <- diffs$hunks
@@ -365,7 +362,8 @@ line_diff <- function(
     logical(1L)
   )
   # For each of those hunks, run the word diffs and store the results in the
-  # word.diffs list
+  # word.diffs list; bad part here is that we keep overwriting the overall
+  # diff data for each hunk, which might be slow
 
   for(i in which(hunks.w.o.w.diff)) {
     h.a <- hunks.flat[[i]]
@@ -373,12 +371,12 @@ line_diff <- function(
     h.a.tar.ind <- h.a.ind[h.a.ind > 0]
     h.a.cur.ind <- abs(h.a.ind[h.a.ind < 0])
     h.a.w.d <- diff_word2(
-      tar.trim[h.a.tar.ind], cur.trim[h.a.cur.ind], diff.mode="hunk", warn=warn,
+      tar.dat, cur.dat, h.a.tar.ind, h.a.cur.ind, diff.mode="hunk", warn=warn,
       etc=etc
     )
+    tar.dat <- h.a.w.d$tar.dat
+    cur.dat <- h.a.w.d$cur.dat
     warn <- !h.a.w.d$hit.diffs.max
-    word.diffs$tar[h.a.tar.ind] <- h.a.w.d$tar
-    word.diffs$cur[h.a.cur.ind] <- h.a.w.d$cur
   }
   # Compute the token ratios
 
@@ -389,28 +387,19 @@ line_diff <- function(
       else max(0, (wc - length(y)) / wc),
     numeric(1L)
   )
-  tar.tok.ratio <- tok_ratio_compute(word.diffs$tar)
-  cur.tok.ratio <- tok_ratio_compute(word.diffs$cur)
+  tar.dat$tok.rat <- tok_ratio_compute(tar.dat$word.ind)
+  cur.dat$tok.rat <- tok_ratio_compute(cur.dat$word.ind)
+  tar.dat$eq <- `regmatches<-`(tar.dat$trim, tar.dat$word.ind, value="")
+  cur.dat$eq <- `regmatches<-`(cur.dat$trim, cur.dat$word.ind, value="")
 
   # Instantiate result
 
   hunk.grps <- group_hunks(
-    hunks.flat, etc=etc, tar.capt=tar.capt, cur.capt=cur.capt
+    hunks.flat, etc=etc, tar.capt=tar.dat$raw, cur.capt=cur.dat$raw
   )
   new(
     "Diff", diffs=hunk.grps, target=target, current=current,
-    hit.diffs.max=!warn,
-    tar.dat=list(
-      raw=tar.capt, trim=tar.trim, trim.ind=tar.trim.ind,
-      eq=`regmatches<-`(tar.trim, word.diffs$tar, value=""),
-      word.ind=word.diffs$tar, fin=tar.capt, tok.rat=tar.tok.ratio
-    ),
-    cur.dat=list(
-      raw=cur.capt, trim=cur.trim, trim.ind=cur.trim.ind,
-      eq=`regmatches<-`(cur.trim, word.diffs$cur, value=""),
-      word.ind=word.diffs$cur, fin=cur.capt, tok.rat=cur.tok.ratio
-    ),
-    etc=etc
+    hit.diffs.max=!warn, tar.dat=tar.dat, cur.dat=cur.dat, etc=etc
   )
 }
 # Helper function encodes matches within mismatches so that we can later word
