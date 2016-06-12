@@ -61,12 +61,17 @@ hunkl <- function(col.1=NULL, col.2=NULL, type.1=NULL, type.2=NULL)
 # are not the same and end up adding NAs.  Padding is really only meaningful
 # for side by side mode so is removed in the other modes
 
+dat_wo_pad <- function(x, ind) unlist(x[[ind]])[!x[[sprintf("%s.pad", ind)]]]
 fin_fun_context <- function(dat) {
-  dat_wo_pad <- function(x, ind) x[[ind]][!x[[sprintf("%s.pad", ind)]]]
   A.dat <- lapply(dat, dat_wo_pad, "A")
   B.dat <- lapply(dat, dat_wo_pad, "B")
+
   A.lens <- vapply(A.dat, function(x) length(unlist(x)), integer(1L))
   B.lens <- vapply(B.dat, function(x) length(unlist(x)), integer(1L))
+
+  A.ul <- unlist(A.dat)
+  B.ul <- unlist(B.dat)
+
   context <- vapply(dat, "[[", logical(1L), "context")
   guide <- vapply(dat, "[[", logical(1L), "guide")
   A.ctx <- rep(context, A.lens)
@@ -75,9 +80,6 @@ fin_fun_context <- function(dat) {
   B.guide <- rep(guide, B.lens)
   A.types <- ifelse(A.guide, "guide", ifelse(A.ctx, "match", "delete"))
   B.types <- ifelse(B.guide, "guide", ifelse(B.ctx, "match", "insert"))
-
-  A.ul <- unlist(A.dat)
-  B.ul <- unlist(B.dat)
 
   # return in list so compatible with post `lapply` return values for other
   # finalization functions
@@ -90,16 +92,14 @@ fin_fun_context <- function(dat) {
   )
 }
 fin_fun_unified <- function(A, B, A.pad, B.pad, context, guide) {
-  A <- A[!A.pad]
-  B <- B[!B.pad]
+  A <- unlist(A)[!A.pad]
+  B <- unlist(B)[!B.pad]
+  A.len <- length(A)
+  B.len <- length(B)
   ord <- order(c(seq_along(A), seq_along(B)))
   types <- c(
-    lapply(A, function(x)
-      rep(if(guide) "guide" else if(context) "match" else "delete", length(x))
-    ),
-    lapply(B, function(x)
-      rep(if(guide) "guide" else if(context) "match" else "insert", length(x))
-    )
+    rep(if(guide) "guide" else if(context) "match" else "delete", A.len),
+    rep(if(guide) "guide" else if(context) "match" else "insert", B.len)
   )
   hunkl(
     col.1=unlist(c(A, B)[ord]),
