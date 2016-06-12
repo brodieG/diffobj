@@ -99,14 +99,15 @@ word_to_line_map <- function(
   # adjust the original character vectors so they have those blanks show up.
 
   pad_cont <- function(cont, len, i, max.i) {
-    len.diff <- len - length(cont)
+    len.c <- length(cont)
+    len.diff <- len - len.c
     NAs <- rep(NA, len.diff)
-    if(i == 1L || len < 2L)     # spaces in front
+    if(i == 1L && len.c < 2L)           # spaces in front
       c(NAs, cont)
-    else if(i == max.i)         # spaces in end
+    else if(i == max.i || len.c < 2L)   # spaces in end
       c(cont, NAs)
     else {                      # spaces in middle
-      c(head(cont, floor(len / 2)), NAs, tail(cont, -floor(len / 2)))
+      c(head(cont, floor(len.c / 2)), NAs, tail(cont, -floor(len.c / 2)))
   } }
   h.c <- length(hunks)
   for(i in seq.int(h.c)) {
