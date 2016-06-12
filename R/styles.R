@@ -116,6 +116,7 @@ StyleFunsAnsi <- setClass(
     gutter.insert=crayon::green, gutter.insert.ctd=crayon::green,
     gutter.delete=crayon::red, gutter.delete.ctd=crayon::red,
     gutter.guide=crayon::silver, gutter.guide.ctd=crayon::silver,
+    gutter.fill=crayon::silver, gutter.fill.ctd=crayon::silver,
     header=crayon::cyan,
     meta=crayon::silver,
     line.guide=crayon::silver,
@@ -165,7 +166,7 @@ StyleText <- setClass(
     gutter.delete="<", gutter.delete.ctd=":",
     gutter.match=" ", gutter.match.ctd=" ",
     gutter.guide="~", gutter.guide.ctd=":",
-    gutter.fill=" ", gutter.fill.ctd=" ",
+    gutter.fill=".", gutter.fill.ctd=".",
     gutter.pad=" ", context.sep="~~~~~",
     pad.col=" "
   ),
@@ -411,7 +412,7 @@ StyleAnsi256LightRgb <- setClass(
       text.insert=crayon::make_style(rgb(4, 5, 4, maxColorValue=5), bg=TRUE),
       text.delete=crayon::make_style(rgb(5, 4, 4, maxColorValue=5), bg=TRUE),
       text.fill=crayon::make_style(
-        rgb(22, 22, 22, maxColorValue=23), bg=TRUE, grey=TRUE
+        rgb(20, 20, 20, maxColorValue=23), bg=TRUE, grey=TRUE
       ),
       word.insert=crayon::make_style(rgb(2, 4, 2, maxColorValue=5), bg=TRUE),
       word.delete=crayon::make_style(rgb(4, 2, 2, maxColorValue=5), bg=TRUE),
@@ -432,7 +433,7 @@ StyleAnsi256LightYb <- setClass(
       text.insert=crayon::make_style(rgb(3, 3, 5, maxColorValue=5), bg=TRUE),
       text.delete=crayon::make_style(rgb(4, 4, 2, maxColorValue=5), bg=TRUE),
       text.fill=crayon::make_style(
-        rgb(22, 22, 22, maxColorValue=23), bg=TRUE, grey=TRUE
+        rgb(20, 20, 20, maxColorValue=23), bg=TRUE, grey=TRUE
       ),
       word.insert=crayon::make_style(rgb(2, 2, 4, maxColorValue=5), bg=TRUE),
       word.delete=crayon::make_style(rgb(3, 3, 1, maxColorValue=5), bg=TRUE),

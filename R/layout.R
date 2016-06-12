@@ -48,7 +48,7 @@ render_gutters <- function(types, lens, lens.max, etc) {
               rep(
                 slot(gutter.dat, paste0(type, ".", "ctd")), max(len - 1L, 0L)
               ),
-              rep(slot(gutter.dat, "match"), max(len.max - len, 0L))
+              rep(slot(gutter.dat, "fill"), max(len.max - len, 0L))
             )
           } else character(len)
         },

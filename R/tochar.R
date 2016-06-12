@@ -120,6 +120,10 @@ fin_fun_sidebyside <- function(A, B, A.fill, B.fill, context, guide) {
   }
   A.ul <- unlist(A)
   B.ul <- unlist(B)
+  A.fill.u <- B.fill.u <- !logical(length(A.ul))
+  A.fill.u[!is.na(A.ul)] <- A.fill
+  B.fill.u[!is.na(B.ul)] <- B.fill
+
   A.len <- length(A.ul)
   B.len <- length(B.ul)
   hunkl(
@@ -128,13 +132,13 @@ fin_fun_sidebyside <- function(A, B, A.fill, B.fill, context, guide) {
     type.1=chrt(
       ifelse(
         rep(guide, A.len), "guide",
-        ifelse(A.fill | is.na(A.ul), "fill",
+        ifelse(A.fill.u, "fill",
           ifelse(context, "match", "delete")
     ) ) ),
     type.2=chrt(
       ifelse(
         rep(guide, B.len), "guide",
-        ifelse(B.fill | is.na(B.ul), "fill",
+        ifelse(B.fill.u, "fill",
           ifelse(context, "match", "insert")
   ) ) ) )
 }
