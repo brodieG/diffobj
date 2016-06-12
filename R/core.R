@@ -299,9 +299,6 @@ line_diff <- function(
   # matches, finally, update with in-hunk word diffs for hunks that don't have
   # any existing word diffs:
 
-  word.diff.atom <- -1L
-  attr(word.diff.atom, "match.length") <- -1L
-
   # Set up data lists with all relevant info; need to pass to diff_word so it
   # can be modified.
   # - raw: the original captured text line by line
@@ -317,14 +314,14 @@ line_diff <- function(
     raw=tar.capt, trim=tar.trim,
     trim.ind.start=tar.trim.ind[, 1L], trim.ind.end=tar.trim.ind[, 2L],
     comp=tar.trim, eq=tar.trim, fin=tar.capt, pad=logical(length(tar.capt)),
-    word.ind=replicate(length(tar.capt), word.diff.atom, simplify=FALSE),
+    word.ind=replicate(length(tar.capt), .word.diff.atom, simplify=FALSE),
     tok.rat=rep(1, length(tar.capt))
   )
   cur.dat <- list(
     raw=cur.capt, trim=cur.trim,
     trim.ind.start=cur.trim.ind[, 1L], trim.ind.end=cur.trim.ind[, 2L],
     comp=cur.trim, eq=cur.trim, fin=cur.capt, pad=logical(length(cur.capt)),
-    word.ind=replicate(length(cur.capt), word.diff.atom, simplify=FALSE),
+    word.ind=replicate(length(cur.capt), .word.diff.atom, simplify=FALSE),
     tok.rat=rep(1, length(cur.capt))
   )
   # Word diffs in wrapped form is atomic; note this will potentially change

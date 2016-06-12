@@ -1,3 +1,9 @@
+# Used to initialize the word difference index lists; represents a non matching
+# result for use with `regmatches`
+
+.word.diff.atom <- -1L
+attr(.word.diff.atom, "match.length") <- -1L
+
 # Try to use fancier word matching with vectors and matrices
 
 .brack.pat <- "^ *\\[\\d+\\]"
@@ -116,9 +122,6 @@ word_to_line_map <- function(
   # Augment the input vectors by the blanks we added; these blanks are
   # represented by NAs in our index vector so should be easy to do
 
-  word.diff.atom <- -1L
-  attr(word.diff.atom, "match.length") <- -1L
-
   augment <- function(dat, lines, ind) {
     lines.u <- unlist(lines)
     lines.len <- length(lines.u)
@@ -130,8 +133,8 @@ word_to_line_map <- function(
       tl <- i.vec[tl.ind]
       bod <- vector(typeof(i.vec), length(lines.u))
       bod[!is.na(lines.u)] <- i.vec
-      if(i == "word.diff") {
-        bod[is.na(lines.u)] <- list(word.diff.atom)
+      if(i == "word.ind") {
+        bod[is.na(lines.u)] <- list(.word.diff.atom)
       } else if (i == "pad") {
         # warning: this is also used/subverted for augmenting the original
         # indices so think before you change it
@@ -153,19 +156,19 @@ word_to_line_map <- function(
   cur.ind.a <-
     augment(list(pad=!logical(length(cur.ind))), cur.lines.p, cur.ind)
   cur.ind.a.l <- unname(unlist(cur.ind.a))
-  browser()
 
   # Generate the final vectors to do the diffs on; these should be unique
   # and matching for the matches, and unique and mismatching for the
   # mismatches
 
-  tar.nums <- unlist(tar.lines.p)
-  cur.nums <- unlist(cur.lines.p)
+  hunk_match <- function(i, l) rep(h.cont[i], length(l[[i]]))
+  tar.match <- unlist(lapply(seq_along(h.cont), hunk_match, l=tar.lines.p))
+  cur.match <- unlist(lapply(seq_along(h.cont), hunk_match, l=cur.lines.p))
 
-  pos.nums <- length(unlist(tar.lines.p[h.cont]))
+  pos.nums <- sum(tar.match)
   if(pos.nums != length(unlist(cur.lines.p[h.cont])))
     stop("Logic Error: pos nums incorrect; contact maintainer")
-  neg.nums <- length(unlist(c(tar.lines.p[!h.cont], cur.lines.p[!h.cont])))
+  neg.nums <- sum(!tar.match, !cur.match)
 
   strings <-
     make_unique_strings(pos.nums + neg.nums, c(tar.dat$raw, cur.dat$raw))
@@ -174,12 +177,10 @@ word_to_line_map <- function(
   if(neg.nums + pos.nums != length(strings))
     stop("Logic Error: num-string maping failed; contact maintainer")
 
-  tar.dat$comp[tar.ind.a.l][which(tar.nums > 0)] <- strings.pos
-  cur.dat$comp[cur.ind.a.l][which(cur.nums > 0)] <- strings.pos
-  tar.dat$comp[tar.ind.a.l][which(tar.nums < 0)] <-
-    head(strings.neg, length(which(tar.nums < 0)))
-  cur.dat$comp[cur.ind.a.l][which(cur.nums < 0)] <-
-    tail(strings.neg, length(which(cur.nums < 0)))
+  tar.dat$comp[tar.ind.a.l][tar.match] <- strings.pos
+  cur.dat$comp[cur.ind.a.l][cur.match] <- strings.pos
+  tar.dat$comp[tar.ind.a.l][!tar.match] <- head(strings.neg, sum(!tar.match))
+  cur.dat$comp[cur.ind.a.l][!cur.match] <- tail(strings.neg, sum(!cur.match))
   list(tar.dat=tar.dat, cur.dat=cur.dat)
 }
 # Pull out mismatching words from the word regexec; helper functions
