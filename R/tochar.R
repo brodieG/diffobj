@@ -527,7 +527,9 @@ setMethod("as.character", "Diff",
     } else pre.render.w
 
     # Apply text level styles; make sure that all types are defined here
-    # otherwise you'll get lines missing in output.
+    # otherwise you'll get lines missing in output; note that fill lines were
+    # represented by NAs originally and we indentify them within each aligned
+    # group with `lines.na`
 
     es <- x@etc@style
     funs.ts <- list(
@@ -536,13 +538,14 @@ setMethod("as.character", "Diff",
       match=function(x) es@funs@text(es@funs@text.match(x)),
       guide=function(x) es@funs@text(es@funs@text.guide(x)),
       fill=function(x) es@funs@text(es@funs@text.fill(x)),
-      header=es@funs@header,
-      context.sep=function(x) es@funs@context.sep(es@text@context.sep)
+      header=es@funs@header
     )
     pre.render.s <- Map(
       function(dat, type, l.na) {
         res <- vector("list", length(dat))
-        res[type == "context.sep"] <- list(es@funs@context.sep)
+        res[type == "context.sep"] <- list(
+          es@funs@context.sep(es@text@context.sep)
+        )
         for(i in names(funs.ts))  # really need to loop through all?
           res[type == i] <- Map(
             function(y, l.na.i) {
