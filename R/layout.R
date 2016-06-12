@@ -65,27 +65,28 @@ render_col <- function(gutter, pad, col, type, etc) {
   col.txt <- paste0(
     gutt.ul, ifelse(nchar(gutt.ul), unlist(pad), ""), unlist(col)
   )
+  type.ul <- unlist(type)
   es <- etc@style@funs
 
   # line formats
 
-  col.txt[type == "banner.insert"] <-
-    es@banner(es@banner.insert(col.txt[type == "banner.insert"]))
-  col.txt[type == "banner.delete"] <-
-    es@banner(es@banner.delete(col.txt[type == "banner.delete"]))
-  col.txt[type == "insert"] <-
-    es@line(es@line.insert(col.txt[type == "insert"]))
-  col.txt[type == "delete"] <-
-    es@line(es@line.delete(col.txt[type == "delete"]))
-  col.txt[type == "match"] <-
-    es@line(es@line.match(col.txt[type == "match"]))
-  col.txt[type == "guide"] <-
-    es@line(es@line.guide(col.txt[type == "guide"]))
-  col.txt[type == "pad"] <-
-    es@line(es@line.guide(col.txt[type == "pad"]))
-  col.txt[type == "context.sep"] <-
-    es@line(es@context.sep(col.txt[type == "context.sep"]))
-  col.txt[type == "header"] <- es@line(col.txt[type == "header"])
+  col.txt[type.ul == "banner.insert"] <-
+    es@banner(es@banner.insert(col.txt[type.ul == "banner.insert"]))
+  col.txt[type.ul == "banner.delete"] <-
+    es@banner(es@banner.delete(col.txt[type.ul == "banner.delete"]))
+  col.txt[type.ul == "insert"] <-
+    es@line(es@line.insert(col.txt[type.ul == "insert"]))
+  col.txt[type.ul == "delete"] <-
+    es@line(es@line.delete(col.txt[type.ul == "delete"]))
+  col.txt[type.ul == "match"] <-
+    es@line(es@line.match(col.txt[type.ul == "match"]))
+  col.txt[type.ul == "guide"] <-
+    es@line(es@line.guide(col.txt[type.ul == "guide"]))
+  col.txt[type.ul == "fill"] <-
+    es@line(es@line.fill(col.txt[type.ul == "fill"]))
+  col.txt[type.ul == "context.sep"] <-
+    es@line(es@context.sep(col.txt[type.ul == "context.sep"]))
+  col.txt[type.ul == "header"] <- es@line(col.txt[type.ul == "header"])
   col.txt
 }
 render_cols <- function(cols, gutters, pads, types, etc) {
