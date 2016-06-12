@@ -41,7 +41,7 @@ chrt <- function(...)
     c(...),
     levels=c(
       "insert", "delete", "match", "header", "context.sep",
-      "banner.insert", "banner.delete", "guide"
+      "banner.insert", "banner.delete", "guide", "pad"
     )
   )
 hunkl <- function(col.1=NULL, col.2=NULL, type.1=NULL, type.2=NULL)
@@ -55,11 +55,16 @@ hunkl <- function(col.1=NULL, col.2=NULL, type.1=NULL, type.2=NULL)
 
 # finalization functions take aligned data and juxtapose it according to
 # selected display mode.  Note that _context must operate on all the hunks
-# in a hunk group, whereas the other two operate on each hunk atom
+# in a hunk group, whereas the other two operate on each hunk atom.  Padding
+# is identified in two forms: as actual A.pad and B.pad values when there
+# was a wrapped diff, and in side by side mode when the lengths of A and B
+# are not the same and end up adding NAs.  Padding is really only meaningful
+# for side by side mode so is removed in the other modes
 
 fin_fun_context <- function(dat) {
-  A.dat <- lapply(dat, "[[", "A")
-  B.dat <- lapply(dat, "[[", "B")
+  dat_wo_pad <- function(x, ind) x[[ind]][!x[[sprintf("%s.pad", ind)]]]
+  A.dat <- lapply(dat, dat_wo_pad, "A")
+  B.dat <- lapply(dat, dat_wo_pad, "B")
   A.lens <- vapply(A.dat, function(x) length(unlist(x)), integer(1L))
   B.lens <- vapply(B.dat, function(x) length(unlist(x)), integer(1L))
   context <- vapply(dat, "[[", logical(1L), "context")
@@ -84,7 +89,9 @@ fin_fun_context <- function(dat) {
     )
   )
 }
-fin_fun_unified <- function(A, B, context, guide) {
+fin_fun_unified <- function(A, B, A.pad, B.pad, context, guide) {
+  A <- A[!A.pad]
+  B <- B[!B.pad]
   ord <- order(c(seq_along(A), seq_along(B)))
   types <- c(
     lapply(A, function(x)
@@ -99,7 +106,7 @@ fin_fun_unified <- function(A, B, context, guide) {
     type.1=chrt(unlist(types[ord]))
   )
 }
-fin_fun_sidebyside <- function(A, B, context, guide) {
+fin_fun_sidebyside <- function(A, B, A.pad, B.pad, context, guide) {
   for(i in seq_along(A)) {
     A.ch <- A[[i]]
     B.ch <- B[[i]]
@@ -120,14 +127,16 @@ fin_fun_sidebyside <- function(A, B, context, guide) {
     col.2=ifelse(is.na(B.ul), "", B.ul),
     type.1=chrt(
       ifelse(
-        rep(guide, A.len),  "guide",
-        ifelse(context | is.na(A.ul), "match", "delete")
-    ) ),
+        rep(guide, A.len), "guide",
+        ifelse(A.pad | is.na(A.ul), "pad",
+          ifelse(context, "match", "delete")
+    ) ) ),
     type.2=chrt(
       ifelse(
         rep(guide, B.len), "guide",
-        ifelse(context | is.na(B.ul), "match", "insert")
-  ) ) )
+        ifelse(B.pad | is.na(B.ul), "pad",
+          ifelse(context, "match", "insert")
+  ) ) ) )
 }
 # Convert a hunk group into text representation
 
@@ -155,7 +164,10 @@ hunk_atom_as_char <- function(h.a, x) {
   # each diff style has a different finalization function
 
   dat.align <- align_eq(A.ind, B.ind, x=x, context=h.a$context)
-  list(A=dat.align$A, B=dat.align$B, context=h.a$context, guide=h.a$guide)
+  list(
+    A=dat.align$A, B=dat.align$B, A.pad=dat.align$A.pad, B.pad=dat.align$B.pad,
+    context=h.a$context, guide=h.a$guide
+  )
 }
 hunk_as_char <- function(h.g, ranges.orig, x) {
   stopifnot(is(x, "Diff"))
@@ -485,7 +497,7 @@ setMethod("as.character", "Diff",
     pre.render.w.p <- if(s@pad) {
       Map(
         function(col, type) {
-          diff.line <- type %in% c("insert", "delete", "match", "guide")
+          diff.line <- type %in% c("insert", "delete", "match", "guide", "pad")
           col[diff.line] <- lapply(col[diff.line], rpad, x@etc@text.width)
           col[!diff.line] <- lapply(col[!diff.line], rpad, x@etc@line.width)
           col
@@ -503,6 +515,7 @@ setMethod("as.character", "Diff",
       delete=function(x) es@funs@text(es@funs@text.delete(x)),
       match=function(x) es@funs@text(es@funs@text.match(x)),
       guide=function(x) es@funs@text(es@funs@text.guide(x)),
+      pad=function(x) es@funs@text(es@funs@text.guide(x)),
       header=es@funs@header,
       context.sep=function(x) es@funs@context.sep(es@text@context.sep)
     )

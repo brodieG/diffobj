@@ -152,7 +152,7 @@ StyleText <- setClass(
     gutter.delete="character", gutter.delete.ctd="character",
     gutter.match="character", gutter.match.ctd="character",
     gutter.guide="character", gutter.guide.ctd="character",
-    gutter.pad="character",
+    gutter.pad="character", gutter.pad.ctd="character",
     context.sep="character",
     pad.col="character"
   ),
@@ -161,7 +161,7 @@ StyleText <- setClass(
     gutter.delete="<", gutter.delete.ctd=":",
     gutter.match=" ", gutter.match.ctd=" ",
     gutter.guide="~", gutter.guide.ctd=":",
-    gutter.pad=" ",
+    gutter.pad=" ", gutter.pad.ctd=" ",
     context.sep="~~~~~",
     pad.col=" "
   ),

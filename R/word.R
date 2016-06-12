@@ -55,7 +55,7 @@ reassign_lines <- function(lines, cont) {
           # Line spans a diff; assign the line to the diff hunk
 
           if(!length(lines[[i + 1L]]))
-            lines[[i + 1L]] <- max(lines[[i + 2L]])
+            lines[[i + 1L]] <- min(lines[[i + 2L]])
           lines[[i]] <- head(lines[[i]], -1L)
           lines[[i + 2L]] <- tail(lines[[i + 2L]], -1L)
         } else if (
@@ -65,7 +65,17 @@ reassign_lines <- function(lines, cont) {
           # Line shared between context and next diff
 
           lines[[i]] <- head(lines[[i]], -1L)
-  } } } }
+      } } 
+    } else if(
+      h.c > i && length(lines[[i]]) && length(lines[[i + 1]]) &&
+      max(lines[[i]]) == min(lines[[i + 1L]])
+    ) {
+      # Non context hunk; handle case where non-context and next hunk overlap,
+      # but prior context hunk doesn't
+
+      lines[[i + 1L]] <- tail(lines[[i + 1L]], -1L)
+    }
+  }
   lines
 }
 # Helper Function for Mapping Word Diffs to Lines

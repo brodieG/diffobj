@@ -116,7 +116,7 @@ setClass("Gutter",
     delete="character", delete.ctd="character",
     match="character", match.ctd="character",
     guide="character", guide.ctd="character",
-    pad="character",
+    pad="character", pad.ctd="character",
     width="integer"
   )
 )

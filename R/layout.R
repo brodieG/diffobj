@@ -39,10 +39,12 @@ render_gutters <- function(types, lens, lens.max, etc) {
     function(dat, lens, lens.max) {
       Map(
         function(type, len, len.max) {
-          if(type %in% c("insert", "delete", "match", "guide")) {
+          if(type %in% c("insert", "delete", "match", "guide", "pad")) {
             c(
               if(len) slot(gutter.dat, as.character(type)),
-              rep(slot(gutter.dat, paste0(type, ".", "ctd")), max(len - 1L, 0L)),
+              rep(
+                slot(gutter.dat, paste0(type, ".", "ctd")), max(len - 1L, 0L)
+              ),
               rep(slot(gutter.dat, "match"), max(len.max - len, 0L))
             )
           } else character(len)
@@ -77,6 +79,8 @@ render_col <- function(gutter, pad, col, type, etc) {
     es@line(es@line.match(col.txt[type.r == "match"]))
   col.txt[type.r == "guide"] <-
     es@line(es@line.guide(col.txt[type.r == "guide"]))
+  col.txt[type.r == "pad"] <-
+    es@line(es@line.guide(col.txt[type.r == "pad"]))
   col.txt[type.r == "context.sep"] <-
     es@line(es@context.sep(col.txt[type.r == "context.sep"]))
   col.txt[type.r == "header"] <- es@line(col.txt[type.r == "header"])
