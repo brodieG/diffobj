@@ -410,6 +410,9 @@ StyleAnsi256LightRgb <- setClass(
     funs=StyleFunsAnsi(
       text.insert=crayon::make_style(rgb(4, 5, 4, maxColorValue=5), bg=TRUE),
       text.delete=crayon::make_style(rgb(5, 4, 4, maxColorValue=5), bg=TRUE),
+      text.fill=crayon::make_style(
+        rgb(22, 22, 22, maxColorValue=23), bg=TRUE, grey=TRUE
+      ),
       word.insert=crayon::make_style(rgb(2, 4, 2, maxColorValue=5), bg=TRUE),
       word.delete=crayon::make_style(rgb(4, 2, 2, maxColorValue=5), bg=TRUE),
       gutter.insert=crayon::make_style(rgb(0, 3, 0, maxColorValue=5)),
@@ -428,6 +431,9 @@ StyleAnsi256LightYb <- setClass(
     funs=StyleFunsAnsi(
       text.insert=crayon::make_style(rgb(3, 3, 5, maxColorValue=5), bg=TRUE),
       text.delete=crayon::make_style(rgb(4, 4, 2, maxColorValue=5), bg=TRUE),
+      text.fill=crayon::make_style(
+        rgb(22, 22, 22, maxColorValue=23), bg=TRUE, grey=TRUE
+      ),
       word.insert=crayon::make_style(rgb(2, 2, 4, maxColorValue=5), bg=TRUE),
       word.delete=crayon::make_style(rgb(3, 3, 1, maxColorValue=5), bg=TRUE),
       gutter.insert=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),
@@ -446,7 +452,9 @@ StyleAnsi256DarkRgb <- setClass(
     funs=StyleFunsAnsi(
       text.insert=crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE),
       text.delete=crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE),
-      text.fill=crayon::make_style(rgb(1, 1, 1, maxColorValue=5), bg=TRUE),
+      text.fill=crayon::make_style(
+        rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE
+      ),
       word.insert=crayon::make_style(rgb(0, 3, 0, maxColorValue=5), bg=TRUE),
       word.delete=crayon::make_style(rgb(3, 0, 0, maxColorValue=5), bg=TRUE),
       gutter.insert=crayon::make_style(rgb(0, 2, 0, maxColorValue=5)),
@@ -464,6 +472,9 @@ StyleAnsi256DarkYb <- setClass(
     funs=StyleFunsAnsi(
       text.insert=crayon::make_style(rgb(0, 0, 1, maxColorValue=5), bg=TRUE),
       text.delete=crayon::make_style(rgb(1, 1, 0, maxColorValue=5), bg=TRUE),
+      text.fill=crayon::make_style(
+        rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE
+      ),
       word.insert=crayon::make_style(rgb(0, 0, 4, maxColorValue=5), bg=TRUE),
       word.delete=crayon::make_style(rgb(3, 2, 0, maxColorValue=5), bg=TRUE),
       gutter.insert=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),

@@ -13,6 +13,8 @@ gutter_dat <- function(etc) {
   gutt.match.ctd <- funs@gutter(funs@gutter.match.ctd(text@gutter.match.ctd))
   gutt.guide <- funs@gutter(funs@gutter.guide(text@gutter.guide))
   gutt.guide.ctd <- funs@gutter(funs@gutter.guide.ctd(text@gutter.guide.ctd))
+  gutt.fill <- funs@gutter(funs@gutter.fill(text@gutter.fill))
+  gutt.fill.ctd <- funs@gutter(funs@gutter.fill.ctd(text@gutter.fill.ctd))
 
   gutt.pad <- funs@gutter(funs@gutter.pad(text@gutter.pad))
   nc_fun <- if(is(etc@style, "StyleAnsi")) crayon_nchar else nchar
@@ -28,7 +30,8 @@ gutter_dat <- function(etc) {
     insert=gutt.insert, insert.ctd=gutt.insert.ctd, delete=gutt.delete,
     delete.ctd=gutt.delete.ctd, match=gutt.match, match.ctd=gutt.match.ctd,
     guide=gutt.guide, guide.ctd=gutt.guide.ctd,
-    pad=gutt.pad, width=gutt.max.w 
+    fill=gutt.fill, fill.ctd=gutt.fill.ctd,
+    pad=gutt.pad, width=gutt.max.w
   )
 }
 # Based on the type of each row in a column, render the correct gutter
@@ -39,7 +42,7 @@ render_gutters <- function(types, lens, lens.max, etc) {
     function(dat, lens, lens.max) {
       Map(
         function(type, len, len.max) {
-          if(type %in% c("insert", "delete", "match", "guide", "pad")) {
+          if(type %in% c("insert", "delete", "match", "guide", "fill")) {
             c(
               if(len) slot(gutter.dat, as.character(type)),
               rep(
