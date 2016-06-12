@@ -61,6 +61,11 @@ hunkl <- function(col.1=NULL, col.2=NULL, type.1=NULL, type.2=NULL)
 # are not the same and end up adding NAs.  Padding is really only meaningful
 # for side by side mode so is removed in the other modes
 
+# The A.fill and B.fill business is a bit of a mess, because ideally we woudl
+# want a structure parallel to the data structure instead of just vectors that
+# we need to line up with the data lists, but this is all a result of trying
+# to shoehorn new functionality in...
+
 fin_fun_context <- function(dat) {
   dat_wo_fill <- function(x, ind) unlist(x[[ind]])[!x[[sprintf("%s.fill", ind)]]]
   A.dat <- lapply(dat, dat_wo_fill, "A")
@@ -92,18 +97,20 @@ fin_fun_context <- function(dat) {
   )
 }
 fin_fun_unified <- function(A, B, A.fill, B.fill, context, guide) {
+  A.lens <- vapply(A, length, integer(1L))
+  B.lens <- vapply(B, length, integer(1L))
+  A.ord <- rep(seq_along(A.lens), A.lens)[!A.fill]
+  B.ord <- rep(seq_along(B.lens), B.lens)[!B.fill]
   A <- unlist(A)[!A.fill]
   B <- unlist(B)[!B.fill]
-  A.len <- length(A)
-  B.len <- length(B)
-  ord <- order(c(seq_along(A), seq_along(B)))
+
+  ord <- order(c(A.ord, B.ord))
   types <- c(
-    rep(if(guide) "guide" else if(context) "match" else "delete", A.len),
-    rep(if(guide) "guide" else if(context) "match" else "insert", B.len)
+    rep(if(guide) "guide" else if(context) "match" else "delete", sum(A.lens)),
+    rep(if(guide) "guide" else if(context) "match" else "insert", sum(B.lens))
   )
   hunkl(
-    col.1=unlist(c(A, B)[ord]),
-    type.1=chrt(unlist(types[ord]))
+    col.1=unlist(c(A, B)[ord]), type.1=chrt(unlist(types[ord]))
   )
 }
 fin_fun_sidebyside <- function(A, B, A.fill, B.fill, context, guide) {
@@ -482,13 +489,21 @@ setMethod("as.character", "Diff",
           Map(
             function(dat, len) {
               length(dat) <- len
-              dat[is.na(dat)] <- ""
               dat
             },
             y, line.lens.max[[1L]]
       ) } )
     } else line.lens.max <- line.lens
 
+    # Record NA elements, and replace them with blanks
+
+    lines.na <- lapply(pre.render.w, lapply, is.na)
+    pre.render.w <- lapply(
+      pre.render.w, lapply, 
+      function(y) {
+        y[is.na(y)] <- ""
+        y
+    } )
     # Compute gutter, padding, and continuations
 
     pads <- lapply(
@@ -525,19 +540,45 @@ setMethod("as.character", "Diff",
       context.sep=function(x) es@funs@context.sep(es@text@context.sep)
     )
     pre.render.s <- Map(
-      function(dat, type) {
+      function(dat, type, l.na) {
         res <- vector("list", length(dat))
         res[type == "context.sep"] <- list(es@funs@context.sep)
-        for(i in names(funs.ts))
-          res[type == i] <- lapply(dat[type == i], funs.ts[[i]])
+        for(i in names(funs.ts))  # really need to loop through all?
+          res[type == i] <- Map(
+            function(y, l.na.i) {
+              res.s <- y
+              if(any(l.na.i))
+                res.s[l.na.i] <- funs.ts$fill(y[l.na.i])
+              res.s[!l.na.i] <- funs.ts[[i]](y[!l.na.i])
+              res.s
+            },
+            dat[type == i],
+            l.na[type == i]
+          )
         res
       },
-      pre.render.w.p, types
+      pre.render.w.p, types, lines.na
+    )
+    # Reconstruct 'types.raw' with the appropriate lenghts, and replacing
+    # types with 'fill' if elements were extended due to wrap
+
+    types.raw.x <- Map(
+      function(y, z) {
+        Map(
+          function(y.s, z.s) {
+            res <- rep(y.s, length(z.s))
+            res[z.s] <- "fill"
+            res
+          },
+          y, z
+      ) },
+      types.raw, lines.na
     )
     # Render columns; note here we use 'types.raw' to distinguish banner lines
 
     cols <- render_cols(
-      cols=pre.render.s, gutters=gutters, pads=pads, types=types.raw, etc=x@etc
+      cols=pre.render.s, gutters=gutters, pads=pads, types=types.raw.x, 
+      etc=x@etc
     )
     # Render rows
 

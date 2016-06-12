@@ -61,7 +61,6 @@ render_gutters <- function(types, lens, lens.max, etc) {
 
 render_col <- function(gutter, pad, col, type, etc) {
   lens <- vapply(col, length, integer(1L))
-  type.r <- rep(type, lens)
   gutt.ul <- unlist(gutter)
   col.txt <- paste0(
     gutt.ul, ifelse(nchar(gutt.ul), unlist(pad), ""), unlist(col)
@@ -70,23 +69,23 @@ render_col <- function(gutter, pad, col, type, etc) {
 
   # line formats
 
-  col.txt[type.r == "banner.insert"] <-
-    es@banner(es@banner.insert(col.txt[type.r == "banner.insert"]))
-  col.txt[type.r == "banner.delete"] <-
-    es@banner(es@banner.delete(col.txt[type.r == "banner.delete"]))
-  col.txt[type.r == "insert"] <-
-    es@line(es@line.insert(col.txt[type.r == "insert"]))
-  col.txt[type.r == "delete"] <-
-    es@line(es@line.delete(col.txt[type.r == "delete"]))
-  col.txt[type.r == "match"] <-
-    es@line(es@line.match(col.txt[type.r == "match"]))
-  col.txt[type.r == "guide"] <-
-    es@line(es@line.guide(col.txt[type.r == "guide"]))
-  col.txt[type.r == "pad"] <-
-    es@line(es@line.guide(col.txt[type.r == "pad"]))
-  col.txt[type.r == "context.sep"] <-
-    es@line(es@context.sep(col.txt[type.r == "context.sep"]))
-  col.txt[type.r == "header"] <- es@line(col.txt[type.r == "header"])
+  col.txt[type == "banner.insert"] <-
+    es@banner(es@banner.insert(col.txt[type == "banner.insert"]))
+  col.txt[type == "banner.delete"] <-
+    es@banner(es@banner.delete(col.txt[type == "banner.delete"]))
+  col.txt[type == "insert"] <-
+    es@line(es@line.insert(col.txt[type == "insert"]))
+  col.txt[type == "delete"] <-
+    es@line(es@line.delete(col.txt[type == "delete"]))
+  col.txt[type == "match"] <-
+    es@line(es@line.match(col.txt[type == "match"]))
+  col.txt[type == "guide"] <-
+    es@line(es@line.guide(col.txt[type == "guide"]))
+  col.txt[type == "pad"] <-
+    es@line(es@line.guide(col.txt[type == "pad"]))
+  col.txt[type == "context.sep"] <-
+    es@line(es@context.sep(col.txt[type == "context.sep"]))
+  col.txt[type == "header"] <- es@line(col.txt[type == "header"])
   col.txt
 }
 render_cols <- function(cols, gutters, pads, types, etc) {
