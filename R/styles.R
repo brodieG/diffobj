@@ -63,15 +63,16 @@ StyleFuns <- setClass(
   slots=c(
     container="ANY", row="ANY",
     line="ANY", line.insert="ANY", line.delete="ANY", line.match="ANY",
-    line.guide="ANY",
+    line.guide="ANY", line.fill="ANY",
     text="ANY", text.insert="ANY", text.delete="ANY", text.match="ANY",
-    text.guide="ANY",
+    text.guide="ANY", text.fill="ANY",
     banner="ANY", banner.insert="ANY", banner.delete="ANY",
     gutter="ANY",
     gutter.insert="ANY", gutter.insert.ctd="ANY",
     gutter.delete="ANY", gutter.delete.ctd="ANY",
     gutter.match="ANY", gutter.match.ctd="ANY",
     gutter.guide="ANY", gutter.guide.ctd="ANY",
+    gutter.fill="ANY", gutter.fill.ctd="ANY",
     gutter.pad="ANY",
     word.insert="ANY", word.delete="ANY",
     context.sep="ANY", header="ANY", meta="ANY"
@@ -80,14 +81,15 @@ StyleFuns <- setClass(
     container=identity, row=identity,
     banner=identity, banner.insert=identity, banner.delete=identity,
     line=identity, line.insert=identity, line.delete=identity,
-    line.match=identity, line.guide=identity,
+    line.match=identity, line.guide=identity, line.fill=identity,
     text=identity, text.insert=identity, text.delete=identity,
-    text.match=identity, text.guide=identity,
+    text.match=identity, text.guide=identity, text.fill=identity,
     gutter=identity, gutter.pad=identity,
     gutter.insert=identity, gutter.insert.ctd=identity,
     gutter.delete=identity, gutter.delete.ctd=identity,
     gutter.match=identity, gutter.match.ctd=identity,
     gutter.guide=identity, gutter.guide.ctd=identity,
+    gutter.fill=identity, gutter.fill.ctd=identity,
     word.insert=identity, word.delete=identity,
     header=identity,
     context.sep=identity,
@@ -136,6 +138,8 @@ StyleFunsAnsi <- setClass(
 #' @param gutter.match.ctd character(1L) see \code{gutter.insert.ctd} above
 #' @param gutter.guide character(1L) see \code{gutter.insert} above
 #' @param gutter.guide.ctd character(1L) see \code{gutter.insert.ctd} above
+#' @param gutter.fill character(1L) see \code{gutter.insert} above
+#' @param gutter.fill.ctd character(1L) see \code{gutter.insert.ctd} above
 #' @param gutter.pad character(1L) separator between gutter characters and the
 #'   rest of a line in a diff
 #' @param pad.col character(1L) separator between columns in side by side mode
@@ -152,8 +156,8 @@ StyleText <- setClass(
     gutter.delete="character", gutter.delete.ctd="character",
     gutter.match="character", gutter.match.ctd="character",
     gutter.guide="character", gutter.guide.ctd="character",
-    gutter.pad="character", gutter.pad.ctd="character",
-    context.sep="character",
+    gutter.fill="character", gutter.fill.ctd="character",
+    gutter.pad="character", context.sep="character",
     pad.col="character"
   ),
   prototype=list(
@@ -161,8 +165,8 @@ StyleText <- setClass(
     gutter.delete="<", gutter.delete.ctd=":",
     gutter.match=" ", gutter.match.ctd=" ",
     gutter.guide="~", gutter.guide.ctd=":",
-    gutter.pad=" ", gutter.pad.ctd=" ",
-    context.sep="~~~~~",
+    gutter.fill=" ", gutter.fill.ctd=" ",
+    gutter.pad=" ", context.sep="~~~~~",
     pad.col=" "
   ),
   validity=function(object){
@@ -442,6 +446,7 @@ StyleAnsi256DarkRgb <- setClass(
     funs=StyleFunsAnsi(
       text.insert=crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE),
       text.delete=crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE),
+      text.fill=crayon::make_style(rgb(1, 1, 1, maxColorValue=5), bg=TRUE),
       word.insert=crayon::make_style(rgb(0, 3, 0, maxColorValue=5), bg=TRUE),
       word.delete=crayon::make_style(rgb(3, 0, 0, maxColorValue=5), bg=TRUE),
       gutter.insert=crayon::make_style(rgb(0, 2, 0, maxColorValue=5)),

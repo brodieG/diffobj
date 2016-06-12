@@ -116,8 +116,8 @@ setClass("Gutter",
     delete="character", delete.ctd="character",
     match="character", match.ctd="character",
     guide="character", guide.ctd="character",
-    pad="character", pad.ctd="character",
-    width="integer"
+    fill="character", fill.ctd="character",
+    pad="character", width="integer"
   )
 )
 setClass("Settings",
@@ -245,7 +245,7 @@ setClass("DiffDiffs",
 )
 .diff.dat.cols <- c(
   "raw", "trim", "trim.ind.start", "trim.ind.end", "comp", "eq", "fin",
-  "pad", "word.ind", "tok.rat"
+  "fill", "word.ind", "tok.rat"
 )
 # Validate the *.dat slots of the Diff objects
 
@@ -303,8 +303,8 @@ valid_dat <- function(x) {
       !is.numeric(x$tok.rat) || anyNA(x$tok.rat) || !all(x$to.rat %bw% c(0, 1))
     ) {
       "element `tok.rat` should be numeric with all values between 0 and 1"
-    } else if (!is.logical(x$pad) || anyNA(x$pad)) {
-      "element `pad` should be logical and not contain NAs"
+    } else if (!is.logical(x$fill) || anyNA(x$fill)) {
+      "element `fill` should be logical and not contain NAs"
     }
     else TRUE
   }

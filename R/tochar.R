@@ -41,7 +41,7 @@ chrt <- function(...)
     c(...),
     levels=c(
       "insert", "delete", "match", "header", "context.sep",
-      "banner.insert", "banner.delete", "guide", "pad"
+      "banner.insert", "banner.delete", "guide", "fill"
     )
   )
 hunkl <- function(col.1=NULL, col.2=NULL, type.1=NULL, type.2=NULL)
@@ -56,15 +56,15 @@ hunkl <- function(col.1=NULL, col.2=NULL, type.1=NULL, type.2=NULL)
 # finalization functions take aligned data and juxtapose it according to
 # selected display mode.  Note that _context must operate on all the hunks
 # in a hunk group, whereas the other two operate on each hunk atom.  Padding
-# is identified in two forms: as actual A.pad and B.pad values when there
+# is identified in two forms: as actual A.fill and B.fill values when there
 # was a wrapped diff, and in side by side mode when the lengths of A and B
 # are not the same and end up adding NAs.  Padding is really only meaningful
 # for side by side mode so is removed in the other modes
 
-dat_wo_pad <- function(x, ind) unlist(x[[ind]])[!x[[sprintf("%s.pad", ind)]]]
 fin_fun_context <- function(dat) {
-  A.dat <- lapply(dat, dat_wo_pad, "A")
-  B.dat <- lapply(dat, dat_wo_pad, "B")
+  dat_wo_fill <- function(x, ind) unlist(x[[ind]])[!x[[sprintf("%s.fill", ind)]]]
+  A.dat <- lapply(dat, dat_wo_fill, "A")
+  B.dat <- lapply(dat, dat_wo_fill, "B")
 
   A.lens <- vapply(A.dat, function(x) length(unlist(x)), integer(1L))
   B.lens <- vapply(B.dat, function(x) length(unlist(x)), integer(1L))
@@ -91,9 +91,9 @@ fin_fun_context <- function(dat) {
     )
   )
 }
-fin_fun_unified <- function(A, B, A.pad, B.pad, context, guide) {
-  A <- unlist(A)[!A.pad]
-  B <- unlist(B)[!B.pad]
+fin_fun_unified <- function(A, B, A.fill, B.fill, context, guide) {
+  A <- unlist(A)[!A.fill]
+  B <- unlist(B)[!B.fill]
   A.len <- length(A)
   B.len <- length(B)
   ord <- order(c(seq_along(A), seq_along(B)))
@@ -106,7 +106,7 @@ fin_fun_unified <- function(A, B, A.pad, B.pad, context, guide) {
     type.1=chrt(unlist(types[ord]))
   )
 }
-fin_fun_sidebyside <- function(A, B, A.pad, B.pad, context, guide) {
+fin_fun_sidebyside <- function(A, B, A.fill, B.fill, context, guide) {
   for(i in seq_along(A)) {
     A.ch <- A[[i]]
     B.ch <- B[[i]]
@@ -128,13 +128,13 @@ fin_fun_sidebyside <- function(A, B, A.pad, B.pad, context, guide) {
     type.1=chrt(
       ifelse(
         rep(guide, A.len), "guide",
-        ifelse(A.pad | is.na(A.ul), "pad",
+        ifelse(A.fill | is.na(A.ul), "fill",
           ifelse(context, "match", "delete")
     ) ) ),
     type.2=chrt(
       ifelse(
         rep(guide, B.len), "guide",
-        ifelse(B.pad | is.na(B.ul), "pad",
+        ifelse(B.fill | is.na(B.ul), "fill",
           ifelse(context, "match", "insert")
   ) ) ) )
 }
@@ -165,7 +165,8 @@ hunk_atom_as_char <- function(h.a, x) {
 
   dat.align <- align_eq(A.ind, B.ind, x=x, context=h.a$context)
   list(
-    A=dat.align$A, B=dat.align$B, A.pad=dat.align$A.pad, B.pad=dat.align$B.pad,
+    A=dat.align$A, B=dat.align$B,
+    A.fill=dat.align$A.fill, B.fill=dat.align$B.fill,
     context=h.a$context, guide=h.a$guide
   )
 }
@@ -497,7 +498,7 @@ setMethod("as.character", "Diff",
     pre.render.w.p <- if(s@pad) {
       Map(
         function(col, type) {
-          diff.line <- type %in% c("insert", "delete", "match", "guide", "pad")
+          diff.line <- type %in% c("insert", "delete", "match", "guide", "fill")
           col[diff.line] <- lapply(col[diff.line], rpad, x@etc@text.width)
           col[!diff.line] <- lapply(col[!diff.line], rpad, x@etc@line.width)
           col
@@ -515,7 +516,7 @@ setMethod("as.character", "Diff",
       delete=function(x) es@funs@text(es@funs@text.delete(x)),
       match=function(x) es@funs@text(es@funs@text.match(x)),
       guide=function(x) es@funs@text(es@funs@text.guide(x)),
-      pad=function(x) es@funs@text(es@funs@text.guide(x)),
+      fill=function(x) es@funs@text(es@funs@text.fill(x)),
       header=es@funs@header,
       context.sep=function(x) es@funs@context.sep(es@text@context.sep)
     )

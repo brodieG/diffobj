@@ -57,8 +57,8 @@ align_eq <- function(A, B, x, context) {
     is.integer(A), is.integer(B), !anyNA(c(A, B)),
     is(x, "Diff")
   )
-  A.pad <- get_dat(x, A, "pad")
-  B.pad <- get_dat(x, B, "pad")
+  A.fill <- get_dat(x, A, "fill")
+  B.fill <- get_dat(x, B, "fill")
   A.fin <- get_dat(x, A, "fin")
   B.fin <- get_dat(x, B, "fin")
 
@@ -117,7 +117,7 @@ align_eq <- function(A, B, x, context) {
   if(length(A.chunks) != length(B.chunks))
     stop("Logic Error: aligned chunks unequal length; contact maintainer.")
 
-  list(A=A.chunks, B=B.chunks, A.pad=A.pad, B.pad=B.pad)
+  list(A=A.chunks, B=B.chunks, A.fill=A.fill, B.fill=B.fill)
 }
 # if last char matches, repeat, but only if not in use.ansi mode
 #

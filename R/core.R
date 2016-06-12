@@ -313,14 +313,14 @@ line_diff <- function(
   tar.dat <- list(
     raw=tar.capt, trim=tar.trim,
     trim.ind.start=tar.trim.ind[, 1L], trim.ind.end=tar.trim.ind[, 2L],
-    comp=tar.trim, eq=tar.trim, fin=tar.capt, pad=logical(length(tar.capt)),
+    comp=tar.trim, eq=tar.trim, fin=tar.capt, fill=logical(length(tar.capt)),
     word.ind=replicate(length(tar.capt), .word.diff.atom, simplify=FALSE),
     tok.rat=rep(1, length(tar.capt))
   )
   cur.dat <- list(
     raw=cur.capt, trim=cur.trim,
     trim.ind.start=cur.trim.ind[, 1L], trim.ind.end=cur.trim.ind[, 2L],
-    comp=cur.trim, eq=cur.trim, fin=cur.capt, pad=logical(length(cur.capt)),
+    comp=cur.trim, eq=cur.trim, fin=cur.capt, fill=logical(length(cur.capt)),
     word.ind=replicate(length(cur.capt), .word.diff.atom, simplify=FALSE),
     tok.rat=rep(1, length(cur.capt))
   )

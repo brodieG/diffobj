@@ -108,7 +108,7 @@ word_to_line_map <- function(
   # blanks in the match hunks if they are unequal length.  We also need to
   # adjust the original character vectors so they have those blanks show up.
 
-  pad_cont <- function(cont, len, i, max.i) {
+  fill_cont <- function(cont, len, i, max.i) {
     len.c <- length(cont)
     len.diff <- len - len.c
     NAs <- rep(NA, len.diff)
@@ -126,9 +126,9 @@ word_to_line_map <- function(
       c.len <- length(cur.lines.p[[i]])
       len.diff <- abs(t.len - c.len)
       if(t.len > c.len) {
-        cur.lines.p[[i]] <- pad_cont(cur.lines.p[[i]], t.len, i, h.c)
+        cur.lines.p[[i]] <- fill_cont(cur.lines.p[[i]], t.len, i, h.c)
       } else if (t.len < c.len){
-        tar.lines.p[[i]] <- pad_cont(tar.lines.p[[i]], c.len, i, h.c)
+        tar.lines.p[[i]] <- fill_cont(tar.lines.p[[i]], c.len, i, h.c)
   } } }
   # Augment the input vectors by the blanks we added; these blanks are
   # represented by NAs in our index vector so should be easy to do
@@ -146,7 +146,7 @@ word_to_line_map <- function(
       bod[!is.na(lines.u)] <- i.vec
       if(i == "word.ind") {
         bod[is.na(lines.u)] <- list(.word.diff.atom)
-      } else if (i == "pad") {
+      } else if (i == "fill") {
         # warning: this is also used/subverted for augmenting the original
         # indices so think before you change it
         bod[is.na(lines.u)] <- TRUE
@@ -159,13 +159,13 @@ word_to_line_map <- function(
   cur.dat <- augment(cur.dat, cur.lines.p, cur.ind)
 
   # Also need to augment the indices so we can re-insert properly; we subvert
-  # the pad logic since that will make sure
+  # the fill logic since that will make sure
 
   tar.ind.a <-
-    augment(list(pad=!logical(length(tar.ind))), tar.lines.p, tar.ind)
+    augment(list(fill=!logical(length(tar.ind))), tar.lines.p, tar.ind)
   tar.ind.a.l <- unname(unlist(tar.ind.a))
   cur.ind.a <-
-    augment(list(pad=!logical(length(cur.ind))), cur.lines.p, cur.ind)
+    augment(list(fill=!logical(length(cur.ind))), cur.lines.p, cur.ind)
   cur.ind.a.l <- unname(unlist(cur.ind.a))
 
   # Generate the final vectors to do the diffs on; these should be unique
@@ -231,7 +231,7 @@ reg_apply <- function(reg, ends, mismatch, fun) {
 #
 # Note that in "word" mode the returned values may be longer than the input ones
 # as it may be necessary to add lines to get things to match-up.  Added lines
-# are indicated by TRUE values in teh `pad` component of the `*.dat` return
+# are indicated by TRUE values in teh `fill` component of the `*.dat` return
 # values
 #
 # `match.quotes` will make "words" starting and ending with quotes; it should
