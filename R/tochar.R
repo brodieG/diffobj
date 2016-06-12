@@ -91,7 +91,7 @@ fin_fun_unified <- function(A, B, context, guide) {
       rep(if(guide) "guide" else if(context) "match" else "delete", length(x))
     ),
     lapply(B, function(x)
-      rep(if(guide) "mea" else if(context) "match" else "insert", length(x))
+      rep(if(guide) "guide" else if(context) "match" else "insert", length(x))
     )
   )
   hunkl(
@@ -154,7 +154,7 @@ hunk_atom_as_char <- function(h.a, x) {
   # Align the lines accounting for partial matching post word-diff,
   # each diff style has a different finalization function
 
-  dat.align <- align_eq(A.ind, B.ind, x=x)
+  dat.align <- align_eq(A.ind, B.ind, x=x, context=h.a$context)
   list(A=dat.align$A, B=dat.align$B, context=h.a$context, guide=h.a$guide)
 }
 hunk_as_char <- function(h.g, ranges.orig, x) {

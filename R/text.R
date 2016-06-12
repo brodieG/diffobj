@@ -49,66 +49,75 @@ align_split <- function(v, m) {
 # Each matching element will be surrounding by (possibly empty) non-matching
 # elements.
 #
-# Will also apply colors to fully mismatching lines
+# Need to reconcile the padding that happens as a result of alignment as well
+# as the padding that happens with atomic vectors
 
-align_eq <- function(A, B, x) {
+align_eq <- function(A, B, x, context) {
   stopifnot(
     is.integer(A), is.integer(B), !anyNA(c(A, B)),
     is(x, "Diff")
   )
-  etc <- x@etc
-  A.eq <- get_dat(x, A, "eq")
-  B.eq <- get_dat(x, B, "eq")
+  A.pad <- get_dat(x, A, "pad")
+  B.pad <- get_dat(x, B, "pad")
   A.fin <- get_dat(x, A, "fin")
   B.fin <- get_dat(x, B, "fin")
-  A.tok.ratio <- get_dat(x, A, "tok.rat")
-  B.tok.ratio <- get_dat(x, B, "tok.rat")
 
-  # Remove whitespace
+  if(context) {             # Nothing to align if this is context hunk
+    A.chunks <- list(A.fin)
+    B.chunks <- list(B.fin)
+  } else {
+    etc <- x@etc
+    A.eq <- get_dat(x, A, "eq")
+    B.eq <- get_dat(x, B, "eq")
+    A.tok.ratio <- get_dat(x, A, "tok.rat")
+    B.tok.ratio <- get_dat(x, B, "tok.rat")
 
-  if(etc@ignore.white.space) {
-    A.eq <- normalize_whitespace(A.eq)
-    B.eq <- normalize_whitespace(B.eq)
-  }
-  # Need to match each element in A.eq to B.eq, though each match consumes the
-  # match so we can't use `match`; unfortunately this is slow
+    # Remove whitespace
 
-  min.match <- 0L
-  align <- integer(length(A.eq))
-  B.len <- length(B.eq)
-  for(i in seq_along(A.eq)) {
-    if(min.match >= B.len) break
-    B.match <-
-      which(A.eq[[i]] == if(min.match) tail(B.eq, -min.match) else B.eq)
-    if(length(B.match)) {
-      align[[i]] <- min.match <- B.match[[1L]] + min.match
+    if(etc@ignore.white.space) {
+      A.eq <- normalize_whitespace(A.eq)
+      B.eq <- normalize_whitespace(B.eq)
     }
+    # Need to match each element in A.eq to B.eq, though each match consumes the
+    # match so we can't use `match`; unfortunately this is slow; for context
+    # hunks the match is one to one for each line
+
+    min.match <- 0L
+    align <- integer(length(A.eq))
+    B.len <- length(B.eq)
+    for(i in seq_along(A.eq)) {
+      if(min.match >= B.len) break
+      B.match <-
+        which(A.eq[[i]] == if(min.match) tail(B.eq, -min.match) else B.eq)
+      if(length(B.match)) {
+        align[[i]] <- min.match <- B.match[[1L]] + min.match
+      }
+    }
+    # Disallow empty matches or matches that account for a very small portion of
+    # the possible tokens and could be spurious; we should probably do this
+    # ahead of the for loop since we could probably save some iterations
+
+    # TBD wither nchar here should be ansi-aware
+
+    B.tr <- B.tok.ratio[match(align, seq_along(B.tok.ratio))]
+    is.na(B.tr) <- 1
+    disallow.match <- nchar(A.eq) < etc@align@min.chars |
+      A.tok.ratio < etc@align@threshold | B.tr < etc@align@threshold
+    align[disallow.match] <- 0L
+
+    # Group elements together.  We number the interstitial buckest as the
+    # negative of the next match.  There are always matches together, split
+    # by possibly empty interstitial elements
+
+    align.b <- seq_along(B.eq)
+    align.b[!align.b %in% align] <- 0L
+    A.chunks <- align_split(A.fin, align)
+    B.chunks <- align_split(B.fin, align.b)
   }
-  # Disallow empty matches or matches that account for a very small portion of
-  # the possible tokens and could be spurious; we should probably do this
-  # ahead of the for loop since we could probably save some iterations
-
-  # TBD wither nchar here should be ansi-aware
-
-  B.tr <- B.tok.ratio[match(align, seq_along(B.tok.ratio))]
-  is.na(B.tr) <- 1
-  disallow.match <- nchar(A.eq) < etc@align@min.chars |
-    A.tok.ratio < etc@align@threshold | B.tr < etc@align@threshold
-  align[disallow.match] <- 0L
-
-  # Group elements together; only one match per group, mismatches are put
-  # in interstitial buckets.  We number the interstitial buckest as the
-  # negative of the next match
-
-  align.b <- seq_along(B.eq)
-  align.b[!align.b %in% align] <- 0L
-  A.chunks <- align_split(A.fin, align)
-  B.chunks <- align_split(B.fin, align.b)
-
   if(length(A.chunks) != length(B.chunks))
     stop("Logic Error: aligned chunks unequal length; contact maintainer.")
 
-  list(A=A.chunks, B=B.chunks)
+  list(A=A.chunks, B=B.chunks, A.pad=A.pad, B.pad=B.pad)
 }
 # if last char matches, repeat, but only if not in use.ansi mode
 #
