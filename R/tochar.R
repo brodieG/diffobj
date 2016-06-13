@@ -194,14 +194,17 @@ hunk_as_char <- function(h.g, ranges.orig, x) {
   h.ids <- vapply(h.g, "[[", integer(1L), "id")
   h.head <- vapply(h.g, "[[", logical(1L), "guide")
 
-  # exclude header hunks from contributing to range
+  # exclude header hunks from contributing to range, and adjust ranges for
+  # possible fill lines added to the data
 
   h.ids.nh <- h.ids[!h.head]
   tar.rng <- find_rng(h.ids.nh, ranges.orig[1:2, , drop=FALSE])
+  tar.rng.f <- cumsum(!x@tar.dat$fill)[tar.rng]
   cur.rng <- find_rng(h.ids.nh, ranges.orig[3:4, , drop=FALSE])
+  cur.rng.f <- cumsum(!x@cur.dat$fill)[cur.rng]
 
-  hh.a <- paste0(rng_as_chr(tar.rng))
-  hh.b <- paste0(rng_as_chr(cur.rng))
+  hh.a <- paste0(rng_as_chr(tar.rng.f))
+  hh.b <- paste0(rng_as_chr(cur.rng.f))
 
   hunk.head <- if(length(h.g) && !h.g[[1L]]$completely.empty) {
     list(
