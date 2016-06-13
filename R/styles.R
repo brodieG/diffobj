@@ -797,6 +797,12 @@ setMethod(
 )
 setMethod("dimnames", "PaletteOfStyles", function(x) dimnames(x@data))
 
+# Matrices used for show methods for styles
+
+.mx1 <- .mx2 <- matrix(1:50, ncol=2)
+.mx2[c(6L, 40L)] <- 99L
+.mx2 <- .mx2[-7L,]
+
 #' Show Method for Style Objects
 #'
 #' Display a small sample diff with the Style object styles applied.  For
@@ -814,11 +820,8 @@ setMethod("dimnames", "PaletteOfStyles", function(x) dimnames(x@data))
 setMethod("show", "Style",
   function(object) {
     cat(sprintf("Object of class `%s`:\n\n", class(object)))
-    mx1 <- mx2 <- matrix(1:50, ncol=2)
-    mx2[c(6L, 40L)] <- 99L
-    mx2 <- mx2[-7L,]
     d.p <- diffPrint(
-      mx1, mx2, context=1, line.limit=7L, style=object, pager=PagerOff()
+      .mx1, .mx2, context=1, line.limit=7L, style=object, pager=PagerOff()
     )
     d.txt <- capture.output(show(d.p))
     if(is(object, "Ansi")) {

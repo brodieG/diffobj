@@ -78,6 +78,10 @@ local({
     diffPrint(A, B)
     diffPrint(A, B, mode="unified")
 
+    # Style matrices
+
+    diffPrint(diffobj:::.mx1, diffobj:::.mx2, mode="unified")
+
     lst.1 <- list(
       NULL,
       z=list(
