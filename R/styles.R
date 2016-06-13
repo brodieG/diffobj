@@ -167,8 +167,8 @@ StyleText <- setClass(
     gutter.insert=">", gutter.insert.ctd=":",
     gutter.delete="<", gutter.delete.ctd=":",
     gutter.match=" ", gutter.match.ctd=" ",
-    gutter.guide="~", gutter.guide.ctd=":",
-    gutter.fill=".", gutter.fill.ctd=".",
+    gutter.guide="~", gutter.guide.ctd="~",
+    gutter.fill="~", gutter.fill.ctd="~",
     gutter.pad=" ", context.sep="~~~~~",
     pad.col=" "
   ),
@@ -815,9 +815,10 @@ setMethod("show", "Style",
   function(object) {
     cat(sprintf("Object of class `%s`:\n\n", class(object)))
     mx1 <- mx2 <- matrix(1:50, ncol=2)
-    mx2[c(6, 40)] <- 99L
+    mx2[c(6L, 40L)] <- 99L
+    mx2 <- mx2[-7L,]
     d.p <- diffPrint(
-      mx1, mx2, context=1, line.limit=6, style=object, pager=PagerOff()
+      mx1, mx2, context=1, line.limit=7L, style=object, pager=PagerOff()
     )
     d.txt <- capture.output(show(d.p))
     if(is(object, "Ansi")) {
@@ -880,7 +881,7 @@ display_ansi_256_styles <- function() {
       StyleAnsi256DarkYb(), StyleAnsi256DarkRgb(),
       StyleAnsi256LightYb(), StyleAnsi256LightRgb()
     ),
-    function(x) capture.output(show(x))[3:8]
+    function(x) capture.output(show(x))[3:9]
   )
   names <- c("Neutral", "Dark", "Light")
   cat("\n")
