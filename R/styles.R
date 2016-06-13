@@ -75,7 +75,7 @@ StyleFuns <- setClass(
     gutter.fill="ANY", gutter.fill.ctd="ANY",
     gutter.pad="ANY",
     word.insert="ANY", word.delete="ANY",
-    context.sep="ANY", header="ANY", meta="ANY"
+    context.sep="ANY", header="ANY", meta="ANY", trim="ANY"
   ),
   prototype=list(
     container=identity, row=identity,
@@ -93,7 +93,8 @@ StyleFuns <- setClass(
     word.insert=identity, word.delete=identity,
     header=identity,
     context.sep=identity,
-    meta=identity
+    meta=identity,
+    trim=identity
   ),
   validity=function(object){
     for(i in slotNames(object)) {
@@ -120,7 +121,8 @@ StyleFunsAnsi <- setClass(
     header=crayon::cyan,
     meta=crayon::silver,
     line.guide=crayon::silver,
-    context.sep=crayon::silver
+    context.sep=crayon::silver,
+    trim=crayon::silver
   )
 )
 #' Character Tokens Used in Diffs
@@ -422,6 +424,11 @@ StyleAnsi256LightRgb <- setClass(
       gutter.delete.ctd=crayon::make_style(rgb(3, 0, 0, maxColorValue=5)),
       header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5))
 ) ) )
+
+darkGray <- crayon::make_style(rgb(5, 5, 5, maxColorValue=23), grey=TRUE)
+darkGrayBg <- crayon::make_style(
+  rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE
+)
 #' @export StyleAnsi256LightYb
 #' @exportClass StyleAnsi256LightYb
 #' @rdname Style
@@ -453,15 +460,15 @@ StyleAnsi256DarkRgb <- setClass(
     funs=StyleFunsAnsi(
       text.insert=crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE),
       text.delete=crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE),
-      text.fill=crayon::make_style(
-        rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE
-      ),
       word.insert=crayon::make_style(rgb(0, 3, 0, maxColorValue=5), bg=TRUE),
       word.delete=crayon::make_style(rgb(3, 0, 0, maxColorValue=5), bg=TRUE),
       gutter.insert=crayon::make_style(rgb(0, 2, 0, maxColorValue=5)),
       gutter.insert.ctd=crayon::make_style(rgb(0, 2, 0, maxColorValue=5)),
       gutter.delete=crayon::make_style(rgb(2, 0, 0, maxColorValue=5)),
-      gutter.delete.ctd=crayon::make_style(rgb(2, 0, 0, maxColorValue=5))
+      gutter.delete.ctd=crayon::make_style(rgb(2, 0, 0, maxColorValue=5)),
+      gutter.guide=darkGray, gutter.guide.ctd=darkGray, line.guide=darkGray,
+      gutter.fill=darkGray, gutter.fill.ctd=darkGray, text.fill=darkGrayBg,
+      context.sep=darkGray, meta=darkGray, trim=darkGray
 ) ) )
 #' @export StyleAnsi256DarkYb
 #' @exportClass StyleAnsi256DarkYb
@@ -473,16 +480,16 @@ StyleAnsi256DarkYb <- setClass(
     funs=StyleFunsAnsi(
       text.insert=crayon::make_style(rgb(0, 0, 1, maxColorValue=5), bg=TRUE),
       text.delete=crayon::make_style(rgb(1, 1, 0, maxColorValue=5), bg=TRUE),
-      text.fill=crayon::make_style(
-        rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE
-      ),
       word.insert=crayon::make_style(rgb(0, 0, 4, maxColorValue=5), bg=TRUE),
       word.delete=crayon::make_style(rgb(3, 2, 0, maxColorValue=5), bg=TRUE),
       gutter.insert=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),
       gutter.insert.ctd=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),
       gutter.delete=crayon::make_style(rgb(1, 1, 0, maxColorValue=5)),
       gutter.delete.ctd=crayon::make_style(rgb(1, 1, 0, maxColorValue=5)),
-      header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5))
+      header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5)),
+      gutter.guide=darkGray, gutter.guide.ctd=darkGray, line.guide=darkGray,
+      gutter.fill=darkGray, gutter.fill.ctd=darkGray, text.fill=darkGrayBg,
+      context.sep=darkGray, meta=darkGray, trim=darkGray
 ) ) )
 #' @export StyleHtml
 #' @exportClass StyleHtml
@@ -520,6 +527,7 @@ StyleHtml <- setClass(
       gutter=div_f("gutter"),
       word.insert=span_f(c("word", "insert")),
       word.delete=span_f(c("word", "delete")),
+      trim=span_f("trim"),
       header=div_f(c("header"))
     ),
     text=StyleText(

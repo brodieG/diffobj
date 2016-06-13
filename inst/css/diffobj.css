@@ -32,7 +32,8 @@ DIV.diffobj_container DIV.line.banner {
 }
 DIV.diffobj_container DIV.gutter,
 DIV.diffobj_container DIV.guide,
-DIV.diffobj_container DIV.fill {
+DIV.diffobj_container DIV.fill,
+DIV.diffobj_container SPAN.trim {
   color: #999;
 }
 DIV.diffobj_container DIV.header {
