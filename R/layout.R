@@ -15,6 +15,10 @@ gutter_dat <- function(etc) {
   gutt.guide.ctd <- funs@gutter(funs@gutter.guide.ctd(text@gutter.guide.ctd))
   gutt.fill <- funs@gutter(funs@gutter.fill(text@gutter.fill))
   gutt.fill.ctd <- funs@gutter(funs@gutter.fill.ctd(text@gutter.fill.ctd))
+  gutt.context.sep <-
+    funs@gutter(funs@gutter.context.sep(text@gutter.context.sep))
+  gutt.context.sep.ctd <-
+    funs@gutter(funs@gutter.context.sep.ctd(text@gutter.context.sep.ctd))
 
   gutt.pad <- funs@gutter(funs@gutter.pad(text@gutter.pad))
   nc_fun <- if(is(etc@style, "StyleAnsi")) crayon_nchar else nchar
@@ -31,6 +35,7 @@ gutter_dat <- function(etc) {
     delete.ctd=gutt.delete.ctd, match=gutt.match, match.ctd=gutt.match.ctd,
     guide=gutt.guide, guide.ctd=gutt.guide.ctd,
     fill=gutt.fill, fill.ctd=gutt.fill.ctd,
+    context.sep=gutt.context.sep, context.sep.ctd=gutt.context.sep.ctd,
     pad=gutt.pad, width=gutt.max.w
   )
 }
@@ -42,7 +47,11 @@ render_gutters <- function(types, lens, lens.max, etc) {
     function(dat, lens, lens.max) {
       Map(
         function(type, len, len.max) {
-          if(type %in% c("insert", "delete", "match", "guide", "fill")) {
+          if(
+            type %in% c(
+              "insert", "delete", "match", "guide", "fill", "context.sep"
+            )
+          ) {
             c(
               if(len) slot(gutter.dat, as.character(type)),
               rep(

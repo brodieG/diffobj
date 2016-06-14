@@ -117,6 +117,7 @@ setClass("Gutter",
     match="character", match.ctd="character",
     guide="character", guide.ctd="character",
     fill="character", fill.ctd="character",
+    context.sep="character", context.sep.ctd="character",
     pad="character", width="integer"
   )
 )

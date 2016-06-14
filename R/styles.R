@@ -73,6 +73,7 @@ StyleFuns <- setClass(
     gutter.match="ANY", gutter.match.ctd="ANY",
     gutter.guide="ANY", gutter.guide.ctd="ANY",
     gutter.fill="ANY", gutter.fill.ctd="ANY",
+    gutter.context.sep="ANY", gutter.context.sep.ctd="ANY",
     gutter.pad="ANY",
     word.insert="ANY", word.delete="ANY",
     context.sep="ANY", header="ANY", meta="ANY", trim="ANY"
@@ -90,6 +91,7 @@ StyleFuns <- setClass(
     gutter.match=identity, gutter.match.ctd=identity,
     gutter.guide=identity, gutter.guide.ctd=identity,
     gutter.fill=identity, gutter.fill.ctd=identity,
+    gutter.context.sep=identity, gutter.context.sep.ctd=identity,
     word.insert=identity, word.delete=identity,
     header=identity,
     context.sep=identity,
@@ -118,6 +120,7 @@ StyleFunsAnsi <- setClass(
     gutter.delete=crayon::red, gutter.delete.ctd=crayon::red,
     gutter.guide=crayon::silver, gutter.guide.ctd=crayon::silver,
     gutter.fill=crayon::silver, gutter.fill.ctd=crayon::silver,
+    gutter.context.sep=crayon::silver, gutter.context.sep.ctd=crayon::silver,
     header=crayon::cyan,
     meta=crayon::silver,
     line.guide=crayon::silver,
@@ -160,7 +163,9 @@ StyleText <- setClass(
     gutter.match="character", gutter.match.ctd="character",
     gutter.guide="character", gutter.guide.ctd="character",
     gutter.fill="character", gutter.fill.ctd="character",
-    gutter.pad="character", context.sep="character",
+    gutter.context.sep="character", gutter.context.sep.ctd="character",
+    gutter.pad="character",
+    context.sep="character",
     pad.col="character"
   ),
   prototype=list(
@@ -169,7 +174,8 @@ StyleText <- setClass(
     gutter.match=" ", gutter.match.ctd=" ",
     gutter.guide="~", gutter.guide.ctd="~",
     gutter.fill="~", gutter.fill.ctd="~",
-    gutter.pad=" ", context.sep="~~~~~",
+    gutter.context.sep="~", gutter.context.sep.ctd="~",
+    gutter.pad=" ", context.sep="----------",
     pad.col=" "
   ),
   validity=function(object){
@@ -468,6 +474,7 @@ StyleAnsi256DarkRgb <- setClass(
       gutter.delete.ctd=crayon::make_style(rgb(2, 0, 0, maxColorValue=5)),
       gutter.guide=darkGray, gutter.guide.ctd=darkGray, line.guide=darkGray,
       gutter.fill=darkGray, gutter.fill.ctd=darkGray, text.fill=darkGrayBg,
+      gutter.context.sep=darkGray, gutter.context.sep.ctd=darkGray,
       context.sep=darkGray, meta=darkGray, trim=darkGray
 ) ) )
 #' @export StyleAnsi256DarkYb
@@ -489,6 +496,7 @@ StyleAnsi256DarkYb <- setClass(
       header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5)),
       gutter.guide=darkGray, gutter.guide.ctd=darkGray, line.guide=darkGray,
       gutter.fill=darkGray, gutter.fill.ctd=darkGray, text.fill=darkGrayBg,
+      gutter.context.sep=darkGray, gutter.context.sep.ctd=darkGray,
       context.sep=darkGray, meta=darkGray, trim=darkGray
 ) ) )
 #' @export StyleHtml
