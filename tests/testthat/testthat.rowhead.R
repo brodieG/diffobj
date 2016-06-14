@@ -1,6 +1,6 @@
 library(testthat)
 
-context("Row Head")
+context("Trim Row Headers")
 
 .mx.base <- matrix(
   c(
@@ -148,6 +148,16 @@ test_that("Array", {
   expect_equal(
     diffobj:::which_array_rh(ca4, dimnames(a4)),
     c(4L, 5L, 7L, 8L, 13L, 14L, 16L, 17L)
+  )
+})
+test_that("List", {
+  l1 <- list(
+    matrix(1:4, 2), b=list(abc=c(letters, LETTERS), list(matrix(4:1, 2)))
+  )
+  l1.c <- capture.output(l1)
+  expect_equal(
+    diffobj:::strip_list_rh(l1.c, l1),
+    c("[[1]]", "     [,1] [,2]", "   1    3", "   2    4", "", "$b", "$b$abc", "\"a\" \"b\" \"c\" \"d\" \"e\" \"f\" \"g\" \"h\" \"i\" \"j\" \"k\" \"l\" \"m\" \"n\" \"o\" \"p\" \"q\" \"r\" \"s\"", "\"t\" \"u\" \"v\" \"w\" \"x\" \"y\" \"z\" \"A\" \"B\" \"C\" \"D\" \"E\" \"F\" \"G\" \"H\" \"I\" \"J\" \"K\" \"L\"", "\"M\" \"N\" \"O\" \"P\" \"Q\" \"R\" \"S\" \"T\" \"U\" \"V\" \"W\" \"X\" \"Y\" \"Z\"", "", "$b[[2]]", "$b[[2]][[1]]", "     [,1] [,2]", "   4    2", "   3    1", "", "", "")
   )
 })
 

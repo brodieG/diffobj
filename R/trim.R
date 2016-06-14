@@ -202,6 +202,31 @@ strip_array_rh <- function(x, dim.names.x) {
   res[inds] <- sub(.pat.mat, "", x[inds])
   res
 }
+# Lists, need to recurse through the various list components
+#
+# This is not done super rigorously; the main point of failure is if sub-objects
+# produce patterns that match list sub-object headers which may cause confusion
+#
+# Super inefficient currently since we keep switching back and forth between
+# index and trimmed formats so we can re-use `trimPrint`...
+
+strip_list_rh <- function(x, obj) {
+  # Split output into each list component
+
+  list.h <- detect_list_guides(x)
+  dat <- split_by_guides(x, list.h)
+  elements <- flatten_list(obj)
+  if(length(elements) != length(dat)) {
+    x
+  } else {
+    # Use `trimPrint` to get indices, and trim back to stuff without row header
+    dat.trim <- Map(trimPrint, elements, dat)
+    dat.w.o.rh <- Map(
+      function(chr, ind) substr(chr, ind[, 1], ind[, 2]), dat, dat.trim
+    )
+    unlist(c(as.list(x[list.h]), dat.w.o.rh)[order(rep(seq_along(list.h), 2))])
+  }
+}
 #' Methods to Remove Unsemantic Text Prior to Diff
 #'
 #' Targets portions of text that are unrelated to content that may cause false
@@ -211,9 +236,9 @@ strip_array_rh <- function(x, dim.names.x) {
 #' one in the object with the row inserted.  In reality, one would expect those
 #' rows to still match the same rows in the object without the insertion.
 #'
-#' By default the \code{\link{diff*}} 
+#' By default the \code{\link{diff*}}
 #' Currently only \code{trimPrint} and \code{trimStr} do anything meaningful.
-#' \code{trimPrint} removes 
+#' \code{trimPrint} removes
 #' @note \code{obj.as.chr} will be post \code{strip_hz_control}
 #' @param obj the object
 #' @param obj.as.chr charcter the \code{print}ed representation of the object
@@ -244,6 +269,8 @@ setMethod(
       strip_array_rh(obj.as.chr, dimnames(obj))
     } else if(is.atomic(obj)) {
       strip_atomic_rh(obj.as.chr)
+    } else if(is.list(obj) && !is.object(obj)) {
+      strip_list_rh(obj.as.chr, obj)
     } else obj.as.chr
 
     trim_sub(obj.as.chr, stripped)
