@@ -5,39 +5,37 @@ gutter_dat <- function(etc) {
   funs <- etc@style@funs
   text <- etc@style@text
 
-  gutt.insert <- funs@gutter(funs@gutter.insert(text@gutter.insert))
-  gutt.insert.ctd <- funs@gutter(funs@gutter.insert.ctd(text@gutter.insert.ctd))
-  gutt.delete <- funs@gutter(funs@gutter.delete(text@gutter.delete))
-  gutt.delete.ctd <- funs@gutter(funs@gutter.delete.ctd(text@gutter.delete.ctd))
-  gutt.match <- funs@gutter(funs@gutter.match(text@gutter.match))
-  gutt.match.ctd <- funs@gutter(funs@gutter.match.ctd(text@gutter.match.ctd))
-  gutt.guide <- funs@gutter(funs@gutter.guide(text@gutter.guide))
-  gutt.guide.ctd <- funs@gutter(funs@gutter.guide.ctd(text@gutter.guide.ctd))
-  gutt.fill <- funs@gutter(funs@gutter.fill(text@gutter.fill))
-  gutt.fill.ctd <- funs@gutter(funs@gutter.fill.ctd(text@gutter.fill.ctd))
-  gutt.context.sep <-
-    funs@gutter(funs@gutter.context.sep(text@gutter.context.sep))
-  gutt.context.sep.ctd <-
-    funs@gutter(funs@gutter.context.sep.ctd(text@gutter.context.sep.ctd))
+  # get every slot except the pad slot; we'll then augment them so they have
+  # all the same number of characters, and finally we'll apply the revant
+  # functions; note we assume the provided gutter characters don't contain
+  # ANSI escapes.  We're a bit sloppy here with how we pull the relevant stuff
 
-  gutt.pad <- funs@gutter(funs@gutter.pad(text@gutter.pad))
+  slot.nm <- slotNames(text)
+  slots <- slot.nm[grepl("^gutter\\.", slot.nm) & slot.nm != "gutter.pad"]
+  gutt.dat <- format(vapply(slots, slot, character(1L), object=text))
+
+  gutt.format.try <- try({
+    gutt.dat.format <- vapply(
+      slots,
+      function(x) funs@gutter(slot(funs, sprintf("%s", x))(gutt.dat[x])),
+      character(1L)
+    )
+    gutt.pad <- funs@gutter(funs@gutter.pad(text@gutter.pad))
+  })
+  if(inherits(gutt.format.try, "try-error"))
+    stop(
+      "Failed attempting to apply gutter formatting functions; if you did not ",
+      "customize them, contact maintainer.  See `?StyleFuns`."
+    )
+
+  names(gutt.dat.format) <- sub("^gutter\\.", "", names(gutt.dat.format))
   nc_fun <- if(is(etc@style, "StyleAnsi")) crayon_nchar else nchar
-
-  gutt.max.w <- max(
-    nc_fun(gutt.pad) + nc_fun(
-      c(
-        gutt.insert, gutt.insert.ctd, gutt.delete, gutt.delete.ctd, gutt.match,
-        gutt.match.ctd
-  ) ) )
-  new(
-    "Gutter",
-    insert=gutt.insert, insert.ctd=gutt.insert.ctd, delete=gutt.delete,
-    delete.ctd=gutt.delete.ctd, match=gutt.match, match.ctd=gutt.match.ctd,
-    guide=gutt.guide, guide.ctd=gutt.guide.ctd,
-    fill=gutt.fill, fill.ctd=gutt.fill.ctd,
-    context.sep=gutt.context.sep, context.sep.ctd=gutt.context.sep.ctd,
-    pad=gutt.pad, width=gutt.max.w
+  gutt.max.w <- max(nc_fun(gutt.pad) + nc_fun(gutt.dat.format))
+  gutt.args <- c(
+    list("Gutter"), as.list(gutt.dat.format),
+    list(pad=gutt.pad, width=gutt.max.w)
   )
+  do.call("new", gutt.args)
 }
 # Based on the type of each row in a column, render the correct gutter
 
