@@ -161,15 +161,13 @@ detect_matrix_guides <- function(txt, dim.n) {
     mx.end <- head(mx.starts[which(mx.starts > mx.start)], 1L) - 1L
     if(!length(mx.end)) mx.end <- length(txt)
 
-    if(mx.end > mx.start + 1L) {
-      pat.inds <- mx.start:(mx.end)
-      template <- rep(
-        row.types[pat.inds],
-        floor((length(txt) - mx.start + 1L) / length(pat.inds))
-      )
-      which(head(row.types, length(template)) == template & !!template) +
-        mx.start - 1L
-    } else integer(0L)
+    pat.inds <- mx.start:(mx.end)
+    template <- rep(
+      row.types[pat.inds],
+      floor((length(txt) - mx.start + 1L) / length(pat.inds))
+    )
+    which(head(row.types, length(template)) == template & !!template) +
+      mx.start - 1L
   } else integer(0L)
 }
 # Here we want to get the high dimension counter as well as the column headers

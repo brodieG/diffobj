@@ -158,6 +158,7 @@ which_matrix_rh <- function(x, dim.names.x) {
         else pat.match
       }
     )
+    b
     if(
       all(vapply(pat.ind, identical, logical(1L), pat.ind[[1L]])) &&
       (length(pat.ind[[1L]]) == 1L || all(diff(pat.ind[[1L]]) == 1L))
