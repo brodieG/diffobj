@@ -41,7 +41,7 @@ chrt <- function(...)
     c(...),
     levels=c(
       "insert", "delete", "match", "header", "context.sep",
-      "banner.insert", "banner.delete", "guide"
+      "banner.insert", "banner.delete", "guide", "fill"
     )
   )
 hunkl <- function(col.1=NULL, col.2=NULL, type.1=NULL, type.2=NULL)
@@ -55,13 +55,28 @@ hunkl <- function(col.1=NULL, col.2=NULL, type.1=NULL, type.2=NULL)
 
 # finalization functions take aligned data and juxtapose it according to
 # selected display mode.  Note that _context must operate on all the hunks
-# in a hunk group, whereas the other two operate on each hunk atom
+# in a hunk group, whereas the other two operate on each hunk atom.  Padding
+# is identified in two forms: as actual A.fill and B.fill values when there
+# was a wrapped diff, and in side by side mode when the lengths of A and B
+# are not the same and end up adding NAs.  Padding is really only meaningful
+# for side by side mode so is removed in the other modes
+
+# The A.fill and B.fill business is a bit of a mess, because ideally we woudl
+# want a structure parallel to the data structure instead of just vectors that
+# we need to line up with the data lists, but this is all a result of trying
+# to shoehorn new functionality in...
 
 fin_fun_context <- function(dat) {
-  A.dat <- lapply(dat, "[[", "A")
-  B.dat <- lapply(dat, "[[", "B")
+  dat_wo_fill <- function(x, ind) unlist(x[[ind]])[!x[[sprintf("%s.fill", ind)]]]
+  A.dat <- lapply(dat, dat_wo_fill, "A")
+  B.dat <- lapply(dat, dat_wo_fill, "B")
+
   A.lens <- vapply(A.dat, function(x) length(unlist(x)), integer(1L))
   B.lens <- vapply(B.dat, function(x) length(unlist(x)), integer(1L))
+
+  A.ul <- unlist(A.dat)
+  B.ul <- unlist(B.dat)
+
   context <- vapply(dat, "[[", logical(1L), "context")
   guide <- vapply(dat, "[[", logical(1L), "guide")
   A.ctx <- rep(context, A.lens)
@@ -70,9 +85,6 @@ fin_fun_context <- function(dat) {
   B.guide <- rep(guide, B.lens)
   A.types <- ifelse(A.guide, "guide", ifelse(A.ctx, "match", "delete"))
   B.types <- ifelse(B.guide, "guide", ifelse(B.ctx, "match", "insert"))
-
-  A.ul <- unlist(A.dat)
-  B.ul <- unlist(B.dat)
 
   # return in list so compatible with post `lapply` return values for other
   # finalization functions
@@ -84,22 +96,24 @@ fin_fun_context <- function(dat) {
     )
   )
 }
-fin_fun_unified <- function(A, B, context, guide) {
-  ord <- order(c(seq_along(A), seq_along(B)))
+fin_fun_unified <- function(A, B, A.fill, B.fill, context, guide) {
+  A.lens <- vapply(A, length, integer(1L))
+  B.lens <- vapply(B, length, integer(1L))
+  A.ord <- rep(seq_along(A.lens), A.lens)[!A.fill]
+  B.ord <- rep(seq_along(B.lens), B.lens)[!B.fill]
+  A <- unlist(A)[!A.fill]
+  B <- unlist(B)[!B.fill]
+
+  ord <- order(c(A.ord, B.ord))
   types <- c(
-    lapply(A, function(x)
-      rep(if(guide) "guide" else if(context) "match" else "delete", length(x))
-    ),
-    lapply(B, function(x)
-      rep(if(guide) "mea" else if(context) "match" else "insert", length(x))
-    )
+    rep(if(guide) "guide" else if(context) "match" else "delete", sum(A.lens)),
+    rep(if(guide) "guide" else if(context) "match" else "insert", sum(B.lens))
   )
   hunkl(
-    col.1=unlist(c(A, B)[ord]),
-    type.1=chrt(unlist(types[ord]))
+    col.1=unlist(c(A, B)[ord]), type.1=chrt(unlist(types[ord]))
   )
 }
-fin_fun_sidebyside <- function(A, B, context, guide) {
+fin_fun_sidebyside <- function(A, B, A.fill, B.fill, context, guide) {
   for(i in seq_along(A)) {
     A.ch <- A[[i]]
     B.ch <- B[[i]]
@@ -113,6 +127,10 @@ fin_fun_sidebyside <- function(A, B, context, guide) {
   }
   A.ul <- unlist(A)
   B.ul <- unlist(B)
+  A.fill.u <- B.fill.u <- !logical(length(A.ul))
+  A.fill.u[!is.na(A.ul)] <- A.fill
+  B.fill.u[!is.na(B.ul)] <- B.fill
+
   A.len <- length(A.ul)
   B.len <- length(B.ul)
   hunkl(
@@ -120,14 +138,16 @@ fin_fun_sidebyside <- function(A, B, context, guide) {
     col.2=ifelse(is.na(B.ul), "", B.ul),
     type.1=chrt(
       ifelse(
-        rep(guide, A.len),  "guide",
-        ifelse(context | is.na(A.ul), "match", "delete")
-    ) ),
+        rep(guide, A.len), "guide",
+        ifelse(A.fill.u, "fill",
+          ifelse(context, "match", "delete")
+    ) ) ),
     type.2=chrt(
       ifelse(
         rep(guide, B.len), "guide",
-        ifelse(context | is.na(B.ul), "match", "insert")
-  ) ) )
+        ifelse(B.fill.u, "fill",
+          ifelse(context, "match", "insert")
+  ) ) ) )
 }
 # Convert a hunk group into text representation
 
@@ -154,8 +174,12 @@ hunk_atom_as_char <- function(h.a, x) {
   # Align the lines accounting for partial matching post word-diff,
   # each diff style has a different finalization function
 
-  dat.align <- align_eq(A.ind, B.ind, x=x)
-  list(A=dat.align$A, B=dat.align$B, context=h.a$context, guide=h.a$guide)
+  dat.align <- align_eq(A.ind, B.ind, x=x, context=h.a$context)
+  list(
+    A=dat.align$A, B=dat.align$B,
+    A.fill=dat.align$A.fill, B.fill=dat.align$B.fill,
+    context=h.a$context, guide=h.a$guide
+  )
 }
 hunk_as_char <- function(h.g, ranges.orig, x) {
   stopifnot(is(x, "Diff"))
@@ -170,14 +194,17 @@ hunk_as_char <- function(h.g, ranges.orig, x) {
   h.ids <- vapply(h.g, "[[", integer(1L), "id")
   h.head <- vapply(h.g, "[[", logical(1L), "guide")
 
-  # exclude header hunks from contributing to range
+  # exclude header hunks from contributing to range, and adjust ranges for
+  # possible fill lines added to the data
 
   h.ids.nh <- h.ids[!h.head]
   tar.rng <- find_rng(h.ids.nh, ranges.orig[1:2, , drop=FALSE])
+  tar.rng.f <- cumsum(!x@tar.dat$fill)[tar.rng]
   cur.rng <- find_rng(h.ids.nh, ranges.orig[3:4, , drop=FALSE])
+  cur.rng.f <- cumsum(!x@cur.dat$fill)[cur.rng]
 
-  hh.a <- paste0(rng_as_chr(tar.rng))
-  hh.b <- paste0(rng_as_chr(cur.rng))
+  hh.a <- paste0(rng_as_chr(tar.rng.f))
+  hh.b <- paste0(rng_as_chr(cur.rng.f))
 
   hunk.head <- if(length(h.g) && !h.g[[1L]]$completely.empty) {
     list(
@@ -228,57 +255,6 @@ update_hunk_atom <- function(h.a, new.diff, A.pos, A.neg, B.pos, B.neg, ind) {
   h.a[[B.ind]][B.neg] <- new.diff[[cur.ind]][seq_along(B.neg)]
 
   h.a
-}
-# Compute diffs in hunks
-
-in_hunk_diffs <- function(hunk.grps, etc, tar.to.wd, cur.to.wd) {
-  if(length(tar.to.wd) || length(cur.to.wd)) {
-    wd.max <- min(head(tar.to.wd, 1L), head(cur.to.wd, 1L), 0L)
-    warn.hit.diffs.max <- TRUE
-
-    # We need to compare the +s to the -s, and then reconstruct back into
-    # the original A and B vectors
-
-    for(i in seq_along(hunk.grps)) {
-      for(j in seq_along(hunk.grps[[i]])) {
-        h.a <- hunk.grps[[i]][[j]]
-        # Skip context or those that have been wrap diffed or non-context
-        # hunks that are being trimmed
-        if(
-          h.a$id < wd.max || h.a$context ||
-          (!length(h.a$A) && !length(h.a$B))
-        ) next
-        # Do word diff on each non-context hunk; real messy because the
-        # stuff from `tar` and `cur` are mixed in in A and B (well, really
-        # only in unified mode) so we have to separate it back out before
-        # we do the diff
-
-        A.pos <- which(h.a$A > 0L)
-        B.pos <- which(h.a$B > 0L)
-        A.neg <- which(h.a$A < 0L)
-        B.neg <- which(h.a$B < 0L)
-
-        A.new <- c(h.a$A.chr[A.pos], h.a$B.chr[B.pos])
-        B.new <- c(h.a$A.chr[A.neg], h.a$B.chr[B.neg])
-
-        new.diff <- diff_word(
-          A.new, B.new, etc=etc, diff.mode="hunk", warn=warn.hit.diffs.max
-        )
-        if(new.diff$hit.diffs.max) warn.hit.diffs.max <- FALSE
-
-        # Update hunk atom with the word diff info; we need to remap from
-        # tar/cur back to A/B
-
-        ind.sub <- c("chr", "eq.chr", "tok.ratio")
-        for(k in seq_along(ind.sub)) {
-          h.a <- update_hunk_atom(
-            h.a, new.diff, A.pos, A.neg, B.pos, B.neg, ind.sub[[k]]
-        ) }
-        # Update the hunk group with the modified hunk atom
-
-        hunk.grps[[i]][[j]] <- h.a
-  } } }
-  hunk.grps
 }
 # Helper functions for 'as.character'
 
@@ -450,8 +426,8 @@ setMethod("as.character", "Diff",
     tar.w.c <- word_color(x@tar.dat$trim, x@tar.dat$word.ind, f.f@word.delete)
     cur.w.c <- word_color(x@cur.dat$trim, x@cur.dat$word.ind, f.f@word.insert)
 
-    x@tar.dat$fin <- untrim(x@tar.dat$fin, tar.w.c, x@tar.dat$trim.ind)
-    x@cur.dat$fin <- untrim(x@cur.dat$fin, cur.w.c, x@cur.dat$trim.ind)
+    x@tar.dat$fin <- untrim(x@tar.dat, tar.w.c, f.f@trim)
+    x@cur.dat$fin <- untrim(x@cur.dat, cur.w.c, f.f@trim)
 
     # Generate the pre-rendered hunk data as text columns; a bit complicated
     # as we need to unnest stuff; use rbind to make it a little easier.
@@ -514,13 +490,21 @@ setMethod("as.character", "Diff",
           Map(
             function(dat, len) {
               length(dat) <- len
-              dat[is.na(dat)] <- ""
               dat
             },
             y, line.lens.max[[1L]]
       ) } )
     } else line.lens.max <- line.lens
 
+    # Record NA elements, and replace them with blanks
+
+    lines.na <- lapply(pre.render.w, lapply, is.na)
+    pre.render.w <- lapply(
+      pre.render.w, lapply, 
+      function(y) {
+        y[is.na(y)] <- ""
+        y
+    } )
     # Compute gutter, padding, and continuations
 
     pads <- lapply(
@@ -534,7 +518,7 @@ setMethod("as.character", "Diff",
     pre.render.w.p <- if(s@pad) {
       Map(
         function(col, type) {
-          diff.line <- type %in% c("insert", "delete", "match", "guide")
+          diff.line <- type %in% c("insert", "delete", "match", "guide", "fill")
           col[diff.line] <- lapply(col[diff.line], rpad, x@etc@text.width)
           col[!diff.line] <- lapply(col[!diff.line], rpad, x@etc@line.width)
           col
@@ -544,7 +528,9 @@ setMethod("as.character", "Diff",
     } else pre.render.w
 
     # Apply text level styles; make sure that all types are defined here
-    # otherwise you'll get lines missing in output.
+    # otherwise you'll get lines missing in output; note that fill lines were
+    # represented by NAs originally and we indentify them within each aligned
+    # group with `lines.na`
 
     es <- x@etc@style
     funs.ts <- list(
@@ -552,23 +538,51 @@ setMethod("as.character", "Diff",
       delete=function(x) es@funs@text(es@funs@text.delete(x)),
       match=function(x) es@funs@text(es@funs@text.match(x)),
       guide=function(x) es@funs@text(es@funs@text.guide(x)),
-      header=es@funs@header,
-      context.sep=function(x) es@funs@context.sep(es@text@context.sep)
+      fill=function(x) es@funs@text(es@funs@text.fill(x)),
+      header=es@funs@header
     )
     pre.render.s <- Map(
-      function(dat, type) {
+      function(dat, type, l.na) {
         res <- vector("list", length(dat))
-        res[type == "context.sep"] <- list(es@funs@context.sep)
-        for(i in names(funs.ts))
-          res[type == i] <- lapply(dat[type == i], funs.ts[[i]])
+        res[type == "context.sep"] <- list(
+          es@funs@context.sep(es@text@context.sep)
+        )
+        for(i in names(funs.ts))  # really need to loop through all?
+          res[type == i] <- Map(
+            function(y, l.na.i) {
+              res.s <- y
+              if(any(l.na.i))
+                res.s[l.na.i] <- funs.ts$fill(y[l.na.i])
+              res.s[!l.na.i] <- funs.ts[[i]](y[!l.na.i])
+              res.s
+            },
+            dat[type == i],
+            l.na[type == i]
+          )
         res
       },
-      pre.render.w.p, types
+      pre.render.w.p, types, lines.na
+    )
+    # Reconstruct 'types.raw' with the appropriate lenghts, and replacing
+    # types with 'fill' if elements were extended due to wrap
+
+    types.raw.x <- Map(
+      function(y, z) {
+        Map(
+          function(y.s, z.s) {
+            res <- rep(y.s, length(z.s))
+            res[z.s] <- "fill"
+            res
+          },
+          y, z
+      ) },
+      types.raw, lines.na
     )
     # Render columns; note here we use 'types.raw' to distinguish banner lines
 
     cols <- render_cols(
-      cols=pre.render.s, gutters=gutters, pads=pads, types=types.raw, etc=x@etc
+      cols=pre.render.s, gutters=gutters, pads=pads, types=types.raw.x, 
+      etc=x@etc
     )
     # Render rows
 

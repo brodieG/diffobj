@@ -63,35 +63,40 @@ StyleFuns <- setClass(
   slots=c(
     container="ANY", row="ANY",
     line="ANY", line.insert="ANY", line.delete="ANY", line.match="ANY",
-    line.guide="ANY",
+    line.guide="ANY", line.fill="ANY",
     text="ANY", text.insert="ANY", text.delete="ANY", text.match="ANY",
-    text.guide="ANY",
+    text.guide="ANY", text.fill="ANY",
     banner="ANY", banner.insert="ANY", banner.delete="ANY",
     gutter="ANY",
     gutter.insert="ANY", gutter.insert.ctd="ANY",
     gutter.delete="ANY", gutter.delete.ctd="ANY",
     gutter.match="ANY", gutter.match.ctd="ANY",
     gutter.guide="ANY", gutter.guide.ctd="ANY",
+    gutter.fill="ANY", gutter.fill.ctd="ANY",
+    gutter.context.sep="ANY", gutter.context.sep.ctd="ANY",
     gutter.pad="ANY",
     word.insert="ANY", word.delete="ANY",
-    context.sep="ANY", header="ANY", meta="ANY"
+    context.sep="ANY", header="ANY", meta="ANY", trim="ANY"
   ),
   prototype=list(
     container=identity, row=identity,
     banner=identity, banner.insert=identity, banner.delete=identity,
     line=identity, line.insert=identity, line.delete=identity,
-    line.match=identity, line.guide=identity,
+    line.match=identity, line.guide=identity, line.fill=identity,
     text=identity, text.insert=identity, text.delete=identity,
-    text.match=identity, text.guide=identity,
+    text.match=identity, text.guide=identity, text.fill=identity,
     gutter=identity, gutter.pad=identity,
     gutter.insert=identity, gutter.insert.ctd=identity,
     gutter.delete=identity, gutter.delete.ctd=identity,
     gutter.match=identity, gutter.match.ctd=identity,
     gutter.guide=identity, gutter.guide.ctd=identity,
+    gutter.fill=identity, gutter.fill.ctd=identity,
+    gutter.context.sep=identity, gutter.context.sep.ctd=identity,
     word.insert=identity, word.delete=identity,
     header=identity,
     context.sep=identity,
-    meta=identity
+    meta=identity,
+    trim=identity
   ),
   validity=function(object){
     for(i in slotNames(object)) {
@@ -114,10 +119,13 @@ StyleFunsAnsi <- setClass(
     gutter.insert=crayon::green, gutter.insert.ctd=crayon::green,
     gutter.delete=crayon::red, gutter.delete.ctd=crayon::red,
     gutter.guide=crayon::silver, gutter.guide.ctd=crayon::silver,
+    gutter.fill=crayon::silver, gutter.fill.ctd=crayon::silver,
+    gutter.context.sep=crayon::silver, gutter.context.sep.ctd=crayon::silver,
     header=crayon::cyan,
     meta=crayon::silver,
     line.guide=crayon::silver,
-    context.sep=crayon::silver
+    context.sep=crayon::silver,
+    trim=crayon::silver
   )
 )
 #' Character Tokens Used in Diffs
@@ -136,6 +144,8 @@ StyleFunsAnsi <- setClass(
 #' @param gutter.match.ctd character(1L) see \code{gutter.insert.ctd} above
 #' @param gutter.guide character(1L) see \code{gutter.insert} above
 #' @param gutter.guide.ctd character(1L) see \code{gutter.insert.ctd} above
+#' @param gutter.fill character(1L) see \code{gutter.insert} above
+#' @param gutter.fill.ctd character(1L) see \code{gutter.insert.ctd} above
 #' @param gutter.pad character(1L) separator between gutter characters and the
 #'   rest of a line in a diff
 #' @param pad.col character(1L) separator between columns in side by side mode
@@ -152,6 +162,8 @@ StyleText <- setClass(
     gutter.delete="character", gutter.delete.ctd="character",
     gutter.match="character", gutter.match.ctd="character",
     gutter.guide="character", gutter.guide.ctd="character",
+    gutter.fill="character", gutter.fill.ctd="character",
+    gutter.context.sep="character", gutter.context.sep.ctd="character",
     gutter.pad="character",
     context.sep="character",
     pad.col="character"
@@ -160,9 +172,10 @@ StyleText <- setClass(
     gutter.insert=">", gutter.insert.ctd=":",
     gutter.delete="<", gutter.delete.ctd=":",
     gutter.match=" ", gutter.match.ctd=" ",
-    gutter.guide="~", gutter.guide.ctd=":",
-    gutter.pad=" ",
-    context.sep="~~~~~",
+    gutter.guide="~", gutter.guide.ctd="~",
+    gutter.fill="~", gutter.fill.ctd="~",
+    gutter.context.sep="~", gutter.context.sep.ctd="~",
+    gutter.pad=" ", context.sep="----------",
     pad.col=" "
   ),
   validity=function(object){
@@ -406,6 +419,9 @@ StyleAnsi256LightRgb <- setClass(
     funs=StyleFunsAnsi(
       text.insert=crayon::make_style(rgb(4, 5, 4, maxColorValue=5), bg=TRUE),
       text.delete=crayon::make_style(rgb(5, 4, 4, maxColorValue=5), bg=TRUE),
+      text.fill=crayon::make_style(
+        rgb(20, 20, 20, maxColorValue=23), bg=TRUE, grey=TRUE
+      ),
       word.insert=crayon::make_style(rgb(2, 4, 2, maxColorValue=5), bg=TRUE),
       word.delete=crayon::make_style(rgb(4, 2, 2, maxColorValue=5), bg=TRUE),
       gutter.insert=crayon::make_style(rgb(0, 3, 0, maxColorValue=5)),
@@ -414,6 +430,11 @@ StyleAnsi256LightRgb <- setClass(
       gutter.delete.ctd=crayon::make_style(rgb(3, 0, 0, maxColorValue=5)),
       header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5))
 ) ) )
+
+darkGray <- crayon::make_style(rgb(5, 5, 5, maxColorValue=23), grey=TRUE)
+darkGrayBg <- crayon::make_style(
+  rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE
+)
 #' @export StyleAnsi256LightYb
 #' @exportClass StyleAnsi256LightYb
 #' @rdname Style
@@ -424,6 +445,9 @@ StyleAnsi256LightYb <- setClass(
     funs=StyleFunsAnsi(
       text.insert=crayon::make_style(rgb(3, 3, 5, maxColorValue=5), bg=TRUE),
       text.delete=crayon::make_style(rgb(4, 4, 2, maxColorValue=5), bg=TRUE),
+      text.fill=crayon::make_style(
+        rgb(20, 20, 20, maxColorValue=23), bg=TRUE, grey=TRUE
+      ),
       word.insert=crayon::make_style(rgb(2, 2, 4, maxColorValue=5), bg=TRUE),
       word.delete=crayon::make_style(rgb(3, 3, 1, maxColorValue=5), bg=TRUE),
       gutter.insert=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),
@@ -447,7 +471,11 @@ StyleAnsi256DarkRgb <- setClass(
       gutter.insert=crayon::make_style(rgb(0, 2, 0, maxColorValue=5)),
       gutter.insert.ctd=crayon::make_style(rgb(0, 2, 0, maxColorValue=5)),
       gutter.delete=crayon::make_style(rgb(2, 0, 0, maxColorValue=5)),
-      gutter.delete.ctd=crayon::make_style(rgb(2, 0, 0, maxColorValue=5))
+      gutter.delete.ctd=crayon::make_style(rgb(2, 0, 0, maxColorValue=5)),
+      gutter.guide=darkGray, gutter.guide.ctd=darkGray, line.guide=darkGray,
+      gutter.fill=darkGray, gutter.fill.ctd=darkGray, text.fill=darkGrayBg,
+      gutter.context.sep=darkGray, gutter.context.sep.ctd=darkGray,
+      context.sep=darkGray, meta=darkGray, trim=darkGray
 ) ) )
 #' @export StyleAnsi256DarkYb
 #' @exportClass StyleAnsi256DarkYb
@@ -465,7 +493,11 @@ StyleAnsi256DarkYb <- setClass(
       gutter.insert.ctd=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),
       gutter.delete=crayon::make_style(rgb(1, 1, 0, maxColorValue=5)),
       gutter.delete.ctd=crayon::make_style(rgb(1, 1, 0, maxColorValue=5)),
-      header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5))
+      header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5)),
+      gutter.guide=darkGray, gutter.guide.ctd=darkGray, line.guide=darkGray,
+      gutter.fill=darkGray, gutter.fill.ctd=darkGray, text.fill=darkGrayBg,
+      gutter.context.sep=darkGray, gutter.context.sep.ctd=darkGray,
+      context.sep=darkGray, meta=darkGray, trim=darkGray
 ) ) )
 #' @export StyleHtml
 #' @exportClass StyleHtml
@@ -487,25 +519,30 @@ StyleHtml <- setClass(
       line.delete=div_f("delete"),
       line.match=div_f("match"),
       line.guide=div_f("guide"),
+      line.fill=div_f("fill"),
       line=div_f("line"),
       text.insert=div_f("insert"),
       text.delete=div_f("delete"),
       text.match=div_f("match"),
       text.guide=div_f("guide"),
+      text.fill=div_f("fill"),
       text=div_f("text"),
       gutter.insert=div_f("insert"),
       gutter.delete=div_f("delete"),
       gutter.match=div_f("match"),
       gutter.guide=div_f("guide"),
+      gutter.fill=div_f("fill"),
       gutter=div_f("gutter"),
       word.insert=span_f(c("word", "insert")),
       word.delete=span_f(c("word", "delete")),
+      trim=span_f("trim"),
       header=div_f(c("header"))
     ),
     text=StyleText(
       gutter.insert="&gt;",
       gutter.delete="&lt;",
-      gutter.match="&nbsp;"
+      gutter.match="&nbsp;",
+      gutter.fill="."
     ),
     pager=PagerBrowser(),
     wrap=FALSE,
@@ -768,6 +805,12 @@ setMethod(
 )
 setMethod("dimnames", "PaletteOfStyles", function(x) dimnames(x@data))
 
+# Matrices used for show methods for styles
+
+.mx1 <- .mx2 <- matrix(1:50, ncol=2)
+.mx2[c(6L, 40L)] <- 99L
+.mx2 <- .mx2[-7L,]
+
 #' Show Method for Style Objects
 #'
 #' Display a small sample diff with the Style object styles applied.  For
@@ -785,10 +828,8 @@ setMethod("dimnames", "PaletteOfStyles", function(x) dimnames(x@data))
 setMethod("show", "Style",
   function(object) {
     cat(sprintf("Object of class `%s`:\n\n", class(object)))
-    mx1 <- mx2 <- matrix(1:50, ncol=2)
-    mx2[c(6, 40)] <- 99L
     d.p <- diffPrint(
-      mx1, mx2, context=1, line.limit=6, style=object, pager=PagerOff()
+      .mx1, .mx2, context=1, line.limit=7L, style=object, pager=PagerOff()
     )
     d.txt <- capture.output(show(d.p))
     if(is(object, "Ansi")) {
@@ -851,7 +892,7 @@ display_ansi_256_styles <- function() {
       StyleAnsi256DarkYb(), StyleAnsi256DarkRgb(),
       StyleAnsi256LightYb(), StyleAnsi256LightRgb()
     ),
-    function(x) capture.output(show(x))[3:8]
+    function(x) capture.output(show(x))[3:9]
   )
   names <- c("Neutral", "Dark", "Light")
   cat("\n")

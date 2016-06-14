@@ -116,8 +116,9 @@ setClass("Gutter",
     delete="character", delete.ctd="character",
     match="character", match.ctd="character",
     guide="character", guide.ctd="character",
-    pad="character",
-    width="integer"
+    fill="character", fill.ctd="character",
+    context.sep="character", context.sep.ctd="character",
+    pad="character", width="integer"
   )
 )
 setClass("Settings",
@@ -244,15 +245,16 @@ setClass("DiffDiffs",
   }
 )
 .diff.dat.cols <- c(
-  "raw", "trim", "trim.ind", "eq", "word.ind", "fin", "tok.rat"
+  "raw", "trim", "trim.ind.start", "trim.ind.end", "comp", "eq", "fin",
+  "fill", "word.ind", "tok.rat"
 )
 # Validate the *.dat slots of the Diff objects
 
 valid_dat <- function(x) {
-  char.cols <- c("raw", "trim", "eq", "fin")
+  char.cols <- c("raw", "trim", "eq", "comp", "fin")
   list.cols <- c("word.ind")
   zerotoone.cols <- "tok.rat"
-  mx.cols <- c("trim.ind")
+  integer.cols <- c("trim.ind.start", "trim.ind.end")
 
   if(!is.list(x)) {
     "should be a list"
@@ -261,12 +263,11 @@ valid_dat <- function(x) {
   } else if(
     length(
       unique(
-        c(
-          vapply(
-            x[c(char.cols, list.cols, zerotoone.cols)], length, integer(1L)
-          ),
-          vapply(x[c(mx.cols)], nrow, integer(1L))
-    ) ) ) != 1L
+        vapply(
+          x[c(char.cols, list.cols, zerotoone.cols, integer.cols)], 
+          length, integer(1L)
+        )
+    ) ) != 1L
   ) {
     "should have equal length components"
   } else {
@@ -278,12 +279,16 @@ valid_dat <- function(x) {
       sprintf("element `%s` should be character", char.cols[not.char][[1L]])
     } else if (
       length(
+        not.int <- which(!vapply(x[integer.cols], is.integer, logical(1L)))
+      )
+    ) {
+      sprintf("element `%s` should be integer", integer.cols[not.int][[1L]])
+    } else if (
+      length(
         not.list <- which(!vapply(x[list.cols], is.list, logical(1L)))
       )
     ) {
       sprintf("element `%s` should be list", char.cols[not.char][[1L]])
-    } else if (!isTRUE(val.trim <- valid_trim_ind(x$trim.ind))) {
-      sprintf("element `trim.ind` is invalid: %s", val.trim)
     } else if (
       !all(
         vapply(
@@ -299,6 +304,8 @@ valid_dat <- function(x) {
       !is.numeric(x$tok.rat) || anyNA(x$tok.rat) || !all(x$to.rat %bw% c(0, 1))
     ) {
       "element `tok.rat` should be numeric with all values between 0 and 1"
+    } else if (!is.logical(x$fill) || anyNA(x$fill)) {
+      "element `fill` should be logical and not contain NAs"
     }
     else TRUE
   }

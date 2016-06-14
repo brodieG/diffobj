@@ -5,31 +5,37 @@ gutter_dat <- function(etc) {
   funs <- etc@style@funs
   text <- etc@style@text
 
-  gutt.insert <- funs@gutter(funs@gutter.insert(text@gutter.insert))
-  gutt.insert.ctd <- funs@gutter(funs@gutter.insert.ctd(text@gutter.insert.ctd))
-  gutt.delete <- funs@gutter(funs@gutter.delete(text@gutter.delete))
-  gutt.delete.ctd <- funs@gutter(funs@gutter.delete.ctd(text@gutter.delete.ctd))
-  gutt.match <- funs@gutter(funs@gutter.match(text@gutter.match))
-  gutt.match.ctd <- funs@gutter(funs@gutter.match.ctd(text@gutter.match.ctd))
-  gutt.guide <- funs@gutter(funs@gutter.guide(text@gutter.guide))
-  gutt.guide.ctd <- funs@gutter(funs@gutter.guide.ctd(text@gutter.guide.ctd))
+  # get every slot except the pad slot; we'll then augment them so they have
+  # all the same number of characters, and finally we'll apply the revant
+  # functions; note we assume the provided gutter characters don't contain
+  # ANSI escapes.  We're a bit sloppy here with how we pull the relevant stuff
 
-  gutt.pad <- funs@gutter(funs@gutter.pad(text@gutter.pad))
+  slot.nm <- slotNames(text)
+  slots <- slot.nm[grepl("^gutter\\.", slot.nm) & slot.nm != "gutter.pad"]
+  gutt.dat <- format(vapply(slots, slot, character(1L), object=text))
+
+  gutt.format.try <- try({
+    gutt.dat.format <- vapply(
+      slots,
+      function(x) funs@gutter(slot(funs, sprintf("%s", x))(gutt.dat[x])),
+      character(1L)
+    )
+    gutt.pad <- funs@gutter(funs@gutter.pad(text@gutter.pad))
+  })
+  if(inherits(gutt.format.try, "try-error"))
+    stop(
+      "Failed attempting to apply gutter formatting functions; if you did not ",
+      "customize them, contact maintainer.  See `?StyleFuns`."
+    )
+
+  names(gutt.dat.format) <- sub("^gutter\\.", "", names(gutt.dat.format))
   nc_fun <- if(is(etc@style, "StyleAnsi")) crayon_nchar else nchar
-
-  gutt.max.w <- max(
-    nc_fun(gutt.pad) + nc_fun(
-      c(
-        gutt.insert, gutt.insert.ctd, gutt.delete, gutt.delete.ctd, gutt.match,
-        gutt.match.ctd
-  ) ) )
-  new(
-    "Gutter",
-    insert=gutt.insert, insert.ctd=gutt.insert.ctd, delete=gutt.delete,
-    delete.ctd=gutt.delete.ctd, match=gutt.match, match.ctd=gutt.match.ctd,
-    guide=gutt.guide, guide.ctd=gutt.guide.ctd,
-    pad=gutt.pad, width=gutt.max.w 
+  gutt.max.w <- max(nc_fun(gutt.pad) + nc_fun(gutt.dat.format))
+  gutt.args <- c(
+    list("Gutter"), as.list(gutt.dat.format),
+    list(pad=gutt.pad, width=gutt.max.w)
   )
+  do.call("new", gutt.args)
 }
 # Based on the type of each row in a column, render the correct gutter
 
@@ -39,11 +45,17 @@ render_gutters <- function(types, lens, lens.max, etc) {
     function(dat, lens, lens.max) {
       Map(
         function(type, len, len.max) {
-          if(type %in% c("insert", "delete", "match", "guide")) {
+          if(
+            type %in% c(
+              "insert", "delete", "match", "guide", "fill", "context.sep"
+            )
+          ) {
             c(
               if(len) slot(gutter.dat, as.character(type)),
-              rep(slot(gutter.dat, paste0(type, ".", "ctd")), max(len - 1L, 0L)),
-              rep(slot(gutter.dat, "match"), max(len.max - len, 0L))
+              rep(
+                slot(gutter.dat, paste0(type, ".", "ctd")), max(len - 1L, 0L)
+              ),
+              rep(slot(gutter.dat, "fill"), max(len.max - len, 0L))
             )
           } else character(len)
         },
@@ -56,30 +68,32 @@ render_gutters <- function(types, lens, lens.max, etc) {
 
 render_col <- function(gutter, pad, col, type, etc) {
   lens <- vapply(col, length, integer(1L))
-  type.r <- rep(type, lens)
   gutt.ul <- unlist(gutter)
   col.txt <- paste0(
     gutt.ul, ifelse(nchar(gutt.ul), unlist(pad), ""), unlist(col)
   )
+  type.ul <- unlist(type)
   es <- etc@style@funs
 
   # line formats
 
-  col.txt[type.r == "banner.insert"] <-
-    es@banner(es@banner.insert(col.txt[type.r == "banner.insert"]))
-  col.txt[type.r == "banner.delete"] <-
-    es@banner(es@banner.delete(col.txt[type.r == "banner.delete"]))
-  col.txt[type.r == "insert"] <-
-    es@line(es@line.insert(col.txt[type.r == "insert"]))
-  col.txt[type.r == "delete"] <-
-    es@line(es@line.delete(col.txt[type.r == "delete"]))
-  col.txt[type.r == "match"] <-
-    es@line(es@line.match(col.txt[type.r == "match"]))
-  col.txt[type.r == "guide"] <-
-    es@line(es@line.guide(col.txt[type.r == "guide"]))
-  col.txt[type.r == "context.sep"] <-
-    es@line(es@context.sep(col.txt[type.r == "context.sep"]))
-  col.txt[type.r == "header"] <- es@line(col.txt[type.r == "header"])
+  col.txt[type.ul == "banner.insert"] <-
+    es@banner(es@banner.insert(col.txt[type.ul == "banner.insert"]))
+  col.txt[type.ul == "banner.delete"] <-
+    es@banner(es@banner.delete(col.txt[type.ul == "banner.delete"]))
+  col.txt[type.ul == "insert"] <-
+    es@line(es@line.insert(col.txt[type.ul == "insert"]))
+  col.txt[type.ul == "delete"] <-
+    es@line(es@line.delete(col.txt[type.ul == "delete"]))
+  col.txt[type.ul == "match"] <-
+    es@line(es@line.match(col.txt[type.ul == "match"]))
+  col.txt[type.ul == "guide"] <-
+    es@line(es@line.guide(col.txt[type.ul == "guide"]))
+  col.txt[type.ul == "fill"] <-
+    es@line(es@line.fill(col.txt[type.ul == "fill"]))
+  col.txt[type.ul == "context.sep"] <-
+    es@line(es@context.sep(col.txt[type.ul == "context.sep"]))
+  col.txt[type.ul == "header"] <- es@line(col.txt[type.ul == "header"])
   col.txt
 }
 render_cols <- function(cols, gutters, pads, types, etc) {

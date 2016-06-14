@@ -321,11 +321,16 @@ trim_sub <- function(obj.as.chr, obj.stripped) {
   cbind(sub.start, sub.end)
 }
 # Re-insert the trimmed stuff back into the original string
-untrim <- function(raw, trim, ind)
-  paste0(
-    substr(raw, 0, ind[, 1L] - 1L), trim,
-    substr(raw, ind[, 2L] + 1L, nchar(raw) + 1L)
+
+untrim <- function(dat, word.c, fun) {
+  with(
+    dat,
+    paste0(
+      fun(substr(raw, 0, trim.ind.start - 1L)), word.c,
+      fun(substr(raw, trim.ind.end + 1L, nchar(raw) + 1L))
+    )
   )
+}
 
 valid_trim_ind <- function(x)
   if(

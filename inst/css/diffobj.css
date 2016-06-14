@@ -31,14 +31,17 @@ DIV.diffobj_container DIV.line.banner {
   font-weight: bold;
 }
 DIV.diffobj_container DIV.gutter,
-DIV.diffobj_container DIV.guide {
+DIV.diffobj_container DIV.guide,
+DIV.diffobj_container DIV.fill,
+DIV.diffobj_container SPAN.trim {
   color: #999;
 }
 DIV.diffobj_container DIV.header {
   font-size: 1.1em;
 }
 DIV.diffobj_container DIV.text>DIV.match,
-DIV.diffobj_container DIV.text>DIV.guide {
+DIV.diffobj_container DIV.text>DIV.guide,
+DIV.diffobj_container DIV.text>DIV.fill {
   background-color: #ffffff;
 }
 DIV.diffobj_container DIV.text>DIV {
@@ -52,6 +55,7 @@ DIV.diffobj_container DIV.header {
   padding-left: 0.5em;
 }
 DIV.diffobj_container DIV.line>DIV.match,
+DIV.diffobj_container DIV.line>DIV.fill,
 DIV.diffobj_container DIV.line>DIV.guide {
   border-left: 1px solid #888888;
 }
