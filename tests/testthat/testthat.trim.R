@@ -26,6 +26,7 @@ test_that("Atomic", {
     diffobj:::strip_atomic_rh(y),
     c("g j o x f x y r q b f e r j u m s z j u y f q d g k a j w i m p m e v r u c", "s k v q u o n u a m t s", "Levels: a b c d e f g i j k m n o p q r s t u v w x y z")
   )
+  expect_equal(diffobj:::which_atomic_rh(capture.output(1:5)), 1)
 })
 test_that("Matrix", {
   mx1 <- mx2 <- matrix(1:3, 3)

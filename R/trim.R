@@ -30,7 +30,7 @@ which_atomic_rh <- function(x) {
     r.h.nums <- sub(".*?([0-9]+).*", "\\1", r.h.vals, perl=TRUE)
     r.h.nums.u <- length(unique(diff(as.numeric(r.h.nums))))
 
-    if(r.h.nums.u == 1L && r.h.lens.u == 1L && r.h.nums[[1L]] == "1") {
+    if(r.h.nums.u <= 1L && r.h.lens.u == 1L && r.h.nums[[1L]] == "1") {
       w.pat.ind
     } else integer(0L)
   } else integer(0L)
