@@ -10,7 +10,7 @@ NULL
 #'
 #' \code{tag_f} and related functions (\code{div_f}, \code{span_f}) produce
 #' functions that are  vectorized and will apply opening and closing tags to
-#' each element of a character vector.  \code{container_f} on the other hand
+#' each element of a character vector. \code{container_f} on the other hand
 #' produces a function will collapse a character vector into length 1, and only
 #' then applies the tags.  Additionally, \code{container_f} already comes with
 #' the \dQuote{diffobj_container} class specified.
@@ -21,6 +21,12 @@ NULL
 #' @param character class the CSS class(es)
 #' @param named character style inline styles, where the name is the CSS
 #'   property and the value the value.
+#' @param blank.val character(1L) what value to substitute for empty character
+#'   elements; defaults to \code{"&nbsp;"} so that empty HTML elements do not
+#'   collapse, though note \code{span_f} uses \code{""}.
+#' @param na.val character(1L) what value to substitute for NA character
+#'   elements; defaults to \code{""}.  NA elements typically arise when
+#'   aligning diff components in side by side mode by adding empty rows.
 #' @return a function that accepts a character parameter.  If applied, each
 #'   element in the character vector will be wrapped in the div tags
 #' @aliases div_f, span_f, cont_f
@@ -33,7 +39,9 @@ NULL
 #' ## and only one div is created around the entire data
 #' cont_f()(LETTERS[1:5])
 
-tag_f <- function(tag, class=character(), style=character()) {
+tag_f <- function(
+  tag, class=character(), style=character(), blank.val="&nbsp;", na.val=""
+) {
   stopifnot(is.chr.1L(tag), is.character(class), is.character(style))
   function(x) {
     if(!is.character(x)) stop("Argument `x` must be character.")
@@ -46,20 +54,26 @@ tag_f <- function(tag, class=character(), style=character()) {
             " style='",
             paste(names(style), style, sep=": ", collapse="; "), ";'"
           ),
-        ">", x, "</", tag, ">"
+        ">",
+        ifelse(is.na(x),na.val, ifelse(!nchar(x), blank.val, x)),
+        "</", tag, ">"
       )
 } }
 #' @export
 #' @rdname tag_f
 
-div_f <- function(class=character(), style=character())
-  tag_f("div", class, style)
+div_f <- function(
+  class=character(), style=character(), blank.val="&nbsp;", na.val=""
+)
+  tag_f("div", class=class, style=style, blank.val=blank.val, na.val=na.val)
 
 #' @export
 #' @rdname tag_f
 
-span_f <- function(class=character(), style=character())
-  tag_f("span", class, style)
+span_f <- function(
+  class=character(), style=character(), blank.val="&nbsp;", na.val=""
+)
+  tag_f("span", class=class, style=style, blank.val=blank.val, na.val=na.val)
 
 #' @export
 #' @rdname tag_f
