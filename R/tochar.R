@@ -496,15 +496,19 @@ setMethod("as.character", "Diff",
       ) } )
     } else line.lens.max <- line.lens
 
-    # Record NA elements, and replace them with blanks
+    # Substitute NA elements and blank elements with the appropriate values as
+    # dictated by the styles; also record lines NA positions
 
-    lines.na <- lapply(pre.render.w, lapply, is.na)
     pre.render.w <- lapply(
-      pre.render.w, lapply, 
+      pre.render.w, lapply,
       function(y) {
-        y[is.na(y)] <- ""
+        res <- y
+        res[is.na(y)] <- x@etc@style@na.sub
+        res[!nchar(y)] <- x@etc@style@blank.sub
         y
     } )
+    lines.na <- lapply(pre.render.w, lapply, is.na)
+
     # Compute gutter, padding, and continuations
 
     pads <- lapply(
@@ -581,7 +585,7 @@ setMethod("as.character", "Diff",
     # Render columns; note here we use 'types.raw' to distinguish banner lines
 
     cols <- render_cols(
-      cols=pre.render.s, gutters=gutters, pads=pads, types=types.raw.x, 
+      cols=pre.render.s, gutters=gutters, pads=pads, types=types.raw.x,
       etc=x@etc
     )
     # Render rows

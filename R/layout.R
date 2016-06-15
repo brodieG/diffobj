@@ -6,13 +6,15 @@ gutter_dat <- function(etc) {
   text <- etc@style@text
 
   # get every slot except the pad slot; we'll then augment them so they have
-  # all the same number of characters, and finally we'll apply the revant
+  # all the same number of characters if the style class inherits from
+  # Raw, which should be the case for raw, ansi8 and ansi255.  Finally apply
   # functions; note we assume the provided gutter characters don't contain
   # ANSI escapes.  We're a bit sloppy here with how we pull the relevant stuff
 
   slot.nm <- slotNames(text)
   slots <- slot.nm[grepl("^gutter\\.", slot.nm) & slot.nm != "gutter.pad"]
-  gutt.dat <- format(vapply(slots, slot, character(1L), object=text))
+  gutt.txt <- vapply(slots, slot, character(1L), object=text)
+  gutt.dat <- if(is(etc@style, "Raw")) format(gutt.txt) else gutt.txt
 
   gutt.format.try <- try({
     gutt.dat.format <- vapply(
