@@ -460,8 +460,8 @@ body(diff_obj) <- quote({
   if(length(list(...))) {
     stop("`...` argument not supported in `diff_obj`")
   }
-  call.raw <- match.call()
-  call.raw[["silent"]] <- TRUE
+  call.raw <- extract_call(sys.calls())$call
+  # call.raw[["silent"]] <- TRUE
   call.str <- call.print <- call.raw
   call.str[[1L]] <- quote(diffStr)
   call.str[["max.level"]] <- "auto"
