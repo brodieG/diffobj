@@ -40,9 +40,11 @@ DIV.diffobj_container DIV.header {
   font-size: 1.1em;
 }
 DIV.diffobj_container DIV.text>DIV.match,
-DIV.diffobj_container DIV.text>DIV.guide,
-DIV.diffobj_container DIV.text>DIV.fill {
+DIV.diffobj_container DIV.text>DIV.guide {
   background-color: #ffffff;
+}
+DIV.diffobj_container DIV.text>DIV.fill {
+  background-color: transparent;
 }
 DIV.diffobj_container DIV.text>DIV {
   border-left: 1px solid #888888;

@@ -305,6 +305,14 @@ StyleText <- setClass(
 #'   the console
 #' @param pad TRUE or FALSE, whether text should be right padded
 #' @param pager what type of \code{\link{Pager}} to use
+#' @param na.sub what character value to substitute for NA elements; NA elements
+#'   are generated when lining up side by side diffs by adding padding rows; by
+#'   default the text styles replace these with a blank character string, and
+#'   the HTML styles leave them as NA for the HTML formatting functions to deal
+#'   with
+#' @param blank sub what character value to replace blanks with; needed in
+#'   particular for HTML rendering (uses \code{"&nbsp;"}) to prevent lines from
+#'   collapsing
 #' @param finalizer function that accepts at least two parameters and requires
 #'   no more than two parameters, will receive as the first parameter the
 #'   full text of the diff as a character vector, and the active
@@ -326,15 +334,16 @@ StyleText <- setClass(
 #' my.style@funs@text.guide <- crayon::green
 #' my.style   ## Notice gutters and guide color
 
-Style <- setClass(
-  "Style",
+Style <- setClass("Style", contains="VIRTUAL",
   slots=c(
     funs="StyleFuns",
     text="StyleText",
     wrap="logical",
     pad="logical",
     finalizer="function",
-    pager="Pager"
+    pager="Pager",
+    na.sub="character",
+    blank.sub="character"
   ),
   prototype=list(
     funs=StyleFuns(),
@@ -342,13 +351,19 @@ Style <- setClass(
     wrap=TRUE,
     pad=TRUE,
     pager=PagerOff(),
-    finalizer=function(x, y) x
+    finalizer=function(x, y) x,
+    na.sub="",
+    blank.sub=""
   ),
   validity=function(object){
     if(!is.TF(object@wrap))
       return("Slot `wrap` must be TRUE or FALSE")
     if(!is.TF(object@pad))
       return("Slot `pad` must be TRUE or FALSE")
+    if(length(object@na.sub) != 1L)
+      return("Slot `na.sub` must be character(1L)")
+    if(length(object@blank.sub) != 1L)
+      return("Slot `na.sub` must be character(1L)")
     fin.args <- formals(object@finalizer)
     if(length(fin.args) < 2L)
       return(
@@ -366,6 +381,7 @@ setClass("Light", contains="VIRTUAL")
 setClass("Dark", contains="VIRTUAL")
 setClass("Neutral", contains="VIRTUAL")
 
+setClass("Raw", contains="VIRTUAL")
 setClass("Ansi", contains="VIRTUAL")
 setClass("Html", contains="VIRTUAL")
 
@@ -376,8 +392,14 @@ setClass("Yb", contains="VIRTUAL")
 #' @exportClass StyleAnsi
 #' @rdname Style
 
+StyleRaw <- setClass("StyleRaw", contains=c("Style", "Raw"))
+
+#' @export StyleAnsi
+#' @exportClass StyleAnsi
+#' @rdname Style
+
 StyleAnsi <- setClass(
-  "StyleAnsi", contains=c("Style", "Ansi"),
+  "StyleAnsi", contains=c("StyleRaw", "Ansi"),
   prototype=list(funs=StyleFunsAnsi()),
 )
 setMethod(
@@ -541,13 +563,14 @@ StyleHtml <- setClass(
     text=StyleText(
       gutter.insert="&gt;",
       gutter.delete="&lt;",
-      gutter.match="&nbsp;",
-      gutter.fill="."
+      gutter.match="&nbsp;"
     ),
     pager=PagerBrowser(),
     wrap=FALSE,
     pad=FALSE,
-    escape.html.entities=TRUE
+    escape.html.entities=TRUE,
+    na.sub="&nbsp;",
+    blank.sub="&nbsp;"
   ),
   validity=function(object) {
     if(!is.chr.1L(object@css))
@@ -764,7 +787,7 @@ PaletteOfStyles <- setClass(
 )
 setMethod("initialize", "PaletteOfStyles",
   function(.Object, ...) {
-    .dfs.arr["raw", , ] <- list(Style())
+    .dfs.arr["raw", , ] <- list(StyleRaw())
 
     .dfs.arr["ansi8", , "rgb"] <- list(StyleAnsi8NeutralRgb())
     .dfs.arr["ansi8", , "yb"] <- list(StyleAnsi8NeutralYb())

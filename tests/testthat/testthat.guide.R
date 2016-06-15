@@ -8,6 +8,8 @@ test_that("detect_2d_guides", {
    expect_equal(
      diffobj:::detect_2d_guides(capture.output(USAccDeaths)), c(1, 8, 15)
    )
+   # Time series
+   expect_equal(diffobj:::detect_2d_guides(capture.output(UKgas)), 1)
 })
 test_that("detect_list_guides", {
   l.1 <- list(1, 1:3, matrix(1:3, 1))

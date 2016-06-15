@@ -1,6 +1,6 @@
 library(testthat)
 
-context("Row Head")
+context("Trim Row Headers")
 
 .mx.base <- matrix(
   c(
@@ -26,6 +26,7 @@ test_that("Atomic", {
     diffobj:::strip_atomic_rh(y),
     c("g j o x f x y r q b f e r j u m s z j u y f q d g k a j w i m p m e v r u c", "s k v q u o n u a m t s", "Levels: a b c d e f g i j k m n o p q r s t u v w x y z")
   )
+  expect_equal(diffobj:::which_atomic_rh(capture.output(1:5)), 1)
 })
 test_that("Matrix", {
   mx1 <- mx2 <- matrix(1:3, 3)
@@ -63,6 +64,11 @@ test_that("Matrix", {
   expect_equal(
     diffobj:::strip_matrix_rh(capture.output(mx6), dimnames(mx6)),
     c("     [,1]                         ", "\"averylongwordthatcanlahblah\"", "\"causeasinglewidecolumnblah\" ", "\"matrixtowrapseveraltimes\"   ", "     [,2]            ", "\"inarrowscreen\" ", "\"onceuponatime\" ", "\"agreenduckflew\"", "     [,3]                ", "\"overthemountains\"  ", "\"inalongofantelopes\"", "\"ineedthreemore\"    ", "     [,4]              ", "\"entriesactually\" ", "\"nowonlytwomore\"  ", "\"iwaswrongearlier\"", "attr(,\"blah\")", " [1] \"a\" \"b\" \"c\" \"d\" \"e\" \"f\"", " [7] \"g\" \"h\" \"i\" \"j\" \"k\" \"l\"", "[13] \"m\" \"n\" \"o\"")
+  )
+  # Single row matrix
+
+  expect_equal(
+    diffobj:::which_matrix_rh(capture.output(matrix(1:2, nrow=1)), NULL), 2
   )
 })
 test_that("Table", {
@@ -106,6 +112,9 @@ test_that("Table", {
     diffobj:::strip_table_rh(capture.output(USAD2)),
     c("    Jan   Feb   Mar   Apr", " 9007  8106  8928  9137", " 7750  6981  8038  8422", " 8162  7306  8124  7870", " 7717  7461  7767  7925", " 7792  6957  7726  8106", " 7836  6892  7791  8192", "    May   Jun   Jul   Aug", "10017 10826 11317 10744", " 8714  9512 10120  9823", " 9387  9556 10093  9620", " 8623  8945 10078  9179", " 8890  9299 10625  9302", " 9115  9434 10484  9827", "    Sep   Oct   Nov   Dec", " 9713  9938  9161  8927", " 8743  9129  8710  8680", " 8285  8466  8160  8034", " 8037  8488  7874  8647", " 8314  8850  8265  8796", " 9110  9070  8633  9240")
   )
+  # single row data frame
+
+  expect_equal(c(diffobj:::which_table_rh(capture.output(data.frame(1, 2)))), 2)
 })
 test_that("Array", {
   a <- array(1:6, c(3, 1, 2))
@@ -148,6 +157,16 @@ test_that("Array", {
   expect_equal(
     diffobj:::which_array_rh(ca4, dimnames(a4)),
     c(4L, 5L, 7L, 8L, 13L, 14L, 16L, 17L)
+  )
+})
+test_that("List", {
+  l1 <- list(
+    matrix(1:4, 2), b=list(abc=c(letters, LETTERS), list(matrix(4:1, 2)))
+  )
+  l1.c <- capture.output(l1)
+  expect_equal(
+    diffobj:::strip_list_rh(l1.c, l1),
+    c("[[1]]", "     [,1] [,2]", "   1    3", "   2    4", "", "$b", "$b$abc", "\"a\" \"b\" \"c\" \"d\" \"e\" \"f\" \"g\" \"h\" \"i\" \"j\" \"k\" \"l\" \"m\" \"n\" \"o\" \"p\" \"q\" \"r\" \"s\"", "\"t\" \"u\" \"v\" \"w\" \"x\" \"y\" \"z\" \"A\" \"B\" \"C\" \"D\" \"E\" \"F\" \"G\" \"H\" \"I\" \"J\" \"K\" \"L\"", "\"M\" \"N\" \"O\" \"P\" \"Q\" \"R\" \"S\" \"T\" \"U\" \"V\" \"W\" \"X\" \"Y\" \"Z\"", "", "$b[[2]]", "$b[[2]][[1]]", "     [,1] [,2]", "   4    2", "   3    1", "", "", "")
   )
 })
 

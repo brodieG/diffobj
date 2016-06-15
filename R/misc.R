@@ -211,3 +211,7 @@ get_pal_par <- function(format, param) {
   y.s <- sort(y)
   x >= y[[1L]] & x <= y[[2L]]
 }
+
+flatten_list <- function(l)
+  if(is.list(l) && !is.object(l)) do.call(c, lapply(l, flatten_list)) else
+    list(l)
