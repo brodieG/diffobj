@@ -342,7 +342,8 @@ Style <- setClass("Style", contains="VIRTUAL",
     pad="logical",
     finalizer="function",
     pager="Pager",
-    na.sub="character"
+    na.sub="character",
+    blank.sub="character"
   ),
   prototype=list(
     funs=StyleFuns(),
@@ -360,6 +361,8 @@ Style <- setClass("Style", contains="VIRTUAL",
     if(!is.TF(object@pad))
       return("Slot `pad` must be TRUE or FALSE")
     if(length(object@na.sub) != 1L)
+      return("Slot `na.sub` must be character(1L)")
+    if(length(object@blank.sub) != 1L)
       return("Slot `na.sub` must be character(1L)")
     fin.args <- formals(object@finalizer)
     if(length(fin.args) < 2L)

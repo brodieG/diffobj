@@ -421,13 +421,14 @@ setMethod("as.character", "Diff",
     # At this point we need to actually reconstitute the final output string by:
     # - Applying word diffs
     # - Reconstructing untrimmed strings
+    # - Substitute appropriate values for empty strings
 
     f.f <- x@etc@style@funs
     tar.w.c <- word_color(x@tar.dat$trim, x@tar.dat$word.ind, f.f@word.delete)
     cur.w.c <- word_color(x@cur.dat$trim, x@cur.dat$word.ind, f.f@word.insert)
 
-    x@tar.dat$fin <- untrim(x@tar.dat, tar.w.c, f.f@trim)
-    x@cur.dat$fin <- untrim(x@cur.dat, cur.w.c, f.f@trim)
+    x@tar.dat$fin <- untrim(x@tar.dat, tar.w.c, x@etc)
+    x@cur.dat$fin <- untrim(x@cur.dat, cur.w.c, x@etc)
 
     # Generate the pre-rendered hunk data as text columns; a bit complicated
     # as we need to unnest stuff; use rbind to make it a little easier.
@@ -496,16 +497,15 @@ setMethod("as.character", "Diff",
       ) } )
     } else line.lens.max <- line.lens
 
-    # Substitute NA elements and blank elements with the appropriate values as
-    # dictated by the styles; also record lines NA positions
+    # Substitute NA elements with the appropriate values as dictated by the
+    # styles; also record lines NA positions
 
     pre.render.w <- lapply(
       pre.render.w, lapply,
       function(y) {
         res <- y
         res[is.na(y)] <- x@etc@style@na.sub
-        res[!nchar(y)] <- x@etc@style@blank.sub
-        y
+        res
     } )
     lines.na <- lapply(pre.render.w, lapply, is.na)
 

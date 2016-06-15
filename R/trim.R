@@ -158,7 +158,6 @@ which_matrix_rh <- function(x, dim.names.x) {
         else pat.match
       }
     )
-    b
     if(
       all(vapply(pat.ind, identical, logical(1L), pat.ind[[1L]])) &&
       (length(pat.ind[[1L]]) == 1L || all(diff(pat.ind[[1L]]) == 1L))
@@ -350,14 +349,19 @@ trim_sub <- function(obj.as.chr, obj.stripped) {
 }
 # Re-insert the trimmed stuff back into the original string
 
-untrim <- function(dat, word.c, fun) {
-  with(
+untrim <- function(dat, word.c, etc) {
+  fun <- etc@style@funs@trim
+  res <- with(
     dat,
     paste0(
       fun(substr(raw, 0, trim.ind.start - 1L)), word.c,
       fun(substr(raw, trim.ind.end + 1L, nchar(raw) + 1L))
     )
   )
+  # substitute blanks
+
+  res[!nzchar(dat$raw)] <- etc@style@blank.sub
+  res
 }
 
 valid_trim_ind <- function(x)
