@@ -38,13 +38,15 @@ capt_print <- function(target, current, etc, err, ...){
   tar.call <- cur.call <- print.match
 
   if(length(dots)) {
+    if(!is.null(etc@tar.exp)) tar.call[[2L]] <- etc@tar.exp
+    if(!is.null(etc@cur.exp)) cur.call[[2L]] <- etc@cur.exp
     tar.call[[2L]] <- etc@tar.exp
     cur.call[[2L]] <- etc@cur.exp
     etc@tar.banner <- deparse(tar.call)[[1L]]
     etc@cur.banner <- deparse(cur.call)[[1L]]
   }
-  tar.call[[2L]] <- target
-  cur.call[[2L]] <- current
+  if(!is.null(target)) tar.call[[2L]] <- target
+  if(!is.null(current)) cur.call[[2L]] <- current
 
   # If dimensioned object, and in auto-mode, switch to side by side if stuff is
   # narrow enough to fit
@@ -228,8 +230,8 @@ capt_str <- function(target, current, etc, err, ...){
     str.match[[max.level.pos]] <- NULL
   }
   tar.call <- cur.call <- str.match
-  tar.call[[2L]] <- etc@tar.exp
-  cur.call[[2L]] <- etc@cur.exp
+  if(!is.null(etc@tar.exp)) tar.call[[2L]] <- etc@tar.exp
+  if(!is.null(etc@cur.exp)) cur.call[[2L]] <- etc@cur.exp
   if(is.null(etc@tar.banner))
     diff.obj@etc@tar.banner <- deparse(tar.call)[[1L]]
   if(is.null(etc@cur.banner))
