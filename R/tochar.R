@@ -500,6 +500,7 @@ setMethod("as.character", "Diff",
     # Substitute NA elements with the appropriate values as dictated by the
     # styles; also record lines NA positions
 
+    lines.na <- lapply(pre.render.w, lapply, is.na)
     pre.render.w <- lapply(
       pre.render.w, lapply,
       function(y) {
@@ -507,7 +508,6 @@ setMethod("as.character", "Diff",
         res[is.na(y)] <- x@etc@style@na.sub
         res
     } )
-    lines.na <- lapply(pre.render.w, lapply, is.na)
 
     # Compute gutter, padding, and continuations
 

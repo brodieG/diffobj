@@ -214,6 +214,10 @@ local({
       mdl1, mdl2, mode="sideby", bright="dark",
       pager=PagerSystemLess(flags="RX")
     )
+    # Check that `max.level` shows up when using it
+
+    diffStr(mdl1, mdl2, line.limit=40)
+
     diffPrint(letters[1:3], LETTERS[1:3])
 
     Puromycin2 <- Puromycin

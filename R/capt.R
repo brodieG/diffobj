@@ -224,9 +224,9 @@ capt_str <- function(target, current, etc, err, ...){
     lvl <- NULL
     break
   }
-  if(auto.mode) {
+  if(auto.mode && !is.null(lvl) && lvl < max.depth) {
     str.match[[max.level.pos]] <- lvl
-  } else if (!max.level.supplied) {
+  } else if (!max.level.supplied || is.null(lvl) || lvl >= max.depth) {
     str.match[[max.level.pos]] <- NULL
   }
   tar.call <- cur.call <- str.match
