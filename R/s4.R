@@ -636,7 +636,10 @@ setMethod("lineCoverage", "Diff",
     lines.cur <- length(
       unique(unlist(lapply(hunks.f, lines_in_hunk, "cur.rng.sub")))
     )
-    min(1, (lines.tar + lines.cur) / (length(x@tar.capt) + length(x@cur.capt)))
+    min(
+      1, (lines.tar + lines.cur) / (
+      length(x@tar.dat$raw) + length(x@cur.dat$raw))
+    )
   }
 )
 setMethod("any", "Diff",
