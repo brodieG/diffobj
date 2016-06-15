@@ -453,7 +453,7 @@ StyleAnsi256LightRgb <- setClass(
       header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5))
 ) ) )
 
-darkGray <- crayon::make_style(rgb(5, 5, 5, maxColorValue=23), grey=TRUE)
+darkGray <- crayon::make_style(rgb(13, 13, 13, maxColorValue=23), grey=TRUE)
 darkGrayBg <- crayon::make_style(
   rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE
 )
@@ -507,9 +507,9 @@ StyleAnsi256DarkYb <- setClass(
   "StyleAnsi256DarkYb", contains=c("StyleAnsi", "Dark", "Yb"),
   prototype=list(
     funs=StyleFunsAnsi(
-      text.insert=crayon::make_style(rgb(0, 0, 1, maxColorValue=5), bg=TRUE),
+      text.insert=crayon::make_style(rgb(0, 0, 2, maxColorValue=5), bg=TRUE),
       text.delete=crayon::make_style(rgb(1, 1, 0, maxColorValue=5), bg=TRUE),
-      word.insert=crayon::make_style(rgb(0, 0, 4, maxColorValue=5), bg=TRUE),
+      word.insert=crayon::make_style(rgb(0, 0, 5, maxColorValue=5), bg=TRUE),
       word.delete=crayon::make_style(rgb(3, 2, 0, maxColorValue=5), bg=TRUE),
       gutter.insert=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),
       gutter.insert.ctd=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),
