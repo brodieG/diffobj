@@ -129,6 +129,8 @@ setClass("Settings",
     style="Style",
     hunk.limit="integer",
     max.diffs="integer",
+    word.diff="logical",
+    unwrap.atomic="logical",
     align="AlignThreshold",
     ignore.white.space="logical",
     convert.hz.white.space="logical",
@@ -163,7 +165,10 @@ setClass("Settings",
     for(i in int.1L.and.pos)
       if(!is.int.1L(slot(object, i)) || slot(object, i) < 0L)
         return(sprintf("Slot `%s` must be integer(1L) and positive", i))
-    TF <- c("ignore.white.space", "convert.hz.white.space")
+    TF <- c(
+      "ignore.white.space", "convert.hz.white.space", "word.diff",
+      "unwrap.atomic"
+    )
     for(i in TF)
       if(!is.TF(slot(object, i)) || slot(object, i) < 0L)
         return(sprintf("Slot `%s` must be TRUE or FALSE", i))

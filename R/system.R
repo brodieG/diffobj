@@ -14,6 +14,8 @@
     diffobj.pager.mode="threshold",
     diffobj.pager.threshold=-1L,
     diffobj.less.flags="R",
+    diffobj.word.diff=TRUE,
+    diffobj.unwrap.atomic=TRUE,
     diffobj.rds=TRUE,
     diffobj.hunk.limit=-1L,
     diffobj.mode="auto",
