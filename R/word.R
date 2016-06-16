@@ -210,8 +210,8 @@ reg_pull <- function(ind, reg) {
 #
 
 reg_apply <- function(reg, ends, mismatch) {
-  if(!length(reg)) {
-    list()
+  if(!length(reg) || !length(mismatch)) {
+    reg
   } else {
     use.bytes <- attr(reg[[1L]], "useBytes") # assume useBytes value unchanging
     regs.fin <- reg
@@ -226,7 +226,9 @@ reg_apply <- function(reg, ends, mismatch) {
     # These do have mismatches, we need to split them up in list elements and
     # substract the starting index to identify position within each sub-list
 
-    inds.msm <- Map("-", unname(split(mismatch, mism.lines)), buckets - 1L)
+    inds.msm <- Map(
+      "-", unname(split(mismatch, mism.lines)), buckets[mism.lines.u] - 1L
+    )
     regs.fin[mism.lines.u] <- Map(reg_pull, inds.msm, reg[mism.lines.u])
     regs.fin
   }
