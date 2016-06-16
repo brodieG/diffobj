@@ -208,8 +208,14 @@ get_pal_par <- function(format, param) {
 
 `%bw%` <- function(x, y) {
   stopifnot(length(y) == 2L)
-  y.s <- sort(y)
-  x >= y[[1L]] & x <= y[[2L]]
+  if(y[[1L]] < y[[2L]]) {
+    low <- y[[1L]]
+    hi <- y[[2L]]
+  } else {
+    hi <- y[[1L]]
+    low <- y[[2L]]
+  }
+  x >= low & x <= hi
 }
 
 flatten_list <- function(l)

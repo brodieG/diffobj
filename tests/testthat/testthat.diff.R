@@ -72,11 +72,14 @@ local({
     mx.6[4,] <- c(3L, 6L, 9L)
     diffPrint(mx.5, mx.6)
     diffPrint(mx.5, mx.6, mode="unified")
+    diffPrint(mx.5, mx.6, mode="context")
 
     A <- B <- matrix(sample(1:80), nrow=16)
     B[cbind(sample(5:16, 4), sample(1:5, 4))] <- sample(30:80, 4)
     diffPrint(A, B)
     diffPrint(A, B, mode="unified")
+    diffPrint(A, B, mode="context")
+    diffPrint(A, B, mode="context", context=0)
 
     # Style matrices
 
@@ -98,6 +101,7 @@ local({
     lst.3[[1]] <- "hello"
 
     diffPrint(lst.1, lst.3, mode="sidebyside")
+    diffPrint(lst.1, lst.3, mode="sidebyside", context=1)
     diffPrint(lst.1, lst.3, mode="unified")
     diffObj(lst.1, lst.3)
     diffObj(lst.1, lst.2)
@@ -118,7 +122,8 @@ local({
 
     diffPrint(chr.1, chr.2)
     diffObj(chr.1, chr.2, mode="sidebyside")
-    diffPrint(chr.1, chr.2, mode="sidebyside")
+    diffPrint(chr.1, chr.2, mode="unified")
+    diffPrint(chr.1, chr.2, mode="context")
     diffPrint(chr.1[2:3], chr.2[2], mode="sidebyside")
 
     # make sure blanks line up correctly

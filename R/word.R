@@ -65,7 +65,7 @@ reassign_lines <- function(lines, cont) {
           # Line shared between context and next diff
 
           lines[[i]] <- head(lines[[i]], -1L)
-      } } 
+      } }
     } else if(
       h.c > i && length(lines[[i]]) && length(lines[[i + 1]]) &&
       max(lines[[i]]) == min(lines[[i + 1L]])
@@ -196,29 +196,40 @@ word_to_line_map <- function(
 }
 # Pull out mismatching words from the word regexec; helper functions
 
-reg_pull <- function(reg, start, end, mismatch) {
-  ind <- mismatch[mismatch %bw% c(start, end)] - start + 1L
-  if(length(ind)) {
-    reg.out <- reg[ind]
-    match.len <- attr(reg, "match.length")[ind]
-  } else {
-    reg.out <- -1L
-    match.len <- -1L
-  }
-  attr(reg.out, "match.length") <- match.len
+reg_pull <- function(ind, reg) {
+  reg.out <- reg[ind]
+  attr(reg.out, "match.length") <- attr(reg, "match.length")[ind]
   attr(reg.out, "useBytes") <- attr(reg, "useBytes")
-  attr(reg.out, "word.count") <- end - start + 1L
+  attr(reg.out, "word.count") <- length(reg)
   reg.out
 }
 # Generate the indices in each row and apply the pulling functions
+# - reg list produced by `gregexpr` and such
+# - ends length of each line in words
+# - mismatch index of mismatching words
+#
 
-reg_apply <- function(reg, ends, mismatch, fun) {
-  if(length(ends)) {
-    Map(
-      fun, reg, c(1L, head(ends, -1L) + 1L), ends,
-      MoreArgs=list(mismatch=mismatch)
-    )
-  } else list()
+reg_apply <- function(reg, ends, mismatch) {
+  if(!length(reg)) {
+    list()
+  } else {
+    use.bytes <- attr(reg[[1L]], "useBytes") # assume useBytes value unchanging
+    regs.fin <- reg
+    buckets <- head(c(0L, ends) + 1L, -1L)
+    mism.lines <- findInterval(mismatch, buckets)
+    mism.lines.u <- unique(mism.lines)
+    mtch.lines.u <- seq_along(reg)[-mism.lines.u]
+    # These don't have any mismatches
+    attr(.word.diff.atom, "useBytes") <- use.bytes
+    regs.fin[mtch.lines.u] <-
+      replicate(length(mtch.lines.u), .word.diff.atom, simplify=FALSE)
+    # These do have mismatches, we need to split them up in list elements and
+    # substract the starting index to identify position within each sub-list
+
+    inds.msm <- Map("-", unname(split(mismatch, mism.lines)), buckets - 1L)
+    regs.fin[mism.lines.u] <- Map(reg_pull, inds.msm, reg[mism.lines.u])
+    regs.fin
+  }
 }
 # Modify `tar.dat` and `cur.dat` by generating `regmatches` indices for the
 # words that are different
@@ -242,8 +253,8 @@ diff_word2 <- function(
   warn=TRUE
 ) {
   stopifnot(
-    is.TF(match.quotes), is.TF(warn),
-    isTRUE(valid_dat(tar.dat)), isTRUE(valid_dat(cur.dat)) # expensive?
+    is.TF(match.quotes), is.TF(warn)
+    # isTRUE(valid_dat(tar.dat)), isTRUE(valid_dat(cur.dat)) # too expensive
   )
   # Compute the char by char diffs for each line
 
@@ -315,8 +326,9 @@ diff_word2 <- function(
 
   tar.ends <- cumsum(tar.lens)
   cur.ends <- cumsum(cur.lens)
-  tar.dat$word.ind[tar.ind] <- reg_apply(tar.reg, tar.ends, tar.mism, reg_pull)
-  cur.dat$word.ind[cur.ind] <- reg_apply(cur.reg, cur.ends, cur.mism, reg_pull)
+
+  tar.dat$word.ind[tar.ind] <- reg_apply(tar.reg, tar.ends, tar.mism)
+  cur.dat$word.ind[cur.ind] <- reg_apply(cur.reg, cur.ends, cur.mism)
 
   # If in word mode (which is really atomic mode), generate a spoofed
   # `comp` vector that will force the line diff to align in a way that respects
