@@ -330,7 +330,8 @@ line_diff <- function(
   if(
     is.atomic(target) && is.atomic(current) &&
     length(tar.rh <- which_atomic_rh(tar.capt)) &&
-    length(cur.rh <- which_atomic_rh(cur.capt))
+    length(cur.rh <- which_atomic_rh(cur.capt)) &&
+    etc@unwrap.atomic && etc@word.diff
   ) {
     diff.word <- diff_word2(
       tar.dat, cur.dat, tar.ind=tar.rh, cur.ind=cur.rh,
@@ -347,36 +348,38 @@ line_diff <- function(
   )
   warn <- !diffs$hit.diffs.max
 
-  # Word diffs on hunks; check first which lines already have diffs and identify
-  # the diff hunks that don't contain any of those lines
-
-  tar.l.w.d <- which(vapply(tar.dat$word.ind, "[", integer(1L), 1L) != -1L)
-  cur.l.w.d <- which(vapply(cur.dat$word.ind, "[", integer(1L), 1L) != -1L)
-  all.l.w.d <- c(tar.l.w.d, -cur.l.w.d)
-
   hunks.flat <- diffs$hunks
-  hunks.w.o.w.diff <- vapply(
-    hunks.flat,
-    function(y) !y$context && !any(unlist(y[c("A", "B")]) %in% all.l.w.d),
-    logical(1L)
-  )
+
   # For each of those hunks, run the word diffs and store the results in the
   # word.diffs list; bad part here is that we keep overwriting the overall
   # diff data for each hunk, which might be slow
 
-  for(i in which(hunks.w.o.w.diff)) {
-    h.a <- hunks.flat[[i]]
-    h.a.ind <- c(h.a$A, h.a$B)
-    h.a.tar.ind <- h.a.ind[h.a.ind > 0]
-    h.a.cur.ind <- abs(h.a.ind[h.a.ind < 0])
-    h.a.w.d <- diff_word2(
-      tar.dat, cur.dat, h.a.tar.ind, h.a.cur.ind, diff.mode="hunk", warn=warn,
-      etc=etc
+  if(etc@word.diff) {
+    # Word diffs on hunks; check first which lines already have diffs and identify
+    # the diff hunks that don't contain any of those lines
+
+    tar.l.w.d <- which(vapply(tar.dat$word.ind, "[", integer(1L), 1L) != -1L)
+    cur.l.w.d <- which(vapply(cur.dat$word.ind, "[", integer(1L), 1L) != -1L)
+    all.l.w.d <- c(tar.l.w.d, -cur.l.w.d)
+
+    hunks.w.o.w.diff <- vapply(
+      hunks.flat,
+      function(y) !y$context && !any(unlist(y[c("A", "B")]) %in% all.l.w.d),
+      logical(1L)
     )
-    tar.dat <- h.a.w.d$tar.dat
-    cur.dat <- h.a.w.d$cur.dat
-    warn <- !h.a.w.d$hit.diffs.max
-  }
+    for(i in which(hunks.w.o.w.diff)) {
+      h.a <- hunks.flat[[i]]
+      h.a.ind <- c(h.a$A, h.a$B)
+      h.a.tar.ind <- h.a.ind[h.a.ind > 0]
+      h.a.cur.ind <- abs(h.a.ind[h.a.ind < 0])
+      h.a.w.d <- diff_word2(
+        tar.dat, cur.dat, h.a.tar.ind, h.a.cur.ind, diff.mode="hunk", warn=warn,
+        etc=etc
+      )
+      tar.dat <- h.a.w.d$tar.dat
+      cur.dat <- h.a.w.d$cur.dat
+      warn <- !h.a.w.d$hit.diffs.max
+  } }
   # Compute the token ratios
 
   tok_ratio_compute <- function(z) vapply(

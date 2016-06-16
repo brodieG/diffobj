@@ -30,9 +30,11 @@ B3 <- B3[
 ]
 diffChr(A3, B3)
 res <- diffChr(X[1:10000], X[7500:17500])
+res <- ses(X[1:10000], X[7500:17500])
 res <- diffChr(X[1:25000], X[10001:50000], max.diffs=65000)
 
 diffChr(letters[1:10], LETTERS[1:10])
+ses(
 
 # compare two crayon file versions
 

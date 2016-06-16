@@ -107,7 +107,7 @@ check_args <- function(
   call, tar.exp, cur.exp, mode, context, line.limit, format, brightness,
   color.mode, pager, ignore.white.space, max.diffs, align, disp.width,
   hunk.limit, convert.hz.white.space, tab.stops, style, palette.of.styles,
-  frame, tar.banner, cur.banner, guides, rds, trim
+  frame, tar.banner, cur.banner, guides, rds, trim, word.diff
 ) {
   err <- make_err_fun(call)
 
@@ -189,7 +189,10 @@ check_args <- function(
 
   # check T F args
 
-  TF.vars <- c("ignore.white.space", "convert.hz.white.space", "rds")
+  TF.vars <- c(
+    "ignore.white.space", "convert.hz.white.space", "rds", "word.diff",
+    "unwrap.atomic"
+  )
   msg.base <- "Argument `%s` must be TRUE or FALSE."
   for(x in TF.vars) if(!is.TF(get(x, inherits=FALSE))) err(sprintf(msg.base, x))
 
@@ -312,7 +315,8 @@ check_args <- function(
     hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
     tab.stops=tab.stops, style=style, frame=frame,
     tar.exp=tar.exp, cur.exp=cur.exp, guides=guides, tar.banner=tar.banner,
-    cur.banner=cur.banner, trim=trim
+    cur.banner=cur.banner, trim=trim, word.diff=word.diff,
+    unwrap.atomic=unwrap.atomic
   )
   etc
 }

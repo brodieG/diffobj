@@ -23,10 +23,12 @@ make_diff_fun <- function(capt_fun) {
     format=gdo("format"),
     brightness=gdo("brightness"),
     color.mode=gdo("color.mode"),
+    word.diff=gdo("word.diff"),
     pager=gdo("pager"),
     guides=gdo("guides"),
     trim=gdo("trim"),
     rds=gdo("rds"),
+    unwrap.atomic=gdo("unwrap.atomic"),
     max.diffs=gdo("max.diffs"),
     disp.width=gdo("disp.width"),
     ignore.white.space=gdo("ignore.white.space"),
@@ -59,7 +61,7 @@ make_diff_fun <- function(capt_fun) {
       hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
       tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
       frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides,
-      rds=rds, trim=trim
+      rds=rds, trim=trim, word.diff=word.diff, unwrap.atomic=unwrap.atomic
     )
     # If in rds mode, try to see if either target or current reference an RDS
 
@@ -115,14 +117,16 @@ make_diff_fun <- function(capt_fun) {
 #' Runs the diff between the \code{print} or \code{show} output produced by
 #' \code{target} and \code{current}.
 #'
-#' While the parameter list may seem excessive, most parameters are set to
-#' reasonable defaults that will attempt to adjust to both inputs and ouput.
-#' In practice, you should rarely need to adjust anything past the
-#' \code{color.mode} parameter.
+#' This documentation page is intended as a reference document for all the
+#' \code{diff*} methods.  For a high level introduction see
+#' \code{vignette("diffobj")} and the examples.
 #'
-#' Default values are specified as options so that users may configure
-#' diffs in a persistent manner.  \code{\link{gdo}} is a shorthand function to
-#' access \code{diffobj} options.
+#' Almost all aspects of how the diffs are computed and displayed are
+#' controllable through the \code{diff*} methods parameters.  This results in
+#' a lengthy parameter list, but in practice, you should rarely need to adjust
+#' anything past the \code{color.mode} parameter.  Default values are specified
+#' as options so that users may configure diffs in a persistent manner.
+#' \code{\link{gdo}} is a shorthand function to access \code{diffobj} options.
 #'
 #' This and other \code{diff*} functions are S4 generics that dispatch on the
 #' \code{target} and \code{current} parameters.  Methods with signature
@@ -181,6 +185,8 @@ make_diff_fun <- function(capt_fun) {
 #'   you use should correspond to a \code{format}.  You must have one unnamed
 #'   value which will be used as the default for all \code{format}s that are
 #'   not explicitly specified.
+#' @param word.diff TRUE (default) or FALSE, whether to run a secondary word
+#'   diff on the on in-hunk diferences
 #' @param color.mode character, one of \dQuote{rgb} or \dQuote{yb}.
 #'   Defaults to \dQuote{yb}.  \dQuote{yb} stands for \dQuote{Yellow-Blue} for
 #'   color schemes that rely primarily on those colors to style diffs.
@@ -207,7 +213,7 @@ make_diff_fun <- function(capt_fun) {
 #'   arguments and requires no more than two arguments.  Function should compute
 #'   for each line in captured output what portion of those lines should be
 #'   diffed.  By default, this is used to remove row meta data differences
-#'   (e.g. \code{[1,]}) so they alone do not show up as differences in the 
+#'   (e.g. \code{[1,]}) so they alone do not show up as differences in the
 #'   diff.  See \code{\link{trim}} for more details.
 #' @param rds TRUE (default) or FALSE, if TRUE will check whether
 #'   \code{target} and/or \code{current} point to a file that can be read with
@@ -215,6 +221,16 @@ make_diff_fun <- function(capt_fun) {
 #'   and carries out the diff on the object instead of the original argument.
 #'   Currently there is no mechanism for specifying additional arguments to
 #'   \code{readRDS}
+#' @param unwrap atomic TRUE (default) or FALSE.  Only relevant for
+#'   \code{diffPrint}, if TRUE, and \code{word.diff} is also TRUE, and both
+#'   \code{target} and \code{current} are atomic, the vectors are unwrapped and
+#'   diffed element by element, and then re-wrapped.  Since \code{diffPrint} is
+#'   fundamentally a line diff, the re-wrapped lines are lined up in a manner
+#'   that is as consistent as possible with the unwrapped diff.  Lines that
+#'   contain the location of the word differences will be paired up.  Since the
+#'   vectors may well be wrapped with different periodicities this will result
+#'   in lines that are paired up that look like they should not be paired up,
+#'   though the locations of the differences should be.
 #' @param line.limit integer(2L) or integer(1L), if length 1 how many lines of
 #'   output to show, where \code{-1} means no limit.  If length 2, the first
 #'   value indicates the threshold of screen lines to begin truncating output,
