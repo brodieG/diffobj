@@ -245,6 +245,7 @@ capt_chr <- function(target, current, etc, err, ...){
 
   etc <- set_mode(etc, tar.capt, cur.capt)
   if(isTRUE(etc@guides)) etc@guides <- guidesChr
+  if(isTRUE(etc@trim)) etc@trim <- trimChr
 
   line_diff(
     target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
@@ -257,13 +258,14 @@ capt_deparse <- function(target, current, etc, err, ...){
 
   etc <- set_mode(etc, tar.capt, cur.capt)
   if(isTRUE(etc@guides)) etc@guides <- guidesDeparse
+  if(isTRUE(etc@trim)) etc@trim <- trimDeparse
 
   line_diff(
     target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
     etc=etc
   )
 }
-capt_file <- function(target, current, etc, err, ...){
+capt_file <- function(target, current, etc, err, ...) {
   tar.capt <- try(readLines(target, ...))
   if(inherits(tar.capt, "try-error")) err("Unable to read `target` file.")
   cur.capt <- try(readLines(current, ...))
@@ -271,6 +273,7 @@ capt_file <- function(target, current, etc, err, ...){
 
   etc <- set_mode(etc, tar.capt, cur.capt)
   if(isTRUE(etc@guides)) etc@guides <- guidesFile
+  if(isTRUE(etc@guides)) etc@trim <- trimFile
 
   line_diff(
     target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),

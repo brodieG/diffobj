@@ -372,6 +372,11 @@ valid_trim_ind <- function(x)
   } else TRUE
 
 apply_trim <- function(obj, obj.as.chr, trim_fun) {
+  if(!isTRUE(two.arg <- is.two.arg.fun(trim_fun)))
+    stop(
+      "Invalid trim function (", two.arg, ").  If you did not customize the ",
+      "trim function contact maintainer; see `?trim`"
+    )
   trim <- try(trim_fun(obj, obj.as.chr))
   msg.extra <- paste0(
     "If you did not define custom `*trim` methods contact maintainer ",
