@@ -31,7 +31,7 @@
     diffobj.color.mode="yb",
     diffobj.brightness="neutral",
     diffobj.tab.stops=8L,
-    diffobj.disp.width=NULL,      # NULL == getOption("width")
+    diffobj.disp.width=0L,        # 0L == use style width, see param docs
     diffobj.palette=NULL,         # NULL == PaletteOfStyles()
     diffobj.guides=TRUE,
     diffobj.trim=TRUE,

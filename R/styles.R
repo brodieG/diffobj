@@ -343,7 +343,8 @@ Style <- setClass("Style", contains="VIRTUAL",
     finalizer="function",
     pager="Pager",
     na.sub="character",
-    blank.sub="character"
+    blank.sub="character",
+    disp.width="integer"
   ),
   prototype=list(
     funs=StyleFuns(),
@@ -353,7 +354,8 @@ Style <- setClass("Style", contains="VIRTUAL",
     pager=PagerOff(),
     finalizer=function(x, y) x,
     na.sub="",
-    blank.sub=""
+    blank.sub="",
+    disp.width=0L
   ),
   validity=function(object){
     if(!is.TF(object@wrap))
@@ -364,6 +366,8 @@ Style <- setClass("Style", contains="VIRTUAL",
       return("Slot `na.sub` must be character(1L)")
     if(length(object@blank.sub) != 1L)
       return("Slot `na.sub` must be character(1L)")
+    if(!is.int.1L(object@disp.width) || object@disp.width < 0L)
+      return("Slot `disp.width` must be integer(1L), positive, and not NA")
     fin.args <- formals(object@finalizer)
     if(length(fin.args) < 2L)
       return(
@@ -570,7 +574,8 @@ StyleHtml <- setClass(
     pad=FALSE,
     escape.html.entities=TRUE,
     na.sub="&nbsp;",
-    blank.sub="&nbsp;"
+    blank.sub="&nbsp;",
+    disp.width=120L
   ),
   validity=function(object) {
     if(!is.chr.1L(object@css))

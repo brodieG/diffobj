@@ -101,6 +101,11 @@ is.valid.guide.fun <- is.two.arg.fun <- function(x) {
     if(any(tail(!nzchar(forms.chr) & nm.forms, -2L)))
       "cannot have any non-optional arguments other than first two" else TRUE
 } }
+is.valid.width <- function(x)
+  if(!is.int.1L(x) || (x != 0L && (x < 10L || x > 10000))) {
+    "must be integer(1L) and 0, or between 10 and 10000"
+  } else TRUE
+
 # Checks common arguments across functions
 
 check_args <- function(
@@ -110,16 +115,6 @@ check_args <- function(
   frame, tar.banner, cur.banner, guides, rds, trim, word.diff, unwrap.atomic
 ) {
   err <- make_err_fun(call)
-
-  # Check display width
-
-  if(is.null(disp.width)) disp.width <- getOption("width")
-  if(is.null(disp.width)) disp.width <- 80L
-  if(!is.int.1L(disp.width) || disp.width < 1L)
-    err(
-      "Argument `disp.width` must be integer(1L) and positive, or NULL."
-    )
-  disp.width <- as.integer(disp.width)
 
   # Check context
 
@@ -305,6 +300,23 @@ check_args <- function(
   if(is(pager, "Pager")) style@pager <- pager
   else if(pager != "auto")
     stop("Logic Error: Unexpected pager state; contact maintainer.")
+
+  # Check display width
+
+  if(!isTRUE(d.w.err <- is.valid.width(disp.width)))
+    err("Arugment `disp.width` ", d.w.err)
+  disp.width <- as.integer(disp.width)
+  if(disp.width) {
+    style@disp.width <- disp.width
+  } else if(!style@disp.width) {
+    d.w <- getOption("width")
+    if(!is.valid.width(d.w)) {
+      warning("`getOption(\"width\") returned an invalid width, using 80L")
+      d.w <- 80L
+    }
+    style@disp.width <- d.w
+  }
+  disp.width <- style@disp.width
 
   # instantiate settings object
 

@@ -6,9 +6,13 @@
 capture <- function(x, etc, err) {
   capt.width <- etc@text.width
   if(capt.width) {
-    width.old <- getOption("width")
-    on.exit(options(width=width.old))
-    options(width=capt.width)
+    opt.set <- try(width.old <- options(width=capt.width))
+    if(inherits(opt.set, "try-error")) {
+      warning(
+        "Unable to set desired width ", capt.width, ", proceeding with ",
+        "existing setting."
+      )
+    } else on.exit(options(width.old))
   }
   res <- try(obj.out <- capture.output(eval(x, etc@frame)))
   if(inherits(res, "try-error"))
@@ -292,7 +296,7 @@ capt_csv <- function(target, current, etc, err, ...){
 
   capt_print(tar.df, cur.df, etc, err, ...)
 }
-# Sets mode to "unified" if stuff is to wide to fit side by side without
+# Sets mode to "unified" if stuff is too wide to fit side by side without
 # wrapping otherwise sets it in "sidebyside"
 
 set_mode <- function(etc, tar.capt, cur.capt) {

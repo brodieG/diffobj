@@ -79,26 +79,24 @@ make_diff_fun <- function(capt_fun) {
     err <- make_err_fun(sys.call())
 
     # Compute gutter values so that we know correct widths to use for capture,
-    # etc. Will need to update in HTML mode...
+    # etc. If not a base text type style, assume gutter and column padding are
+    # zero even though that may not always be correct
 
     nc_fun <- if(is(etc.proc@style, "StyleAnsi")) crayon_nchar else nchar
     etc.proc@gutter <- gutter_dat(etc.proc)
-    if(is(etc.proc@style, "StyleHtml")) {
-      etc.proc@line.width <- etc.proc@text.width <- etc.proc@line.width.half <-
-        etc.proc@text.width.half <- 0L
-      if(etc.proc@mode == "auto") etc.proc@mode <- "sidebyside"
-    } else {
-      half.width <- as.integer(
-        (etc.proc@disp.width - nc_fun(etc.proc@style@text@pad.col)) / 2
-      )
-      etc.proc@line.width <-
-        max(etc.proc@disp.width, .min.width + etc.proc@gutter@width)
-      etc.proc@text.width <- etc.proc@line.width - etc.proc@gutter@width
-      etc.proc@line.width.half <-
-        max(half.width, .min.width + etc.proc@gutter@width)
-      etc.proc@text.width.half <-
-        etc.proc@line.width.half - etc.proc@gutter@width
+
+    col.pad.width <- gutt.width <- 0L
+    if(is(etc.proc@style, "StyleRaw")) {
+      col.pad.width <- nc_fun(etc.proc@style@text@pad.col)
+      gutt.width <- etc.proc@gutter@width
     }
+    half.width <- as.integer((etc.proc@disp.width - col.pad.width) / 2)
+    etc.proc@line.width <-
+      max(etc.proc@disp.width, .min.width + gutt.width)
+    etc.proc@text.width <- etc.proc@line.width - gutt.width
+    etc.proc@line.width.half <- max(half.width, .min.width + gutt.width)
+    etc.proc@text.width.half <- etc.proc@line.width.half - gutt.width
+
     # If in side by side mode already then we know we want half-width, and if
     # width is less than 80 we know we want unitfied
 
@@ -254,8 +252,8 @@ make_diff_fun <- function(capt_fun) {
 #'   \code{-1L} to always stick to the original algorithm (defaults to 10000L).
 #' @param disp.width integer(1L) number of display columns to take up; note that
 #'   in \dQuote{sidebyside} \code{mode} the effective display width is half this
-#'   number (set to NULL to use \code{getOption("width")}, which is the
-#'   default).
+#'   number (set to 0L to use default widths which are \code{getOption("width")}
+#'   for normal styles and \code{120L} for HTML styles.
 #' @param ignore.white.space TRUE or FALSE, whether to consider differences in
 #'   horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
 #'   FALSE)
