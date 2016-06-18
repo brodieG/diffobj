@@ -31,6 +31,7 @@ diffPrint(state.abb, state.abb.2)
 diffPrint(1:100, 2:101, mode="sidebyside")
 diffPrint(2:101, 1:100)
 diffPrint(2:101, (1:100)[-9])
+diffPrint((2:101)[-98], (1:100)[-9])
 
 int.1 <- int.2 <- 1:100
 int.2[c(8, 20, 60)] <- 99
