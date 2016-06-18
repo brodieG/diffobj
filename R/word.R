@@ -45,11 +45,16 @@ find_brackets <- function(x) {
 
 reassign_lines <- function(lines, cont) {
   h.c <- length(cont)
-  for(i in seq_along(lines)) {
+  # Loop through all elements, assuming there are at least two as otherwise
+  # nothing to do; `head` also guarantees always one more element left in
+  # lines at any point in loop
+
+  for(i in head(seq_along(lines), -1L)) {
+    two.left <- h.c > i + 1L # at least two lines left
     if(cont[[i]]) {
-      if(h.c > i && length(lines[[i]])) {
+      if(length(lines[[i]])) {
         if(
-          h.c > i + 1L && length(lines[[i + 2L]]) &&
+          two.left && length(lines[[i + 2L]]) &&
           min(lines[[i + 2L]]) == max(lines[[i]])
         ) {
           # Line spans a diff; assign the line to the diff hunk
@@ -65,14 +70,33 @@ reassign_lines <- function(lines, cont) {
           # Line shared between context and next diff
 
           lines[[i]] <- head(lines[[i]], -1L)
-      } }
+        }
+        # If next diff hunk is still empty after all this, move a line over
+
+        if(!length(lines[[i + 1L]]) && length(lines[[i]])) {
+          lines[[i + 1L]] <- tail(lines[[i]], 1L)
+          lines[[i]] <- head(lines[[i]], -1L)
+        }
+      }
     } else if(
-      h.c > i && length(lines[[i]]) && length(lines[[i + 1]]) &&
+      length(lines[[i]]) && length(lines[[i + 1]]) &&
       max(lines[[i]]) == min(lines[[i + 1L]])
     ) {
       # Non context hunk; handle case where non-context and next hunk overlap,
       # but prior context hunk doesn't
 
+      lines[[i + 1L]] <- tail(lines[[i + 1L]], -1L)
+    } else if(
+      !length(lines[[i]]) && length(lines[[i + 1L]]) && (
+        !two.left || !length(lines[[i + 2L]]) ||
+        length(lines[[i + 1L]]) > 1L ||
+        lines[[i + 1L]] != head(lines[[i + 2L]], 1L)
+      )
+    ) {
+      # Empty first diff hunk, steal a line from next context hunk provided that
+      # line is not shared with the next diff hunk
+
+      lines[[i]] <- head(lines[[i + 1L]], 1L)
       lines[[i + 1L]] <- tail(lines[[i + 1L]], -1L)
     }
   }
@@ -155,6 +179,7 @@ word_to_line_map <- function(
     }
     dat
   }
+  browser()
   tar.dat <- augment(tar.dat, tar.lines.p, tar.ind)
   cur.dat <- augment(cur.dat, cur.lines.p, cur.ind)
 
@@ -210,7 +235,7 @@ reg_pull <- function(ind, reg) {
 #
 
 reg_apply <- function(reg, ends, mismatch) {
-  if(!length(reg) || !length(mismatch)) {
+  if(!length(reg)) {
     reg
   } else {
     use.bytes <- attr(reg[[1L]], "useBytes") # assume useBytes value unchanging
@@ -218,7 +243,7 @@ reg_apply <- function(reg, ends, mismatch) {
     buckets <- head(c(0L, ends) + 1L, -1L)
     mism.lines <- findInterval(mismatch, buckets)
     mism.lines.u <- unique(mism.lines)
-    mtch.lines.u <- seq_along(reg)[-mism.lines.u]
+    mtch.lines.u <- which(!seq_along(ends) %in% mism.lines.u )
     # These don't have any mismatches
     attr(.word.diff.atom, "useBytes") <- use.bytes
     regs.fin[mtch.lines.u] <-
@@ -226,10 +251,12 @@ reg_apply <- function(reg, ends, mismatch) {
     # These do have mismatches, we need to split them up in list elements and
     # substract the starting index to identify position within each sub-list
 
-    inds.msm <- Map(
-      "-", unname(split(mismatch, mism.lines)), buckets[mism.lines.u] - 1L
-    )
-    regs.fin[mism.lines.u] <- Map(reg_pull, inds.msm, reg[mism.lines.u])
+    if(length(mism.lines.u)) {
+      inds.msm <- Map(
+        "-", unname(split(mismatch, mism.lines)), buckets[mism.lines.u] - 1L
+      )
+      regs.fin[mism.lines.u] <- Map(reg_pull, inds.msm, reg[mism.lines.u])
+    }
     regs.fin
   }
 }
@@ -332,7 +359,7 @@ diff_word2 <- function(
   tar.dat$word.ind[tar.ind] <- reg_apply(tar.reg, tar.ends, tar.mism)
   cur.dat$word.ind[cur.ind] <- reg_apply(cur.reg, cur.ends, cur.mism)
 
-  # If in word mode (which is really atomic mode), generate a spoofed
+  # If in wrap mode (which is really atomic mode), generate a spoofed
   # `comp` vector that will force the line diff to align in a way that respects
   # the word differences.  This is inefficient and round-about, but has the
   # huge benefit of allowing us to plug in the wrapped diff into our existing
