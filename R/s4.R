@@ -250,13 +250,13 @@ setClass("DiffDiffs",
   }
 )
 .diff.dat.cols <- c(
-  "raw", "trim", "trim.ind.start", "trim.ind.end", "comp", "eq", "fin",
+  "orig", "raw", "trim", "trim.ind.start", "trim.ind.end", "comp", "eq", "fin",
   "fill", "word.ind", "tok.rat"
 )
 # Validate the *.dat slots of the Diff objects
 
 valid_dat <- function(x) {
-  char.cols <- c("raw", "trim", "eq", "comp", "fin")
+  char.cols <- c("orig", "raw", "trim", "eq", "comp", "fin")
   list.cols <- c("word.ind")
   zerotoone.cols <- "tok.rat"
   integer.cols <- c("trim.ind.start", "trim.ind.end")
@@ -269,7 +269,7 @@ valid_dat <- function(x) {
     length(
       unique(
         vapply(
-          x[c(char.cols, list.cols, zerotoone.cols, integer.cols)], 
+          x[c(char.cols, list.cols, zerotoone.cols, integer.cols)],
           length, integer(1L)
         )
     ) ) != 1L
