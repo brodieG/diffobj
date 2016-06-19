@@ -60,7 +60,7 @@ reassign_lines <- function(lines, cont) {
     )
     ident.g <- cumsum(not.ident)
     lines.s <- unname(split(lines, ident.g))
-    lines.g <- unlist(
+    l.g <- unlist(
       lapply(
         lines.s,
         function(x)
@@ -74,66 +74,72 @@ reassign_lines <- function(lines, cont) {
 
     h.c <- length(cont)
 
-    for(i in head(seq_along(lines.g), -1L)) {
-      two.left <- h.c > i + 1L # at least two lines.g left
+    for(i in head(seq_along(l.g), -1L)) {
+      two.left <- h.c > i + 1L # at least two l.g left
+
       if(cont[[i]]) {
-        if(length(lines.g[[i]])) {
+        if(length(l.g[[i]])) {
           if(
-            two.left && length(lines.g[[i + 2L]]) &&
-            min(lines.g[[i + 2L]]) == max(lines.g[[i]])
+            two.left && length(l.g[[i + 2L]]) &&
+            min(l.g[[i + 2L]]) == max(l.g[[i]])
           ) {
             # Line spans a diff; assign the line to the diff hunk
 
-            if(!length(lines.g[[i + 1L]]))
-              lines.g[[i + 1L]] <- min(lines.g[[i + 2L]])
-            lines.g[[i]] <- head(lines.g[[i]], -1L)
-            lines.g[[i + 2L]] <- tail(lines.g[[i + 2L]], -1L)
+            if(!length(l.g[[i + 1L]])) l.g[[i + 1L]] <- min(l.g[[i + 2L]])
+            l.g[[i]] <- head(l.g[[i]], -1L)
+            l.g[[i + 2L]] <- tail(l.g[[i + 2L]], -1L)
           } else if (
-            length(lines.g[[i + 1L]]) &&
-            max(lines.g[[i]]) == min(lines.g[[i + 1]])
+            length(l.g[[i + 1L]]) && max(l.g[[i]]) == min(l.g[[i + 1]])
           ) {
             # Line shared between context and next diff
 
-            lines.g[[i]] <- head(lines.g[[i]], -1L)
+            l.g[[i]] <- head(l.g[[i]], -1L)
           }
           # If next diff hunk is still empty after all this, move a line over
 
-          if(!length(lines.g[[i + 1L]]) && length(lines.g[[i]])) {
-            lines.g[[i + 1L]] <- tail(lines.g[[i]], 1L)
-            lines.g[[i]] <- head(lines.g[[i]], -1L)
+          if(!length(l.g[[i + 1L]]) && length(l.g[[i]])) {
+            l.g[[i + 1L]] <- tail(l.g[[i]], 1L)
+            l.g[[i]] <- head(l.g[[i]], -1L)
           }
         }
       } else if(
-        length(lines.g[[i]]) && length(lines.g[[i + 1]]) &&
-        max(lines.g[[i]]) == min(lines.g[[i + 1L]])
+        length(l.g[[i]]) && length(l.g[[i + 1]]) &&
+        max(l.g[[i]]) == min(l.g[[i + 1L]])
       ) {
         # Non context hunk; handle case where non-context and next hunk overlap,
         # but prior context hunk doesn't
 
-        lines.g[[i + 1L]] <- tail(lines.g[[i + 1L]], -1L)
-      } else if(!length(lines.g[[i]])) {
+        l.g[[i + 1L]] <- tail(l.g[[i + 1L]], -1L)
+      } else if(!length(l.g[[i]])) {
         # Empty diff hunk; try to steal from subsequent hunks; simple case first
         # where no more diff hunks
 
         if(
-          two.left && length(lines.g[[i + 2L]]) && (
-            !length(lines.g[[i + 1L]]) ||
-            identical(lines.g[[i + 1L]], head(lines.g[[i + 2L]], 1L))
+          two.left && length(l.g[[i + 2L]]) && (
+            !length(l.g[[i + 1L]]) ||
+            identical(l.g[[i + 1L]], head(l.g[[i + 2L]], 1L))
           )
         ) {
           # Here we potentially allow ourselves to steal from next diff hunk if
           # next matching hunk is empty or overlaps with diff hunk
 
-          lines.g[[i]] <- head(lines.g[[i + 2L]], 1L)
-          lines.g[[i + 1L]] <- integer(0L)
-          lines.g[[i + 2L]] <- tail(lines.g[[i + 2L]], -1L)
+          l.g[[i]] <- head(l.g[[i + 2L]], 1L)
+          l.g[[i + 1L]] <- integer(0L)
+          l.g[[i + 2L]] <- tail(l.g[[i + 2L]], -1L)
         } else {
-          lines.g[[i]] <- head(lines.g[[i + 1L]], 1L)
-          lines.g[[i + 1L]] <- tail(lines.g[[i + 1L]], -1L)
+          l.g[[i]] <- head(l.g[[i + 1L]], 1L)
+          l.g[[i + 1L]] <- tail(l.g[[i + 1L]], -1L)
         }
+      } else if (
+        two.left && !length(l.g[[i + 1L]]) &&
+        identical(tail(l.g[[i]], 1L), head(l.g[[i + 2L]], 1L))
+      ) {
+        # Two diffs in a row share same line, and interceding matching is empty
+
+        l.g[[i + 2L]] <- tail(l.g[[i + 2L]], -1L)
       }
     }
-    lines.g
+    l.g
   } else lines
 }
 # Helper Function for Mapping Word Diffs to Lines
