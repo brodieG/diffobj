@@ -167,7 +167,7 @@ list_depth <- function(x, depth=0L) {
 # Note this does not account for the padding required
 
 .pad <- list(context=2L, sidebyside=2L, unified=2L)
-.min.width <- 15L
+.min.width <- 6L
 
 calc_width <- function(width, mode) {
   # stopifnot(
