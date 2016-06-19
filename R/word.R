@@ -56,6 +56,7 @@ reassign_lines2 <- function(lines, cont, hunk.diff) {
   # Find out what lines show up as duplicated
 
   hunk.count <- length(cont)
+  hunk.len <- vapply(lines, length, integer(1L))
   hunk.n <- seq_along(cont)
   nums <- unlist(lines)
   nums.l <- unlist(
@@ -71,155 +72,72 @@ reassign_lines2 <- function(lines, cont, hunk.diff) {
   for(n in nums.d) {
     n.r <- range(nums.l[nums == n])
 
-    # Find earliest diff hunk in range and if it is empty and the corresponding
-    # data from other object is not all diffs, move line `n` to it, otherwise
-    # move it to the earliest matching hunk
+    # If any of the non-empty hunks are diff hunks, remove line reference from
+    # every hunk except the first non-empty diff hunk, otherwise remove the
+    # reference from everything except the first non-empty matching hunk
 
-    min.diff.h <- head(which(!cont & hunk.n >= n.r[[1L]]), 1L)
-    min.mtch.h <- head(which(cont), 1L)
+    b.w <- hunk.n >= n.r[[1L]] & hunk.n <= n.r[[2L]]
+    min.diff.h <- head(which(!cont & b.w & hunk.len), 1L)
+    min.mtch.h <- head(which(cont & b.w & hunk.len), 1L)
 
-    keep.h <- if(
-      length(min.diff.h) && (
-        !hunk.diff[[min.diff.h]] || length(lines.p[[min.diff.h]])
-      )
-    )
-      min.diff.h else min.mtch.h
+    keep.h <- if(length(min.diff.h)) min.diff.h else min.mtch.h
 
-    # Being a bit lazy with the add since we may not actually need to add it
-
-    for(i in n.r[[1L]]:n.r[[2L]]) {
-      lines.p[[i]] <- if(i == keep.h) unique(sort(c(lines.p[[i]], n))) else
-        lines.p[[i]][lines.p[[i]] != n]
-    }
+    if(length(keep.h))
+      for(i in n.r[[1L]]:n.r[[2L]])
+        if(i != keep.h) lines.p[[i]] <- lines.p[[i]][lines.p[[i]] != n]
   }
+  # for(n in nums.d) {
+  #   n.r <- range(nums.l[nums == n])
+
+  #   # Find earliest diff hunk in range and if it is empty and the corresponding
+  #   # data from other object is not all diffs, move line `n` to it, otherwise
+  #   # move it to the earliest matching hunk
+
+  #   min.diff.h <- head(which(!cont & hunk.n >= n.r[[1L]]), 1L)
+  #   min.mtch.h <- head(which(cont), 1L)
+
+  #   keep.h <- if(
+  #     length(min.diff.h) && (
+  #       !hunk.diff[[min.diff.h]] || length(lines.p[[min.diff.h]])
+  #     )
+  #   )
+  #     min.diff.h else min.mtch.h
+
+  #   # Being a bit lazy with the add since we may not actually need to add it
+
+  #   for(i in n.r[[1L]]:n.r[[2L]]) {
+  #     lines.p[[i]] <- if(i == keep.h) unique(sort(c(lines.p[[i]], n))) else
+  #       lines.p[[i]][lines.p[[i]] != n]
+  #   }
+  # }
   # Now, for any empty diff that isn't matched up with a full diff from the
   # other, steal a line from the next matched hunk if it exists, or the prior
-  # one if not
+  # one if not, provided that the other object cumulative diffs exceeds this
+  # one
 
-  empty.h <- which(!vapply(lines.p, length, integer(1L)) & !hunk.diff)
+  # empty.h <- which(
+  #   !vapply(lines.p, length, integer(1L)) & !hunk.diff & !cont
+  # )
+  # for(i in empty.h) {
+  #   if(cumsum(w.diff.a[seq.int(i)])[i] < cumsum(w.diff.b[seq.int(i)])[i]) {
+  #     moved.diff <- TRUE
+  #     if(i < hunk.count && length(lines.p[[i + 1L]])) {
+  #       lines.p[[i]] <- head(lines.p[[i + 1L]], 1L)
+  #       lines.p[[i + 1L]] <- tail(lines.p[[i + 1L]], -1L)
+  #     } else if (
+  #       i > 1L && length(lines.p[[i - 1L]])
+  #     ) {
+  #       lines.p[[i]] <- tail(lines.p[[i - 1L]], 1L)
+  #       lines.p[[i - 1L]] <- head(lines.p[[i - 1L]], -1L)
+  #     } else moved.diff <- FALSE
 
-  for(i in empty.h) {
-    if(i < hunk.count && length(lines.p[[i + 1L]])) {
-      lines.p[[i]] <- head(lines.p[[i + 1L]], 1L)
-      lines.p[[i + 1L]] <- tail(lines.p[[i + 1L]], -1L)
-    } else if (
-      i > 1L && length(lines.p[[i - 1L]])
-    ) {
-      lines.p[[i]] <- tail(lines.p[[i - 1L]], 1L)
-      lines.p[[i - 1L]] <- head(lines.p[[i - 1L]], -1L)
-    }
-  }
+  #     # We added a diff so need to record it
+  #     if(moved.diff) {
+  #       w.diff.a[[i]] <- TRUE
+  #     }
+  #   }
+  # }
   lines.p
-}
-reassign_lines <- function(lines, cont) {
-  if(length(lines) > 1L) {
-    # Start by collapsing any identical line assignments into the first occurence
-    # of that line assignment.  We extend this to the case where there are empty
-    # lines by putting in those empty lines whatever was previous knowning that
-    # that stuff will get zeroed out by this process.  This allows us to bridge
-    # cases where there are three hunks, with the middle one empty and the two
-    # bracketing ones matching.
-
-    lines.zero <- !vapply(lines, length, integer(1L))
-    lines.z <- if(any(lines.zero)) {
-      zero.brk <- cumsum(!lines.zero & c(FALSE, head(lines.zero, -1L)))
-      lines.z.g <- unname(split(lines, zero.brk))
-      z.g <- unname(split(lines.zero, zero.brk))
-
-      # Determine what the max non-zero is, and copy it over all the zeroes
-
-      unlist(
-        Map(
-          function(g, z) {
-            if(any(z) && any(!z)) g[which(z)] <- g[max(which(!z))]
-            g
-          },
-          lines.z.g, z.g
-        ),
-        recursive = FALSE
-      )
-    } else lines
-
-    not.ident <- c(
-      FALSE,
-      unlist(Map(Negate(identical), head(lines.z, -1L), tail(lines.z, -1L)))
-    )
-    ident.g <- cumsum(not.ident)
-    lines.s <- unname(split(lines.z, ident.g))
-    l.g <- unlist(
-      lapply(
-        lines.s,
-        function(x)
-          c(x[1L], replicate(length(x) - 1L, integer(0L), simplify=FALSE))
-      ),
-      recursive=FALSE
-    )
-    # Loop through all elements, assuming there are at least two as otherwise
-    # nothing to do; `head` also guarantees always one more element left in
-    # lines at any point in loop
-
-    h.c <- length(cont)
-
-    for(i in head(seq_along(l.g), -1L)) {
-      two.left <- h.c > i + 1L # at least two l.g left
-
-      if(cont[[i]]) {
-        if(length(l.g[[i]])) {
-          if(
-            two.left && length(l.g[[i + 2L]]) &&
-            min(l.g[[i + 2L]]) == max(l.g[[i]])
-          ) {
-            # Line spans a diff; assign the line to the diff hunk
-
-            if(!length(l.g[[i + 1L]])) l.g[[i + 1L]] <- min(l.g[[i + 2L]])
-            l.g[[i]] <- head(l.g[[i]], -1L)
-            l.g[[i + 2L]] <- tail(l.g[[i + 2L]], -1L)
-          } else if (
-            length(l.g[[i + 1L]]) && max(l.g[[i]]) == min(l.g[[i + 1]])
-          ) {
-            # Line shared between context and next diff
-
-            l.g[[i]] <- head(l.g[[i]], -1L)
-          }
-          # If next diff hunk is still empty after all this, move a line over
-
-          if(!length(l.g[[i + 1L]]) && length(l.g[[i]])) {
-            l.g[[i + 1L]] <- tail(l.g[[i]], 1L)
-            l.g[[i]] <- head(l.g[[i]], -1L)
-          }
-        }
-      } else if(
-        length(l.g[[i]]) && length(l.g[[i + 1]]) &&
-        max(l.g[[i]]) == min(l.g[[i + 1L]])
-      ) {
-        # Non context hunk; handle case where non-context and next hunk overlap,
-        # but prior context hunk doesn't
-
-        l.g[[i + 1L]] <- tail(l.g[[i + 1L]], -1L)
-      } else if(!length(l.g[[i]])) {
-        # Empty diff hunk; try to steal from subsequent hunks; simple case first
-        # where no more diff hunks
-
-        if(
-          two.left && length(l.g[[i + 2L]]) && (
-            !length(l.g[[i + 1L]]) ||
-            identical(l.g[[i + 1L]], head(l.g[[i + 2L]], 1L))
-          )
-        ) {
-          # Here we potentially allow ourselves to steal from next diff hunk if
-          # next matching hunk is empty or overlaps with diff hunk
-
-          l.g[[i]] <- head(l.g[[i + 2L]], 1L)
-          l.g[[i + 1L]] <- integer(0L)
-          l.g[[i + 2L]] <- tail(l.g[[i + 2L]], -1L)
-        } else {
-          l.g[[i]] <- head(l.g[[i + 1L]], 1L)
-          l.g[[i + 1L]] <- tail(l.g[[i + 1L]], -1L)
-        }
-      }
-    }
-    l.g
-  } else lines
 }
 # Helper Function for Mapping Word Diffs to Lines
 #
@@ -242,7 +160,7 @@ word_to_line_map <- function(
     )
     inds.d.l <- findInterval(diffs, c(1L, head(ends, -1L) + 1L))
     inds.tab <- tabulate(inds.d.l, length(ends))
-    diff.full <- which(inds.tab == w.t)
+    diff.full <- which(inds.tab == w.t & inds.tab)
   }
   tar.lines <- lapply(hunks, find_word_line, TRUE, tar.ends)
   cur.lines <- lapply(hunks, find_word_line, FALSE, cur.ends)
@@ -260,14 +178,54 @@ word_to_line_map <- function(
   tar.tot.diff.l <- find_full_diff_line(tar.dat, tar.ends, tar.inds.d)
   cur.tot.diff.l <- find_full_diff_line(cur.dat, cur.ends, cur.inds.d)
 
-  tar.tot.diff.h <-
-    vapply(tar.lines, function(x) all(x %in% tar.tot.diff.l), logical(1L))
-  cur.tot.diff.h <-
-    vapply(cur.lines, function(x) all(x %in% cur.tot.diff.l), logical(1L))
+  hunk_diff <- function(vec, tot.diffs) length(vec) && all(vec %in% tot.diffs)
+  tar.tot.diff.h <- vapply(tar.lines, hunk_diff, logical(1L), tar.tot.diff.l)
+  cur.tot.diff.h <- vapply(cur.lines, hunk_diff, logical(1L), cur.tot.diff.l)
 
-  tar.lines.p <- reassign_lines2(tar.lines, h.cont, cur.tot.diff.h) # note 'cur'
-  cur.lines.p <- reassign_lines2(cur.lines, h.cont, tar.tot.diff.h)
+  # WIP NOTES:
+  # In some situations, we do not want to bring a matched line into a diff slot
+  # This seems to be when the cumulative sum of populated diffs in the other
+  # object is not greater than the current object.  So track non-empty diff
+  # slots and only populate if behind
 
+  tar.w.diff <- cur.w.diff <- logical(length(h.cont))
+  tar.w.diff[!h.cont] <- !!vapply(tar.lines[!h.cont], length, integer(1L))
+  cur.w.diff[!h.cont] <- !!vapply(cur.lines[!h.cont], length, integer(1L))
+
+  # Remove duplicated line references
+
+  tar.lines.u <- reassign_lines2(tar.lines, h.cont)
+  cur.lines.u <- reassign_lines2(cur.lines, h.cont)
+
+  # If necessary, populate empty diff hunks with matching lines; this happens
+  # if one of tar/cur has differences but the other doesn't
+
+  tar.lines.p <- tar.lines.u
+  cur.lines.p <- cur.lines.u
+  steal_matching_line <- function(lines, i) {
+    lines.p <- lines
+    l.len <- length(lines)
+    if(l.len > i && length(lines[[i + 1L]])) {
+      lines.p[[i]] <- head(lines.p[[i + 1L]], 1L)
+      lines.p[[i + 1L]] <- tail(lines.p[[i + 1L]], -1L)
+    } else if (i > 1L && length(lines[[i - 1L]])) {
+      lines.p[[i]] <- tail(lines.p[[i - 1L]], 1L)
+      lines.p[[i - 1L]] <- head(lines.p[[i - 1L]], -1L)
+    }
+    lines.p
+  }
+  for(i in seq_along(h.cont)) {
+    if(!h.cont[[i]]) {
+      t.i <- tar.lines.p[[i]]
+      c.i <- cur.lines.p[[i]]
+      if(!length(t.i) && length(c.i) && !cur.tot.diff.h[[i]]) {
+        tar.lines.p <- steal_matching_line(tar.lines.p, i)
+      } else if (!length(c.i) && length(t.i) && !tar.tot.diff.h[[i]]) {
+        cur.lines.p <- steal_matching_line(cur.lines.p, i)
+      }
+    }
+  }
+  browser()
   # Now need to make sure that the context hunks are actually the same length
   # which need not be the case on a line basis.  To do so we must insert
   # blanks in the match hunks if they are unequal length.  We also need to
