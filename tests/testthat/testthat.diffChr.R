@@ -60,3 +60,14 @@ chr.6 <- c(
 diffChr(chr.5, chr.6)
 diffChr(chr.5, chr.6, mode="unified")
 
+diffChr(c("a", "b", "c"), c("a", "b", "c"))
+diffChr(c("a", "b"), c("a", "b", "c"))
+diffChr(c("a", "b", "c"), c("a", "b"))
+diffChr(c("b", "c"), c("a", "b"))
+diffChr(letters[1:3], letters[2:4])
+diffChr(c("a", "b", "c", "d"), c("a", "b", "b", "d", "e"))
+diffChr(c("a", "b", "c"), c("a", "b", "d"))
+diffChr(
+  c("a", "b", "c", "d", "f", "g", "h", "i", "j"),
+      c("b", "C", "D", "E", "f", "G", "H", "j", "K")
+    )
