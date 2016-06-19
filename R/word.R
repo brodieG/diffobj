@@ -49,17 +49,103 @@ find_brackets <- function(x) {
 # lines: is a list of what lines are in each hunk,
 # cont: is a logical vector of same length as lines denoting whether a
 #   particular value in lines is context or diff
+# hunk.diff: logical vector denoting if for the other object the hunk contains
+#   only differences
 
+reassign_lines2 <- function(lines, cont, hunk.diff) {
+  # Find out what lines show up as duplicated
+
+  hunk.count <- length(cont)
+  hunk.n <- seq_along(cont)
+  nums <- unlist(lines)
+  nums.l <- unlist(
+    lapply(seq_along(lines), function(x) rep(x, length(lines[[x]])))
+  )
+  nums.d <- unique(nums[duplicated(nums)])
+
+  # For each duplicated number, find range of hunks that contain it and remove
+  # it from inappropriate hunks / add it to proper ones
+
+  lines.p <- lines
+
+  for(n in nums.d) {
+    n.r <- range(nums.l[nums == n])
+
+    # Find earliest diff hunk in range and if it is empty and the corresponding
+    # data from other object is not all diffs, move line `n` to it, otherwise
+    # move it to the earliest matching hunk
+
+    min.diff.h <- head(which(!cont & hunk.n >= n.r[[1L]]), 1L)
+    min.mtch.h <- head(which(cont), 1L)
+
+    keep.h <- if(
+      length(min.diff.h) && (
+        !hunk.diff[[min.diff.h]] || length(lines.p[[min.diff.h]])
+      )
+    )
+      min.diff.h else min.mtch.h
+
+    # Being a bit lazy with the add since we may not actually need to add it
+
+    for(i in n.r[[1L]]:n.r[[2L]]) {
+      lines.p[[i]] <- if(i == keep.h) unique(sort(c(lines.p[[i]], n))) else
+        lines.p[[i]][lines.p[[i]] != n]
+    }
+  }
+  # Now, for any empty diff that isn't matched up with a full diff from the
+  # other, steal a line from the next matched hunk if it exists, or the prior
+  # one if not
+
+  empty.h <- which(!vapply(lines.p, length, integer(1L)) & !hunk.diff)
+
+  for(i in empty.h) {
+    if(i < hunk.count && length(lines.p[[i + 1L]])) {
+      lines.p[[i]] <- head(lines.p[[i + 1L]], 1L)
+      lines.p[[i + 1L]] <- tail(lines.p[[i + 1L]], -1L)
+    } else if (
+      i > 1L && length(lines.p[[i - 1L]])
+    ) {
+      lines.p[[i]] <- tail(lines.p[[i - 1L]], 1L)
+      lines.p[[i - 1L]] <- head(lines.p[[i - 1L]], -1L)
+    }
+  }
+  lines.p
+}
 reassign_lines <- function(lines, cont) {
   if(length(lines) > 1L) {
     # Start by collapsing any identical line assignments into the first occurence
-    # of that line assignment
+    # of that line assignment.  We extend this to the case where there are empty
+    # lines by putting in those empty lines whatever was previous knowning that
+    # that stuff will get zeroed out by this process.  This allows us to bridge
+    # cases where there are three hunks, with the middle one empty and the two
+    # bracketing ones matching.
+
+    lines.zero <- !vapply(lines, length, integer(1L))
+    lines.z <- if(any(lines.zero)) {
+      zero.brk <- cumsum(!lines.zero & c(FALSE, head(lines.zero, -1L)))
+      lines.z.g <- unname(split(lines, zero.brk))
+      z.g <- unname(split(lines.zero, zero.brk))
+
+      # Determine what the max non-zero is, and copy it over all the zeroes
+
+      unlist(
+        Map(
+          function(g, z) {
+            if(any(z) && any(!z)) g[which(z)] <- g[max(which(!z))]
+            g
+          },
+          lines.z.g, z.g
+        ),
+        recursive = FALSE
+      )
+    } else lines
 
     not.ident <- c(
-      FALSE, unlist(Map(Negate(identical), head(lines, -1L), tail(lines, -1L)))
+      FALSE,
+      unlist(Map(Negate(identical), head(lines.z, -1L), tail(lines.z, -1L)))
     )
     ident.g <- cumsum(not.ident)
-    lines.s <- unname(split(lines, ident.g))
+    lines.s <- unname(split(lines.z, ident.g))
     l.g <- unlist(
       lapply(
         lines.s,
@@ -130,13 +216,6 @@ reassign_lines <- function(lines, cont) {
           l.g[[i]] <- head(l.g[[i + 1L]], 1L)
           l.g[[i + 1L]] <- tail(l.g[[i + 1L]], -1L)
         }
-      } else if (
-        two.left && !length(l.g[[i + 1L]]) &&
-        identical(tail(l.g[[i]], 1L), head(l.g[[i + 2L]], 1L))
-      ) {
-        # Two diffs in a row share same line, and interceding matching is empty
-
-        l.g[[i + 2L]] <- tail(l.g[[i + 2L]], -1L)
       }
     }
     l.g
@@ -155,17 +234,39 @@ word_to_line_map <- function(
     ints <- c(1L, head(ends, -1L) + 1L)
     sort(unique(findInterval(inds.lookup, ints)))
   }
+  find_full_diff_line <- function(dat, ends, diffs) {
+    w.t <- vapply(
+      dat$word.ind,
+      function(x) if(is.null(a.val <- attr(x, "word.count"))) -1L else a.val,
+      integer(1L)
+    )
+    inds.d.l <- findInterval(diffs, c(1L, head(ends, -1L) + 1L))
+    inds.tab <- tabulate(inds.d.l, length(ends))
+    diff.full <- which(inds.tab == w.t)
+  }
   tar.lines <- lapply(hunks, find_word_line, TRUE, tar.ends)
   cur.lines <- lapply(hunks, find_word_line, FALSE, cur.ends)
 
-  # Since it is possible that a hunk is in the middle of a line, we need to
-  # decide what to do with lines that show up in multiple hunks.  Rule is
-  # that all overlapping lines should be assigned to the non-context hunk
-  # in-between
+  # Handle cases where line is shared by multiple hunks; also need to know which
+  # hunks contain only lines that are fully different (and by extension, are
+  # themselves fully different) as these don't need to have a line from the
+  # opposite object brought in for alignment
 
   h.cont <- vapply(hunks, "[[", logical(1L), "context")
-  tar.lines.p <- reassign_lines(tar.lines, h.cont)
-  cur.lines.p <- reassign_lines(cur.lines, h.cont)
+  diff.inds <- unlist(lapply(hunks[!h.cont], "[",  c("A", "B")))
+  tar.inds.d <- diff.inds[diff.inds > 0]
+  cur.inds.d <- abs(diff.inds[diff.inds < 0])
+
+  tar.tot.diff.l <- find_full_diff_line(tar.dat, tar.ends, tar.inds.d)
+  cur.tot.diff.l <- find_full_diff_line(cur.dat, cur.ends, cur.inds.d)
+
+  tar.tot.diff.h <-
+    vapply(tar.lines, function(x) all(x %in% tar.tot.diff.l), logical(1L))
+  cur.tot.diff.h <-
+    vapply(cur.lines, function(x) all(x %in% cur.tot.diff.l), logical(1L))
+
+  tar.lines.p <- reassign_lines2(tar.lines, h.cont, cur.tot.diff.h) # note 'cur'
+  cur.lines.p <- reassign_lines2(cur.lines, h.cont, tar.tot.diff.h)
 
   # Now need to make sure that the context hunks are actually the same length
   # which need not be the case on a line basis.  To do so we must insert
