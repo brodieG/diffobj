@@ -146,11 +146,40 @@ reassign_lines2 <- function(lines, cont, hunk.diff) {
 word_to_line_map <- function(
   hunks, tar.dat, cur.dat, tar.ends, cur.ends, tar.ind, cur.ind
 ) {
-  find_word_line <- function(h, pos, ends) {
-    inds <- c(h$A, h$B)
-    inds.lookup <- if(pos) inds[inds > 0] else abs(inds[inds < 0])
-    ints <- c(1L, head(ends, -1L) + 1L)
-    sort(unique(findInterval(inds.lookup, ints)))
+  # If a diff hunk is empty for tar/cur, and the corresponding cur/tar hunk
+  # does not begin/end at beginning of line, then must add lines containing
+  # adjoining elements to the diff
+
+  find_word_line <- function(h.i, pos, ends.a, ends.b, hunks) {
+    inds_pos <- function(h) c(h$A, h$B)[c(h$A, h$B) > 0L]
+    inds_neg <- function(h) abs(c(h$A, h$B)[c(h$A, h$B) < 0L])
+
+    h <- hunks[[h.i]]
+    h.prev <- if(h.i > 1L) hunks[[h.i - 1L]]
+    h.next <- if(h.i < length(hunks)) hunks[[h.i + 1L]]
+
+    inds.a <- if(pos) inds_pos(h) else inds_neg(h)
+    inds.b <- if(pos) inds_neg(h) else inds_pos(h)
+
+    ints.a <- c(1L, head(ends.a, -1L) + 1L)
+    ints.b <- c(1L, head(ends.b, -1L) + 1L)
+    ends.b.m <- max(ends.b)
+
+    # If a diff hunk and empty, but the matching hunk isn't empty, then add
+    # the last element of prior hunk and first element of next hunk
+
+    if(!h$cont && !length(inds.a) && length(inds.b)) {
+      inds.prev <- if(h.i > 1L) if(pos) inds_pos(h.prev) else inds_neg(h.prev)
+      inds.next <- if(h.i < length(hunks))
+        if(pos) inds_pos(h.next) else inds_neg(h.next)
+      ind.b.min <- min(inds.b)
+      ind.b.max <- max(inds.b)
+      add.left <- if(!ind.b.min %in% ints.b) max(inds.prev)
+      add.right <- if(!ind.b.max %in% ends.b) min(inds.next)
+      inds.a <- if(length(add.left) && length(add.right))
+        seq(from=add.left, to=add.right, by=1L) else c(add.left, add.right)
+    }
+    sort(unique(findInterval(inds.a, ints.a)))
   }
   find_full_diff_line <- function(dat, ends, diffs) {
     w.t <- vapply(
@@ -162,8 +191,9 @@ word_to_line_map <- function(
     inds.tab <- tabulate(inds.d.l, length(ends))
     diff.full <- which(inds.tab == w.t & inds.tab)
   }
-  tar.lines <- lapply(hunks, find_word_line, TRUE, tar.ends)
-  cur.lines <- lapply(hunks, find_word_line, FALSE, cur.ends)
+  h.seq <- seq_along(hunks)
+  tar.lines <- lapply(h.seq, find_word_line, TRUE, tar.ends, cur.ends, hunks)
+  cur.lines <- lapply(h.seq, find_word_line, FALSE, cur.ends, tar.ends, hunks)
 
   # Handle cases where line is shared by multiple hunks; also need to know which
   # hunks contain only lines that are fully different (and by extension, are
@@ -182,26 +212,54 @@ word_to_line_map <- function(
   tar.tot.diff.h <- vapply(tar.lines, hunk_diff, logical(1L), tar.tot.diff.l)
   cur.tot.diff.h <- vapply(cur.lines, hunk_diff, logical(1L), cur.tot.diff.l)
 
-  # WIP NOTES:
-  # In some situations, we do not want to bring a matched line into a diff slot
-  # This seems to be when the cumulative sum of populated diffs in the other
-  # object is not greater than the current object.  So track non-empty diff
-  # slots and only populate if behind
-
-  tar.w.diff <- cur.w.diff <- logical(length(h.cont))
-  tar.w.diff[!h.cont] <- !!vapply(tar.lines[!h.cont], length, integer(1L))
-  cur.w.diff[!h.cont] <- !!vapply(cur.lines[!h.cont], length, integer(1L))
-
   # Remove duplicated line references
 
   tar.lines.u <- reassign_lines2(tar.lines, h.cont)
   cur.lines.u <- reassign_lines2(cur.lines, h.cont)
 
+  # Search for aligned matching hunks that are empty, and if both those have
+  # adjacent empty diff hunks, remove the matched and diff hunks from both
+  # NOTE: this changes the number of hunks in the word diff!
+
+  len.orig <- length(tar.lines.u)
+  tar.lines.p <- tar.lines.u
+  cur.lines.p <- cur.lines.u
+  j <- if(h.cont[[1L]]) 1L else 2L
+  l.cont <- as.list(h.cont)
+  k <- 0
+
+  while(j < length(tar.lines.p)) {
+    if((k <- k + 1L) > len.orig)
+      stop("Logic Error: infine loop in atomic hunk align; contact maintainer.")
+    if(!length(tar.lines.p[[j]]) && !length(cur.lines.p[[j]])) {
+      if(j > 1L) {
+        tar.lo <- !length(tar.lines.p[[j - 1L]])
+        cur.lo <- !length(cur.lines.p[[j - 1L]])
+      } else tar.lo <- cur.lo <- FALSE
+      tar.hi <- !length(tar.lines.p[[j + 1L]])
+      cur.hi <- !length(cur.lines.p[[j + 1L]])
+
+      # Need to remove paired empty match and diff; since we are shortening the
+      # list we don't need to increment J (note possible memory inefficiency
+      # here)
+      if((tar.lo || tar.hi) && (cur.lo || cur.hi))  {
+        if(tar.lo) tar.lines.p[(j - 1L):j] <- NULL else
+          tar.lines.p[j:(j + 1L)] <- NULL
+        if(cur.lo) cur.lines.p[(j - 1L):j] <- NULL else
+          cur.lines.p[j:(j + 1L)] <- NULL
+        l.cont[j:(j + 1L)] <- NULL
+      } else {
+        j <- j + 1L
+      }
+    } else j <- j + 1L
+  }
+  # Update our context vector since we have now possibly removed hunks
+
+  h.cont <- unlist(l.cont)
+
   # If necessary, populate empty diff hunks with matching lines; this happens
   # if one of tar/cur has differences but the other doesn't
 
-  tar.lines.p <- tar.lines.u
-  cur.lines.p <- cur.lines.u
   steal_matching_line <- function(lines, i) {
     lines.p <- lines
     l.len <- length(lines)
@@ -214,18 +272,20 @@ word_to_line_map <- function(
     }
     lines.p
   }
+  tar.lines.f <- tar.lines.p
+  cur.lines.f <- cur.lines.p
+
   for(i in seq_along(h.cont)) {
     if(!h.cont[[i]]) {
-      t.i <- tar.lines.p[[i]]
-      c.i <- cur.lines.p[[i]]
+      t.i <- tar.lines.f[[i]]
+      c.i <- cur.lines.f[[i]]
       if(!length(t.i) && length(c.i) && !cur.tot.diff.h[[i]]) {
-        tar.lines.p <- steal_matching_line(tar.lines.p, i)
+        tar.lines.f <- steal_matching_line(tar.lines.f, i)
       } else if (!length(c.i) && length(t.i) && !tar.tot.diff.h[[i]]) {
-        cur.lines.p <- steal_matching_line(cur.lines.p, i)
+        cur.lines.f <- steal_matching_line(cur.lines.f, i)
       }
     }
   }
-  browser()
   # Now need to make sure that the context hunks are actually the same length
   # which need not be the case on a line basis.  To do so we must insert
   # blanks in the match hunks if they are unequal length.  We also need to
@@ -242,16 +302,16 @@ word_to_line_map <- function(
     else {                      # spaces in middle
       c(head(cont, floor(len.c / 2)), NAs, tail(cont, -floor(len.c / 2)))
   } }
-  h.c <- length(hunks)
+  h.c <- length(h.cont)
   for(i in seq.int(h.c)) {
     if(h.cont[[i]]) {
-      t.len <- length(tar.lines.p[[i]])
-      c.len <- length(cur.lines.p[[i]])
+      t.len <- length(tar.lines.f[[i]])
+      c.len <- length(cur.lines.f[[i]])
       len.diff <- abs(t.len - c.len)
       if(t.len > c.len) {
-        cur.lines.p[[i]] <- fill_cont(cur.lines.p[[i]], t.len, i, h.c)
+        cur.lines.f[[i]] <- fill_cont(cur.lines.f[[i]], t.len, i, h.c)
       } else if (t.len < c.len){
-        tar.lines.p[[i]] <- fill_cont(tar.lines.p[[i]], c.len, i, h.c)
+        tar.lines.f[[i]] <- fill_cont(tar.lines.f[[i]], c.len, i, h.c)
   } } }
   # Augment the input vectors by the blanks we added; these blanks are
   # represented by NAs in our index vector so should be easy to do
@@ -278,17 +338,17 @@ word_to_line_map <- function(
     }
     dat
   }
-  tar.dat <- augment(tar.dat, tar.lines.p, tar.ind)
-  cur.dat <- augment(cur.dat, cur.lines.p, cur.ind)
+  tar.dat <- augment(tar.dat, tar.lines.f, tar.ind)
+  cur.dat <- augment(cur.dat, cur.lines.f, cur.ind)
 
   # Also need to augment the indices so we can re-insert properly; we subvert
   # the fill logic since that will make sure
 
   tar.ind.a <-
-    augment(list(fill=!logical(length(tar.ind))), tar.lines.p, tar.ind)
+    augment(list(fill=!logical(length(tar.ind))), tar.lines.f, tar.ind)
   tar.ind.a.l <- unname(unlist(tar.ind.a))
   cur.ind.a <-
-    augment(list(fill=!logical(length(cur.ind))), cur.lines.p, cur.ind)
+    augment(list(fill=!logical(length(cur.ind))), cur.lines.f, cur.ind)
   cur.ind.a.l <- unname(unlist(cur.ind.a))
 
   # Generate the final vectors to do the diffs on; these should be unique
@@ -296,11 +356,11 @@ word_to_line_map <- function(
   # mismatches
 
   hunk_match <- function(i, l) rep(h.cont[i], length(l[[i]]))
-  tar.match <- unlist(lapply(seq_along(h.cont), hunk_match, l=tar.lines.p))
-  cur.match <- unlist(lapply(seq_along(h.cont), hunk_match, l=cur.lines.p))
+  tar.match <- unlist(lapply(seq_along(h.cont), hunk_match, l=tar.lines.f))
+  cur.match <- unlist(lapply(seq_along(h.cont), hunk_match, l=cur.lines.f))
 
   pos.nums <- sum(tar.match)
-  if(pos.nums != length(unlist(cur.lines.p[h.cont])))
+  if(pos.nums != length(unlist(cur.lines.f[h.cont])))
     stop("Logic Error: pos nums incorrect; contact maintainer")
   neg.nums <- sum(!tar.match, !cur.match)
 

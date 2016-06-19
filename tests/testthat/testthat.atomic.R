@@ -40,7 +40,7 @@ diffPrint(int.1, int.2)
 
 A.1 <- A
 A.1[5] <- "Ee"
-diffPrint(A, A.1[-(13:18)])
+diffPrint(A, A.1[-(13:18)])   # check this
 
 set.seed(2)
 w1 <- sample(
@@ -56,7 +56,7 @@ w4 <- c(w1[1:5], toupper(w1[1:5]), w1[6:15], toupper(w1[1:5]))
 
 diffPrint(w1, w2)
 diffPrint(w1, w3)
-diffPrint(w1, w4)
+diffPrint(w1, w4)    # check this
 
 nums <- runif(5, -1e9, 1e9)
 scinums <- format(c(nums, 1/nums), scientific=TRUE)
@@ -71,7 +71,7 @@ s3[sample(seq_along(s1), 10)] <- sample(s1, 10)     # change some
 s4 <- c(s1[1:5], sample(s1, 2), s1[6:15], sample(s1, 2), s1[16:20])
 
 a <- c("a", "b", "c", "d")
-b <- c("b" , "c", "d", "e")
+b <- c("b", "c", "d", "e")
 diffPrint(a, b)
 
 a <- c("x", "a", "b", "c", "d", "z")
