@@ -115,11 +115,8 @@ reassign_lines <- function(lines, cont) {
         # Empty diff hunk; try to steal from subsequent hunks; simple case first
         # where no more diff hunks
 
-        if(!two.left) {
-          lines.g[[i]] <- head(lines.g[[i + 1L]], 1L)
-          lines.g[[i + 1L]] <- tail(lines.g[[i + 1L]], -1L)
-        } else if(
-          length(lines.g[[i + 2L]]) && (
+        if(
+          two.left && length(lines.g[[i + 2L]]) && (
             !length(lines.g[[i + 1L]]) ||
             identical(lines.g[[i + 1L]], head(lines.g[[i + 2L]], 1L))
           )
@@ -130,6 +127,9 @@ reassign_lines <- function(lines, cont) {
           lines.g[[i]] <- head(lines.g[[i + 2L]], 1L)
           lines.g[[i + 1L]] <- integer(0L)
           lines.g[[i + 2L]] <- tail(lines.g[[i + 2L]], -1L)
+        } else {
+          lines.g[[i]] <- head(lines.g[[i + 1L]], 1L)
+          lines.g[[i + 1L]] <- tail(lines.g[[i + 1L]], -1L)
         }
       }
     }

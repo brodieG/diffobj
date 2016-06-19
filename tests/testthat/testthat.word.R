@@ -28,6 +28,7 @@ state.abb.2[38] <- "Pennsylvania"
 
 diffPrint(state.abb, state.abb.2)
 
+
 diffPrint(1:100, 2:101, mode="sidebyside")
 diffPrint(2:101, 1:100)
 diffPrint(2:101, (1:100)[-9])
