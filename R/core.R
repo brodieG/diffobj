@@ -322,7 +322,7 @@ line_diff <- function(
     tok.rat=rep(1, length(tar.capt.p))
   )
   cur.dat <- list(
-    orig=tar.capt, raw=cur.capt.p, trim=cur.trim,
+    orig=cur.capt, raw=cur.capt.p, trim=cur.trim,
     trim.ind.start=cur.trim.ind[, 1L], trim.ind.end=cur.trim.ind[, 2L],
     comp=cur.trim, eq=cur.trim, fin=cur.capt.p,
     fill=logical(length(cur.capt.p)),
