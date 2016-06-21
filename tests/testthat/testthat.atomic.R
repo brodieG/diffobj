@@ -33,6 +33,21 @@ diffPrint(2:101, 1:100)
 diffPrint(2:101, (1:100)[-9])
 diffPrint((2:101)[-98], (1:100)[-9])
 
+# Test with names?
+
+rand.chrs <- do.call(paste0, expand.grid(LETTERS, LETTERS))
+F <- (2:105)[-98]
+G <- (1:100)[-9]
+nm.1 <- rand.chrs[seq_along(F)]
+nm.2 <- rand.chrs[seq_along(G)]
+names(F) <- nm.1
+diffPrint(F, G)
+names(G) <- nm.2
+diffPrint(F, G)
+names(G)[c(5, 25, 60)] <- c("XXXXX", rand.chrs[c(300, 350)])
+diffPrint(F, G)
+
+
 int.1 <- int.2 <- 1:100
 int.2[c(8, 20, 60)] <- 99
 int.2 <- c(50:1, int.2)
@@ -65,7 +80,7 @@ wl <- c(words, nums, scinums, other)
 
 # Initial sample
 
-s1 <- s2 <- s3 <- s4 <- sample(wl, 20, replace=T)
+s1 <- s2 <- s3 <- s4 <- sample(w1, 20, replace=T)
 s2 <- s1[5:20]                             # subset
 s3[sample(seq_along(s1), 10)] <- sample(s1, 10)     # change some
 s4 <- c(s1[1:5], sample(s1, 2), s1[6:15], sample(s1, 2), s1[16:20])

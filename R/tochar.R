@@ -389,13 +389,11 @@ setMethod("as.character", "Diff",
     lh <- !!lim.hunk[[1L]]
     diff.count <- count_diffs(hunk.grps)
     str.fold.out <- if(diff.count.orig > diff.count) {
-      crayon_style(
+      s@funs@meta(
         paste0(
           diff.count.orig  - diff.count,
           " differences are hidden by our use of `max.level`"
-        ),
-        "silver"
-      )
+      ) )
     }
     limit.out <- if(ll || lh) {
       if(!is.null(str.fold.out)) {
