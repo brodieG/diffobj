@@ -227,7 +227,7 @@ check_args <- function(
 
   # pager
 
-  valid.pagers <- c("auto", "off")
+  valid.pagers <- c("auto", "off", "on")
   if(!is(pager, "Pager") && !string_in(pager, valid.pagers))
     err(
       "Argument `pager` must be one of `", dep(valid.pagers),
@@ -255,8 +255,8 @@ check_args <- function(
   # means let the pager that comes built into the style be the pager
 
   if(!is(pager, "Pager")) {
-    pager <- if(pager == "auto" && interactive() && !in_knitr()) {
-      "auto"
+    pager <- if(pager == "auto" && is_top_level(sys.calls()) || pager == "on") {
+      "on"
     } else PagerOff()
   }
   # format; decide what format to use
@@ -295,10 +295,10 @@ check_args <- function(
     stop("Logic Error: unexpected style state; contact maintainer.")
 
   # Attach specific pager if it was requested generated; if "auto" just let the
-  # existing pager on the style be
+  # existing pager on the style be, which is done by not modifying @pager
 
   if(is(pager, "Pager")) style@pager <- pager
-  else if(pager != "auto")
+  else if(!identical(pager, "on"))
     stop("Logic Error: Unexpected pager state; contact maintainer.")
 
   # Check display width

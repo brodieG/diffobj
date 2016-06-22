@@ -192,11 +192,14 @@ make_diff_fun <- function(capt_fun) {
 #'   limited red-green color sensitivity.  See \code{\link{Palette}} for
 #'   details and limitations.  Also offers the same advanced usage as the
 #'   \code{brightness} paramter does.
-#' @param pager character(1L), one of \dQuote{auto} or \dQuote{off}, or a
-#'   \code{\link{Pager}} object; controls whether and how a pager is used to
-#'   display the diff output.  If \dQuote{auto} will use the pager associated
-#'   with the \code{\link{Style} specified via the \code{\link{style}}}
-#'   parametera.  The default will pipe output to \code{link{file.show}} if
+#' @param pager character(1L), one of \dQuote{auto}, \dQuote{on},
+#'   \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
+#'   pager is used to display the diff output.  If \dQuote{on} will use the
+#'   pager associated with the \code{\link{Style} specified via the
+#'   \code{\link{style}}} parameters.  if \dQuote{auto} (default) will behave
+#'   like \dQuote{on} but only if the \code{diff*} method is called from the
+#'   top level (i.e. not nested inside another function).  If the pager is
+#'   enabled, default behavior is to pipe output to \code{link{file.show}} if
 #'   output is taller than the estimated terminal height and your terminal
 #'   supports ANSI escape sequences.  If not, the default is to attempt to pipe
 #'   output to a web browser with \code{\link{browserURL}}.  See
@@ -219,7 +222,7 @@ make_diff_fun <- function(capt_fun) {
 #'   and carries out the diff on the object instead of the original argument.
 #'   Currently there is no mechanism for specifying additional arguments to
 #'   \code{readRDS}
-#' @param unwrap atomic TRUE (default) or FALSE.  Only relevant for
+#' @param unwrap.atomic TRUE (default) or FALSE.  Only relevant for
 #'   \code{diffPrint}, if TRUE, and \code{word.diff} is also TRUE, and both
 #'   \code{target} and \code{current} are atomic, the vectors are unwrapped and
 #'   diffed element by element, and then re-wrapped.  Since \code{diffPrint} is

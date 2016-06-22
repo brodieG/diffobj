@@ -18,11 +18,11 @@
 #'
 #' If you wish to define your own pager object you should do so by extending the
 #' \code{Pager} virtual class.  Your pager should at a minimum specify the
-#' \code{pager} slot of the object (see slot definition).  If the pager you use
-#' allows R code evaluation to continue after it is spawned, you may want to
-#' wrap it in a function that pauses evaluation (e.g. with
-#' \code{\link{readline}}), as otherwise the temporary file that contains the
-#' diff may be deleted before the pager has a chance to read it.
+#' \code{pager} slot of the object (see slot definition).  If the function you
+#' use to handle the actual paging allows R code evaluation to continue after it
+#' is spawned, you may want to wrap it in a function that pauses evaluation
+#' (e.g. with \code{\link{readline}}), as otherwise the temporary file that
+#' contains the diff may be deleted before the pager has a chance to read it.
 #'
 #' @param pager a function that accepts at least one parameter and does not
 #'   require a parameter other than the first parameter.  This function will be

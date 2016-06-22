@@ -34,19 +34,24 @@ c.factor <- function(..., recursive=FALSE) {
     }
   }
 }
+# Pull out the names of the functions in a sys.call stack
+
+stack_funs <- function(s.c) {
+  if(!length(s.c)) stop("Logic Error: call stack empty; contact maintainer.")
+  r.s.c <- rev(s.c)
+  funs <- vapply(
+    r.s.c, function(x) if(is.name(x[[1L]])) as.character(x[[1L]])[[1L]] else "",
+    character(1L)
+  )
+}
 # Pull out the first call reading back from sys.calls that is likely to be
 # be the top level call and return the call along with the target and
 # current substituted values.  Part of complexity driven by possibility that
 # there is a user defined method.
 
 extract_call <- function(s.c) {
-  if(!length(s.c)) stop("Logic Error: call stack empty; contact maintainer.")
-
+  funs <- stack_funs(s.c)
   r.s.c <- rev(s.c)
-  funs <- vapply(
-    r.s.c, function(x) if(is.name(x[[1L]])) as.character(x[[1L]])[[1L]] else "",
-    character(1L)
-  )
   possible.calls <- which(
     !funs %in% c(".local", ".nextMethod", "callNextMethod")
   )
@@ -62,6 +67,16 @@ extract_call <- function(s.c) {
   )
   if(length(found.call.m) < 3L) length(found.call.m) <- 3L
   list(call=found.call.m, tar=found.call.m[[2L]], cur=found.call.m[[3L]])
+}
+# check whether a `diff*` call is like from top level; used to determine
+# whether to use pager or not
+
+is_top_level <- function(s.c) {
+  top.fun <- tail(stack_funs(s.c), 1L)
+  length(top.fun) && top.fun %in% c(
+    "diffPrint", "diffStr", "diffChr", "diffFile", "diffCsv", "diffDeparse",
+    "diffObj"
+  )
 }
 # check whether argument list contains non-default formals
 
