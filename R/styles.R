@@ -278,21 +278,43 @@ StyleText <- setClass(
 #'
 #' @section HTML Styles:
 #'
-#' Styling functions can just as easily wrap \code{Diff} components in HTML
-#' tags as anything else; however, if you wish to apply your own custom styles
-#' we recommend that you do so via CSS styles as opposed to by modifying the
-#' default styling functions defined for the HTML styles.  For the most part
-#' these functions apply structural HTML tags that follow the outline descibed
-#' in the previous section.  The styling is then done via style sheets.
+#' If you use a \code{Style} that inherits from \code{StyleHtml} the
+#' diff will be wrapped in HTML tags, styled with CSS, and output to
+#' a web browser by the pager.  The HTML output will be a full stand-alone
+#' HTML page with references to the built-in cascading style sheet.  If the
+#' pager is disabled or is not \code{\link{PagerBrowser}} then only the raw
+#' HTML for the diff is output.
 #'
-#' See \code{file.path(system.file(package="diffobj"), "css", "diffobj.css")}
-#' for the predefined styles.  The styles are structured so that they are
-#' applied to any element within a container of a particular class.  The
-#' predefined HTML styles use the function returned \code{\link{cont_f}} as the
-#' value for slot \code{@funs@container}.  For example, \code{StyleHtmlLightRgb}
-#' uses \code{@funs@container <- cont_f("light", "rgb")}.  This wraps the entire
-#' diff in a \code{DIV} block with class \dQuote{"diffobj_container light rgb"}
-#' which then allows the CSS style sheet to target the \code{Diff} elements.
+#' Should you want to capture the HTML output for use elsewhere, you can do
+#' so by using \code{as.character} on the return value of the \code{diff*}
+#' methods.  If you want the raw HTML without any of the headers and links to
+#' css use \code{html.ouput="diff.only"} when you instantiate the \code{Style}
+#' object (see examples), or disable the \code{\link{Pager}}.  Another option
+#' is \code{html.output="diff.w.style"} which will add a \code{<style></style>}
+#' tag pair with all the CSS styles crammed therein.  This last option results
+#' in illegal HTML with a \code{<style>} floating around the
+#' \code{<body>}, but appears to work and is useful if you want to embed HTML
+#' someplace but do not have access to the headers.
+#'
+#' Unlike with ANSI styles, you should not modify the styling functions in the
+#' \code{@funs} slot of the \code{Style} object.  Instead, provide your own
+#' styles.  See \code{diffobj_css()} for the predefined styles.  The styles are
+#' structured so that they are applied to any element within a container of a
+#' particular class.
+#'
+#' To provide your own custom CSS style specify it with a \code{Style} object
+#' as the value for the \code{style} parameter for the \code{diff*} methods
+#' (see example), or modify the default \code{\link{PaletteOfStyles}} object,
+#' set the \dQuote{diffobj.css} option.
+#'
+#' If you define your own custom \code{StyleHtml} object you may want to modify
+#' the slot \code{@funs@container}.  This slot contains a function that is
+#' applied to the entire diff output.  For example, \code{StyleHtmlLightRgb}
+#' uses \code{@funs@container <- cont_f("light", "rgb")}.  \code{cont_f} returns
+#' a function that accepts a character vector as an argument and returns
+#' that value wrapped in a \code{DIV} block with class
+#' \dQuote{"diffobj_container light rgb"}.  This allows the CSS style sheet to
+#' target the \code{Diff} elements with the correct styles.
 #'
 #' @rdname Style
 #' @export Style
@@ -333,6 +355,17 @@ StyleText <- setClass(
 #' my.style@text@gutter.delete <- "---"
 #' my.style@funs@text.guide <- crayon::green
 #' my.style   ## Notice gutters and guide color
+#'
+#' ## Provide a custom style sheet; here we assume there is a style sheet at
+#' ## `HOME/web/mycss.css`
+#' \dontrun{
+#' my.css <- file.path(path.expand("~"), "web", "mycss.css")
+#' diffPrint(1:5, 2:6, style=StyleHtmlLightYb(css=my.css))
+#' }
+#' ## Return only the raw HTML without any of the headers
+#' as.character(
+#'   diffPrint(1:5, 2:6, style=StyleHtmlLightYb(html.output="diff.only"))
+#' )
 
 Style <- setClass("Style", contains="VIRTUAL",
   slots=c(
@@ -532,7 +565,7 @@ StyleAnsi256DarkYb <- setClass(
 StyleHtml <- setClass(
   "StyleHtml", contains=c("Style", "Html"),
   slots=c(
-    css="character", css.mode="character", escape.html.entities="logical"
+    css="character", html.output="character", escape.html.entities="logical"
   ),
   prototype=list(
     funs=StyleFuns(
@@ -580,55 +613,68 @@ StyleHtml <- setClass(
   validity=function(object) {
     if(!is.chr.1L(object@css))
       return("slot `css` must be character(1L)")
-    if(!is.chr.1L(object@css.mode))
-      return("slot `css.mode` must be \"internal\" or \"external\"")
+    if(!is.chr.1L(object@html.output))
+      return("slot `html.output` must be character(1L)")
     if(!is.TF(object@escape.html.entities))
       return("slot `escape.html.entities` must be TRUE or FALSE.")
     TRUE
   }
 )
+#' Return Location of Default CSS File
+#'
+#' Used as the value for \code{getOption("diffobj.css")}.
+#'
+#' @export
+#' @return path to the default CSS file
+
+diffobj_css <- function()
+  file.path(system.file(package="diffobj"), "css", "diffobj.css")
+
 # construct with default values specified via options; would this work with
 # initialize?  Depends on whether this is run by package installation process
 
 setMethod("initialize", "StyleHtml",
   function(
     .Object, css=getOption("diffobj.html.css"),
-    css.mode=getOption("diffobj.html.css.mode"),
+    html.output=getOption("diffobj.html.output"),
     escape.html.entities=getOption("diffobj.html.escape.html.entities"),
     ...
   ) {
     if(!is.chr.1L(css))
       stop("Argument `css` must be character(1L) and not NA")
-    valid.css.modes <- c("auto", "internal", "external")
-    if(!string_in(css.mode, valid.css.modes))
-      stop("Argument `css.mode` must be in `", dep(valid.css.modes), "`.")
+    valid.html.output <- c("auto", "page", "diff.only", "diff.w.style")
+    if(!string_in(html.output, valid.html.output))
+      stop("Argument `html.output` must be in `", dep(valid.html.output), "`.")
 
     # Generate finalizer function
 
     .Object@finalizer <- function(txt, pager) {
       stopifnot(is(pager, "Pager"))
 
+      # Note this might conflict with threshold computations as we don't really
+      # know whether we are truly going to use the pager
       use.pager <- !is(pager, "PagerOff")
       header <- footer <- NULL
       txt.flat <- paste0(txt, sep="")
 
-      css.mode <- if(css.mode == "auto" && is(pager, "PagerBrowser"))
-        "external" else "internal"
-
-      css <- if(css.mode == "internal") {
+      if(html.output == "auto") {
+        html.output <- if(is(pager, "PagerBrowser")) "page" else "diff.only"
+      }
+      if(html.output == "diff.w.style") {
         css.txt <- try(paste0(readLines(css), collapse=""))
-        if(inherits(css.txt, "try-error"))
-        stop("Cannot read css file ", css)
-        sprintf("<style type='text/css'>%s</style>", css.txt)
-      } else if (use.pager) {
-        sprintf("<link rel='stylesheet' type='text/css' href='%s'>", css)
-      } else ""
-      template <- if(use.pager) {
-        "<!DOCTYPE html><html><head>%s</head><body>%s</body><html>"
-      } else "%s%s"
-      sprintf(template, css, txt.flat)
+        if(inherits(css.txt, "try-error")) stop("Cannot read css file ", css)
+        css <- sprintf("<style type='text/css'>%s</style>", css.txt)
+        tpl <- "%s%s"
+      } else if (html.output == "page") {
+        css <- sprintf("<link rel='stylesheet' type='text/css' href='%s'>", css)
+        tpl <- "<!DOCTYPE html><html><head>%s</head><body>%s</body><html>"
+      } else if (html.output == "diff.only") {
+        css <- ""
+        tpl <- "%s%s"
+      } else stop("Logic Error: unexpected html.output; contact maintainer.")
+      sprintf(tpl, css, txt.flat)
     }
-    callNextMethod(.Object, css=css, css.mode=css.mode, ...)
+    callNextMethod(.Object, css=css, html.output=html.output, ...)
 } )
 #' @export StyleHtmlLightRgb
 #' @exportClass StyleHtmlLightRgb

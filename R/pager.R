@@ -39,8 +39,8 @@
 #'   of the pager; negative values lead to using
 #'   \code{\link{console_lines} + 1}, and zero leads to always using the pager
 #'   irrespective of how many lines the output has.
-#' @param flags character(1L), only for \code{PagerSystemLess}, what flags to set
-#'   with the \code{LESS} system environment variable.  By default the
+#' @param flags character(1L), only for \code{PagerSystemLess}, what flags to
+#'   set with the \code{LESS} system environment variable.  By default the
 #'   \dQuote{R} flag is set to ensure ANSI escape sequences are interpreted if
 #'   it appears your terminal supports ANSI escape sequences.  If you want to
 #'   leave the output on the screen after you exit the pager you can use
@@ -131,3 +131,15 @@ PagerBrowser <- setClass(
       readline("Press ENTER to continue...")
       invisible(res)
 } ) )
+# Helper function to determine whether pager will be used or not
+
+use_pager <- function(pager, len) {
+  if(!is(pager, "Pager"))
+    stop("Logic Error: expecting `Pager` arg; contact maintainer.")
+  if(!is(pager, "PagerOff")) {
+    threshold <- if(pager@threshold < 0L) {
+      console_lines()
+    } else pager@threshold
+    !threshold || len > threshold
+  } else FALSE
+}

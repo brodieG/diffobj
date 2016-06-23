@@ -362,26 +362,17 @@ setMethod("show", "Diff",
     # Determine whether to use pager or not
 
     pager <- object@etc@style@pager
-
-    use.pager <- if(!is(pager, "PagerOff")) {
-      threshold <- if(pager@threshold < 0L) {
-        console_lines()
-      } else pager@threshold
-      !threshold || length(res.chr) > threshold
-    } else FALSE
+    use.pager <- use_pager(pager, attr(res.chr, "len"))
 
     # Finalize and output
-
-    in.cont <- object@etc@style@funs@container(res.chr)
-    fin <- object@etc@style@finalizer(in.cont, pager)
 
     if(use.pager) {
       disp.f <- paste0(tempfile(), ".", pager@file.ext)
       on.exit(add=TRUE, unlink(disp.f))
-      writeLines(fin, disp.f)
+      writeLines(res.chr, disp.f)
       pager@pager(disp.f)
     } else {
-      cat(fin, sep="\n")
+      cat(res.chr, sep="\n")
     }
     invisible(NULL)
   }

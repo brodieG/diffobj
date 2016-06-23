@@ -594,18 +594,29 @@ setMethod("as.character", "Diff",
 
     rows <- render_rows(cols, etc=x@etc)
 
-    # Finalize
+    # Collect all the pieces
 
-    fin <- c(no.diffs, rows, limit.out, str.fold.out)
+    pre.fin <- c(no.diffs, rows, limit.out, str.fold.out)
 
     # Apply subsetting as needed
 
-    ind <- seq_along(fin)
+    ind <- seq_along(pre.fin)
     ind <- if(length(x@sub.index)) ind[x@sub.index] else ind
     if(length(x@sub.head)) ind <- head(ind, x@sub.head)
     if(length(x@sub.tail)) ind <- tail(ind, x@sub.tail)
 
-    fin <- fin[ind]
+    # Do the finalization
+
+    pre.fin <- pre.fin[ind]
+    res.len <- length(pre.fin)
+
+    pager <- if(use_pager(x@etc@style@pager, res.len))
+      x@etc@style@pager else PagerOff()
+
+    in.cont <- x@etc@style@funs@container(pre.fin)
+    fin <- x@etc@style@finalizer(in.cont, pager)
+
     attr(fin, "meta") <- trim.meta
+    attr(fin, "len") <- res.len
     fin
 } )

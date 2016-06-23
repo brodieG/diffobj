@@ -36,9 +36,8 @@
     diffobj.guides=TRUE,
     diffobj.trim=TRUE,
     diffobj.html.escape.html.entities=TRUE,
-    diffobj.html.css=
-      file.path(system.file(package="diffobj"), "css", "diffobj.css"),
-    diffobj.html.css.mode="auto"
+    diffobj.html.css=diffobj_css(),
+    diffobj.html.output="auto"
   )
   existing.opts <- options()
   options(default.opts[setdiff(names(default.opts), names(existing.opts))])
