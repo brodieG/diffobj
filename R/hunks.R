@@ -413,6 +413,7 @@ hunk_len <- function(hunk.id, hunks, tar.capt, cur.capt, etc) {
 hunk_grp_len <- function(
   hunk.grp.id, hunk.grps, etc, tar.capt, cur.capt
 ) {
+  mode <- etc@mode
   hunks <- hunk.grps[[hunk.grp.id]]
   hunks.proc <- lapply(
     seq_along(hunks), hunk_len, hunks=hunks, etc=etc,
@@ -434,7 +435,9 @@ hunk_grp_len <- function(
     length(negs <- which(res[, "len"] < 0L)) &&
     length(poss <- which(res[, "len"] > 0L))
   ) {
-    if(length(poss)) res[1L, "len"] <- res[1L, "len"] + extra
+    # Add one for hunk header, one for context separator; remember, that lengths
+    # in the B hunk are counted negatively
+    res[1L, "len"] <- res[1L, "len"] + extra
     res[negs[[1L]], "len"] <- res[negs[[1L]], "len"] - extra
   } else if(nrow(res)) {
     res[1L, "len"] <- res[1L, "len"] + extra
@@ -674,7 +677,7 @@ count_diffs <- function(x) {
     vapply(
       unlist(x, recursive=FALSE),
       function(y)
-        if(y$context) 0L else line_count(y$tar.rng) + line_count(y$cur.rng) ,
+        if(y$context) 0L else line_count(y$tar.rng) + line_count(y$cur.rng),
       integer(1L)
 ) ) }
 # More detailed counting of differences; note that context counting is messed

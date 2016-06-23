@@ -91,8 +91,8 @@ fin_fun_context <- function(dat) {
 
   list(
     hunkl(
-      col.1=c(A.ul,  NA, B.ul),
-      type.1=chrt(A.types, "context.sep", B.types)
+      col.1=c(A.ul,  if(length(B.ul)) NA, B.ul),
+      type.1=chrt(A.types, if(length(B.ul)) "context.sep", B.types)
     )
   )
 }
@@ -331,7 +331,7 @@ setMethod("as.character", "Diff",
     line.limit.a <- if(line.limit[[1L]] >= 0L)
       pmax(integer(2L), line.limit - banner.len) else line.limit
 
-    # Trim hunks to the extent need to make sure we fit in lines
+    # Trim hunks to the extented needed to make sure we fit in lines
 
     x@etc@line.limit <- line.limit.a
     diff.count.orig <- count_diffs(x@diffs)

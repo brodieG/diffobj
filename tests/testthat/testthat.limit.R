@@ -25,24 +25,27 @@ test_that("subset", {
 
 # ## Old tests that need to be formalized
 #
-# Puromycin2 <- Puromycin
-# set.seed(1)
-# Puromycin2$conc[c(8, 15:19, 22)] <- round(runif(7), 2)
-# Puromycin2$state[17] <- "treated"
-# diffPrint(Puromycin, Puromycin2, line.limit=15)
-# diffPrint(Puromycin, Puromycin2, line.limit=15, mode="sidebyside")
-# diffPrint(Puromycin, Puromycin2, line.limit=15, mode="context")
-#
-# # line limit issues
-# diffPrint(Puromycin, Puromycin2, line.limit=6)
-# diffPrint(Puromycin, Puromycin2, line.limit=6, mode="sidebyside")
-# diffPrint(Puromycin, Puromycin2, line.limit=6, mode="context")
-#
-# diffPrint(Puromycin, Puromycin2, line.limit=3)
-# diffPrint(Puromycin, Puromycin2, line.limit=3)
-# diffPrint(Puromycin, Puromycin2, line.limit=4)
-#
-# Puromycin3 <- Puromycin2
-# names(Puromycin3)[3L] <- "blargh"
-# diffPrint(Puromycin, Puromycin3, line.limit=6, mode="context")
-#
+Puromycin2 <- Puromycin
+set.seed(1)
+Puromycin2$conc[c(8, 15:19, 22)] <- round(runif(7), 2)
+Puromycin2$state[17] <- "treated"
+
+diffPrint(Puromycin, Puromycin2, line.limit=15, mode="sidebyside")
+diffPrint(Puromycin, Puromycin2, line.limit=15, mode="context")
+diffPrint(Puromycin, Puromycin2, line.limit=15, mode="unified")
+
+diffPrint(Puromycin, Puromycin2, line.limit=5, mode="sidebyside")
+diffPrint(Puromycin, Puromycin2, line.limit=5, mode="context")
+diffPrint(Puromycin, Puromycin2, line.limit=5, mode="unified")
+
+# line limit issues
+
+diffPrint(Puromycin, Puromycin2, line.limit=8, mode="sidebyside")
+diffPrint(Puromycin, Puromycin2, line.limit=8, mode="sidebyside")
+diffPrint(Puromycin, Puromycin2, line.limit=8, mode="context")
+
+Puromycin3 <- Puromycin2
+names(Puromycin3)[3L] <- "blargh"
+diffPrint(Puromycin, Puromycin3, line.limit=6, mode="sidebyside")
+diffPrint(Puromycin, Puromycin3, line.limit=6, mode="context")
+
