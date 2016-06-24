@@ -104,7 +104,7 @@ wtr_help <- function(x, pat) {
       heads <- character(length(heads.l))
       heads[w.pat] <- as.character(heads.l[w.pat])
 
-      heads.num <- as.integer(sub(".*?([0-9])+.*", "\\1", heads))
+      heads.num <- as.integer(sub(".*?([0-9]+).*", "\\1", heads, perl=TRUE))
       head.ranges <- lapply(ranges, function(x) heads.num[x])
 
       all.identical <-
