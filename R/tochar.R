@@ -319,7 +319,7 @@ setMethod("as.character", "Diff",
           "to show them."
         )
       } else "."
-      res <- s@funs@meta(paste0(msg, msg.extra))
+      res <- paste0(msg, msg.extra)
     }
     # Basic width computation and banner size; start by computing gutter so we
     # can figure out what's left
@@ -389,11 +389,10 @@ setMethod("as.character", "Diff",
     lh <- !!lim.hunk[[1L]]
     diff.count <- count_diffs(hunk.grps)
     str.fold.out <- if(diff.count.orig > diff.count) {
-      s@funs@meta(
-        paste0(
-          diff.count.orig  - diff.count,
-          " differences are hidden by our use of `max.level`"
-      ) )
+      paste0(
+        diff.count.orig  - diff.count,
+        " differences are hidden by our use of `max.level`"
+      )
     }
     limit.out <- if(ll || lh) {
       if(!is.null(str.fold.out)) {
@@ -402,13 +401,12 @@ setMethod("as.character", "Diff",
           "maintainer."
         )
       }
-      s@funs@meta(
-        paste0(
-          "... omitted ",
-          if(ll) sprintf("%d/%d lines", lim.line[[1L]], lim.line[[2L]]),
-          if(ll && lh) ", ",
-          if(lh) sprintf("%d/%d hunks", lim.hunk[[1L]], lim.hunk[[2L]])
-      ) )
+      paste0(
+        "... omitted ",
+        if(ll) sprintf("%d/%d lines", lim.line[[1L]], lim.line[[2L]]),
+        if(ll && lh) ", ",
+        if(lh) sprintf("%d/%d hunks", lim.hunk[[1L]], lim.hunk[[2L]])
+      )
     }
     ranges <- vapply(
       hunks.flat, function(h.a) c(h.a$tar.rng.trim, h.a$cur.rng.trim),
@@ -594,9 +592,15 @@ setMethod("as.character", "Diff",
 
     rows <- render_rows(cols, etc=x@etc)
 
-    # Collect all the pieces
+    # Collect all the pieces, and for the meta pieces wrap, pad, and format
 
-    pre.fin <- c(no.diffs, rows, limit.out, str.fold.out)
+    pre.fin.l <- list(no.diffs, rows, limit.out, str.fold.out)
+    meta.elem <- c(1L, 3:4)
+    pre.fin.l[meta.elem] <- lapply(
+      pre.fin.l[meta.elem],
+      function(m) es@funs@meta(strwrap(m, width=disp.width))
+    )
+    pre.fin <- unlist(pre.fin.l)
 
     # Apply subsetting as needed
 
