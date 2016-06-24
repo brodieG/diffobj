@@ -112,9 +112,14 @@ check_args <- function(
   call, tar.exp, cur.exp, mode, context, line.limit, format, brightness,
   color.mode, pager, ignore.white.space, max.diffs, align, disp.width,
   hunk.limit, convert.hz.white.space, tab.stops, style, palette.of.styles,
-  frame, tar.banner, cur.banner, guides, rds, trim, word.diff, unwrap.atomic
-) {
+  frame, tar.banner, cur.banner, guides, rds, trim, word.diff, unwrap.atomic,
+  extra
+  TJKuu
   err <- make_err_fun(call)
+
+  # Check extra
+
+  if(!is.list(extra)) err("Argument `extra` must be a list.")
 
   # Check context
 

@@ -78,6 +78,10 @@ local({
     diffPrint(chr.1, chr.2, mode="context")
     diffPrint(chr.1[2:3], chr.2[2], mode="sidebyside")
 
+    # Check that `extra` works 
+
+    diffPrint(chr.1, chr.2, extra=list(quote=FALSE))
+     j
     # make sure blanks line up correctly
     chr.3 <- letters[1:20]
     chr.4 <- c(

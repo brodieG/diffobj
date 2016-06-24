@@ -26,8 +26,8 @@ capture <- function(x, etc, err) {
 # do try to wrap an atomic vector print it is very likely to be in a format
 # we are familiar with and not affected by a non-default print method
 
-capt_print <- function(target, current, etc, err, ...){
-  dots <- list(...)
+capt_print <- function(target, current, etc, err, extra){
+  dots <- extra
   # What about S4?
   print.match <- try(
     match.call(
@@ -72,14 +72,14 @@ capt_print <- function(target, current, etc, err, ...){
 }
 # Tries various different `str` settings to get the best possible output
 
-capt_str <- function(target, current, etc, err, ...){
+capt_str <- function(target, current, etc, err, extra){
   # Match original call and managed dots, in particular wrt to the
   # `max.level` arg
-  dots <- list(...)
+  dots <- list(extra)
   frame <- etc@frame
   line.limit <- etc@line.limit
   if("object" %in% names(dots))
-    err("You may not specify `object` as part of `...`")
+    err("You may not specify `object` as part of `extra`")
 
   str.match <- try(
     match.call(
@@ -243,9 +243,11 @@ capt_str <- function(target, current, etc, err, ...){
 
   diff.obj
 }
-capt_chr <- function(target, current, etc, err, ...){
-  tar.capt <- if(!is.character(target)) as.character(target, ...) else target
-  cur.capt <- if(!is.character(current)) as.character(current, ...) else current
+capt_chr <- function(target, current, etc, err, extra){
+  tar.capt <- if(!is.character(target))
+    do.call(as.character, c(list(target), extra)) else target
+  cur.capt <- if(!is.character(current))
+    do.call(as.character, c(list(current), extra)) else current
 
   etc <- set_mode(etc, tar.capt, cur.capt)
   if(isTRUE(etc@guides)) etc@guides <- guidesChr
@@ -256,9 +258,9 @@ capt_chr <- function(target, current, etc, err, ...){
     etc=etc
   )
 }
-capt_deparse <- function(target, current, etc, err, ...){
-  tar.capt <- deparse(target, ...)
-  cur.capt <- deparse(current, ...)
+capt_deparse <- function(target, current, etc, err, extra){
+  tar.capt <- do.call(deparse, c(list(target), extra))
+  cur.capt <- do.call(deparse, c(list(current), extra))
 
   etc <- set_mode(etc, tar.capt, cur.capt)
   if(isTRUE(etc@guides)) etc@guides <- guidesDeparse
@@ -269,10 +271,10 @@ capt_deparse <- function(target, current, etc, err, ...){
     etc=etc
   )
 }
-capt_file <- function(target, current, etc, err, ...) {
-  tar.capt <- try(readLines(target, ...))
+capt_file <- function(target, current, etc, err, extra) {
+  tar.capt <- try(do.call(readLines, c(list(target), extra)))
   if(inherits(tar.capt, "try-error")) err("Unable to read `target` file.")
-  cur.capt <- try(readLines(current, ...))
+  cur.capt <- try(do.call(readLines, c(list(current), extra)))
   if(inherits(cur.capt, "try-error")) err("Unable to read `current` file.")
 
   etc <- set_mode(etc, tar.capt, cur.capt)
@@ -284,17 +286,17 @@ capt_file <- function(target, current, etc, err, ...) {
     etc=etc
   )
 }
-capt_csv <- function(target, current, etc, err, ...){
-  tar.df <- try(read.csv(target, ...))
+capt_csv <- function(target, current, etc, err, extra){
+  tar.df <- try(do.call(read.csv, c(list(target), extra)))
   if(inherits(tar.df, "try-error")) err("Unable to read `target` file.")
   if(!is.data.frame(tar.df))
     err("`target` file did not produce a data frame when read")
-  cur.df <- try(read.csv(current, ...))
+  cur.df <- try(do.call(read.csv, c(list(current), extra)))
   if(inherits(cur.df, "try-error")) err("Unable to read `current` file.")
   if(!is.data.frame(cur.df))
     err("`current` file did not produce a data frame when read")
 
-  capt_print(tar.df, cur.df, etc, err, ...)
+  capt_print(tar.df, cur.df, etc, err, extra)
 }
 # Sets mode to "unified" if stuff is too wide to fit side by side without
 # wrapping otherwise sets it in "sidebyside"

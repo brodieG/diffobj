@@ -42,12 +42,8 @@ make_diff_fun <- function(capt_fun) {
     frame=parent.frame(),
     tar.banner=NULL,
     cur.banner=NULL,
-    ...
+    extra=list()
   ) {
-    # Force evaluation of dots to make sure user doesn't mess us up with
-    # something like options(crayon.enabled=...)
-
-    dots <- list(...)
     call.dat <- extract_call(sys.calls())
 
     # Check args and evaluate all the auto-selection arguments
@@ -61,7 +57,8 @@ make_diff_fun <- function(capt_fun) {
       hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
       tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
       frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides,
-      rds=rds, trim=trim, word.diff=word.diff, unwrap.atomic=unwrap.atomic
+      rds=rds, trim=trim, word.diff=word.diff, unwrap.atomic=unwrap.atomic,
+      extra=extra
     )
     # If in rds mode, try to see if either target or current reference an RDS
 
@@ -106,7 +103,7 @@ make_diff_fun <- function(capt_fun) {
 
     # Capture and diff
 
-    diff <- capt_fun(target, current, etc=etc.proc, err=err, ...)
+    diff <- capt_fun(target, current, etc=etc.proc, err=err, extra)
     diff
   }
 }
@@ -291,7 +288,8 @@ make_diff_fun <- function(capt_fun) {
 #'   inferred from \code{target} and \code{current} expressions.
 #' @param cur.banner character(1L) like \code{tar.banner}, but for
 #'   \code{current}
-#' @param ... additional arguments to pass on to \code{print}, \code{str}, etc.
+#' @param extra list additional arguments to pass on to \code{print},
+#'   \code{str}, etc.
 #' @seealso \code{\link{diffObj}}, \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly,
 #'   \code{\link{diffDeparse}} to compare deparsed objects
@@ -474,9 +472,9 @@ setGeneric("diffObj", function(target, current, ...) standardGeneric("diffObj"))
 
 diff_obj <- make_diff_fun(identity) # we overwrite the body next
 body(diff_obj) <- quote({
-  if(length(list(...))) {
-    stop("`...` argument not supported in `diff_obj`")
-  }
+  if(length(extra))
+    stop("Argument `extra` must be empty in `diffObj`.")
+
   call.raw <- extract_call(sys.calls())$call
   # call.raw[["silent"]] <- TRUE
   call.str <- call.print <- call.raw
