@@ -10,8 +10,6 @@ diffObj(target, current, ...)
 \item{target}{the reference object}
 
 \item{current}{the object being compared to \code{target}}
-
-\item{...}{additional arguments to pass on to \code{print}, \code{str}, etc.}
 }
 \value{
 a \code{\link{Diff}} object; this object has a \code{show}

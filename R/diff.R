@@ -128,6 +128,8 @@ make_diff_fun <- function(capt_fun) {
 #' \code{c("ANY", "ANY")} are defined and act as the default methods.  You can
 #' use this to set up methods to pre-process or set specific parameters for
 #' selected clases that can then \code{callNextMethod} for the actual diff.
+#' Note that while the generics include \code{...} as an argument, none of the
+#' methods do.
 #'
 #' @export
 #' @param target the reference object

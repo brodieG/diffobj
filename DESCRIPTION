@@ -43,6 +43,7 @@ Collate:
     'rds.R'
     'set.R'
     'subset.R'
+    'summmary.R'
     'system.R'
     'text.R'
     'tochar.R'

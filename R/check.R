@@ -114,7 +114,7 @@ check_args <- function(
   hunk.limit, convert.hz.white.space, tab.stops, style, palette.of.styles,
   frame, tar.banner, cur.banner, guides, rds, trim, word.diff, unwrap.atomic,
   extra
-  TJKuu
+) {
   err <- make_err_fun(call)
 
   # Check extra

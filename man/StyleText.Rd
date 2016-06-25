@@ -24,6 +24,10 @@ visual cue shifts to this character to indicate wrapping occured}
 
 \item{gutter.guide.ctd}{character(1L) see \code{gutter.insert.ctd} above}
 
+\item{gutter.fill}{character(1L) see \code{gutter.insert} above}
+
+\item{gutter.fill.ctd}{character(1L) see \code{gutter.insert.ctd} above}
+
 \item{gutter.pad}{character(1L) separator between gutter characters and the
 rest of a line in a diff}
 
