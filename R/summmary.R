@@ -194,22 +194,22 @@ setMethod("as.character", "DiffSummary",
         old.crayon.opt <-
           options(crayon.enabled=is(x@style, "StyleAnsi"))
         on.exit(options(old.crayon.opt), add=TRUE)
-        s.f <- x@style@funs
-        txt.w <- gsub(
-          symb[["match"]], s.f@text.match(symb[["match"]]),
+      }
+      s.f <- x@style@funs
+      txt.w <- gsub(
+        symb[["match"]], s.f@text.match(symb[["match"]]),
+        gsub(
+          symb[["add"]],
+          s.f@text.insert(s.f@word.insert(symb[["add"]])),
           gsub(
-            symb[["add"]],
-            s.f@text.insert(s.f@word.insert(symb[["add"]])),
-            gsub(
-              symb[["delete"]],
-              s.f@text.delete(s.f@word.delete(symb[["delete"]])),
-              txt.w, fixed=TRUE
-            ),
-            fixed=TRUE
+            symb[["delete"]],
+            s.f@text.delete(s.f@word.delete(symb[["delete"]])),
+            txt.w, fixed=TRUE
           ),
           fixed=TRUE
-        )
-      }
+        ),
+        fixed=TRUE
+      )
       extra <- if(sum(diffs.fin) > max.chars) {
         diffs.omitted <- diffs.fin
         diffs.under <- cumsum(diffs.omitted) <= max.chars
@@ -232,14 +232,14 @@ setMethod("as.character", "DiffSummary",
         extra <- strwrap(extra, indent=2L, exdent=2L, width=width)
       c(head, body, map, extra)
     }
-    c("", res, "")
+    finalize(c("", res, ""), x@style, length(res) + 2L)
   }
 )
 #' @export
 
 setMethod("show", "DiffSummary",
   function(object) {
-    cat(as.character(object), sep="\n")
+    show_w_pager(as.character(object), object@style@pager)
     invisible(NULL)
   }
 )

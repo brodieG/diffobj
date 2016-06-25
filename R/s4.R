@@ -355,25 +355,26 @@ setClass("Diff",
 
     TRUE
 } )
+# Helper fun used by `show` for Diff and DiffSummary objects
+
+show_w_pager <- function(txt, pager) {
+  use.pager <- use_pager(pager, attr(txt, "len"))
+
+  # Finalize and output
+
+  if(use.pager) {
+    disp.f <- paste0(tempfile(), ".", pager@file.ext)
+    on.exit(add=TRUE, unlink(disp.f))
+    writeLines(txt, disp.f)
+    pager@pager(disp.f)
+  } else {
+    cat(txt, sep="\n")
+  }
+}
 setMethod("show", "Diff",
   function(object) {
-    res.chr <- as.character(object)
-
-    # Determine whether to use pager or not
-
-    pager <- object@etc@style@pager
-    use.pager <- use_pager(pager, attr(res.chr, "len"))
-
-    # Finalize and output
-
-    if(use.pager) {
-      disp.f <- paste0(tempfile(), ".", pager@file.ext)
-      on.exit(add=TRUE, unlink(disp.f))
-      writeLines(res.chr, disp.f)
-      pager@pager(disp.f)
-    } else {
-      cat(res.chr, sep="\n")
-    }
+    txt <- as.character(object)
+    show_w_pager(txt, object@etc@style@pager)
     invisible(NULL)
   }
 )
