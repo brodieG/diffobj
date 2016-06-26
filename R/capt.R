@@ -75,7 +75,7 @@ capt_print <- function(target, current, etc, err, extra){
 capt_str <- function(target, current, etc, err, extra){
   # Match original call and managed dots, in particular wrt to the
   # `max.level` arg
-  dots <- list(extra)
+  dots <- extra
   frame <- etc@frame
   line.limit <- etc@line.limit
   if("object" %in% names(dots))
