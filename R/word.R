@@ -639,7 +639,7 @@ word_color <- function(txt, inds, fun) {
   word.lens <- vapply(word.list, length, integer(1L))
 
   # remove leading space before coloring
-  words.u <- unlist(word.list)
+  words.u <- if(length(word.list)) unlist(word.list) else character(0L)
   words.u.trim.ind <- regexpr("\\S.*", words.u)
   words.u.trim <- regmatches(words.u, words.u.trim.ind)
 

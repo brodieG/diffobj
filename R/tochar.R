@@ -25,10 +25,12 @@ find_rng <- function(ids, rng.o) {
 # Create a text representation of a file line range to use in the hunk header
 
 rng_as_chr <- function(range) {
-  a <- range[[1L]]
-  b <- if(diff(range))
-    paste0(",", if(range[[2L]]) diff(range) + 1L else 0)
-  paste0(a, b)
+  if(length(range) < 2L) "0" else {
+    a <- range[[1L]]
+    b <- if(diff(range))
+      paste0(",", if(range[[2L]]) diff(range) + 1L else 0)
+    paste0(a, b)
+  }
 }
 # Finalization function should return a list with two character vectors for
 # diff contents, and two factor vectors denoting the type of content for

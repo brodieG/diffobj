@@ -620,7 +620,7 @@ trim_hunks <- function(x) {
           h.a <- trim_hunk(h.a, "tar", 0L)
           h.a
     } ) }
-  } else if (!cut.off) {
+  } else if (!cut.off && length(cum.len)) {
     lines.omitted <- lines.total
     hunk.grps.omitted <- hunk.grps.count
 
