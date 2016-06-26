@@ -104,7 +104,7 @@ wtr_help <- function(x, pat) {
       heads <- character(length(heads.l))
       heads[w.pat] <- as.character(heads.l[w.pat])
 
-      heads.num <- as.integer(sub(".*?([0-9])+.*", "\\1", heads))
+      heads.num <- as.integer(sub(".*?([0-9]+).*", "\\1", heads, perl=TRUE))
       head.ranges <- lapply(ranges, function(x) heads.num[x])
 
       all.identical <-
@@ -229,23 +229,56 @@ strip_list_rh <- function(x, obj) {
 }
 #' Methods to Remove Unsemantic Text Prior to Diff
 #'
-#' Targets portions of text that are unrelated to content that may cause false
-#' positive diffs, such as row index headers for matrices.  For example, if you
-#' insert a row into a matrix, all rows after the insertion will show as
-#' differences because the \code{[1,]} style row headers will be incremented by
-#' one in the object with the row inserted.  In reality, one would expect those
-#' rows to still match the same rows in the object without the insertion.
+#' \code{diff*} methods, in particular \code{diffPrint}, modify the text
+#' representation of an object prior to running the diff to reduce the incidence
+#' of spurious mismatches caused by unsemantic differences.  For example, we
+#' look to remove matrix row indices and atomic vector indices (i.e. the
+#' \preformatted{[1]} or \preformatted{[1,]} strings at the beginning of each
+#' display line).
 #'
-#' By default the \code{\link{diff*}}
+#' Consider: \preformatted{
+#' > matrix(10:12)
+#'      [,1]
+#' [1,]   10
+#' [2,]   11
+#' [3,]   12
+#' > matrix(11:12)
+#'      [,1]
+#' [1,]   11
+#' [2,]   12
+#' }
+#' In this case, the line by line diff would find all rows of the matrix to
+#' be mismatched because where the data matches (rows containing
+#' 11 and 12) the indices do not.  By trimming out the row indices before
+#' the diff, the diff can recognize that row 2 and 3  from the first matrix
+#' should be matched to row 1 and 2 of the second.
+#'
+#' These methods follow a similar interface as the \code{\link{guide*}{guide}}
+#' methods, with one available for each \code{diff*} method except for
+#' \code{diffCsv} since that one uses \code{diffPrint} internally.  The
+#' unsemantic differences are added back after the diff for display purposes,
+#' and are colored in grey to indicate they were not part of the diff.
+#'
 #' Currently only \code{trimPrint} and \code{trimStr} do anything meaningful.
-#' \code{trimPrint} removes
+#' \code{trimPrint} removes row index headers provided that they are of the
+#' default un-named variety.  If you add row names, or if numeric row indices
+#' are not ascending from 1, they will not be stripped as those have meaning.
+#' \code{trimStr} removes the \preformatted{..$} and \preformatted{..-} tokens
+#' to minimize spurious matches.
+#'
+#' You can modify how text is trimmed by providing your own functions to the
+#' \code{trim} argument of the \code{diff*} methods, or by defining
+#' \code{trim*} methods for your objects.  Note that the return value for these
+#' functions is the start and end columns of the text that should be
+#' \emph{kept} and used in the diff.
+#'
 #' @note \code{obj.as.chr} will be post \code{strip_hz_control}
-#' @param obj the object
-#' @param obj.as.chr charcter the \code{print}ed representation of the object
 #' @rdname trim
 #' @name trim
 #' @aliases trimPrint, trimStr, trimChr, trimDeparse, trimFile
 #' @export
+#' @param obj the object
+#' @param obj.as.chr character the \code{print}ed representation of the object
 #' @return a \code{length(obj.as.chr) * 2} integer matrix with the start (first
 #'   column and end (second column) character positions of the sub string to
 #'   run diffs on.
@@ -304,7 +337,8 @@ setGeneric(
   function(obj, obj.as.chr) StandardGeneric("trimChr")
 )
 setMethod("trimChr", c("ANY", "character"),
-  function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr))
+  function(obj, obj.as.chr)
+    cbind(rep(1L, length(obj.as.chr)), nchar(obj.as.chr))
 )
 #' @export
 #' @rdname trim
@@ -314,7 +348,8 @@ setGeneric(
   function(obj, obj.as.chr) StandardGeneric("trimDeparse")
 )
 setMethod("trimDeparse", c("ANY", "character"),
-  function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr))
+  function(obj, obj.as.chr)
+    cbind(rep(1L, length(obj.as.chr)), nchar(obj.as.chr))
 )
 #' @export
 #' @rdname trim
@@ -324,7 +359,8 @@ setGeneric(
   function(obj, obj.as.chr) StandardGeneric("trimFile")
 )
 setMethod("trimFile", c("ANY", "character"),
-  function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr))
+  function(obj, obj.as.chr)
+    cbind(rep(1L, length(obj.as.chr)), nchar(obj.as.chr))
 )
 # Helper fun used by trim functions that remove font of strings and rely on
 # string comparison to determine trim indices
@@ -372,6 +408,11 @@ valid_trim_ind <- function(x)
   } else TRUE
 
 apply_trim <- function(obj, obj.as.chr, trim_fun) {
+  if(!isTRUE(two.arg <- is.two.arg.fun(trim_fun)))
+    stop(
+      "Invalid trim function (", two.arg, ").  If you did not customize the ",
+      "trim function contact maintainer; see `?trim`"
+    )
   trim <- try(trim_fun(obj, obj.as.chr))
   msg.extra <- paste0(
     "If you did not define custom `*trim` methods contact maintainer ",
@@ -382,7 +423,7 @@ apply_trim <- function(obj, obj.as.chr, trim_fun) {
       "`*trim` method produced an error when attempting to trim ; ", msg.extra
     )
   if(!isTRUE(trim.check <- valid_trim_ind(trim)))
-    stop("`*trim` method ", trim.check, "; ", msg.extra)
+    stop("`*trim` method return value ", trim.check, "; ", msg.extra)
   if(nrow(trim) != length(obj.as.chr))
     stop(
       "`*trim` method output matrix must have as many rows as object ",

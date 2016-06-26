@@ -11,22 +11,22 @@ diffStr(target, current, ...)
 \S4method{diffStr}{ANY}(target, current, mode = gdo("mode"),
   context = gdo("context"), format = gdo("format"),
   brightness = gdo("brightness"), color.mode = gdo("color.mode"),
-  pager = gdo("pager"), guides = gdo("guides"), trim = gdo("trim"),
-  rds = gdo("rds"), max.diffs = gdo("max.diffs"),
+  word.diff = gdo("word.diff"), pager = gdo("pager"),
+  guides = gdo("guides"), trim = gdo("trim"), rds = gdo("rds"),
+  unwrap.atomic = gdo("unwrap.atomic"), max.diffs = gdo("max.diffs"),
   disp.width = gdo("disp.width"),
   ignore.white.space = gdo("ignore.white.space"),
   convert.hz.white.space = gdo("convert.hz.white.space"),
   tab.stops = gdo("tab.stops"), line.limit = gdo("line.limit"),
   hunk.limit = gdo("hunk.limit"), align = gdo("align"),
   style = gdo("style"), palette.of.styles = gdo("palette"),
-  frame = parent.frame(), tar.banner = NULL, cur.banner = NULL, ...)
+  frame = parent.frame(), tar.banner = NULL, cur.banner = NULL,
+  extra = list())
 }
 \arguments{
 \item{target}{the reference object}
 
 \item{current}{the object being compared to \code{target}}
-
-\item{...}{additional arguments to pass on to \code{print}, \code{str}, etc.}
 
 \item{mode}{character(1L), one of:
 \itemize{
@@ -88,11 +88,17 @@ limited red-green color sensitivity.  See \code{\link{Palette}} for
 details and limitations.  Also offers the same advanced usage as the
 \code{brightness} paramter does.}
 
-\item{pager}{character(1L), one of \dQuote{auto} or \dQuote{off}, or a
-\code{\link{Pager}} object; controls whether and how a pager is used to
-display the diff output.  If \dQuote{auto} will use the pager associated
-with the \code{\link{Style} specified via the \code{\link{style}}}
-parametera.  The default will pipe output to \code{link{file.show}} if
+\item{word.diff}{TRUE (default) or FALSE, whether to run a secondary word
+diff on the on in-hunk diferences}
+
+\item{pager}{character(1L), one of \dQuote{auto}, \dQuote{on},
+\dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
+pager is used to display the diff output.  If \dQuote{on} will use the
+pager associated with the \code{\link{Style} specified via the
+\code{\link{style}}} parameters.  if \dQuote{auto} (default) will behave
+like \dQuote{on} but only if the \code{diff*} method is called from the
+top level (i.e. not nested inside another function).  If the pager is
+enabled, default behavior is to pipe output to \code{link{file.show}} if
 output is taller than the estimated terminal height and your terminal
 supports ANSI escape sequences.  If not, the default is to attempt to pipe
 output to a web browser with \code{\link{browserURL}}.  See
@@ -109,7 +115,7 @@ provide important contextual data (e.g. column headers).  See
 arguments and requires no more than two arguments.  Function should compute
 for each line in captured output what portion of those lines should be
 diffed.  By default, this is used to remove row meta data differences
-(e.g. \code{[1,]}) so they alone do not show up as differences in the 
+(e.g. \code{[1,]}) so they alone do not show up as differences in the
 diff.  See \code{\link{trim}} for more details.}
 
 \item{rds}{TRUE (default) or FALSE, if TRUE will check whether
@@ -119,14 +125,25 @@ and carries out the diff on the object instead of the original argument.
 Currently there is no mechanism for specifying additional arguments to
 \code{readRDS}}
 
+\item{unwrap.atomic}{TRUE (default) or FALSE.  Only relevant for
+\code{diffPrint}, if TRUE, and \code{word.diff} is also TRUE, and both
+\code{target} and \code{current} are atomic, the vectors are unwrapped and
+diffed element by element, and then re-wrapped.  Since \code{diffPrint} is
+fundamentally a line diff, the re-wrapped lines are lined up in a manner
+that is as consistent as possible with the unwrapped diff.  Lines that
+contain the location of the word differences will be paired up.  Since the
+vectors may well be wrapped with different periodicities this will result
+in lines that are paired up that look like they should not be paired up,
+though the locations of the differences should be.}
+
 \item{max.diffs}{integer(1L), number of differences after which we abandon
 the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
 \code{-1L} to always stick to the original algorithm (defaults to 10000L).}
 
 \item{disp.width}{integer(1L) number of display columns to take up; note that
 in \dQuote{sidebyside} \code{mode} the effective display width is half this
-number (set to NULL to use \code{getOption("width")}, which is the
-default).}
+number (set to 0L to use default widths which are \code{getOption("width")}
+for normal styles and \code{120L} for HTML styles.}
 
 \item{ignore.white.space}{TRUE or FALSE, whether to consider differences in
 horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
@@ -142,14 +159,14 @@ output to show, where \code{-1} means no limit.  If length 2, the first
 value indicates the threshold of screen lines to begin truncating output,
 and the second the number of lines to truncate to, which should be fewer
 than the threshold.  Note that this parameter is implemented on a
-best- efforts basis and should not be relied on to produce the exact
+best-efforts basis and should not be relied on to produce the exact
 number of lines requested.  If you want a specific number of lines use
 \code{[} or \code{head}/\code{tail}.  One advantage of \code{line.limit}
 over these other options is that you can combine it with
 \code{context="auto"} and auto \code{max.level} selection (the latter for
 \code{diffStr}), which allows the diff to dynamically adjust to make best
 use of the available display lines.  \code{[}, \code{head}, and \code{tail}
-just subset the text of the output output.}
+just subset the text of the output.}
 
 \item{hunk.limit}{integer(2L) or integer (1L), how many diff hunks to show.
 Behaves similarly to \code{line.limit}.  How many hunks are in a
@@ -183,6 +200,9 @@ inferred from \code{target} and \code{current} expressions.}
 
 \item{cur.banner}{character(1L) like \code{tar.banner}, but for
 \code{current}}
+
+\item{extra}{list additional arguments to pass on to \code{print},
+\code{str}, etc.}
 }
 \value{
 a \code{\link{Diff}} object; this object has a \code{show}

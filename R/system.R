@@ -14,6 +14,8 @@
     diffobj.pager.mode="threshold",
     diffobj.pager.threshold=-1L,
     diffobj.less.flags="R",
+    diffobj.word.diff=TRUE,
+    diffobj.unwrap.atomic=TRUE,
     diffobj.rds=TRUE,
     diffobj.hunk.limit=-1L,
     diffobj.mode="auto",
@@ -29,14 +31,13 @@
     diffobj.color.mode="yb",
     diffobj.brightness="neutral",
     diffobj.tab.stops=8L,
-    diffobj.disp.width=NULL,      # NULL == getOption("width")
+    diffobj.disp.width=0L,        # 0L == use style width, see param docs
     diffobj.palette=NULL,         # NULL == PaletteOfStyles()
     diffobj.guides=TRUE,
     diffobj.trim=TRUE,
     diffobj.html.escape.html.entities=TRUE,
-    diffobj.html.css=
-      file.path(system.file(package="diffobj"), "css", "diffobj.css"),
-    diffobj.html.css.mode="auto"
+    diffobj.html.css=diffobj_css(),
+    diffobj.html.output="auto"
   )
   existing.opts <- options()
   options(default.opts[setdiff(names(default.opts), names(existing.opts))])

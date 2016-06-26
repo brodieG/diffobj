@@ -209,21 +209,23 @@ detect_array_guides <- function(txt, dim.n) {
 #' Guides are context lines that would not normally be shown as part of a
 #' diff because they are too far from any differences, but provide particularly
 #' useful contextual information.  Column headers are a common example.
+#' Modifying guide finding is an advanced feature intended for package
+#' developers that want special treatment for the display output of their
+#' objects.
 #'
 #' \code{Diff} detects these important context lines by looking for patterns in
 #' the text of the diff, and then displays these lines in addition to the
 #' normal diff output.  Guides are marked by a tilde in the gutter, and
-#' are typically styled differently than normal context lines.  Keep in mind
-#' that guides may be far from the diff hunk they are juxtaposed to.  We
-#' eschew the device of putting the guides in the hunk header as
-#' \code{git diff} does because often the column alignment of the guide line is
-#' meaningful.
+#' are typically styled differently than normal context lines, by default in
+#' grey.  Guides may be far from the diff hunk they are juxtaposed to.  We
+#' eschew the device of putting the guides in the hunk header as \code{git diff}
+#' does because often the column alignment of the guide line is meaningful.
 #'
 #' Guides are detected by the \code{guides*} methods documented here.
 #' Each of the \code{diff*} methods (e.g. \code{\link{diffPrint}}) has a
 #' corresponding \code{guides*} method (e.g.
 #' \code{\link{guidesPrint}}), with the exception of \code{\link{diffCsv}}
-#' since that method uses \code{diffPrint} internall.  The \code{guides*}
+#' since that method uses \code{diffPrint} internally.  The \code{guides*}
 #' methods expect an R object as the first parameter and the captured display
 #' representation of the object in a charater vector as the second.  This allows
 #' them to adapt what patterns they are looking for in the character
@@ -231,13 +233,14 @@ detect_array_guides <- function(txt, dim.n) {
 #' require a different guide finding strategy than a \code{matrix} object.
 #'
 #' The default method for \code{guidesPrint} has special handling for 2D
-#' objects (e.g. data frames, matrices), arrays, and lists.  If you dislike the
-#' default handling you can also define your own methods for matrices, arrays,
-#' etc., or alternatively you can pass a guide finding function directly via
-#' the \code{guides} parameter to the \code{diff*} methods.  The default method
-#' for \code{guidesStr} highlights top level objects.  The default methods
-#' for \code{guidesChr} and \code{guidesDeparse} don't do anything and
-#' exit only as a mechanism for providing custom guide line methods.
+#' objects (e.g. data frames, matrices), arrays, time series, tables, and lists.
+#' If you dislike the default handling you can also define your own methods for
+#' matrices, arrays, etc., or alternatively you can pass a guide finding
+#' function directly via the \code{guides} parameter to the \code{diff*}
+#' methods.  The default method for \code{guidesStr} highlights top level
+#' objects.  The default methods for the other \code{guide*} methods
+#' don't do anything and exist only as a mechanism for providing custom guide
+#' line methods.
 #'
 #' If you have classed objects with special patterns you can define your own
 #' methods for them (see examples), though if your objects are S3 you will need

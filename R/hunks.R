@@ -30,17 +30,16 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
     j <- 0L
 
     res.l <- if(!nrow(dat)) {
-      # Minimum one empty hunk if nothing; arbitrarily chose to make it a
-      # non context hunk; ideally would figure out a way to integrate this
-      # code in the lapply...
+      # Minimum one empty hunk if nothing; make this a context hunk to indicate
+      # that there are no differences.  This used to be a non-context hunk
 
       list(
         list(
           id=1L, A=integer(0L), B=integer(0L),
-          context=FALSE, guide=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
+          context=TRUE, guide=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
           tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
           tar.rng.trim=integer(2L), cur.rng.trim=integer(2L),
-          completely.empty=FALSE
+          completely.empty=TRUE
         )
       )
     } else {
@@ -413,6 +412,7 @@ hunk_len <- function(hunk.id, hunks, tar.capt, cur.capt, etc) {
 hunk_grp_len <- function(
   hunk.grp.id, hunk.grps, etc, tar.capt, cur.capt
 ) {
+  mode <- etc@mode
   hunks <- hunk.grps[[hunk.grp.id]]
   hunks.proc <- lapply(
     seq_along(hunks), hunk_len, hunks=hunks, etc=etc,
@@ -434,7 +434,9 @@ hunk_grp_len <- function(
     length(negs <- which(res[, "len"] < 0L)) &&
     length(poss <- which(res[, "len"] > 0L))
   ) {
-    if(length(poss)) res[1L, "len"] <- res[1L, "len"] + extra
+    # Add one for hunk header, one for context separator; remember, that lengths
+    # in the B hunk are counted negatively
+    res[1L, "len"] <- res[1L, "len"] + extra
     res[negs[[1L]], "len"] <- res[negs[[1L]], "len"] - extra
   } else if(nrow(res)) {
     res[1L, "len"] <- res[1L, "len"] + extra
@@ -618,7 +620,7 @@ trim_hunks <- function(x) {
           h.a <- trim_hunk(h.a, "tar", 0L)
           h.a
     } ) }
-  } else if (!cut.off) {
+  } else if (!cut.off && length(cum.len)) {
     lines.omitted <- lines.total
     hunk.grps.omitted <- hunk.grps.count
 
@@ -674,7 +676,7 @@ count_diffs <- function(x) {
     vapply(
       unlist(x, recursive=FALSE),
       function(y)
-        if(y$context) 0L else line_count(y$tar.rng) + line_count(y$cur.rng) ,
+        if(y$context) 0L else line_count(y$tar.rng) + line_count(y$cur.rng),
       integer(1L)
 ) ) }
 # More detailed counting of differences; note that context counting is messed

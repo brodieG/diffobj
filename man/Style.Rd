@@ -24,6 +24,8 @@
 \alias{StyleHtmlLightRgb-class}
 \alias{StyleHtmlLightYb}
 \alias{StyleHtmlLightYb-class}
+\alias{StyleRaw}
+\alias{StyleRaw-class}
 \title{Customize Appearance of Diff}
 \arguments{
 \item{funs}{a \code{\link{StyleFuns}} object that contains all the functions
@@ -38,6 +40,16 @@ the console}
 \item{pad}{TRUE or FALSE, whether text should be right padded}
 
 \item{pager}{what type of \code{\link{Pager}} to use}
+
+\item{na.sub}{what character value to substitute for NA elements; NA elements
+are generated when lining up side by side diffs by adding padding rows; by
+default the text styles replace these with a blank character string, and
+the HTML styles leave them as NA for the HTML formatting functions to deal
+with}
+
+\item{blank}{sub what character value to replace blanks with; needed in
+particular for HTML rendering (uses \code{"&nbsp;"}) to prevent lines from
+collapsing}
 
 \item{finalizer}{function that accepts at least two parameters and requires
 no more than two parameters, will receive as the first parameter the
@@ -150,21 +162,43 @@ The structure described here may change in the future.
 \section{HTML Styles}{
 
 
-Styling functions can just as easily wrap \code{Diff} components in HTML
-tags as anything else; however, if you wish to apply your own custom styles
-we recommend that you do so via CSS styles as opposed to by modifying the
-default styling functions defined for the HTML styles.  For the most part
-these functions apply structural HTML tags that follow the outline descibed
-in the previous section.  The styling is then done via style sheets.
+If you use a \code{Style} that inherits from \code{StyleHtml} the
+diff will be wrapped in HTML tags, styled with CSS, and output to
+a web browser by the pager.  The HTML output will be a full stand-alone
+HTML page with references to the built-in cascading style sheet.  If the
+pager is disabled or is not \code{\link{PagerBrowser}} then only the raw
+HTML for the diff is output.
 
-See \code{file.path(system.file(package="diffobj"), "css", "diffobj.css")}
-for the predefined styles.  The styles are structured so that they are
-applied to any element within a container of a particular class.  The
-predefined HTML styles use the function returned \code{\link{cont_f}} as the
-value for slot \code{@funs@container}.  For example, \code{StyleHtmlLightRgb}
-uses \code{@funs@container <- cont_f("light", "rgb")}.  This wraps the entire
-diff in a \code{DIV} block with class \dQuote{"diffobj_container light rgb"}
-which then allows the CSS style sheet to target the \code{Diff} elements.
+Should you want to capture the HTML output for use elsewhere, you can do
+so by using \code{as.character} on the return value of the \code{diff*}
+methods.  If you want the raw HTML without any of the headers and links to
+css use \code{html.ouput="diff.only"} when you instantiate the \code{Style}
+object (see examples), or disable the \code{\link{Pager}}.  Another option
+is \code{html.output="diff.w.style"} which will add a \code{<style></style>}
+tag pair with all the CSS styles crammed therein.  This last option results
+in illegal HTML with a \code{<style>} floating around the
+\code{<body>}, but appears to work and is useful if you want to embed HTML
+someplace but do not have access to the headers.
+
+Unlike with ANSI styles, you should not modify the styling functions in the
+\code{@funs} slot of the \code{Style} object.  Instead, provide your own
+styles.  See \code{diffobj_css()} for the predefined styles.  The styles are
+structured so that they are applied to any element within a container of a
+particular class.
+
+To provide your own custom CSS style specify it with a \code{Style} object
+as the value for the \code{style} parameter for the \code{diff*} methods
+(see example), or modify the default \code{\link{PaletteOfStyles}} object,
+set the \dQuote{diffobj.css} option.
+
+If you define your own custom \code{StyleHtml} object you may want to modify
+the slot \code{@funs@container}.  This slot contains a function that is
+applied to the entire diff output.  For example, \code{StyleHtmlLightRgb}
+uses \code{@funs@container <- cont_f("light", "rgb")}.  \code{cont_f} returns
+a function that accepts a character vector as an argument and returns
+that value wrapped in a \code{DIV} block with class
+\dQuote{"diffobj_container light rgb"}.  This allows the CSS style sheet to
+target the \code{Diff} elements with the correct styles.
 }
 \examples{
 ## Create a new style based on existing style by changing
@@ -176,5 +210,16 @@ my.style@text@gutter.insert <- "+++"
 my.style@text@gutter.delete <- "---"
 my.style@funs@text.guide <- crayon::green
 my.style   ## Notice gutters and guide color
+
+## Provide a custom style sheet; here we assume there is a style sheet at
+## `HOME/web/mycss.css`
+\dontrun{
+my.css <- file.path(path.expand("~"), "web", "mycss.css")
+diffPrint(1:5, 2:6, style=StyleHtmlLightYb(css=my.css))
+}
+## Return only the raw HTML without any of the headers
+as.character(
+  diffPrint(1:5, 2:6, style=StyleHtmlLightYb(html.output="diff.only"))
+)
 }
 

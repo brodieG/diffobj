@@ -101,25 +101,25 @@ is.valid.guide.fun <- is.two.arg.fun <- function(x) {
     if(any(tail(!nzchar(forms.chr) & nm.forms, -2L)))
       "cannot have any non-optional arguments other than first two" else TRUE
 } }
+is.valid.width <- function(x)
+  if(!is.int.1L(x) || (x != 0L && (x < 10L || x > 10000))) {
+    "must be integer(1L) and 0, or between 10 and 10000"
+  } else TRUE
+
 # Checks common arguments across functions
 
 check_args <- function(
   call, tar.exp, cur.exp, mode, context, line.limit, format, brightness,
   color.mode, pager, ignore.white.space, max.diffs, align, disp.width,
   hunk.limit, convert.hz.white.space, tab.stops, style, palette.of.styles,
-  frame, tar.banner, cur.banner, guides, rds, trim
+  frame, tar.banner, cur.banner, guides, rds, trim, word.diff, unwrap.atomic,
+  extra
 ) {
   err <- make_err_fun(call)
 
-  # Check display width
+  # Check extra
 
-  if(is.null(disp.width)) disp.width <- getOption("width")
-  if(is.null(disp.width)) disp.width <- 80L
-  if(!is.int.1L(disp.width) || disp.width < 1L)
-    err(
-      "Argument `disp.width` must be integer(1L) and positive, or NULL."
-    )
-  disp.width <- as.integer(disp.width)
+  if(!is.list(extra)) err("Argument `extra` must be a list.")
 
   # Check context
 
@@ -189,7 +189,10 @@ check_args <- function(
 
   # check T F args
 
-  TF.vars <- c("ignore.white.space", "convert.hz.white.space", "rds")
+  TF.vars <- c(
+    "ignore.white.space", "convert.hz.white.space", "rds", "word.diff",
+    "unwrap.atomic"
+  )
   msg.base <- "Argument `%s` must be TRUE or FALSE."
   for(x in TF.vars) if(!is.TF(get(x, inherits=FALSE))) err(sprintf(msg.base, x))
 
@@ -229,7 +232,7 @@ check_args <- function(
 
   # pager
 
-  valid.pagers <- c("auto", "off")
+  valid.pagers <- c("auto", "off", "on")
   if(!is(pager, "Pager") && !string_in(pager, valid.pagers))
     err(
       "Argument `pager` must be one of `", dep(valid.pagers),
@@ -257,8 +260,10 @@ check_args <- function(
   # means let the pager that comes built into the style be the pager
 
   if(!is(pager, "Pager")) {
-    pager <- if(pager == "auto" && interactive() && !in_knitr()) {
-      "auto"
+    pager <- if(
+      (pager == "auto" && interactive()) || pager == "on"
+    ) {
+      "on"
     } else PagerOff()
   }
   # format; decide what format to use
@@ -297,11 +302,28 @@ check_args <- function(
     stop("Logic Error: unexpected style state; contact maintainer.")
 
   # Attach specific pager if it was requested generated; if "auto" just let the
-  # existing pager on the style be
+  # existing pager on the style be, which is done by not modifying @pager
 
   if(is(pager, "Pager")) style@pager <- pager
-  else if(pager != "auto")
+  else if(!identical(pager, "on"))
     stop("Logic Error: Unexpected pager state; contact maintainer.")
+
+  # Check display width
+
+  if(!isTRUE(d.w.err <- is.valid.width(disp.width)))
+    err("Arugment `disp.width` ", d.w.err)
+  disp.width <- as.integer(disp.width)
+  if(disp.width) {
+    style@disp.width <- disp.width
+  } else if(!style@disp.width) {
+    d.w <- getOption("width")
+    if(!is.valid.width(d.w)) {
+      warning("`getOption(\"width\") returned an invalid width, using 80L")
+      d.w <- 80L
+    }
+    style@disp.width <- d.w
+  }
+  disp.width <- style@disp.width
 
   # instantiate settings object
 
@@ -312,7 +334,8 @@ check_args <- function(
     hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
     tab.stops=tab.stops, style=style, frame=frame,
     tar.exp=tar.exp, cur.exp=cur.exp, guides=guides, tar.banner=tar.banner,
-    cur.banner=cur.banner, trim=trim
+    cur.banner=cur.banner, trim=trim, word.diff=word.diff,
+    unwrap.atomic=unwrap.atomic
   )
   etc
 }

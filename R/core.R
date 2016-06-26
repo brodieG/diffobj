@@ -279,19 +279,21 @@ line_diff <- function(
   # the transformation of the data; this needs to be documented with the trim
   # docs.
 
+  tar.capt.p <- tar.capt
+  cur.capt.p <- cur.capt
   if(strip) {
-    tar.capt <- strip_hz_control(tar.capt, stops=etc@tab.stops)
-    cur.capt <- strip_hz_control(cur.capt, stops=etc@tab.stops)
+    tar.capt.p <- strip_hz_control(tar.capt, stops=etc@tab.stops)
+    cur.capt.p <- strip_hz_control(cur.capt, stops=etc@tab.stops)
   }
   # Apply trimming to remove row heads, etc
 
-  tar.trim.ind <- apply_trim(target, tar.capt, etc@trim)
+  tar.trim.ind <- apply_trim(target, tar.capt.p, etc@trim)
   tar.trim <- do.call(
-    substr, list(tar.capt, tar.trim.ind[, 1L], tar.trim.ind[, 2L])
+    substr, list(tar.capt.p, tar.trim.ind[, 1L], tar.trim.ind[, 2L])
   )
-  cur.trim.ind <- apply_trim(current, cur.capt, etc@trim)
+  cur.trim.ind <- apply_trim(current, cur.capt.p, etc@trim)
   cur.trim <- do.call(
-    substr, list(cur.capt, cur.trim.ind[, 1L], cur.trim.ind[, 2L])
+    substr, list(cur.capt.p, cur.trim.ind[, 1L], cur.trim.ind[, 2L])
   )
   # Word diff is done in three steps: create an empty template vector structured
   # as the result of a call to `gregexpr` without matches, if dealing with
@@ -301,7 +303,8 @@ line_diff <- function(
 
   # Set up data lists with all relevant info; need to pass to diff_word so it
   # can be modified.
-  # - raw: the original captured text line by line
+  # - orig: the very original string
+  # - raw: the original captured text line by line, with strip_hz applied
   # - trim: as above, but with row meta data removed
   # - trim.ind: the indices used to re-insert `trim` into `raw`
   # - comp: the strings that will have the line diffs run on
@@ -311,26 +314,29 @@ line_diff <- function(
   # - tok.rat: for use by `align_eq` when lining up lines within hunks
 
   tar.dat <- list(
-    raw=tar.capt, trim=tar.trim,
+    orig=tar.capt, raw=tar.capt.p, trim=tar.trim,
     trim.ind.start=tar.trim.ind[, 1L], trim.ind.end=tar.trim.ind[, 2L],
-    comp=tar.trim, eq=tar.trim, fin=tar.capt, fill=logical(length(tar.capt)),
-    word.ind=replicate(length(tar.capt), .word.diff.atom, simplify=FALSE),
-    tok.rat=rep(1, length(tar.capt))
+    comp=tar.trim, eq=tar.trim, fin=tar.capt.p,
+    fill=logical(length(tar.capt.p)),
+    word.ind=replicate(length(tar.capt.p), .word.diff.atom, simplify=FALSE),
+    tok.rat=rep(1, length(tar.capt.p))
   )
   cur.dat <- list(
-    raw=cur.capt, trim=cur.trim,
+    orig=cur.capt, raw=cur.capt.p, trim=cur.trim,
     trim.ind.start=cur.trim.ind[, 1L], trim.ind.end=cur.trim.ind[, 2L],
-    comp=cur.trim, eq=cur.trim, fin=cur.capt, fill=logical(length(cur.capt)),
-    word.ind=replicate(length(cur.capt), .word.diff.atom, simplify=FALSE),
-    tok.rat=rep(1, length(cur.capt))
+    comp=cur.trim, eq=cur.trim, fin=cur.capt.p,
+    fill=logical(length(cur.capt.p)),
+    word.ind=replicate(length(cur.capt.p), .word.diff.atom, simplify=FALSE),
+    tok.rat=rep(1, length(cur.capt.p))
   )
   # Word diffs in wrapped form is atomic; note this will potentially change
   # the length of the vectors
 
   if(
     is.atomic(target) && is.atomic(current) &&
-    length(tar.rh <- which_atomic_rh(tar.capt)) &&
-    length(cur.rh <- which_atomic_rh(cur.capt))
+    length(tar.rh <- which_atomic_rh(tar.capt.p)) &&
+    length(cur.rh <- which_atomic_rh(cur.capt.p)) &&
+    etc@unwrap.atomic && etc@word.diff
   ) {
     diff.word <- diff_word2(
       tar.dat, cur.dat, tar.ind=tar.rh, cur.ind=cur.rh,
@@ -347,36 +353,38 @@ line_diff <- function(
   )
   warn <- !diffs$hit.diffs.max
 
-  # Word diffs on hunks; check first which lines already have diffs and identify
-  # the diff hunks that don't contain any of those lines
-
-  tar.l.w.d <- which(vapply(tar.dat$word.ind, "[", integer(1L), 1L) != -1L)
-  cur.l.w.d <- which(vapply(cur.dat$word.ind, "[", integer(1L), 1L) != -1L)
-  all.l.w.d <- c(tar.l.w.d, -cur.l.w.d)
-
   hunks.flat <- diffs$hunks
-  hunks.w.o.w.diff <- vapply(
-    hunks.flat,
-    function(y) !y$context && !any(unlist(y[c("A", "B")]) %in% all.l.w.d),
-    logical(1L)
-  )
+
   # For each of those hunks, run the word diffs and store the results in the
   # word.diffs list; bad part here is that we keep overwriting the overall
   # diff data for each hunk, which might be slow
 
-  for(i in which(hunks.w.o.w.diff)) {
-    h.a <- hunks.flat[[i]]
-    h.a.ind <- c(h.a$A, h.a$B)
-    h.a.tar.ind <- h.a.ind[h.a.ind > 0]
-    h.a.cur.ind <- abs(h.a.ind[h.a.ind < 0])
-    h.a.w.d <- diff_word2(
-      tar.dat, cur.dat, h.a.tar.ind, h.a.cur.ind, diff.mode="hunk", warn=warn,
-      etc=etc
+  if(etc@word.diff) {
+    # Word diffs on hunks; check first which lines already have diffs and identify
+    # the diff hunks that don't contain any of those lines
+
+    tar.l.w.d <- which(vapply(tar.dat$word.ind, "[", integer(1L), 1L) != -1L)
+    cur.l.w.d <- which(vapply(cur.dat$word.ind, "[", integer(1L), 1L) != -1L)
+    all.l.w.d <- c(tar.l.w.d, -cur.l.w.d)
+
+    hunks.w.o.w.diff <- vapply(
+      hunks.flat,
+      function(y) !y$context && !any(unlist(y[c("A", "B")]) %in% all.l.w.d),
+      logical(1L)
     )
-    tar.dat <- h.a.w.d$tar.dat
-    cur.dat <- h.a.w.d$cur.dat
-    warn <- !h.a.w.d$hit.diffs.max
-  }
+    for(i in which(hunks.w.o.w.diff)) {
+      h.a <- hunks.flat[[i]]
+      h.a.ind <- c(h.a$A, h.a$B)
+      h.a.tar.ind <- h.a.ind[h.a.ind > 0]
+      h.a.cur.ind <- abs(h.a.ind[h.a.ind < 0])
+      h.a.w.d <- diff_word2(
+        tar.dat, cur.dat, h.a.tar.ind, h.a.cur.ind, diff.mode="hunk", warn=warn,
+        etc=etc
+      )
+      tar.dat <- h.a.w.d$tar.dat
+      cur.dat <- h.a.w.d$cur.dat
+      warn <- !h.a.w.d$hit.diffs.max
+  } }
   # Compute the token ratios
 
   tok_ratio_compute <- function(z) vapply(

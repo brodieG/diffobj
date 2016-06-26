@@ -18,11 +18,11 @@
 #'
 #' If you wish to define your own pager object you should do so by extending the
 #' \code{Pager} virtual class.  Your pager should at a minimum specify the
-#' \code{pager} slot of the object (see slot definition).  If the pager you use
-#' allows R code evaluation to continue after it is spawned, you may want to
-#' wrap it in a function that pauses evaluation (e.g. with
-#' \code{\link{readline}}), as otherwise the temporary file that contains the
-#' diff may be deleted before the pager has a chance to read it.
+#' \code{pager} slot of the object (see slot definition).  If the function you
+#' use to handle the actual paging allows R code evaluation to continue after it
+#' is spawned, you may want to wrap it in a function that pauses evaluation
+#' (e.g. with \code{\link{readline}}), as otherwise the temporary file that
+#' contains the diff may be deleted before the pager has a chance to read it.
 #'
 #' @param pager a function that accepts at least one parameter and does not
 #'   require a parameter other than the first parameter.  This function will be
@@ -39,8 +39,8 @@
 #'   of the pager; negative values lead to using
 #'   \code{\link{console_lines} + 1}, and zero leads to always using the pager
 #'   irrespective of how many lines the output has.
-#' @param flags character(1L), only for \code{PagerSystemLess}, what flags to set
-#'   with the \code{LESS} system environment variable.  By default the
+#' @param flags character(1L), only for \code{PagerSystemLess}, what flags to
+#'   set with the \code{LESS} system environment variable.  By default the
 #'   \dQuote{R} flag is set to ensure ANSI escape sequences are interpreted if
 #'   it appears your terminal supports ANSI escape sequences.  If you want to
 #'   leave the output on the screen after you exit the pager you can use
@@ -131,3 +131,15 @@ PagerBrowser <- setClass(
       readline("Press ENTER to continue...")
       invisible(res)
 } ) )
+# Helper function to determine whether pager will be used or not
+
+use_pager <- function(pager, len) {
+  if(!is(pager, "Pager"))
+    stop("Logic Error: expecting `Pager` arg; contact maintainer.")
+  if(!is(pager, "PagerOff")) {
+    threshold <- if(pager@threshold < 0L) {
+      console_lines()
+    } else pager@threshold
+    !threshold || len > threshold
+  } else FALSE
+}

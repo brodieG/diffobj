@@ -25,10 +25,12 @@ find_rng <- function(ids, rng.o) {
 # Create a text representation of a file line range to use in the hunk header
 
 rng_as_chr <- function(range) {
-  a <- range[[1L]]
-  b <- if(diff(range))
-    paste0(",", if(range[[2L]]) diff(range) + 1L else 0)
-  paste0(a, b)
+  if(length(range) < 2L) "0" else {
+    a <- range[[1L]]
+    b <- if(diff(range))
+      paste0(",", if(range[[2L]]) diff(range) + 1L else 0)
+    paste0(a, b)
+  }
 }
 # Finalization function should return a list with two character vectors for
 # diff contents, and two factor vectors denoting the type of content for
@@ -91,8 +93,8 @@ fin_fun_context <- function(dat) {
 
   list(
     hunkl(
-      col.1=c(A.ul,  NA, B.ul),
-      type.1=chrt(A.types, "context.sep", B.types)
+      col.1=c(A.ul,  if(length(B.ul)) NA, B.ul),
+      type.1=chrt(A.types, if(length(B.ul)) "context.sep", B.types)
     )
   )
 }
@@ -309,13 +311,17 @@ setMethod("as.character", "Diff",
       disp.eq <- all.equal(x@target, x@current)
       msg.extra <- if(!isTRUE(disp.eq)) {
         ", but objects are _not_ `all.equal`."
-      } else if(ignore.white.space && !all.equal(x@tar.capt, y@cur.capt)) {
+      } else if(
+        ignore.white.space && x@etc@convert.hz.white.space &&
+        !all.equal(x@tar.dat$orig, x@cur.dat$orig)
+      ) {
         msg <- paste0(
           ", but there are white space differences; re-run diff with ",
-          "`ignore.white.space=FALSE` to show them."
+          "`ignore.white.space=FALSE` and `convert.hz.white.space` ",
+          "to show them."
         )
       } else "."
-      res <- s@funs@meta(paste0(msg, msg.extra))
+      res <- paste0(msg, msg.extra)
     }
     # Basic width computation and banner size; start by computing gutter so we
     # can figure out what's left
@@ -327,7 +333,7 @@ setMethod("as.character", "Diff",
     line.limit.a <- if(line.limit[[1L]] >= 0L)
       pmax(integer(2L), line.limit - banner.len) else line.limit
 
-    # Trim hunks to the extent need to make sure we fit in lines
+    # Trim hunks to the extented needed to make sure we fit in lines
 
     x@etc@line.limit <- line.limit.a
     diff.count.orig <- count_diffs(x@diffs)
@@ -385,12 +391,9 @@ setMethod("as.character", "Diff",
     lh <- !!lim.hunk[[1L]]
     diff.count <- count_diffs(hunk.grps)
     str.fold.out <- if(diff.count.orig > diff.count) {
-      crayon_style(
-        paste0(
-          diff.count.orig  - diff.count,
-          " differences are hidden by our use of `max.level`"
-        ),
-        "silver"
+      paste0(
+        diff.count.orig  - diff.count,
+        " differences are hidden by our use of `max.level`"
       )
     }
     limit.out <- if(ll || lh) {
@@ -400,13 +403,12 @@ setMethod("as.character", "Diff",
           "maintainer."
         )
       }
-      s@funs@meta(
-        paste0(
-          "... omitted ",
-          if(ll) sprintf("%d/%d lines", lim.line[[1L]], lim.line[[2L]]),
-          if(ll && lh) ", ",
-          if(lh) sprintf("%d/%d hunks", lim.hunk[[1L]], lim.hunk[[2L]])
-      ) )
+      paste0(
+        "... omitted ",
+        if(ll) sprintf("%d/%d lines", lim.line[[1L]], lim.line[[2L]]),
+        if(ll && lh) ", ",
+        if(lh) sprintf("%d/%d hunks", lim.hunk[[1L]], lim.hunk[[2L]])
+      )
     }
     ranges <- vapply(
       hunks.flat, function(h.a) c(h.a$tar.rng.trim, h.a$cur.rng.trim),
@@ -500,6 +502,7 @@ setMethod("as.character", "Diff",
     # Substitute NA elements with the appropriate values as dictated by the
     # styles; also record lines NA positions
 
+    lines.na <- lapply(pre.render.w, lapply, is.na)
     pre.render.w <- lapply(
       pre.render.w, lapply,
       function(y) {
@@ -507,7 +510,6 @@ setMethod("as.character", "Diff",
         res[is.na(y)] <- x@etc@style@na.sub
         res
     } )
-    lines.na <- lapply(pre.render.w, lapply, is.na)
 
     # Compute gutter, padding, and continuations
 
@@ -592,18 +594,40 @@ setMethod("as.character", "Diff",
 
     rows <- render_rows(cols, etc=x@etc)
 
-    # Finalize
+    # Collect all the pieces, and for the meta pieces wrap, pad, and format
 
-    fin <- c(no.diffs, rows, limit.out, str.fold.out)
+    pre.fin.l <- list(no.diffs, rows, limit.out, str.fold.out)
+    meta.elem <- c(1L, 3:4)
+    pre.fin.l[meta.elem] <- lapply(
+      pre.fin.l[meta.elem],
+      function(m) es@funs@meta(strwrap(m, width=disp.width))
+    )
+    pre.fin <- unlist(pre.fin.l)
 
     # Apply subsetting as needed
 
-    ind <- seq_along(fin)
+    ind <- seq_along(pre.fin)
     ind <- if(length(x@sub.index)) ind[x@sub.index] else ind
     if(length(x@sub.head)) ind <- head(ind, x@sub.head)
     if(length(x@sub.tail)) ind <- tail(ind, x@sub.tail)
 
-    fin <- fin[ind]
-    attr(fin, "meta") <- trim.meta
-    fin
+    # Do the finalization
+
+    pre.fin <- pre.fin[ind]
+    res.len <- length(pre.fin)
+
+    finalize(pre.fin, x@etc@style, res.len)
 } )
+
+# Finalizing fun used by both Diff and DiffSummary as.character methods
+
+finalize <- function(txt, style, len) {
+  pager <- if(use_pager(style@pager, len))
+    style@pager else PagerOff()
+
+  in.cont <- style@funs@container(txt)
+  fin <- style@finalizer(in.cont, pager)
+
+  attr(fin, "len") <- len
+  fin
+}

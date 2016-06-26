@@ -115,6 +115,13 @@ test_that("Table", {
   # single row data frame
 
   expect_equal(c(diffobj:::which_table_rh(capture.output(data.frame(1, 2)))), 2)
+
+  # More than 10 rows data.frame
+
+  expect_equal(
+    c(diffobj:::which_table_rh(capture.output(head(Puromycin, 10L)))),
+    2:11
+  )
 })
 test_that("Array", {
   a <- array(1:6, c(3, 1, 2))

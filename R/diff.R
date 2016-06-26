@@ -23,10 +23,12 @@ make_diff_fun <- function(capt_fun) {
     format=gdo("format"),
     brightness=gdo("brightness"),
     color.mode=gdo("color.mode"),
+    word.diff=gdo("word.diff"),
     pager=gdo("pager"),
     guides=gdo("guides"),
     trim=gdo("trim"),
     rds=gdo("rds"),
+    unwrap.atomic=gdo("unwrap.atomic"),
     max.diffs=gdo("max.diffs"),
     disp.width=gdo("disp.width"),
     ignore.white.space=gdo("ignore.white.space"),
@@ -40,12 +42,8 @@ make_diff_fun <- function(capt_fun) {
     frame=parent.frame(),
     tar.banner=NULL,
     cur.banner=NULL,
-    ...
+    extra=list()
   ) {
-    # Force evaluation of dots to make sure user doesn't mess us up with
-    # something like options(crayon.enabled=...)
-
-    dots <- list(...)
     call.dat <- extract_call(sys.calls())
 
     # Check args and evaluate all the auto-selection arguments
@@ -59,7 +57,8 @@ make_diff_fun <- function(capt_fun) {
       hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
       tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
       frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides,
-      rds=rds, trim=trim
+      rds=rds, trim=trim, word.diff=word.diff, unwrap.atomic=unwrap.atomic,
+      extra=extra
     )
     # If in rds mode, try to see if either target or current reference an RDS
 
@@ -77,26 +76,24 @@ make_diff_fun <- function(capt_fun) {
     err <- make_err_fun(sys.call())
 
     # Compute gutter values so that we know correct widths to use for capture,
-    # etc. Will need to update in HTML mode...
+    # etc. If not a base text type style, assume gutter and column padding are
+    # zero even though that may not always be correct
 
     nc_fun <- if(is(etc.proc@style, "StyleAnsi")) crayon_nchar else nchar
     etc.proc@gutter <- gutter_dat(etc.proc)
-    if(is(etc.proc@style, "StyleHtml")) {
-      etc.proc@line.width <- etc.proc@text.width <- etc.proc@line.width.half <-
-        etc.proc@text.width.half <- 0L
-      if(etc.proc@mode == "auto") etc.proc@mode <- "sidebyside"
-    } else {
-      half.width <- as.integer(
-        (etc.proc@disp.width - nc_fun(etc.proc@style@text@pad.col)) / 2
-      )
-      etc.proc@line.width <-
-        max(etc.proc@disp.width, .min.width + etc.proc@gutter@width)
-      etc.proc@text.width <- etc.proc@line.width - etc.proc@gutter@width
-      etc.proc@line.width.half <-
-        max(half.width, .min.width + etc.proc@gutter@width)
-      etc.proc@text.width.half <-
-        etc.proc@line.width.half - etc.proc@gutter@width
+
+    col.pad.width <- gutt.width <- 0L
+    if(is(etc.proc@style, "StyleRaw")) {
+      col.pad.width <- nc_fun(etc.proc@style@text@pad.col)
+      gutt.width <- etc.proc@gutter@width
     }
+    half.width <- as.integer((etc.proc@disp.width - col.pad.width) / 2)
+    etc.proc@line.width <-
+      max(etc.proc@disp.width, .min.width + gutt.width)
+    etc.proc@text.width <- etc.proc@line.width - gutt.width
+    etc.proc@line.width.half <- max(half.width, .min.width + gutt.width)
+    etc.proc@text.width.half <- etc.proc@line.width.half - gutt.width
+
     # If in side by side mode already then we know we want half-width, and if
     # width is less than 80 we know we want unitfied
 
@@ -106,7 +103,7 @@ make_diff_fun <- function(capt_fun) {
 
     # Capture and diff
 
-    diff <- capt_fun(target, current, etc=etc.proc, err=err, ...)
+    diff <- capt_fun(target, current, etc=etc.proc, err=err, extra)
     diff
   }
 }
@@ -115,20 +112,24 @@ make_diff_fun <- function(capt_fun) {
 #' Runs the diff between the \code{print} or \code{show} output produced by
 #' \code{target} and \code{current}.
 #'
-#' While the parameter list may seem excessive, most parameters are set to
-#' reasonable defaults that will attempt to adjust to both inputs and ouput.
-#' In practice, you should rarely need to adjust anything past the
-#' \code{color.mode} parameter.
+#' This documentation page is intended as a reference document for all the
+#' \code{diff*} methods.  For a high level introduction see
+#' \code{vignette("diffobj")} and the examples.
 #'
-#' Default values are specified as options so that users may configure
-#' diffs in a persistent manner.  \code{\link{gdo}} is a shorthand function to
-#' access \code{diffobj} options.
+#' Almost all aspects of how the diffs are computed and displayed are
+#' controllable through the \code{diff*} methods parameters.  This results in
+#' a lengthy parameter list, but in practice, you should rarely need to adjust
+#' anything past the \code{color.mode} parameter.  Default values are specified
+#' as options so that users may configure diffs in a persistent manner.
+#' \code{\link{gdo}} is a shorthand function to access \code{diffobj} options.
 #'
 #' This and other \code{diff*} functions are S4 generics that dispatch on the
 #' \code{target} and \code{current} parameters.  Methods with signature
 #' \code{c("ANY", "ANY")} are defined and act as the default methods.  You can
 #' use this to set up methods to pre-process or set specific parameters for
 #' selected clases that can then \code{callNextMethod} for the actual diff.
+#' Note that while the generics include \code{...} as an argument, none of the
+#' methods do.
 #'
 #' @export
 #' @param target the reference object
@@ -181,6 +182,8 @@ make_diff_fun <- function(capt_fun) {
 #'   you use should correspond to a \code{format}.  You must have one unnamed
 #'   value which will be used as the default for all \code{format}s that are
 #'   not explicitly specified.
+#' @param word.diff TRUE (default) or FALSE, whether to run a secondary word
+#'   diff on the on in-hunk diferences
 #' @param color.mode character, one of \dQuote{rgb} or \dQuote{yb}.
 #'   Defaults to \dQuote{yb}.  \dQuote{yb} stands for \dQuote{Yellow-Blue} for
 #'   color schemes that rely primarily on those colors to style diffs.
@@ -188,11 +191,14 @@ make_diff_fun <- function(capt_fun) {
 #'   limited red-green color sensitivity.  See \code{\link{Palette}} for
 #'   details and limitations.  Also offers the same advanced usage as the
 #'   \code{brightness} paramter does.
-#' @param pager character(1L), one of \dQuote{auto} or \dQuote{off}, or a
-#'   \code{\link{Pager}} object; controls whether and how a pager is used to
-#'   display the diff output.  If \dQuote{auto} will use the pager associated
-#'   with the \code{\link{Style} specified via the \code{\link{style}}}
-#'   parametera.  The default will pipe output to \code{link{file.show}} if
+#' @param pager character(1L), one of \dQuote{auto}, \dQuote{on},
+#'   \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
+#'   pager is used to display the diff output.  If \dQuote{on} will use the
+#'   pager associated with the \code{\link{Style} specified via the
+#'   \code{\link{style}}} parameters.  if \dQuote{auto} (default) will behave
+#'   like \dQuote{on} but only if the \code{diff*} method is called from the
+#'   top level (i.e. not nested inside another function).  If the pager is
+#'   enabled, default behavior is to pipe output to \code{link{file.show}} if
 #'   output is taller than the estimated terminal height and your terminal
 #'   supports ANSI escape sequences.  If not, the default is to attempt to pipe
 #'   output to a web browser with \code{\link{browserURL}}.  See
@@ -207,7 +213,7 @@ make_diff_fun <- function(capt_fun) {
 #'   arguments and requires no more than two arguments.  Function should compute
 #'   for each line in captured output what portion of those lines should be
 #'   diffed.  By default, this is used to remove row meta data differences
-#'   (e.g. \code{[1,]}) so they alone do not show up as differences in the 
+#'   (e.g. \code{[1,]}) so they alone do not show up as differences in the
 #'   diff.  See \code{\link{trim}} for more details.
 #' @param rds TRUE (default) or FALSE, if TRUE will check whether
 #'   \code{target} and/or \code{current} point to a file that can be read with
@@ -215,19 +221,29 @@ make_diff_fun <- function(capt_fun) {
 #'   and carries out the diff on the object instead of the original argument.
 #'   Currently there is no mechanism for specifying additional arguments to
 #'   \code{readRDS}
+#' @param unwrap.atomic TRUE (default) or FALSE.  Only relevant for
+#'   \code{diffPrint}, if TRUE, and \code{word.diff} is also TRUE, and both
+#'   \code{target} and \code{current} are atomic, the vectors are unwrapped and
+#'   diffed element by element, and then re-wrapped.  Since \code{diffPrint} is
+#'   fundamentally a line diff, the re-wrapped lines are lined up in a manner
+#'   that is as consistent as possible with the unwrapped diff.  Lines that
+#'   contain the location of the word differences will be paired up.  Since the
+#'   vectors may well be wrapped with different periodicities this will result
+#'   in lines that are paired up that look like they should not be paired up,
+#'   though the locations of the differences should be.
 #' @param line.limit integer(2L) or integer(1L), if length 1 how many lines of
 #'   output to show, where \code{-1} means no limit.  If length 2, the first
 #'   value indicates the threshold of screen lines to begin truncating output,
 #'   and the second the number of lines to truncate to, which should be fewer
 #'   than the threshold.  Note that this parameter is implemented on a
-#'   best- efforts basis and should not be relied on to produce the exact
+#'   best-efforts basis and should not be relied on to produce the exact
 #'   number of lines requested.  If you want a specific number of lines use
 #'   \code{[} or \code{head}/\code{tail}.  One advantage of \code{line.limit}
 #'   over these other options is that you can combine it with
 #'   \code{context="auto"} and auto \code{max.level} selection (the latter for
 #'   \code{diffStr}), which allows the diff to dynamically adjust to make best
 #'   use of the available display lines.  \code{[}, \code{head}, and \code{tail}
-#'   just subset the text of the output output.
+#'   just subset the text of the output.
 #' @param hunk.limit integer(2L) or integer (1L), how many diff hunks to show.
 #'   Behaves similarly to \code{line.limit}.  How many hunks are in a
 #'   particular diff is a function of how many differences, and also how much
@@ -238,8 +254,8 @@ make_diff_fun <- function(capt_fun) {
 #'   \code{-1L} to always stick to the original algorithm (defaults to 10000L).
 #' @param disp.width integer(1L) number of display columns to take up; note that
 #'   in \dQuote{sidebyside} \code{mode} the effective display width is half this
-#'   number (set to NULL to use \code{getOption("width")}, which is the
-#'   default).
+#'   number (set to 0L to use default widths which are \code{getOption("width")}
+#'   for normal styles and \code{120L} for HTML styles.
 #' @param ignore.white.space TRUE or FALSE, whether to consider differences in
 #'   horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
 #'   FALSE)
@@ -274,12 +290,17 @@ make_diff_fun <- function(capt_fun) {
 #'   inferred from \code{target} and \code{current} expressions.
 #' @param cur.banner character(1L) like \code{tar.banner}, but for
 #'   \code{current}
-#' @param ... additional arguments to pass on to \code{print}, \code{str}, etc.
+#' @param extra list additional arguments to pass on to \code{print},
+#'   \code{str}, etc.
 #' @seealso \code{\link{diffObj}}, \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly,
 #'   \code{\link{diffDeparse}} to compare deparsed objects
 #' @return a \code{\link{Diff}} object; this object has a \code{show}
-#'   method that will display the diff to screen or pager
+#'   method that will display the diff to screen or pager, as well as
+#'   \code{summary}, \code{any}, and \code{as.character} methods.  Note that
+#'   if you store the return value instead of displaying it to screen, and
+#'   display it later, it is possible for the display to be thrown off if
+#'   there are environment changes (e.g. display width changes).
 #' @rdname diffPrint
 #' @name diffPrint
 #' @export
@@ -457,11 +478,11 @@ setGeneric("diffObj", function(target, current, ...) standardGeneric("diffObj"))
 
 diff_obj <- make_diff_fun(identity) # we overwrite the body next
 body(diff_obj) <- quote({
-  if(length(list(...))) {
-    stop("`...` argument not supported in `diff_obj`")
-  }
-  call.raw <- match.call()
-  call.raw[["silent"]] <- TRUE
+  if(length(extra))
+    stop("Argument `extra` must be empty in `diffObj`.")
+
+  call.raw <- extract_call(sys.calls())$call
+  # call.raw[["silent"]] <- TRUE
   call.str <- call.print <- call.raw
   call.str[[1L]] <- quote(diffStr)
   call.str[["max.level"]] <- "auto"
