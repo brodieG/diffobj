@@ -337,7 +337,8 @@ setGeneric(
   function(obj, obj.as.chr) StandardGeneric("trimChr")
 )
 setMethod("trimChr", c("ANY", "character"),
-  function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr))
+  function(obj, obj.as.chr)
+    cbind(rep(1L, length(obj.as.chr)), nchar(obj.as.chr))
 )
 #' @export
 #' @rdname trim
@@ -347,7 +348,8 @@ setGeneric(
   function(obj, obj.as.chr) StandardGeneric("trimDeparse")
 )
 setMethod("trimDeparse", c("ANY", "character"),
-  function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr))
+  function(obj, obj.as.chr)
+    cbind(rep(1L, length(obj.as.chr)), nchar(obj.as.chr))
 )
 #' @export
 #' @rdname trim
@@ -357,7 +359,8 @@ setGeneric(
   function(obj, obj.as.chr) StandardGeneric("trimFile")
 )
 setMethod("trimFile", c("ANY", "character"),
-  function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr))
+  function(obj, obj.as.chr)
+    cbind(rep(1L, length(obj.as.chr)), nchar(obj.as.chr))
 )
 # Helper fun used by trim functions that remove font of strings and rely on
 # string comparison to determine trim indices
@@ -420,7 +423,7 @@ apply_trim <- function(obj, obj.as.chr, trim_fun) {
       "`*trim` method produced an error when attempting to trim ; ", msg.extra
     )
   if(!isTRUE(trim.check <- valid_trim_ind(trim)))
-    stop("`*trim` method ", trim.check, "; ", msg.extra)
+    stop("`*trim` method return value ", trim.check, "; ", msg.extra)
   if(nrow(trim) != length(obj.as.chr))
     stop(
       "`*trim` method output matrix must have as many rows as object ",
