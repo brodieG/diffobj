@@ -69,5 +69,9 @@ diffChr(c("a", "b", "c", "d"), c("a", "b", "b", "d", "e"))
 diffChr(c("a", "b", "c"), c("a", "b", "d"))
 diffChr(
   c("a", "b", "c", "d", "f", "g", "h", "i", "j"),
-      c("b", "C", "D", "E", "f", "G", "H", "j", "K")
-    )
+  c("b", "C", "D", "E", "f", "G", "H", "j", "K")
+)
+
+# Corner cases
+
+diffChr(character(), character())

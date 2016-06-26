@@ -58,7 +58,7 @@ setMethod("as.character", "DiffSummary",
     hunks <- sum(!x@diffs["match", ])
     res <- c(apply(x@diffs, 1L, sum))
     scale.threshold <- x@scale.threshold
-    res <- if(!hunks) {
+    res <- if(!hunks || !sum(x@diffs["match", ])) {
       if(length(x@all.eq)) {
         eq.txt <- paste0("- ", x@all.eq)
         c("No visible differences, but objects are not `all.equal`:", eq.txt)

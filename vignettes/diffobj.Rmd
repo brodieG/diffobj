@@ -16,7 +16,6 @@ vignette: >
 old.opt <- options(
   diffobj.disp.width=80, diffobj.pager="off", diffobj.format="html"
 )
-on.exit(old.opt, add=TRUE)
 ```
 ## Introduction
 
@@ -272,3 +271,8 @@ Unless you have a diff with many (> 10K) differences, odds are that the slow ste
 * Gábor Csárdi for adding a whole new dimension to the R terminal experience with the `crayon` package
 * Jim Hester for `covr`, and also for unwittingly sowing the seed that sprouted into this package
 * Hadley Wickham for the `devtools` and `testthat` packages
+
+```{r, echo=FALSE}
+options(old.opt)
+```
+

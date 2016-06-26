@@ -30,17 +30,16 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
     j <- 0L
 
     res.l <- if(!nrow(dat)) {
-      # Minimum one empty hunk if nothing; arbitrarily chose to make it a
-      # non context hunk; ideally would figure out a way to integrate this
-      # code in the lapply...
+      # Minimum one empty hunk if nothing; make this a context hunk to indicate
+      # that there are no differences.  This used to be a non-context hunk
 
       list(
         list(
           id=1L, A=integer(0L), B=integer(0L),
-          context=FALSE, guide=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
+          context=TRUE, guide=FALSE, tar.rng=integer(2L), cur.rng=integer(2L),
           tar.rng.sub=integer(2L), cur.rng.sub=integer(2L),
           tar.rng.trim=integer(2L), cur.rng.trim=integer(2L),
-          completely.empty=FALSE
+          completely.empty=TRUE
         )
       )
     } else {
