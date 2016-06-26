@@ -219,7 +219,7 @@ setMethod("as.character", "DiffSummary",
         )
       } else character(0L)
 
-      map <- txt.w
+      map <- paste0("  ", txt.w)
       if(length(extra))
         extra <- strwrap(extra, indent=2L, exdent=2L, width=width)
       c(head, "", body, map, extra)

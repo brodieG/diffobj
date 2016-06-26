@@ -2,9 +2,8 @@
 title: "diffobj - Diffs for R Objects"
 author: "Brodie Gaslam"
 output:
-    function(...) rmarkdown::html_vignette(..., md_extensions="-markdown_in_html_blocks"):
+    function(...) rmarkdown::html_vignette(..., md_extensions="-markdown_in_html_blocks", css=c(file.path(system.file(package="diffobj"), "css", "diffobj.css"), "styles.css")):
         toc: true
-        css: styles.css
 
 vignette: >
   %\VignetteIndexEntry{diffobj}
@@ -14,7 +13,9 @@ vignette: >
 ---
 
 ```{r, echo=FALSE}
-old.opt <- options(diffobj.disp.width=80, diffobj.pager="off")
+old.opt <- options(
+  diffobj.disp.width=80, diffobj.pager="off", diffobj.format="html"
+)
 on.exit(old.opt, add=TRUE)
 ```
 ## Introduction
@@ -137,6 +138,23 @@ Notice how we are comparing the contents of the vectors with one line per elemen
 
 The `diff*` functions are defined as S4 generics with default methods (signature `c("ANY", "ANY")` so that users can customize behavior for their own objects.  For example, a custom method could set many of the default parameters to values more suitable for a particular object.  If the objects in question are S3 objects the S3 class will have to be registered with `setOldClass`.
 
+### Return Value
+
+All the `diff*` methods return a `Diff` S4 object.  It has a `show` method which is responsible for rendering the `Diff` and displaying it to the screen.  Because you can compute and render diffs in two steps:
+
+```{r, eval=FALSE}
+x <- diffPrint(letters, LETTERS)
+x   # or equivalently: `show(x)`
+```
+
+It is possible for the diff to render funny if you change screen widths, etc., in between the time the diff is computed and the time it is rendered.
+
+There are also `summary`, `any`, and `as.character` methods.  The `summary` method provides a high level overview of where the differences are, which can be helpful for large diffs:
+
+```{r, results="asis"}
+summary(diffStr(mdl1, mdl2))
+```
+
 ## Controlling Diffs and Their Appearance
 
 ### Parameters
@@ -219,7 +237,7 @@ At this time the only `format` that is affected by this parameter is `brightness
 
 ### Pagers
 
-If the diff output is very long `diff*` methods will pipe output to a pager. The default action is to create a temporary file with the diff output, and feed that to `file.show`.  If your terminal does not support ANSI escape sequences, the default action is to use your web browser as a pager / terminal irrespective of how big the actual output is.
+In interactive mode, if the diff output is very long `diff*` methods will pipe output to a pager. The default action is to create a temporary file with the diff output, and feed that to `file.show`.  If your terminal does not support ANSI escape sequences, the default action is to use your web browser as a pager / terminal irrespective of how big the actual output is.
 
 You can fine tune when, how, and if a pager is used with the `pager` parameter.  See `?diffPrint` and `?Pager` for more details.
 
