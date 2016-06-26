@@ -20,7 +20,7 @@ capture <- function(x, etc, err) {
       "Failed attempting to get text representation of object: ",
       conditionMessage(attr(res, "condition"))
     )
-  html_ent_sub(res, etc)
+  html_ent_sub(res, etc@style)
 }
 # capture normal prints, along with default prints to make sure that if we
 # do try to wrap an atomic vector print it is very likely to be in a format
@@ -254,8 +254,8 @@ capt_chr <- function(target, current, etc, err, extra){
   if(isTRUE(etc@trim)) etc@trim <- trimChr
 
   line_diff(
-    target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
-    etc=etc
+    target, current, html_ent_sub(tar.capt, etc@style),
+    html_ent_sub(cur.capt, etc@style), etc=etc
   )
 }
 capt_deparse <- function(target, current, etc, err, extra){
@@ -267,8 +267,8 @@ capt_deparse <- function(target, current, etc, err, extra){
   if(isTRUE(etc@trim)) etc@trim <- trimDeparse
 
   line_diff(
-    target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
-    etc=etc
+    target, current, html_ent_sub(tar.capt, etc@style),
+    html_ent_sub(cur.capt, etc@style), etc=etc
   )
 }
 capt_file <- function(target, current, etc, err, extra) {
@@ -282,8 +282,8 @@ capt_file <- function(target, current, etc, err, extra) {
   if(isTRUE(etc@guides)) etc@trim <- trimFile
 
   line_diff(
-    target, current, html_ent_sub(tar.capt, etc), html_ent_sub(cur.capt, etc),
-    etc=etc
+    target, current, html_ent_sub(tar.capt, etc@style),
+    html_ent_sub(cur.capt, etc@style), etc=etc
   )
 }
 capt_csv <- function(target, current, etc, err, extra){

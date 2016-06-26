@@ -166,7 +166,8 @@ StyleText <- setClass(
     gutter.context.sep="character", gutter.context.sep.ctd="character",
     gutter.pad="character",
     context.sep="character",
-    pad.col="character"
+    pad.col="character",
+    line.break="character"
   ),
   prototype=list(
     gutter.insert=">", gutter.insert.ctd=":",
@@ -176,7 +177,8 @@ StyleText <- setClass(
     gutter.fill="~", gutter.fill.ctd="~",
     gutter.context.sep="~", gutter.context.sep.ctd="~",
     gutter.pad=" ", context.sep="----------",
-    pad.col=" "
+    pad.col=" ",
+    line.break="\n"
   ),
   validity=function(object){
     for(i in slotNames(object)) if(!is.chr.1L(slot(object, i)))
@@ -600,7 +602,8 @@ StyleHtml <- setClass(
     text=StyleText(
       gutter.insert="&gt;",
       gutter.delete="&lt;",
-      gutter.match="&nbsp;"
+      gutter.match="&nbsp;",
+      line.break="<br />"
     ),
     pager=PagerBrowser(),
     wrap=FALSE,

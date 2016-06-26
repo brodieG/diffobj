@@ -58,22 +58,20 @@ setMethod("as.character", "DiffSummary",
     hunks <- sum(!x@diffs["match", ])
     res <- c(apply(x@diffs, 1L, sum))
     scale.threshold <- x@scale.threshold
-
     res <- if(!hunks) {
       if(length(x@all.eq)) {
         eq.txt <- paste0("- ", x@all.eq)
         c("No visible differences, but objects are not `all.equal`:", eq.txt)
       } else {
-        "Objects are `all.equal`\n"
+        "Objects are `all.equal`"
       }
     } else {
-      head <- sprintf(
-        paste0(
-           "Found differences in %d hunks:\n  %d insertions, %d deletions, ",
-           "%d matches (lines)\n"
-        ),
-        hunks, res[["add"]], res[["delete"]], res[["match"]]
-      )
+      head <- c(
+        sprintf("Found differences in %d hunks:", hunks),
+        sprintf(
+          "  %d insertions, %d deletions, %d matches (lines)",
+          res[["add"]], res[["delete"]], res[["match"]]
+      ) )
       # Compute character screen display
 
       pad <- 2L
@@ -161,7 +159,7 @@ setMethod("as.character", "DiffSummary",
       }
 
       map.txt <- sprintf(
-        "Diff map (line:char scale is %s%s%s):\n",
+        "Diff map (line:char scale is %s%s%s):",
         if(!is.null(s.o.txt)) s.o.txt else "",
         if(is.null(s.o.txt) && !is.null(s.gt.o.txt)) "" else ", ",
         if(!is.null(s.gt.o.txt)) s.gt.o.txt else ""
@@ -197,16 +195,10 @@ setMethod("as.character", "DiffSummary",
       }
       s.f <- x@style@funs
       txt.w <- gsub(
-        symb[["match"]], s.f@text.match(symb[["match"]]),
+        symb[["add"]], s.f@word.insert(symb[["add"]]),
         gsub(
-          symb[["add"]],
-          s.f@text.insert(s.f@word.insert(symb[["add"]])),
-          gsub(
-            symb[["delete"]],
-            s.f@text.delete(s.f@word.delete(symb[["delete"]])),
-            txt.w, fixed=TRUE
-          ),
-          fixed=TRUE
+          symb[["delete"]], s.f@word.delete(symb[["delete"]]),
+          txt.w, fixed=TRUE
         ),
         fixed=TRUE
       )
@@ -227,12 +219,13 @@ setMethod("as.character", "DiffSummary",
         )
       } else character(0L)
 
-      map <- paste0("  ", txt.w)
+      map <- txt.w
       if(length(extra))
         extra <- strwrap(extra, indent=2L, exdent=2L, width=width)
-      c(head, body, map, extra)
+      c(head, "", body, map, extra)
     }
-    finalize(c("", res, ""), x@style, length(res) + 2L)
+    fin <- paste0(c("", res, ""), collapse=x@style@text@line.break)
+    finalize(fin, x@style, length(res) + 2L)
   }
 )
 #' @export

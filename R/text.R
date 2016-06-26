@@ -7,11 +7,12 @@ crayon_hascolor <- crayon::has_color
 crayon_split <- crayon::col_strsplit
 crayon_strip <- crayon::strip_style
 
-html_ent_sub <- function(x, etc) {
-  if(is(etc@style, "StyleHtml") && etc@style@escape.html.entities) {
+html_ent_sub <- function(x, style) {
+  if(is(style, "StyleHtml") && style@escape.html.entities) {
     x <- gsub("&", "&amp;", x, fixed=TRUE)
     x <- gsub("<", "&lt;", x, fixed=TRUE)
     x <- gsub(">", "&gt;", x, fixed=TRUE)
+    x <- gsub("\n", "<br />", x, fixed=TRUE)
     # x <- gsub(" ", "&#32;", x, fixed=TRUE)
   }
   x

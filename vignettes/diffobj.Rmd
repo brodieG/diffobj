@@ -14,7 +14,7 @@ vignette: >
 ---
 
 ```{r, echo=FALSE}
-old.opt <- options(diffobj.disp.width=80)
+old.opt <- options(diffobj.disp.width=80, diffobj.pager="off")
 on.exit(old.opt, add=TRUE)
 ```
 ## Introduction
@@ -243,10 +243,8 @@ used here is an adaptation of Michael B. Allen's diff program from the
 [`libmba`](http://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz) `C` library.
 
 This algorithm scales with the _square_ of the number of _differences_.
-between compared objects so is most effective when comparing objects
-that are mostly similar.
 
-Unless you have a diff with many (> 10K) differences, odds are that the slow step in the process will be the post-processing this package does to generate the display representation of the diff, rather than the diff itself.
+Unless you have a diff with many (> 10K) differences, odds are that the slow step in the process will be the post-processing this package does to generate the display representation of the diff rather than the diff itself.
 
 ## Acknowledgements
 

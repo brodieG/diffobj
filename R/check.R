@@ -260,7 +260,9 @@ check_args <- function(
   # means let the pager that comes built into the style be the pager
 
   if(!is(pager, "Pager")) {
-    pager <- if(pager == "auto" && is_top_level(sys.calls()) || pager == "on") {
+    pager <- if(
+      (pager == "auto" && interactive()) || pager == "on"
+    ) {
       "on"
     } else PagerOff()
   }
