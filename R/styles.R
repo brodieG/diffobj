@@ -759,13 +759,15 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' \code{PaletteOfStyles} objects.  Subsetting methods are provided so you
 #' may operate directly on the S4 object as you would on a regular array.
 #'
-#' The array/list must be fully populated with objects that are or extend
-#' \code{Style}.  There is no explicit check that the objects in the list
-#' comply with the descriptions implied by their coordinates, although the
-#' default object provided by the package does comply for the most part.  One
-#' check that is carried out is that any element that has a \dQuote{html}
-#' value in the \code{format} dimension extends \code{StyleHtml}.  The example
-#' below purposefully subverts this for illustrative purposes.
+#' The array/list must be fully populated with objects that are or inherit
+#' \code{Style}, or are \dQuote{classRepresentation} objects (i.e. those of
+#' the type returned by \code{\link{getClassDef}}.  There is no explicit check
+#' that the objects in the list comply with the descriptions implied by their
+#' coordinates, although the default object provided by the package does comply
+#' for the most part.  One check that is carried out is that any element that
+#' has a \dQuote{html} value in the \code{format} dimension extends
+#' \code{StyleHtml}.  The example below purposefully subverts this for
+#' illustrative purposes.
 #'
 #' Every cell in the list must be populated.  If there is a particular
 #' combination of coordinates that does not have a corresponding defined style
@@ -832,30 +834,71 @@ PaletteOfStyles <- setClass(
     ) ) )
       return("Style dimension names do not contain all required values")
 
-    if(!all(vapply(dat, is, logical(1L), "Style")))
-      return("Styles may only contain objects that extend `Style`")
-    if(!all(vapply(dat["html", ,], is, logical(1L), "StyleHtml")))
+    # May be either style objects or Style Class definitions
+
+    style.def <- getClassDef("Style", package="diffobj")
+    are.styles <- vapply(dat, is, logical(1L), "Style")
+    are.styles.def <- logical(length(are.styles))
+    are.styles.def[!are.styles] <- vapply(
+      dat[!are.styles],
+      function(x) is(x, "classRepresentation") && extends(x, style.def),
+      logical(1L)
+    )
+    if(!all(are.styles | are.styles.def))
+      return(
+        paste0(
+          "Styles may only contain objects that inherit from `Style` or class ",
+          "definitions that extend `Style`"
+      ) )
+    if(
+      !all(
+        vapply(
+          dat["html", ,],
+          function(x)
+            is(x, "classRepresentation") && extends(x, "StyleHTML") ||
+            is(x, "StyleHtml"),
+          logical(1L),)
+        )
+      )
       return("Styles classifed as HTML must extend `StyleHtml`")
     TRUE
   }
 )
 setMethod("initialize", "PaletteOfStyles",
   function(.Object, ...) {
-    .dfs.arr["raw", , ] <- list(StyleRaw())
-
-    .dfs.arr["ansi8", , "rgb"] <- list(StyleAnsi8NeutralRgb())
-    .dfs.arr["ansi8", , "yb"] <- list(StyleAnsi8NeutralYb())
-
-    .dfs.arr["ansi256", "neutral", "rgb"] <- list(StyleAnsi8NeutralRgb())
-    .dfs.arr["ansi256", "neutral", "yb"] <- list(StyleAnsi8NeutralYb())
-    .dfs.arr["ansi256", "light", "rgb"] <- list(StyleAnsi256LightRgb())
-    .dfs.arr["ansi256", "light", "yb"] <- list(StyleAnsi256LightYb())
-    .dfs.arr["ansi256", "dark", "rgb"] <- list(StyleAnsi256DarkRgb())
-    .dfs.arr["ansi256", "dark", "yb"] <- list(StyleAnsi256DarkYb())
-
-    .dfs.arr["html", , "rgb"] <- list(StyleHtmlLightRgb())
-    .dfs.arr["html", , "yb"] <- list(StyleHtmlLightYb())
-
+    .dfs.arr["raw", , ] <- list(
+      getClassDef("StyleRaw", package="diffobj", inherits=FALSE)
+    )
+    .dfs.arr["ansi8", , "rgb"] <- list(
+      getClassDef("StyleAnsi8NeutralRgb", package="diffobj", inherits=FALSE)
+    )
+    .dfs.arr["ansi8", , "yb"] <- list(
+      getClassDef("StyleAnsi8NeutralYb", package="diffobj", inherits=FALSE)
+    )
+    .dfs.arr["ansi256", "neutral", "rgb"] <- list(
+      getClassDef("StyleAnsi8NeutralRgb", package="diffobj", inherits=FALSE)
+    )
+    .dfs.arr["ansi256", "neutral", "yb"] <- list(
+      getClassDef("StyleAnsi8NeutralYb", package="diffobj", inherits=FALSE)
+    )
+    .dfs.arr["ansi256", "light", "rgb"] <- list(
+      getClassDef("StyleAnsi256LightRgb", package="diffobj", inherits=FALSE)
+    )
+    .dfs.arr["ansi256", "light", "yb"] <- list(
+      getClassDef("StyleAnsi256LightYb", package="diffobj", inherits=FALSE)
+    )
+    .dfs.arr["ansi256", "dark", "rgb"] <- list(
+      getClassDef("StyleAnsi256DarkRgb", package="diffobj", inherits=FALSE)
+    )
+    .dfs.arr["ansi256", "dark", "yb"] <- list(
+      getClassDef("StyleAnsi256DarkYb", package="diffobj", inherits=FALSE)
+    )
+    .dfs.arr["html", , "rgb"] <- list(
+      getClassDef("StyleHtmlLightRgb", package="diffobj", inherits=FALSE)
+    )
+    .dfs.arr["html", , "yb"] <- list(
+      getClassDef("StyleHtmlLightYb", package="diffobj", inherits=FALSE)
+    )
     .Object@data <- .dfs.arr
     callNextMethod(.Object, ...)
   }
@@ -906,7 +949,8 @@ setMethod("show", "Style",
   function(object) {
     cat(sprintf("Object of class `%s`:\n\n", class(object)))
     d.p <- diffPrint(
-      .mx1, .mx2, context=1, line.limit=7L, style=object, pager=PagerOff()
+      diffobj:::.mx1, diffobj:::.mx2, context=1, line.limit=7L,
+      style=object, pager=PagerOff()
     )
     d.txt <- capture.output(show(d.p))
     if(is(object, "Ansi")) {

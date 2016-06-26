@@ -298,6 +298,7 @@ check_args <- function(
     style <- palette.of.styles[[
       format, get_pal_par(format, brightness), get_pal_par(format, color.mode)
     ]]
+    if(is(style, "classRepresentation")) style <- new(style)
   } else if(!is(style, "Style"))
     stop("Logic Error: unexpected style state; contact maintainer.")
 
