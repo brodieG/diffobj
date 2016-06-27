@@ -501,11 +501,22 @@ diff_word2 <- function(
     tar.unsplit, cur.unsplit, etc=etc, diff.mode=diff.mode, warn=warn
   )
   # Need to figure out which elements match, and which ones do not
+  #jlh ; some
+  # questions about the `abs`; should it be applied to both `tar` and `cur`?
+  # can definitely have negative numbers in `x$A`; stuff seems to work fine, but
+  # it seems like this should cause problems.  Maybe this only ever runs in
+  # context mode so it's fine?  Odd part is that in browsing when debuggin at
+  # some point we most definitely saw negative numbers in x$A, although it is
+  # possible we were at the wrong spot in the call stack and looked at the
+  # original line diff hunks instead of the word diff ones...
 
   hunks.flat <- diffs$hunks
-  tar.mism <- unlist(lapply(hunks.flat, function(x) if(!x$context) x$A))
-  cur.mism <- abs(unlist(lapply(hunks.flat, function(x) if(!x$context) x$B)))
-
+  tar.mism <- unlist(
+    lapply(hunks.flat, function(x) if(!x$context) x$A else integer(0L))
+  )
+  cur.mism <- abs(
+    unlist(lapply(hunks.flat, function(x) if(!x$context) x$B else integer(0L)))
+  )
   # Figure out which line each of these elements came from, and what index
   # in each of those lines they are; we use the recorded lengths in words of
   # each line to reconstruct this; also record original line length so we
