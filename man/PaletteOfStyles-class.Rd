@@ -53,13 +53,15 @@ The array/list is stored in the \code{data} slot of
 \code{PaletteOfStyles} objects.  Subsetting methods are provided so you
 may operate directly on the S4 object as you would on a regular array.
 
-The array/list must be fully populated with objects that are or extend
-\code{Style}.  There is no explicit check that the objects in the list
-comply with the descriptions implied by their coordinates, although the
-default object provided by the package does comply for the most part.  One
-check that is carried out is that any element that has a \dQuote{html}
-value in the \code{format} dimension extends \code{StyleHtml}.  The example
-below purposefully subverts this for illustrative purposes.
+The array/list must be fully populated with objects that are or inherit
+\code{Style}, or are \dQuote{classRepresentation} objects (i.e. those of
+the type returned by \code{\link{getClassDef}}.  There is no explicit check
+that the objects in the list comply with the descriptions implied by their
+coordinates, although the default object provided by the package does comply
+for the most part.  One check that is carried out is that any element that
+has a \dQuote{html} value in the \code{format} dimension extends
+\code{StyleHtml}.  The example below purposefully subverts this for
+illustrative purposes.
 
 Every cell in the list must be populated.  If there is a particular
 combination of coordinates that does not have a corresponding defined style

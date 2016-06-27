@@ -213,7 +213,11 @@ case you may specify the tab stops explicitly with \code{tab.stops}.}
 }
 \value{
 a \code{\link{Diff}} object; this object has a \code{show}
-  method that will display the diff to screen or pager
+  method that will display the diff to screen or pager, as well as
+  \code{summary}, \code{any}, and \code{as.character} methods.  Note that
+  if you store the return value instead of displaying it to screen, and
+  display it later, it is possible for the display to be thrown off if
+  there are environment changes (e.g. display width changes).
 }
 \description{
 Runs the diff between the \code{print} or \code{show} output produced by

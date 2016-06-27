@@ -1,5 +1,25 @@
 library(diffobj)
 
+test_that("Atomic", {
+  diffPrint(chr.1, chr.2)
+  diffPrint(chr.1, chr.2, mode="unified")
+  diffPrint(chr.1, chr.2, mode="context")
+  diffPrint(chr.1[2:3], chr.2[2], mode="sidebyside")
+
+  # Check that `extra` works
+
+  diffPrint(chr.1, chr.2, extra=list(quote=FALSE))
+
+  # make sure blanks line up correctly
+
+  diffPrint(chr.3, chr.4)
+  diffPrint(chr.3, chr.4, mode="unified")
+})
+
+
+
+
+
 A <- B <- c(letters, LETTERS)
 B[15] <- "Alabama"
 diffPrint(A[-(1:8)], A)  # at 80 cols, happens to correspond to row insertion
