@@ -1,3 +1,4 @@
+context("Guides")
 
 test_that("detect_2d_guides", {
    iris.dply <- c("Source: local data frame [150 x 5]", "Groups: Species [3]", "", "   Sepal.Length Sepal.Width", "          (dbl)       (dbl)", "1           5.1         3.5", "2           4.9         3.0", "3           4.7         3.2", "4           4.6         3.1", "5           5.0         3.6", "6           5.4         3.9", "7           4.6         3.4", "8           5.0         3.4", "9           4.4         2.9", "10          4.9         3.1", "..          ...         ...", "Variables not shown: Petal.Length", "  (dbl), Petal.Width (dbl), Species", "  (fctr)")

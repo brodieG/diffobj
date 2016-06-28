@@ -1,15 +1,11 @@
 context("diffPrint")
 
-if(!identical(basename(getwd()), "tests"))
-  stop("Working dir does not appear to be /tests")
-
+if(!identical(basename(getwd()), "testthat"))
+  stop("Working dir does not appear to be /testthat, is ", getwd())
 
 rdsf <- function(x)
-  file.path(
-    getwd(), "testthat", "helper", "diffPrint", sprintf("%s.rds", x)
-  )
+  file.path(getwd(), "helper", "diffPrint", sprintf("%s.rds", x))
 # Note, atomic prints happen in different test file
-
 
 test_that("Matrices", {
   mx.2 <- matrix(1:100, ncol=2)
@@ -59,7 +55,7 @@ test_that("Matrices", {
   A <- B <- matrix(sample(1:80), nrow=16)
   B[cbind(sample(5:16, 4), sample(1:5, 4))] <- sample(30:80, 4)
 
-  expect_equal_to_reference(diffPrint(A, B), rdsf(900))
+  expect_equal_to_reference(as.character(diffPrint(A, B)), rdsf(900))
   expect_equal_to_reference(
     as.character(diffPrint(A, B, mode="unified")), rdsf(1000)
   )
@@ -73,47 +69,99 @@ test_that("Matrices", {
   )
 })
 test_that("Lists", {
-  diffPrint(lst.1, lst.3)
-  diffPrint(lst.1, lst.3, mode="sidebyside", context=1)
-  diffPrint(lst.1, lst.3, mode="unified")
+  expect_equal_to_reference(
+    as.character(diffPrint(lst.1, lst.3)), rdsf(1300)
+  )
+  expect_equal_to_reference(
+    as.character(diffPrint(lst.1, lst.3, mode="unified")), rdsf(1400)
+  )
+  expect_equal_to_reference(
+    as.character(diffPrint(lst.4, lst.5)), rdsf(1500)
+  )
+  expect_equal_to_reference(
+    as.character(diffPrint(lst.4, lst.5, mode="context")), rdsf(1600)
+  )
+  # Interesting but relatively slow example so we don't actually run it in
+  # tests
 
-  diffPrint(lst.4, lst.5)
-
-  diffPrint(unclass(mdl1), unclass(mdl2))
+  # diffPrint(unclass(mdl1), unclass(mdl2))
+  # diffPrint(unclass(mdl1), unclass(mdl2), mode="unified")
 })
 test_that("Data Frames", {
-  # Shows that line shifts within hunks are matched
+  expect_equal_to_reference(as.character(diffPrint(iris.s, iris.2)), rdsf(1700))
+  expect_equal_to_reference(
+    as.character(diffPrint(iris.s, iris.2, mode="sidebyside")), rdsf(1800)
+  )
+  expect_equal_to_reference(as.character(diffPrint(iris.s, iris.c)), rdsf(1900))
+  expect_equal_to_reference(as.character(diffPrint(iris.s, iris.3)), rdsf(2000))
 
-  diffPrint(iris, iris.2) # no round
-  diffPrint(iris, iris.2, mode="sidebyside")
-  diffPrint(iris, iris.c)
-  diffPrint(iris, iris.3)
-  diffPrint(iris, iris.3, mode="sidebyside")
-  diffPrint(iris, iris.4, mode="unified")
-  diffPrint(iris, iris.4, mode="sidebyside")
+  expect_equal_to_reference(
+    as.character(diffPrint(iris.s, iris.3, mode="sidebyside")), rdsf(2100)
+  )
+  expect_equal_to_reference(
+    as.character(diffPrint(iris.s, iris.4, mode="unified")), rdsf(2150)
+  )
+  expect_equal_to_reference(
+    as.character(diffPrint(iris.s, iris.4, mode="sidebyside")), rdsf(2200)
+  )
+  expect_equal_to_reference(
+    as.character(diffPrint(iris.5, iris.4, mode="sidebyside")), rdsf(2250)
+  )
+  expect_equal_to_reference(
+    as.character(diffPrint(iris.3a, iris.4a)), rdsf(2300)
+  )
+  expect_equal_to_reference(
+    as.character(diffPrint(iris.s, iris.3, mode="sidebyside")), rdsf(2350)
+  )
+  expect_equal_to_reference(
+    as.character(diffPrint(iris.s, iris.s[-2])), rdsf(2370)
+  )
+  # This one kind of fails pretty badly at lining stuff up, partly because
+  # the token information is of type `1.3` and the period counts towards the
+  # diffPrint(iris.s, iris.s[-2], mode="sidebyside")
 
-  diffPrint(iris, iris.4, mode="sidebyside", guides=function(x, y) integer())
-  diffPrint(iris, iris.4, mode="sidebyside", guides=FALSE)
-
-  diffPrint(iris.5, iris.4, mode="sidebyside")
-  diffPrint(iris.3a, iris.4a)
-
-  diffPrint(cars, mtcars, mode="s")
-  diffPrint(iris, iris[-2])
+  # Possible example where we may not want to trim the row headers (Issue #39)
+  expect_equal_to_reference(
+    as.character(diffPrint(cars[1:5,], mtcars[1:5,], mode="sidebyside")),
+    rdsf(2380)
+  )
 })
+test_that("Guides", {
+  # Most guides tests are in the guides file, but this confirms interface works
+  # when starting at `diffPrint` instead of internally
 
+  expect_equal_to_reference(
+    as.character(
+      diffPrint(
+        iris.s, iris.4, mode="sidebyside", guides=function(x, y) integer()
+    ) ),
+    rdsf(2400)
+  )
+  expect_equal_to_reference(
+    as.character(diffPrint(iris.s, iris.4, mode="sidebyside", guides=FALSE)),
+    rdsf(2500)
+  )
+})
 test_that("Arrays", {
-  diffPrint(arr.1, arr.2, mode="s", context=1)
-  diffPrint(arr.1, arr.2, mode="context", context=1)
-
-  # Large DF (WARNING: a bit slow)
+  arr.1 <- arr.2 <- array(1:24, c(4, 2, 3))
+  arr.2[c(3, 20)] <- 99L
+  expect_equal_to_reference(as.character(diffPrint(arr.1, arr.2)), rdsf(2600))
 })
 test_that("Mixed", {
-  diffPrint(list(1, 2, 3), matrix(1:9, 3))
-  diffPrint(list(25, 2, 3), matrix(1:9, 3))
-  diffPrint(list(c(1, 4, 7), c(2, 5, 8), c(3, 6, 9)), matrix(1:9, 3))
-
-  # Arrays
+  expect_equal_to_reference(
+    as.character(diffPrint(list(1, 2, 3), matrix(1:9, 3))),
+    rdsf(2700)
+  )
+  expect_equal_to_reference(
+    as.character(diffPrint(list(25, 2, 3), matrix(1:9, 3))),
+    rdsf(2800)
+  )
+  expect_equal_to_reference(
+    as.character(
+      diffPrint(list(c(1, 4, 7), c(2, 5, 8), c(3, 6, 9)), matrix(1:9, 3))
+    ),
+    rdsf(2900)
+  )
 })
 
   # library(ggplot2)

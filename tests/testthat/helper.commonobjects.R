@@ -6,6 +6,7 @@
 
 lst.1 <- list(
   NULL,
+  letters,
   z=list(
     list(letters[1:3]), list(NULL),
     z=list(1:3, 1, 2, z=list(1, z=list(z=5))),
@@ -18,6 +19,7 @@ lst.2$z[[4L]] <- matrix(12:1, ncol=3)
 lst.2$z[[4L]][4, ] <- c(3L, 6L, 9L)
 lst.3 <- lst.2
 lst.3[[1]] <- "hello"
+lst.3[[2]] <- NULL
 
 lst.4 <- list(NULL, z=list(z=list(z=list(z=list(matrix(1:3))))))
 lst.5 <- list(NULL, z=list(z=list(z=list(z=list(matrix(2:4))))))
@@ -41,7 +43,9 @@ chr.4 <- c(
 
 ## Data Frames ----------------
 
-iris.2 <- iris.c <- transform(iris, Species=as.character(Species))
+set.seed(2)
+iris.s <- `row.names<-`(iris[c(1:5, 50:55, 100:105), ], NULL)
+iris.2 <- iris.c <- transform(iris.s, Species=as.character(Species))
 # without rounding this is a bit wild, but good corner case to test
 iris.2$Sepal.Length[sample(nrow(iris.2), 5)] <-
   rnorm(5, mean(iris.2$Sepal.Length), sd(iris.2$Sepal.Length))
@@ -51,9 +55,8 @@ iris.3$Sepal.Length <- round(iris.3$Sepal.Length, 1L)
 iris.4 <- iris.3
 iris.4$Petal.Width[sample(1:nrow(iris.4), 6)] <- round(runif(6), 1)
 
-iris.5 <- iris
+iris.5 <- iris.s
 attr(iris.5, "test.attr") <- letters
-
 
 # Narrow versions to fit side by side
 
@@ -61,3 +64,8 @@ iris.3a <- setNames(iris.3, c("S.L", "S.W", "P.L", "P.W", "Sp"))
 iris.4a <- setNames(iris.4, c("S.L", "S.W", "P.L", "P.W", "Sp"))
 
 ## Arrays -----------------
+
+## Models -----------------
+
+mdl1 <- lm(Sepal.Length ~ Sepal.Width, iris)
+mdl2 <- lm(Sepal.Length ~ Sepal.Width + Species, iris)
