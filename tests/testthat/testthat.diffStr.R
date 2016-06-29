@@ -11,20 +11,17 @@ library(diffobj)
 test_that("lm models", {
 
   expect_equal_to_reference(as.character(diffStr(mdl1, mdl2)), rdsf(100))
-  diffStr(mdl1[7], mdl2[7], line.limit=10)
-  
-
-  # interesting example below where the in-hunk word diff is too aggressive
-  # preventing the eq-lines from atching
-
-  diffStr(mdl1[7], mdl2[7], mode="sidebyside")
-  diffPrint(mdl1, mdl2)
-  diffStr(
-    mdl1, mdl2, mode="sideby", bright="dark",
-    pager=PagerSystemLess(flags="RX")
+  # Too strict a line limit, can't get under
+  expect_equal_to_reference(
+    as.character(diffStr(mdl1[7], mdl2[7], line.limit=10)), rdsf(200)
   )
-  # Check that `max.level` shows up when using it
-
-
+  # Now we can get under
+  expect_equal_to_reference(
+    as.character(diffStr(mdl1[7], mdl2[7], line.limit=15)), rdsf(300)
+  )
 })
-diffStr(cars, mtcars)
+test_that("Simple structure", {
+  # Character types
+
+  expect_equal_to_reference(as.character(diffStr(iris.c, iris.s)), rdsf(400))
+})

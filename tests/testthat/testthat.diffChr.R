@@ -1,34 +1,47 @@
+context("diffChr")
 
-# Corner cases from https://neil.fraser.name/writing/diff/
-# Both of these appear handled correctly by the algorithm here
-# first one: suboptimal edit script due to two sided approach
-A1 <- c("X", "A", "X", "C", "X", "A", "B", "C")
-B1 <- c("A", "B", "C", "Y")
-diffChr(A1, B1)
+if(!identical(basename(getwd()), "testthat"))
+  stop("Working dir does not appear to be /testthat, is ", getwd())
 
-# second one: failure to find intersection at ends of paths (paths run into
-# each other eventually)
+rdsf <- function(x)
+  file.path(getwd(), "helper", "diffChr", sprintf("%s.rds", x))
 
-A2 <- c("A", "B", "X", "A", "B")
-B2 <- c("A", "Y", "B")
-diffChr(A2, B2)
+test_that("Claimed Corner Cases", {
+  # Corner cases from https://neil.fraser.name/writing/diff/
+  # Both of these appear handled correctly by the algorithm here
+  # first one: suboptimal edit script due to two sided approach
 
-set.seed(1)
-X <- do.call(paste0, expand.grid(LETTERS, LETTERS, LETTERS, LETTERS))
+  A1 <- c("X", "A", "X", "C", "X", "A", "B", "C")
+  B1 <- c("A", "B", "C", "Y")
+  expect_equal_to_reference(as.character(diffChr(A1, B1)), rdsf(100))
 
-diffChr(X[1:2000], X[2001:4000])
-A3 <- B3 <- X[1:2000]
-A3 <- A3[
-  -unlist(
-    replicate(50, seq(from=sample(2000, 1), by=1L, length.out=sample(15, 1)))
-  )
-]
-B3 <- B3[
-  -unlist(
-    replicate(50, seq(from=sample(2000, 1), by=1L, length.out=sample(15, 1)))
-  )
-]
-diffChr(A3, B3)
+  # second one: failure to find intersection at ends of paths (paths run into
+  # each other eventually)
+
+  A2 <- c("A", "B", "X", "A", "B")
+  B2 <- c("A", "Y", "B")
+  expect_equal_to_reference(as.character(diffChr(A2, B2)), rdsf(200))
+}
+test_that("Larger strings", {
+  X <- do.call(paste0, expand.grid(LETTERS, LETTERS, LETTERS, LETTERS))
+  # diffChr(X[1:2000], X[2001:4000])
+
+  set.seed(1)
+  n <- 500
+  A3 <- B3 <- X[1:n]
+  A3 <- A3[
+    -unlist(
+      replicate(25, seq(from=sample(n, 1), by=1L, length.out=sample(10, 1)))
+    )
+  ]
+  B3 <- B3[
+    -unlist(
+      replicate(25, seq(from=sample(n, 1), by=1L, length.out=sample(10, 1)))
+    )
+  ]
+  expect_equal_to_reference(diffChr(A3, B3), rdsf(300))
+
+})
 res <- diffChr(X[1:10000], X[7500:17500])
 res <- ses(X[1:10000], X[7500:17500])
 res <- diffChr(X[1:25000], X[10001:50000], max.diffs=65000)

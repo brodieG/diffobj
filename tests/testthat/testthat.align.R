@@ -4,15 +4,16 @@ test_that("align with headers", {
   mx.5 <- matrix(11:19, 3)
   mx.6 <- matrix(22:11, 4)
   mx.6[4,] <- c(13L, 16L, 19L)
+  raw <- StyleRaw()
   expect_identical(
-    c(as.character(diffPrint(mx.5, mx.6, format="raw", disp.width=80))),
+    c(as.character(diffPrint(mx.5, mx.6, style=raw, disp.width=80))),
     c("< mx.5                  > mx.6                 ", "@@ 1,4 @@               @@ 1,5 @@              ", "       [,1] [,2] [,3]          [,1] [,2] [,3]  ", "< [1,]   11   14   17   > [1,]   22   18   14  ", "< [2,]   12   15   18   > [2,]   21   17   13  ", "                        > [3,]   20   16   12  ", "< [3,]   13   16   19   > [4,]   13   16   19  ")
   )
   expect_identical(
     c(
       as.character(
         diffPrint(
-          mx.5, mx.6, format="raw", disp.width=80,
+          mx.5, mx.6, style=raw, disp.width=80,
           align=AlignThreshold(ignore.row.head=FALSE)
     ) ) ),
     c("< mx.5                  > mx.6                 ", "@@ 1,4 @@               @@ 1,5 @@              ", "       [,1] [,2] [,3]          [,1] [,2] [,3]  ", "< [1,]   11   14   17   > [1,]   22   18   14  ", "< [2,]   12   15   18   > [2,]   21   17   13  ", "< [3,]   13   16   19   > [3,]   20   16   12  ", "                        > [4,]   13   16   19  ")

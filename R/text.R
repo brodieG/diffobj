@@ -98,11 +98,14 @@ align_eq <- function(A, B, x, context) {
     # the possible tokens and could be spurious; we should probably do this
     # ahead of the for loop since we could probably save some iterations
 
-    # TBD wither nchar here should be ansi-aware
+    # TBD whether nchar here should be ansi-aware; probably if in alnum only
+    # mode...
 
     B.tr <- B.tok.ratio[match(align, seq_along(B.tok.ratio))]
+    A.eq.trim <- if(etc@align@count.alnum.only)
+      gsub("[^[:alnum:]]", "", A.eq, perl=TRUE) else A.eq
     is.na(B.tr) <- 1
-    disallow.match <- nchar(A.eq) < etc@align@min.chars |
+    disallow.match <- nchar(A.eq.trim) < etc@align@min.chars |
       A.tok.ratio < etc@align@threshold | B.tr < etc@align@threshold
     align[disallow.match] <- 0L
 
