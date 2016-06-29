@@ -179,7 +179,7 @@ capt_str <- function(target, current, etc, err, extra){
     diff.obj <- line_diff(target, current, tar.str, cur.str, etc=etc, warn=warn)
 
     if(diff.obj@hit.diffs.max) warn <- FALSE
-    has.diff <- any(diff.obj)
+    has.diff <- suppressWarnings(any(diff.obj))
 
     if(first.loop) {
       diff.obj.first <- diff.obj
