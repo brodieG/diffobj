@@ -501,7 +501,7 @@ diff_word2 <- function(
     tar.unsplit, cur.unsplit, etc=etc, diff.mode=diff.mode, warn=warn
   )
   # Need to figure out which elements match, and which ones do not
-  #jlh ; some
+  #
   # questions about the `abs`; should it be applied to both `tar` and `cur`?
   # can definitely have negative numbers in `x$A`; stuff seems to work fine, but
   # it seems like this should cause problems.  Maybe this only ever runs in
