@@ -206,6 +206,7 @@ capt_str <- function(target, current, etc, err, extra){
       next
     } else if(!has.diff) {
       diff.obj <- diff.obj.first
+      lvl <- NULL
       break
     }
     # If we have diffs, need to check whether we should try to reduce lines
