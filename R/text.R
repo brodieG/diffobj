@@ -106,7 +106,7 @@ align_eq <- function(A, B, x, context) {
       gsub("[^[:alnum:]]", "", A.eq, perl=TRUE) else A.eq
     is.na(B.tr) <- 1
     disallow.match <- nchar(A.eq.trim) < etc@align@min.chars |
-      A.tok.ratio < etc@align@threshold | B.tr < etc@align@threshold
+    A.tok.ratio <= etc@align@threshold | B.tr <= etc@align@threshold
     align[disallow.match] <- 0L
 
     # Group elements together.  We number the interstitial buckest as the
