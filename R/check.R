@@ -184,8 +184,7 @@ check_args <- function(
     err("Argument `trim` must be TRUE, FALSE, or a function")
   if(is.function(trim) && !isTRUE(t.f.err <- is.two.arg.fun(trim)))
     err("Argument `trim` ", t.f.err)
-  if(!is.function(trim) && !trim)
-    trim <- function(obj, obj.as.chr) obj.as.chr
+  if(!is.function(trim) && !trim) trim <- trim_identity
 
   # check T F args
 

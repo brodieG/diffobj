@@ -280,7 +280,7 @@ capt_file <- function(target, current, etc, err, extra) {
 
   etc <- set_mode(etc, tar.capt, cur.capt)
   if(isTRUE(etc@guides)) etc@guides <- guidesFile
-  if(isTRUE(etc@guides)) etc@trim <- trimFile
+  if(isTRUE(etc@trim)) etc@trim <- trimFile
 
   line_diff(
     target, current, html_ent_sub(tar.capt, etc@style),
