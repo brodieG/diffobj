@@ -337,10 +337,7 @@ trim_identity <- function(obj, obj.as.chr)
 #' @export
 #' @rdname trim
 
-setGeneric(
-  "trimChr",
-  function(obj, obj.as.chr) StandardGeneric("trimChr")
-)
+setGeneric("trimChr", function(obj, obj.as.chr) StandardGeneric("trimChr"))
 setMethod("trimChr", c("ANY", "character"), trim_identity)
 
 #' @export
