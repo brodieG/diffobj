@@ -23,7 +23,6 @@
   diffobj.align.threshold=0.25,
   diffobj.align.min.chars=3L,
   diffobj.align.count.alnum.only=TRUE,
-  diffobj.align.ignore.row.head=TRUE,
   diffobj.style="auto",
   diffobj.format="auto",
   diffobj.color.mode="yb",
