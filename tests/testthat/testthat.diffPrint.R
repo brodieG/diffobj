@@ -116,10 +116,13 @@ test_that("Data Frames", {
   expect_equal_to_reference(
     as.character(diffPrint(iris.s, iris.s[-2])), rdsf(2370)
   )
-  # This one kind of fails pretty badly at lining stuff up, partly because
-  # the token information is of type `1.3` and the period counts towards the
-  # diffPrint(iris.s, iris.s[-2], mode="sidebyside")
+  # This one is interesting because the input is pathological because there
+  # is one line that matches exactly between the two and as such creates a
+  # matching hunk, but it really is matching by coincidence.
 
+  expect_equal_to_reference(
+    as.character(diffPrint(iris.s, iris.s[-2], mode="sidebyside")), rdsf(2383)
+  )
   # Possible example where we may not want to trim the row headers (Issue #39)
   expect_equal_to_reference(
     as.character(diffPrint(cars[1:5,], mtcars[1:5,], mode="sidebyside")),
