@@ -76,15 +76,3 @@ test_that("Sentences", {
   )
 })
 
-# # compare two crayon file versions
-# # These should eventually just be downloaded and made into diffFile tests
-#
-# url.1 <- "https://raw.githubusercontent.com/gaborcsardi/crayon/3f1f68ab177b82a27e754a58264af801f7194820/R/string_operations.r"
-# url.2 <- "https://raw.githubusercontent.com/gaborcsardi/crayon/30dbe0d4d92157350af3cb3aeebd6d9a9cdf5c0e/R/string_operations.r"
-# f.1 <- readLines(url.1)
-# f.2 <- readLines(url.2)
-# diffChr(f.1, f.2)
-# diffChr(f.1, f.2, mode="s")
-#
-
-

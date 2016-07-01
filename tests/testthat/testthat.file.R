@@ -22,11 +22,7 @@ test_that("Code File", {
   # writeLines(f.1, f.p.1)
   # writeLines(f.2, f.p.2)
 
-  diffFile(f.p.1, f.p.2)
-  diffChr(f.1, f.2, mode="s")
-
-
-
+  expect_equal_to_reference(diffFile(f.p.1, f.p.2), rdsf(100))
 })
 test_that("RDS", {
   f1 <- tempfile()
@@ -42,9 +38,11 @@ test_that("RDS", {
   expect_is(diffobj:::get_rds(f2), "matrix")
 
   ref <- as.character(diffPrint(mx1, mx2))
-  expect_identical(as.character(diffPrint(mx1, f2)), ref)
-  expect_identical(as.character(diffPrint(f1, mx2)), ref)
-  expect_identical(as.character(diffPrint(f1, f2)), ref)
+  expect_identical(as.character(diffPrint(mx1, f2, cur.banner="mx2")), ref)
+  expect_identical(as.character(diffPrint(f1, mx2, tar.banner="mx1")), ref)
+  expect_identical(
+    as.character(diffPrint(f1, f2, tar.banner="mx1", cur.banner="mx2")), ref
+  )
   expect_true(!identical(as.character(diffPrint(mx1, f2, rds=FALSE)), ref))
 })
 
@@ -59,7 +57,7 @@ test_that("file", {
   writeLines(letters2, f2)
 
   expect_identical(
-    as.character(diffChr(letters, letters2)),
+    as.character(diffChr(letters, letters2, tar.banner="f1", cur.banner="f2")),
     as.character(diffFile(f1, f2))
   )
 })
@@ -76,7 +74,7 @@ test_that("CSV", {
   write.csv(iris2, f2, row.names=FALSE)
 
   expect_identical(
-    as.character(diffPrint(iris, iris2)),
+    as.character(diffPrint(iris, iris2, tar.banner="f1", cur.banner="f2")),
     as.character(diffCsv(f1, f2))
   )
 })
