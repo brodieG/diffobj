@@ -664,7 +664,7 @@ setMethod("initialize", "StyleHtml",
         html.output <- if(is(pager, "PagerBrowser")) "page" else "diff.only"
       }
       if(html.output == "diff.w.style") {
-        css.txt <- try(paste0(readLines(css), collapse=""))
+        css.txt <- try(paste0(readLines(css), collapse="\n"))
         if(inherits(css.txt, "try-error")) stop("Cannot read css file ", css)
         css <- sprintf("<style type='text/css'>%s</style>", css.txt)
         tpl <- "%s%s"
