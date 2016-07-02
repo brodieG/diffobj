@@ -1,8 +1,10 @@
 #' Run \code{tools::Rdiff} Directly on R Objects
 #'
-#' These functions are here for reference and testing purposes.  You should be
-#' using \code{\link{diff_ses}} instead of \code{Rdiff_chr} and
-#' \code{\link{diff_obj}} instead of \code{Rdiff_obj}.  See limitations in note.
+#' These functions are here for reference and testing purposes.  They are
+#' wrappers to \code{tools::Rdiff} and rely on an existing system diff utility.
+#' You should be using \code{\link{ses}} or \code{\link{diffChr}}instead of
+#' \code{Rdiff_chr} and \code{\link{diffPrint}} instead of \code{Rdiff_obj}.
+#' See limitations in note.
 #'
 #' \code{Rdiff_chr} runs diffs on character vectors or objects coerced to
 #' character vectors, where each value in the vectors is treated as a line in a
@@ -21,7 +23,7 @@
 #' @export
 #' @seealso \code{\link{diff_ses}}, \code{\link{diff_obj}}
 #' @param from character or object coercible to character for \code{Rdiff_chr},
-#'   any R object with \code{Rdiff_obj}
+#'   any R object with \code{Rdiff_obj}, or a file pointing to an RDS object
 #' @param to character same as \code{from}
 #' @param nullPointers passed to \code{tools::Rdiff}
 #' @param silent TRUE or FALSE, whether to display output to screen
@@ -33,7 +35,7 @@ Rdiff_chr <- function(from, to, silent=FALSE, minimal=FALSE, nullPointers=TRUE) 
   A <- try(as.character(from))
   if(inherits(A, "try-error")) stop("Unable to coerce `target` to character.")
   B <- try(as.character(to))
-  if(inherits(b, "try-error")) stop("Unable to coerce `current` to character.")
+  if(inherits(B, "try-error")) stop("Unable to coerce `current` to character.")
 
   af <- tempfile()
   bf <- tempfile()
@@ -83,9 +85,16 @@ Rdiff_run <- function(from, to, nullPointers, silent, minimal) {
     isTRUE(silent) || identical(silent, FALSE),
     isTRUE(minimal) || identical(minimal, FALSE)
   )
-  res <- Rdiff(
-    from=from, to=to, useDiff=TRUE, Log=TRUE, nullPointers=nullPointers
-  )$out
+  res <- tryCatch(
+    Rdiff(
+      from=from, to=to, useDiff=TRUE, Log=TRUE, nullPointers=nullPointers
+    )$out,
+    warning=function(e)
+      stop(
+        "`tools::Rdiff` returned a warning; this likely means you are running ",
+        "without a `diff` utility accessible to R"
+      )
+  )
   if(!is.character(res)) stop("Unexpected tools::Rdiff output")
 
   res <- if(minimal) res[!grepl("^[<>-]", res)] else res
@@ -94,14 +103,26 @@ Rdiff_run <- function(from, to, nullPointers, silent, minimal) {
     invisible(res)
   }
 }
-# Mostly replaced by Rdiff_x funs; tbd whether we get rid of this or update the
-# Rdiff functions to use diff directly
+#' Attempt to Detect Whether 'diff' Utility Available
+#'
+#' Checks whether \code{tools::Rdiff} issues a warning and if it does assumes
+#' this is because the diff utility is not available.
+#'
+#' @export
+#' @return TRUE or FALSE
 
-diff_rdiff <- function(target, current) {
-  stopifnot(is.character(target), is.character(current))
-  a <- tempfile("Rdiffa")
-  writeLines(target, a)
-  b <- tempfile("Rdiffb")
-  writeLines(current, b)
-  diff <- capture.output(system(paste("diff -bw", shQuote(a), shQuote(b))))
+has_Rdiff <- function() {
+  f.a <- tempfile()
+  f.b <- tempfile()
+  on.exit(unlink(c(f.a, f.b)))
+  writeLines(letters[1:3], f.a)
+  writeLines(LETTERS, f.b)
+  tryCatch(
+    {
+      Rdiff(
+        from=f.a, to=f.b, useDiff=TRUE, Log=TRUE, nullPointers=FALSE
+      )
+      TRUE
+    }, warning=function(e) FALSE
+  )
 }

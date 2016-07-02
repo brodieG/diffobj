@@ -6,6 +6,7 @@
 #' \code{diff} utility, and provides alternate display modes.
 #'
 #' @import crayon
+#' @import methods
 #' @name diffobj-package
 #' @docType package
 
