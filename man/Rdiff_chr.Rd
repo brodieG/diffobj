@@ -11,7 +11,7 @@ Rdiff_obj(from, to, silent = FALSE, minimal = FALSE, nullPointers = TRUE)
 }
 \arguments{
 \item{from}{character or object coercible to character for \code{Rdiff_chr},
-any R object with \code{Rdiff_obj}}
+any R object with \code{Rdiff_obj}, or a file pointing to an RDS object}
 
 \item{to}{character same as \code{from}}
 
@@ -26,9 +26,11 @@ actual differences or only the actual edit script commands}
 the Rdiff output, invisibly if \code{silent} is FALSE
 }
 \description{
-These functions are here for reference and testing purposes.  You should be
-using \code{\link{diff_ses}} instead of \code{Rdiff_chr} and
-\code{\link{diff_obj}} instead of \code{Rdiff_obj}.  See limitations in note.
+These functions are here for reference and testing purposes.  They are
+wrappers to \code{tools::Rdiff} and rely on an existing system diff utility.
+You should be using \code{\link{ses}} or \code{\link{diffChr}}instead of
+\code{Rdiff_chr} and \code{\link{diffPrint}} instead of \code{Rdiff_obj}.
+See limitations in note.
 }
 \details{
 \code{Rdiff_chr} runs diffs on character vectors or objects coerced to

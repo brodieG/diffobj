@@ -178,7 +178,10 @@ each other and become one.}
 \item{align}{numeric(1L) between 0 and 1, proportion of
 words in a line of \code{target} that must be matched in a line of
 \code{current} in the same hunk for those lines to be paired up when
-displayed (defaults to 0.25), or a \code{\link{AlignThreshold}} object.}
+displayed (defaults to 0.25), or an \code{\link{AlignThreshold}} object.
+Set to \code{1} to turn off alignment which will cause all lines in a hunk
+from \code{target} to show up first, followed by all lines from
+\code{current}.}
 
 \item{style}{\dQuote{auto}, or a \code{\link{Style}} object.
 \dQuote{auto} by default.  If a \code{Style} object, will override the

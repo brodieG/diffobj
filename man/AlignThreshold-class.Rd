@@ -18,18 +18,11 @@ turn aligning off.  Defaults to 0.25.}
 \item{\code{min.chars}}{integer(1L) positive, minimum number of characters that must
 match across lines in order to align them.  This requirement is in addition
 to \code{threshold} and helps minimize spurious alignments.  Defaults to
-5.}
+3.}
 
 \item{\code{count.alnum.only}}{logical(1L) modifier for \code{min.chars}, whether to
 count alpha numeric characters only.  Helps reduce spurious alignment
 caused by meta character sequences such as \dQuote{[[1]]} that would
 otherwise meet the \code{min.chars} limit}
-
-\item{\code{ignore.row.head}}{logical(1L) whether to ignore row / atomic vector index
-headers such as \code{[1]} or \code{[1,]}; the implementation is rather
-inelegant and strips things that look like they are row headers
-with not much accounting of whether they really are or just look like them.
-There is some overlap with \code{min.chars} and \code{count.alnum.only} to
-the extent removed row headers do not count towards those parameters.}
 }}
 
