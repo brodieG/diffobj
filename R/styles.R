@@ -994,14 +994,24 @@ setMethod("show", "PaletteOfStyles",
     for(f in fmt) {
       for(b in brt) {
         for(c in clr) {
-          txt <- capture.output(show(object[[f, b, c]]))
+          obj <- object[[f, b, c]]
+          if(is(obj, "classRepresentation")) obj <- new(obj)
+          txt <- capture.output(show(obj))
           cat(
             sprintf("\nformat: %s, brightness: %s, color.mode: %s\n\n", f, b, c)
           )
           cat(paste0("  ", txt), sep="\n")
 } } } } )
 setMethod("summary", "PaletteOfStyles",
-  function(object, ...) apply(object@data, 1:3, function(x) class(x[[1L]]))
+  function(object, ...)
+    apply(
+      object@data,
+      1:3,
+      function(x)
+        if(is(x[[1L]], "classRepresentation"))
+          paste0("class: ", x[[1L]]@className) else
+          paste0("object: ", class(x[[1L]]))
+    )
 )
 
 # Helper function to render output for vignette
