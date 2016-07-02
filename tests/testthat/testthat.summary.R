@@ -1,20 +1,44 @@
-any(diffPrint(iris, iris))
-any(diffPrint(iris, iris.c))
-any(diffPrint(iris, iris.4))
+context("summary")
 
-summary(diffPrint(iris, iris.4))
-summary(diffPrint(iris, iris.2))
-summary(diffPrint(iris, iris.3))
-summary(diffPrint(iris, iris.c))
+if(!identical(basename(getwd()), "testthat"))
+  stop("Working dir does not appear to be /testthat, is ", getwd())
 
-d1 <- d2 <- ggplot2::diamonds[sample(seq_len(nrow(ggplot2::diamonds)), 10000),]
+rdsf <- function(x)
+  file.path(getwd(), "helper", "summary", sprintf("%s.rds", x))
 
-d1 <- d1[-sample(seq_len(nrow(d1)), 200), ]
-d1$clarity[sample(seq_len(nrow(d1)), 50)] <-
-  d1$clarity[sample(seq_len(nrow(d1)), 50)]
-d1$x[sample(seq_len(nrow(d1)), 50)] <- d1$x[sample(seq_len(nrow(d1)), 50)]
-d1$y[sample(seq_len(nrow(d1)), 50)] <- d1$y[sample(seq_len(nrow(d1)), 50)]
+# Note, atomic prints happen in different test file
 
-d2 <- d2[-sample(seq_len(nrow(d2)), 200), ]
-summary(diffPrint(d1, d2))
+test_that("Any", {
+  expect_false(any(diffPrint(iris.s, iris.s)))
+  expect_warning(res <- any(diffPrint(iris.s, iris.c)), "objects are NOT")
+  expect_false(res)
+  expect_true(any(diffPrint(iris.s, iris.4)))
+})
 
+test_that("Small Summary", {
+  expect_equal_to_reference(
+    as.character(summary(diffPrint(iris.s, iris.4))), rdsf(100)
+  )
+  expect_equal_to_reference(
+    as.character(summary(diffPrint(iris.s, iris.2))), rdsf(200)
+  )
+  expect_equal_to_reference(
+    as.character(summary(diffPrint(iris.s, iris.3))), rdsf(300)
+  )
+  expect_equal_to_reference(
+    as.character(summary(diffPrint(iris.s, iris.c))), rdsf(400)
+  )
+})
+test_that("Big Summary", {
+  # Make sure we test summary reduction, wrapping
+
+  expect_equal_to_reference(
+    as.character(summary(diffChr(chr.7, chr.8))), rdsf(500)
+  )
+  expect_equal_to_reference(
+    as.character(summary(diffChr(chr.7, chr.8), scale.threshold=1)), rdsf(600)
+  )
+  expect_equal_to_reference(
+    as.character(summary(diffChr(chr.7, chr.8), scale.threshold=0)), rdsf(700)
+  )
+})

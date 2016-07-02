@@ -40,6 +40,21 @@ chr.4 <- c(
   "a phrase long enough to wrap a few lines when looked at on a side by side basis",
   "lorem ipsum dolor something or other I don't remember what the whole thing was anyway"
 )
+X <- do.call(paste0, expand.grid(LETTERS, LETTERS, LETTERS, LETTERS))
+
+set.seed(1)
+n <- 500
+chr.7 <- chr.8 <- X[1:n]
+chr.7 <- chr.7[
+  -unlist(
+    replicate(25, seq(from=sample(n, 1), by=1L, length.out=sample(10, 1)))
+  )
+]
+chr.8 <- chr.8[
+  -unlist(
+    replicate(25, seq(from=sample(n, 1), by=1L, length.out=sample(10, 1)))
+  )
+]
 
 ## Data Frames ----------------
 

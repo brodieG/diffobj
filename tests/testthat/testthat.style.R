@@ -1,0 +1,38 @@
+context("style")
+
+if(!identical(basename(getwd()), "testthat"))
+  stop("Working dir does not appear to be /testthat, is ", getwd())
+
+rdsf <- function(x)
+  file.path(getwd(), "helper", "style", sprintf("%s.rds", x))
+
+test_that("style palette", {
+  expect_equal_to_reference(
+    capture.output(diffobj:::display_ansi_256_styles()),
+    rdsf(100)
+  )
+})
+test_that("crayon settings", {
+  # make sure crayon options are appropriately overriden
+  old.opt <- options(crayon.enabled=FALSE)
+  on.exit(options(old.opt))
+  expect_identical(crayon::green("green"), "green")
+  # should have ANSI coloring despite crayon disabled
+  expect_equal_to_reference(
+    as.character(diffChr(letters[1:3], LETTERS[1:3])), rdsf(200)
+  )
+  expect_identical(crayon::green("green"), "green")
+})
+test_that("palette of styles", {
+  expect_identical(pos <- PaletteOfStyles(), gdo("palette"))
+  expect_identical(
+    pos[["ansi256", "light", "rgb"]],
+    getClassDef("StyleAnsi256LightRgb", where="package:diffobj", inherits=FALSE)
+  )
+  expect_equal_to_reference(
+    capture.output(show(pos)), rdsf(300)
+  )
+  expect_equal_to_reference(
+    capture.output(summary(pos)), rdsf(400)
+  )
+})

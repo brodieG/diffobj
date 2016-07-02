@@ -30,23 +30,9 @@ test_that("Corner Cases", {
   expect_equal_to_reference(as.character(diffChr("", "")), rdsf(250))
 })
 test_that("Larger strings", {
-  X <- do.call(paste0, expand.grid(LETTERS, LETTERS, LETTERS, LETTERS))
   # diffChr(X[1:2000], X[2001:4000])
 
-  set.seed(1)
-  n <- 500
-  A3 <- B3 <- X[1:n]
-  A3 <- A3[
-    -unlist(
-      replicate(25, seq(from=sample(n, 1), by=1L, length.out=sample(10, 1)))
-    )
-  ]
-  B3 <- B3[
-    -unlist(
-      replicate(25, seq(from=sample(n, 1), by=1L, length.out=sample(10, 1)))
-    )
-  ]
-  expect_equal_to_reference(as.character(diffChr(A3, B3)), rdsf(300))
+  expect_equal_to_reference(as.character(diffChr(chr.7, chr.8)), rdsf(300))
 
   # Too slow to run; useful for benchmarking though
 
