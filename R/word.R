@@ -4,35 +4,6 @@
 .word.diff.atom <- -1L
 attr(.word.diff.atom, "match.length") <- -1L
 
-# Try to use fancier word matching with vectors and matrices
-
-.brack.pat <- "^ *\\[\\d+\\]"
-
-# Determine if a string contains what appear to be standard index headers
-#
-# Returns index of elements in string that start with index headers.
-# Note that it is permissible to have ouput that doesn't match brackets
-# provided that it starts with brackets (e.g. attributes shown after break
-# pattern)
-
-find_brackets <- function(x) {
-  stopifnot(is.character(x), all(!is.na(x)))
-  matches <- regexpr(.brack.pat,  x)
-  vals <- regmatches(x, matches)
-  # the matching section must be uninterrupted starting from first line
-  # and must have consisten formatting
-
-  brackets <- which(cumsum(!nzchar(vals)) == 0L)
-  vals.in.brk <- vals[brackets]
-  nums.in.brk <- regmatches(vals.in.brk, regexpr("\\d+", vals.in.brk))
-
-  if(
-    length(brackets) && length(unique(nchar(vals.in.brk)) == 1L) &&
-    length(unique(diff(as.integer(nums.in.brk)))) <= 1L
-  ) {
-    brackets
-  } else integer(0L)
-}
 # Matches syntactically valid R variable names
 
 .reg.r.ident <- "(?:\\.[[:alpha:]]|[[:alpha:]])[[:alnum:]_.]*"
@@ -568,80 +539,16 @@ make_unique_strings <- function(n, invalid) {
     dat.chr <- do.call(paste0, split(dat, col(dat)))
     rows <- which(duplicated(dat.chr) | dat.chr %in% invalid)
     if(!length(rows)) break
+    # nocov start
     if(safety <- safety + 1 > 100)
       stop(
         "Logic Error: unable to generate unique strings; this should be ",
         "incredibly rare as we are sampling from 10^31 elements, so try ",
         "again and if it happens again contact maintainer"
       )
+    # nocov end
   }
   dat.chr
-}
-# Apply line colors; returns a list with the A and B vectors colored,
-# note that all hunks will be collapsed.
-#
-# Really only intended to be used for stuff that produces a single hunk
-
-diff_color <- function(x, ins.fun, del.fun) {
-  if(!is.diffs(x))
-    stop("Logic Error: unexpected input; contact maintainer.")
-  h.flat <- unlist(x$hunks, recursive=FALSE)
-  # the & !logical(...) business is to ensure we get zero row matrices when
-  # the id vector is length zero
-
-  bind_hunks <- function(hunk, val)
-    do.call(
-      rbind,
-      lapply(
-        hunk,
-        function(y)
-          cbind(id=y[[val]], ctx=y$context & !logical(length(y[[val]])))
-    ) )
-
-  A.num <- bind_hunks(h.flat, "A")
-  B.num <- bind_hunks(h.flat, "B")
-  A.chr <- unlist(lapply(h.flat, "[[", "A.chr"))
-  B.chr <- unlist(lapply(h.flat, "[[", "B.chr"))
-
-  # The following contortions are to minimize number of calls to
-  # `crayon_style`
-
-  A.green <- which(A.num[, "id"] < 0 & !A.num[, "ctx"])
-  A.red <- which(A.num[, "id"] > 0 & !A.num[, "ctx"])
-  B.green <- which(B.num[, "id"] < 0 & !B.num[, "ctx"])
-  B.red <- which(B.num[, "id"] > 0 & !B.num[, "ctx"])
-
-  AB.green.in <- c(A.chr[A.green], B.chr[B.green])
-  AB.red.in <- c(A.chr[A.red], B.chr[B.red])
-  color.try <- try({
-    AB.green <- ins.fun(AB.green.in)
-    AB.red <- del.fun(AB.red.in)
-    NULL
-  })
-  if(inherits(color.try, "try-error"))
-    stop("Styling functions failed; see prior errors")
-  if(
-    !is.character(AB.green) || anyNA(AB.green) ||
-    length(AB.green) != length(AB.green.in)
-  )
-    stop("Insert styling function produced unexpected output")
-
-  # Make a version where the differences are replaced with blank strings; this
-  # will then allow us to line up the hunk lines
-
-  A.eq <- A.chr
-  B.eq <- B.chr
-  A.eq[c(A.green, A.red)] <- ""
-  B.eq[c(B.green, B.red)] <- ""
-
-  # Color the diffs
-
-  A.chr[A.green] <- head(AB.green, length(A.green))
-  A.chr[A.red] <- head(AB.red, length(A.red))
-  B.chr[B.green] <- tail(AB.green, length(B.green))
-  B.chr[B.red] <- tail(AB.red, length(B.red))
-
-  list(A=A.chr, B=B.chr, A.eq=A.eq, B.eq=B.eq)
 }
 # Add word diff highlighting
 
