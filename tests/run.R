@@ -10,7 +10,12 @@ local({
   options(width=80L)
   on.exit(options(old.opts))
   test_dir(
-    "testthat", 
-    filter="diffPrint|guide|trim|atomic|diffStr|diffChr|file|summary|style"
+    "testthat",
+    filter=paste0(
+      c(
+        "diffPrint", "guide", "trim", "atomic", "diffStr", "diffChr", "file",
+        "summary", "style", "rdiff", "html", "core"
+      ), collapse="|"
+    )
   )
 })

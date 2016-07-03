@@ -1,6 +1,6 @@
 library(testthat)
 
-context("Trim Row Headers")
+context("trim")
 
 .mx.base <- matrix(
   c(
