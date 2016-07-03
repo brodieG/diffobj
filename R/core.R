@@ -205,7 +205,7 @@ setMethod("summary", "MyersMbaSes",
         t <- object@type[[y]]
         o <- object@offset[[y]]
         l <- object@length[[y]]
-        vec <- if(t == "Insert") b else a
+        vec <- if(t == "Insert") object@b else object@a
         paste0(vec[o:(o + l - 1L)], collapse="")
       },
       character(1L)
