@@ -475,20 +475,6 @@ diff_line_len <- function(hunk.grps, etc, tar.capt, cur.capt) {
     )
   ) + banner_len(etc@mode)
 }
-# Return which of the values in the data vectors within an atomic hunk are
-# in the post trim range of the hunk
-
-in_hunk <- function(h, mode) {
-  stopifnot(mode %in% c("A", "B"))
-  with(h, {
-    tar.seq <- if(all(tar.rng.trim))
-      seq(from=tar.rng.trim[[1L]], to=tar.rng.trim[[2L]]) else integer(0L)
-    cur.seq <- if(all(cur.rng.trim))
-      seq(from=cur.rng.trim[[1L]], to=cur.rng.trim[[2L]]) else integer(0L)
-    j <- h[[mode]]
-    (j > 0L & j %in% tar.seq) | (j < 0L & abs(j) %in% cur.seq)
-  })
-}
 # completely.empty used to highlight difference between hunks that technically
 # contain a header and no data vs those that can't even contain a header;
 # unfortunately a legacy of poor design choice in how headers are handled
@@ -634,30 +620,6 @@ trim_hunks <- function(x) {
     diffs=c(diffs.orig - diffs.trim, diffs.orig)
   )
   hunk.grps
-}
-# Modify Character Values of Hunks
-#
-# Used to highlight words in wrap diffs after the main diff has been done.  This
-# is quite a hack job and should probably be handled more elegantly, but at this
-# point it is the simplest way to get old functionality back up and running
-# under the hunk view of the world.
-
-update_hunks <- function(hunk.grps, A.chr, B.chr) {
-  lapply(
-    hunk.grps,
-    function(h.g)
-      lapply(
-        h.g,
-        function(h.a) {
-          a.neg <- h.a$A < 0
-          b.neg <- h.a$B < 0
-          h.a$A.chr[a.neg] <- B.chr[abs(h.a$A[a.neg])]
-          h.a$A.chr[!a.neg] <- A.chr[h.a$A[!a.neg]]
-          h.a$B.chr[b.neg] <- B.chr[abs(h.a$B[b.neg])]
-          h.a$B.chr[!b.neg] <- A.chr[h.a$B[!b.neg]]
-          h.a
-        }
-  ) )
 }
 # Helper fun
 

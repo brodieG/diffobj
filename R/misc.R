@@ -68,44 +68,20 @@ extract_call <- function(s.c) {
   if(length(found.call.m) < 3L) length(found.call.m) <- 3L
   list(call=found.call.m, tar=found.call.m[[2L]], cur=found.call.m[[3L]])
 }
-# check whether a `diff*` call is like from top level; used to determine
-# whether to use pager or not
-
-is_top_level <- function(s.c) {
-  top.fun <- tail(stack_funs(s.c), 1L)
-  length(top.fun) && top.fun %in% c(
-    "diffPrint", "diffStr", "diffChr", "diffFile", "diffCsv", "diffDeparse",
-    "diffObj"
-  )
-}
-# check whether argument list contains non-default formals
-
-has_non_def_formals <- function(arg.list) {
-  stopifnot(is.pairlist(arg.list) || is.list(arg.list))
-  any(
-    vapply(
-      arg.list,
-      function(x) is.name(x) && !nzchar(as.character(x)),
-      logical(1L)
-  ) )
-}
 # check whether running in knitr
-
-in_knitr <- function() isTRUE(getOption('knitr.in.progress'))
+# in_knitr <- function() isTRUE(getOption('knitr.in.progress'))
 
 make_err_fun <- function(call)
   function(...) stop(simpleError(do.call(paste0, list(...)), call=call))
 
 # Function used to match against `str` calls since the existing function
-# does not actually define `max.level`
+# does not actually define `max.level`; note it never is actually called
+# nocov start
 
 str_tpl <- function(object, max.level, ...) NULL
 
-# Reduce `str` output to a level
+# nocove end
 
-trim_str <- function(str.txt, level, kj) {
-  NULL
-}
 # utility fun to deparse into chr1L
 
 dep <- function(x) paste0(deparse(x, width.cutoff=500L), collapse="")
@@ -160,7 +136,8 @@ banner_len <- function(mode) if(mode == "sidebyside") 1L else 2L
 
 # Compute list depth including attributes
 #
-# These should line up with the max.level param of `str`
+# These should line up with the max.level param of `str`.  Note we don't use
+# this anymore now that we do a fake `max.level`.
 
 list_depth <- function(x, depth=0L) {
   max.lvl <- max.lvl.l <- max.lvl.a <- depth
