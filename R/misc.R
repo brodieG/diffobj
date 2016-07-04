@@ -78,7 +78,7 @@ make_err_fun <- function(call)
 # does not actually define `max.level`; note it never is actually called
 # nocov start
 
-str_tpl <- function(object, max.level, ...) NULL
+str_tpl <- function(object, max.level, comp.str, indent.str, ...) NULL
 
 # nocov end
 

@@ -27,6 +27,7 @@
   diffobj.format="auto",
   diffobj.interactive=interactive(),
   diffobj.color.mode="yb",
+  diffobj.term.colors=crayon::num_colors(),
   diffobj.brightness="neutral",
   diffobj.tab.stops=8L,
   diffobj.disp.width=0L,        # 0L == use style width, see param docs

@@ -427,8 +427,8 @@ setClass("Html", contains="VIRTUAL")
 setClass("Rgb", contains="VIRTUAL")
 setClass("Yb", contains="VIRTUAL")
 
-#' @export StyleAnsi
-#' @exportClass StyleAnsi
+#' @export StyleRaw
+t
 #' @rdname Style
 
 StyleRaw <- setClass("StyleRaw", contains=c("Style", "Raw"))

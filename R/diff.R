@@ -42,6 +42,7 @@ make_diff_fun <- function(capt_fun) {
     palette.of.styles=gdo("palette"),
     frame=parent.frame(),
     interactive=gdo("interactive"),
+    term.colors=gdo("term.colors"),
     tar.banner=NULL,
     cur.banner=NULL,
     extra=list()
@@ -60,7 +61,7 @@ make_diff_fun <- function(capt_fun) {
       tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
       frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides,
       rds=rds, trim=trim, word.diff=word.diff, unwrap.atomic=unwrap.atomic,
-      extra=extra, interactive=interactive
+      extra=extra, interactive=interactive, term.colors=term.colors
     )
     # If in rds mode, try to see if either target or current reference an RDS
 
@@ -295,6 +296,14 @@ make_diff_fun <- function(capt_fun) {
 #'   \code{\link{interactive}}.  If in interactive mode, pager will be used if
 #'   \code{pager} is \dQuote{auto}, and if ANSI styles are not supported and
 #'   \code{style} is \dQuote{auto}, output will be send to browser as HTML.
+#' @param term.colors integer(1L) how many ANSI colors are supported by the
+#'   terminal.  This variable is provided for when
+#'   \code{\link{crayon::num_colors}} does not properly detect how many ANSI
+#'   colors are supported by your terminal. Defaults to return value of
+#'   \code{\link{crayon::num_colors}} and should be 8 or 256 to allow ANSI
+#'   colors, or any other number to disallow them.  This only impacts output
+#'   format selection when \code{style} and \code{format} are both set to
+#'   \dQuote{auto}.
 #' @param tar.banner character(1L) or NULL, text to display ahead of the diff
 #'   section representing the target output.  If NULL will be
 #'   inferred from \code{target} and \code{current} expressions.
