@@ -80,7 +80,7 @@ make_err_fun <- function(call)
 
 str_tpl <- function(object, max.level, ...) NULL
 
-# nocove end
+# nocov end
 
 # utility fun to deparse into chr1L
 
@@ -196,6 +196,18 @@ get_pal_par <- function(format, param) {
     param[wild.match]
   } else stop("Logic Error: malformed palette parameter; contact maintainer.")
 }
+# check whether argument list contains non-default formals
+
+has_non_def_formals <- function(arg.list) {
+  stopifnot(is.pairlist(arg.list) || is.list(arg.list))
+  any(
+    vapply(
+      arg.list,
+      function(x) is.name(x) && !nzchar(as.character(x)),
+      logical(1L)
+  ) )
+}
+
 # Between
 
 `%bw%` <- function(x, y) {
