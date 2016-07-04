@@ -41,6 +41,7 @@ make_diff_fun <- function(capt_fun) {
     style=gdo("style"),
     palette.of.styles=gdo("palette"),
     frame=parent.frame(),
+    interactive=gdo("interactive"),
     tar.banner=NULL,
     cur.banner=NULL,
     extra=list()
@@ -59,7 +60,7 @@ make_diff_fun <- function(capt_fun) {
       tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
       frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides,
       rds=rds, trim=trim, word.diff=word.diff, unwrap.atomic=unwrap.atomic,
-      extra=extra
+      extra=extra, interactive=interactive
     )
     # If in rds mode, try to see if either target or current reference an RDS
 
@@ -289,6 +290,11 @@ make_diff_fun <- function(capt_fun) {
 #' @param frame environment the evaluation frame for the \code{print/show/str},
 #'   calls, allows user to ensure correct methods are used, not used by
 #'   \code{\link{diffChr}} or \code{\link{diffDeparse}}.
+#' @param interactive TRUE or FALSE whether the function is being run in
+#'   interactive mode, defaults to the return value of
+#'   \code{\link{interactive}}.  If in interactive mode, pager will be used if
+#'   \code{pager} is \dQuote{auto}, and if ANSI styles are not supported and
+#'   \code{style} is \dQuote{auto}, output will be send to browser as HTML.
 #' @param tar.banner character(1L) or NULL, text to display ahead of the diff
 #'   section representing the target output.  If NULL will be
 #'   inferred from \code{target} and \code{current} expressions.

@@ -25,6 +25,7 @@
   diffobj.align.count.alnum.only=TRUE,
   diffobj.style="auto",
   diffobj.format="auto",
+  diffobj.interactive=interactive(),
   diffobj.color.mode="yb",
   diffobj.brightness="neutral",
   diffobj.tab.stops=8L,

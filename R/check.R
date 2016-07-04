@@ -41,12 +41,6 @@ is.TF <- function(x) isTRUE(x) || identical(x, FALSE)
 
 is.chr.1L <- function(x) is.character(x) && length(x) == 1L && !is.na(x)
 
-is.diffs <- function(x)
-  is.list(x) && length(x) == 4L &&
-  identical(names(x), c("hunks", "diffs", "diffs.max", "hit.diffs.max")) &&
-  is.list(x$hunks) && is.int.1L(x$diffs) && is.int.1L(x$diffs.max) &&
-  is.TF(x$hit.diffs.max)
-
 is.valid.palette.param <- function(x, param, palette) {
   stopifnot(is(palette, "PaletteOfStyles"))
   stopifnot(isTRUE(param %in% c("brightness", "color.mode")))
@@ -190,7 +184,7 @@ check_args <- function(
 
   TF.vars <- c(
     "ignore.white.space", "convert.hz.white.space", "rds", "word.diff",
-    "unwrap.atomic"
+    "unwrap.atomic", "interactive"
   )
   msg.base <- "Argument `%s` must be TRUE or FALSE."
   for(x in TF.vars) if(!is.TF(get(x, inherits=FALSE))) err(sprintf(msg.base, x))
@@ -260,7 +254,7 @@ check_args <- function(
 
   if(!is(pager, "Pager")) {
     pager <- if(
-      (pager == "auto" && interactive()) || pager == "on"
+      (pager == "auto" && interactive) || pager == "on"
     ) {
       "on"
     } else PagerOff()
@@ -282,12 +276,8 @@ check_args <- function(
         )
       # No recognized color alternatives, try to use HTML if we can
 
-      format <- if(!clrs %in% c(8, 256) || in_knitr()) {
-        if(in_knitr() || interactive()) {
-          "html"
-        } else {
-          "raw"
-        }
+      format <- if(!clrs %in% c(8, 256)) {
+        if(interactive) "html" else "raw"
       } else if (clrs == 8) {
         "ansi8"
       } else if (clrs == 256) {
