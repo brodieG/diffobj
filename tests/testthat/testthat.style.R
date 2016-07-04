@@ -36,3 +36,37 @@ test_that("palette of styles", {
     capture.output(summary(pos)), rdsf(400)
   )
 })
+test_that("auto style selection", {
+  expect_error(
+    diffChr(letters, LETTERS, style="auto", format="xml"),
+    "`format` must be one of"
+  )
+  expect_is(
+    diffChr(
+      letters, LETTERS, style="auto", format="auto", brightness="light",
+      term.colors=256
+    )@etc@style,
+    "StyleAnsi256LightYb"
+  )
+  expect_is(
+    diffChr(
+      letters, LETTERS, style="auto", format="auto", brightness="light",
+      term.colors=8
+    )@etc@style,
+    "StyleAnsi8NeutralYb"
+  )
+  expect_is(
+    diffChr(
+      letters, LETTERS, style="auto", format="auto", interactive=FALSE,
+      term.colors=1
+    )@etc@style,
+    "StyleRaw"
+  )
+  expect_is(
+    diffChr(
+      letters, LETTERS, style="auto", format="auto", interactive=TRUE,
+      term.colors=1
+    )@etc@style,
+    "StyleHtml"
+  )
+})

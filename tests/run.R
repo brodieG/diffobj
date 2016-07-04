@@ -14,7 +14,7 @@ local({
     filter=paste0(
       c(
         "diffPrint", "guide", "trim", "atomic", "diffStr", "diffChr", "file",
-        "summary", "style", "rdiff", "html", "core"
+        "summary", "style", "rdiff", "html", "core", "warning", "pager", "text"
       ), collapse="|"
     )
   )

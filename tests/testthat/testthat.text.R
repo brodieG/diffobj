@@ -53,22 +53,6 @@ test_that("wrap with escape sequences", {
     list(rep(10L, 10L), rep(10L, 3L))
   )
 })
-test_that("pad sign", {
-  txt1 <- list(c("hello", "there"), c("how", "are you"), "sir!")
-  expect_identical(
-    diffobj:::sign_pad(txt1, 1L, FALSE),
-    list(c("  hello", "  there"), c("  how", "  are you"), "  sir!")
-  )
-  expect_identical(
-    diffobj:::sign_pad(txt1, 2L, FALSE),
-    list(c("\033[32m+ \033[39mhello", "\033[32m: \033[39mthere"), c("\033[32m+ \033[39mhow", "\033[32m: \033[39mare you"), "\033[32m+ \033[39msir!")
-  )
-  expect_identical(
-    diffobj:::sign_pad(txt1, 3L, FALSE),
-    list(c("\033[31m- \033[39mhello", "\033[31m: \033[39mthere"), c("\033[31m- \033[39mhow", "\033[31m: \033[39mare you"), "\033[31m- \033[39msir!")
-  )
-  expect_error(diffobj:::sign_pad(txt1, "* ", FALSE), "is.integer")
-} )
 test_that("strip hz whitespace", {
   old.opt <- options(crayon.enabled=FALSE)
   on.exit(options(old.opt))
@@ -115,11 +99,11 @@ test_that("strip hz whitespace", {
   )
   # visually inspect these
 
-  cat("\n")
-  cat(test.chr, sep="\n")
-  cat(res <- diffobj:::strip_hz_control(test.chr), sep="\n")
-
-  expect_equal(strip_style(res), "ABCdef78")
+  # cat("\n")
+  # cat(test.chr, sep="\n")
+  res <- diffobj:::strip_hz_control(test.chr)
+  # cat(res, sep="\n")
+  expect_equal(crayon::strip_style(res), "ABCdef78")
 
   # Mix tabs and carriage returns, visual inspection assumes terminal tab
   # stops at 8L; note output not exactly the same since it seems tabs don't
@@ -128,150 +112,20 @@ test_that("strip hz whitespace", {
   test.chr.2 <- paste0(
     red("000" %+% bgBlue("\r123\t456\t78")), "\rab\tcd f", green("\rABC")
   )
-  cat("\n")
-  cat(test.chr.2, sep="\n")
-  cat(res.2 <- diffobj:::strip_hz_control(test.chr.2, stops=8L), sep="\n")
+  # cat("\n")
+  # cat(test.chr.2, sep="\n")
+  res.2 <- diffobj:::strip_hz_control(test.chr.2, stops=8L)
+  # cat(res.2, sep="\n")
 
-  expect_equal(strip_style(res.2), "ABC     cd f    78")
+  expect_equal(crayon::strip_style(res.2), "ABC     cd f    78")
 
   # multi line
 
   test.chr.3 <- c(test.chr, test.chr.2)
-  cat("\n")
-  cat(res.3 <- diffobj:::strip_hz_control(test.chr.3), sep="\n")
-  cat(test.chr.3, sep="\n")
+  # cat("\n")
+  res.3 <- diffobj:::strip_hz_control(test.chr.3)
+  # cat(res.3, sep="\n")
+  # cat(test.chr.3, sep="\n")
 
-  expect_equal(strip_style(res.3), c("ABCdef78", "ABC     cd f    78"))
+  expect_equal(crayon::strip_style(res.3), c("ABCdef78", "ABC     cd f    78"))
 })
-test_that("align mismatches", {
-  # Use case differences as the differences
-  A <- as.list(letters[1:10])
-  B <- as.list(LETTERS[2:13])
-  AB.diffs <- c(1, 3:4, 6, 10)
-  B[AB.diffs] <- paste(B[AB.diffs], LETTERS[AB.diffs])
-  A.eq <- tolower(unlist(A))
-  B.eq <- tolower(unlist(B))
-
-  expect_identical(
-    unname(
-      diffobj:::align_eq(
-        A, B, A.eq, B.eq, A.eq, B.eq, ignore.white.space=FALSE, threshold=0
-    ) ),
-    list(
-      list(list("a", "b"), list("c"), list("d", "e"), list("f"), list("g"), list("h"), list(character(0)), list("i"), list(character(0)), list("j"), list(character(0))),
-      list(list("B A"), list("C"), list("D C", "E D"), list("F"), list("G F"), list("H"), list(character(0)), list("I"), list(character(0)), list("J"), list("K J", "L", "M"))
-    )
-  )
-  A1.eq <- letters[2:11]  # now match first char
-  A1 <- as.list(A1.eq)
-  expect_identical(
-    unname(
-      diffobj:::align_eq(
-        A1, B, A1.eq, B.eq, A1.eq, B.eq, ignore.white.space=FALSE, threshold=0
-    ) ),
-    list(
-      list(list("b"), list("c"), list("d", "e"), list("f"), list("g"), list("h"), list(character(0)), list("i"), list(character(0)), list("j"), list("k")),
-      list(list("B A"), list("C"), list("D C", "E D"), list("F"), list("G F"), list("H"), list(character(0)), list("I"), list(character(0)), list("J"), list("K J", "L", "M"))
-    )
-  )
-  # edge cases
-  empty <- character(0L)
-  abc <- letters[1:3]
-  empty.l <- as.list(empty)
-  abc.l <- as.list(abc)
-  expect_identical(
-    unname(
-      diffobj:::align_eq(
-        empty.l, abc.l, empty, abc, empty, abc, ignore.white.space=FALSE,
-        threshold=0
-    ) ),
-    list(list(list(character(0))), list(list("a", "b", "c")))
-  )
-  expect_identical(
-    unname(
-      diffobj:::align_eq(
-        abc.l, empty.l, abc, empty, abc, empty, ignore.white.space=FALSE,
-        threshold=0
-    ) ),
-    list(list(list("a", "b", "c")), list(list(character(0))))
-  )
-  expect_identical(
-    unname(
-      diffobj:::align_eq(
-        empty.l, empty.l, empty, empty, empty, empty, ignore.white.space=FALSE,
-        threshold=0
-    ) ),
-    list(list(list(character(0))), list(list(character(0))))
-  )
-  # empty first match
-  A2 <- letters[2:4]
-  B2 <- letters[1:4]
-  expect_identical(
-    unname(
-      diffobj:::align_eq(
-        as.list(A2), as.list(B2), A2, B2, A2, B2,
-        ignore.white.space=FALSE, threshold=0
-    ) ),
-    list(
-      list(list(character(0)), list("b"), list(character(0)), list("c"), list(character(0)), list("d"), list(character(0))),
-      list(list("a"), list("b"), list(character(0)), list("c"), list(character(0)), list("d"), list(character(0)))
-    )
-  )
-})
-test_that("align threshold", {
-  A <- c("ab cd e f", "xy CD e f", "ab cd e f")
-  B <- c("molly wolly", "ab cd e G", "ZZ cd e H", "xy CD e K")
-  A.eq <- substr(A, 1, 7)
-  B.eq <- substr(B, 1, 7)
-  A.tok.ratio <- c(1, 1, 0)
-  B.tok.ratio <- c(0, 1, 0, 1)
-I
-  A.l <- list(chr=A, eq.chr=A.eq, raw.chr=character(3L), tok.ratio=A.tok.ratio)
-  B.l <- list(chr=B, eq.chr=B.eq, raw.chr=character(4L), tok.ratio=B.tok.ratio)
-
-  expect_identical(
-    unname(
-      diffobj:::align_eq(
-        A.l, B.l, ignore.white.space=FALSE, threshold=0
-    ) ),
-    list(
-      list(list(character(0)), list("ab cd e f"), list(character(0)), list("xy CD e f"), list("ab cd e f")),
-      list(list("molly wolly"), list("ab cd e G"), list("ZZ cd e H"), list("xy CD e K"), list(character(0)))
-    )
-  )
-  expect_identical(
-    unname(
-      diffobj:::align_eq(
-        A.l, B.l, A.eq, B.eq, A, B, ignore.white.space=FALSE, threshold=0.75
-    ) ),
-    list(
-      list(list(character(0)), list("ab cd e f"), list(character(0)), list("xy CD e f"), list("ab cd e f")),
-      list(list("molly wolly"), list("ab cd e G"), list("ZZ cd e H"), list("xy CD e K"), list(character(0)))
-    )
-  )
-  # Increase threshold causes failure
-
-  expect_identical(
-    unname(
-      diffobj:::align_eq(
-        A.l, B.l, A.eq, B.eq, A, B, ignore.white.space=FALSE, threshold=0.8
-    ) ),
-    list(
-      list(list("ab cd e f", "xy CD e f", "ab cd e f")),
-      list(list("molly wolly", "ab cd e G", "ZZ cd e H", "xy CD e K"))
-    )
-  )
-  # Ignoring whitespace works at higher threshold
-
-  expect_identical(
-    unname(
-      diffobj:::align_eq(
-        A.l, B.l, A.eq, B.eq, A, B, ignore.white.space=TRUE, threshold=0.8
-    ) ),
-    list(
-      list(list(character(0)), list("ab cd e f"), list(character(0)), list("xy CD e f"), list("ab cd e f")),
-      list(list("molly wolly"), list("ab cd e G"), list("ZZ cd e H"), list("xy CD e K"), list(character(0)))
-    )
-  )
-})
-

@@ -22,7 +22,7 @@ test_that("Code File", {
   # writeLines(f.1, f.p.1)
   # writeLines(f.2, f.p.2)
 
-  expect_equal_to_reference(diffFile(f.p.1, f.p.2), rdsf(100))
+  expect_equal_to_reference(as.character(diffFile(f.p.1, f.p.2)), rdsf(100))
 })
 test_that("RDS", {
   f1 <- tempfile()

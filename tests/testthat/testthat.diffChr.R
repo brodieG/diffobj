@@ -61,4 +61,3 @@ test_that("Sentences", {
     as.character(diffChr(chr.5, chr.6, mode="context")), rdsf(600)
   )
 })
-
