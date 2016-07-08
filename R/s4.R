@@ -195,49 +195,6 @@ setMethod("sideBySide", "Settings",
     x
   }
 )
-# Classes for tracking intermediate diff obj data
-#
-# DiffDiffs contains a slot corresponding to each of target and current where
-# a TRUE value means the corresponding value matches in both objects and FALSE
-# means that it does not match
-#
-# Object deprecated in favor of list because to slow to instantiate and possible
-# instantiated as many times as there are hunks, + 1
-
-setClass("DiffDiffs",
-  slots=c(
-    hunks="list",
-    count.diffs="integer"  # used for `str` with auto `max.level`
-  ),
-  prototype=list(count.diffs=0L),
-  validity=function(object) {
-    rng.names <- paste0(
-      rep(c("tar.rng", "cur.rng"), 3L),
-      rep(c("", ".sub", ".trim"), each=2L)
-    )
-    nm <- c("id", "A", "B", "A.chr", "B.chr", "context", rng.names)
-    valid_rng <- function(x) length(x) == 2L && x[[2L]] - x[[1L]] >= 0L
-
-    hunks.flat <- unlist(object$hunks, recursive=FALSE)
-    hunk.check <- vapply(
-      hunks.flat,
-      function(y) {
-        if(
-          identical(names(y), nm) &&
-          is.integer(ab <- unlist(y[nm[-(3:5)]])) && !any(is.na(ab)) &&
-          all(vapply(y[rng.names], valid_rng, logical(1L)))
-        ) y$id else 0L
-      },
-      integer(1L)
-    )
-    if(!all(hunk.check)) return("slot `hunks` contains invalid hunks")
-    if(!identical(hunk.check, seq_along(hunks.flat)))
-      return("atomic hunk ids invalid")
-    if(!is.int.1L(object@count.diffs) || object@count.diffs < 0L)
-      return("Slot `max.diffs` must be integer(1L), non-NA, and positive")
-    TRUE
-  }
-)
 .diff.dat.cols <- c(
   "orig", "raw", "trim", "trim.ind.start", "trim.ind.end", "comp", "eq", "fin",
   "fill", "word.ind", "tok.rat"
@@ -403,20 +360,6 @@ setMethod("any", "Diff",
       warning("No visible differences, but objects are NOT `all.equal`.")
     res
 } )
-#' @rdname diffobj_s4method_doc
-
-setMethod("any", "DiffDiffs",
-  function(x, ..., na.rm = FALSE) {
-    stop("function deprecated")
-    dots <- list(...)
-    if(length(dots))
-      stop("`any` method for `Diff` supports only one argument")
-    any(
-      which(
-        !vapply(unlist(x$hunks, recursive=FALSE), "[[", logical(1L), "context")
-    ) )
-} )
-
 setClass(
   "MyersMbaSes",
   slots=c(
