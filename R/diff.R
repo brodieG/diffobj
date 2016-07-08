@@ -17,6 +17,7 @@ NULL
 # initial development process when they have not been set in stone yet.
 
 make_diff_fun <- function(capt_fun) {
+  # nocov start
   function(
     target, current,
     mode=gdo("mode"),
@@ -47,6 +48,7 @@ make_diff_fun <- function(capt_fun) {
     cur.banner=NULL,
     extra=list()
   ) {
+  # nocov end
     call.dat <- extract_call(sys.calls())
 
     # Check args and evaluate all the auto-selection arguments
@@ -504,7 +506,7 @@ body(diff_obj) <- quote({
   # call.raw[["silent"]] <- TRUE
   call.str <- call.print <- call.raw
   call.str[[1L]] <- quote(diffStr)
-  call.str[["max.level"]] <- "auto"
+  call.str[["extra"]] <- list(max.level="auto")
   call.print[[1L]] <- quote(diffPrint)
 
   # Run both the print and str versions, and then decide which to use based

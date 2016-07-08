@@ -70,3 +70,9 @@ test_that("auto style selection", {
     "StyleHtml"
   )
 })
+test_that("style fun validation", {
+  s.f <- StyleFuns()
+  expect_true(validObject(s.f))
+  s.f@word.insert <- function(x, y) NULL
+  expect_error(validObject(s.f), "word.insert")
+})

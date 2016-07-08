@@ -25,3 +25,11 @@ test_that("Simple structure", {
 
   expect_equal_to_reference(as.character(diffStr(iris.c, iris.s)), rdsf(400))
 })
+test_that("Strict width", {
+  expect_equal_to_reference(
+    as.character(
+      diffStr(mdl1, mdl2, extra=list(strict.width="wrap"), line.limit=30)
+    ),
+    rdsf(400)
+  )
+})

@@ -74,6 +74,7 @@ struct middle_snake {
   int x, y, u, v;
 };
 /* debugging util */
+/*
 const char * _op_to_chr(diff_op op) {
     switch (op) {
       case DIFF_MATCH: return "match"; break;
@@ -84,6 +85,7 @@ const char * _op_to_chr(diff_op op) {
         error("Logic Error: unexpected faux snake instruction; contact maintainer");
     }
 }
+*/
 /*
  * k = diagonal number
  * val = x value
