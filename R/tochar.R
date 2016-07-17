@@ -403,10 +403,12 @@ setMethod("as.character", "Diff",
     }
     limit.out <- if(ll || lh) {
       if(!is.null(str.fold.out)) {
+        # nocov start
         stop(
           "Logic Error: should not be str folding when limited; contact ",
           "maintainer."
         )
+        # nocov end
       }
       paste0(
         "... omitted ",

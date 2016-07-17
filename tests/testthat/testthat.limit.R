@@ -8,7 +8,6 @@ rdsf <- function(x)
 
 library(diffobj)
 
-
 test_that("Simple limit", {
   A <- B <- letters[1:5]
   B[2] <- "B"
@@ -76,7 +75,7 @@ test_that("More Extensive Limits", {
     ),
     rdsf(1000)
   )
-}
+} )
 test_that("Dual limit values", {
   A <- letters[1:10]
   B <- LETTERS[1:10]
@@ -86,7 +85,7 @@ test_that("Dual limit values", {
   expect_equal_to_reference(
     as.character(diffChr(A, B, line.limit=c(13, 3))), rdsf(1200)
   )
-  expect_error(diffChr(A, B, line.limit=c(3, 13)), "larget than or")
+  expect_error(diffChr(A, B, line.limit=c(3, 13)), "larger than or")
 })
 
 test_that("Cause errors", {

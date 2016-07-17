@@ -166,11 +166,9 @@ test_that("Mixed", {
     rdsf(2900)
   )
 })
-
-  # library(ggplot2)
-  # head(diamonds)
-  # d2 <- diamonds
-  # d2$x[sample(seq_len(nrow(d2)), 100)] <- sample(d2$x, 100)
-  # diffPrint(diamonds, d2)
-  # diffPrint(diamonds, d2, context=1)
-  # diffPrint(diamonds, d2, context=1, mode="s")
+test_that("covr workaround", {
+  # Needed so that the function definition stuff is marked as covered; really
+  # it shouldn't even be eligible for coverage, need to discuss further with
+  # jhester
+  diffobj:::make_diff_fun()
+})

@@ -61,3 +61,14 @@ test_that("Sentences", {
     as.character(diffChr(chr.5, chr.6, mode="context")), rdsf(600)
   )
 })
+test_that("Whitespace", {
+  expect_equal_to_reference(
+    as.character(diffChr(c("a", "b", "c"), c("a ", "b", "c"))), rdsf(800)
+  )
+  expect_equal_to_reference(
+    as.character(
+      diffChr(c("a", "b", "c"), c("a ", "b", "c"), ignore.white.space=FALSE)
+    ),
+    rdsf(900)
+  )
+})

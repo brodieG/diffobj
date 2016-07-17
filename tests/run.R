@@ -13,11 +13,29 @@ local({
     "testthat",
     filter=paste0(
       c(
-        "diffPrint", "diffStr", "diffChr", "diffObj",
+        "atomic",
+        "banner",
+        "check",
+        # "context",
+        "core",
+        "diffChr",
         "diffDeparse",
-        "guide", "trim", "atomic", "file",
-        "summary", "style", "rdiff", "html", "core", "warning", "pager", "text",
-        "check"
+        "diffObj",
+        "diffPrint",
+        "diffStr",
+        "file",
+        "guide",
+        "html",
+        "limit",
+        "misc",
+        "pager",
+        "rdiff",
+        "style",
+        "subset",
+        "summary",
+        "text",
+        "trim",
+        "warning"
       ), collapse="|"
     )
   )
