@@ -248,25 +248,6 @@ hunk_as_char <- function(h.g, h.h, x) {
 
   c(hunk.head, hunk.fin)
 }
-# helper for in_hunk_diffs
-#
-# `nd` stands for new.diff.  Here we are just remapping the word diff data
-# from tar/cur to our A/B data.
-
-update_hunk_atom <- function(h.a, new.diff, A.pos, A.neg, B.pos, B.neg, ind) {
-  A.ind <- sprintf("A.%s", ind)
-  B.ind <- sprintf("B.%s", ind)
-  tar.ind <- sprintf("tar.%s", ind)
-  cur.ind <- sprintf("cur.%s", ind)
-
-  h.a[[A.ind]][A.pos] <- new.diff[[tar.ind]][seq_along(A.pos)]
-  h.a[[A.ind]][A.neg] <- new.diff[[cur.ind]][seq_along(A.neg)]
-
-  h.a[[B.ind]][B.pos] <- new.diff[[tar.ind]][seq_along(B.pos)]
-  h.a[[B.ind]][B.neg] <- new.diff[[cur.ind]][seq_along(B.neg)]
-
-  h.a
-}
 # Helper functions for 'as.character'
 
 # Get trimmed character ranges; positives are originally from target, and
