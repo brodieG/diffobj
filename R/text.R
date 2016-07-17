@@ -73,12 +73,6 @@ align_eq <- function(A, B, x, context) {
     A.tok.ratio <- get_dat(x, A, "tok.rat")
     B.tok.ratio <- get_dat(x, B, "tok.rat")
 
-    # Remove whitespace
-
-    if(etc@ignore.white.space) {
-      A.eq <- normalize_whitespace(A.eq)
-      B.eq <- normalize_whitespace(B.eq)
-    }
     # Need to match each element in A.eq to B.eq, though each match consumes the
     # match so we can't use `match`; unfortunately this is slow; for context
     # hunks the match is one to one for each line

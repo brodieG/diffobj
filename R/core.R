@@ -226,20 +226,9 @@ char_diff <- function(x, y, context=-1L, etc, diff.mode, warn) {
     diff.mode %in% c("line", "hunk", "wrap"),
     isTRUE(warn) || identical(warn, FALSE)
   )
-  if(etc@ignore.white.space) {
-    x.w <- normalize_whitespace(x)
-    y.w <- normalize_whitespace(y)
-  } else {
-    x.w <- x
-    y.w <- y
-  }
   max.diffs <- etc@max.diffs
-  diff <- diff_myers_mba(x.w, y.w, max.diffs)  # probably shouldn't generate S4
+  diff <- diff_myers_mba(x, y, max.diffs)  # probably shouldn't generate S4
 
-  # Reset given whitespace and other modifications
-
-  diff@a <- x
-  diff@b <- y
   hunks <- as.hunks(diff, etc=etc)
   hit.diffs.max <- FALSE
   if(diff@diffs < 0L) {
@@ -295,6 +284,15 @@ line_diff <- function(
   cur.trim <- do.call(
     substr, list(cur.capt.p, cur.trim.ind[, 1L], cur.trim.ind[, 2L])
   )
+  # Remove whitespace if warranted
+
+  tar.comp <- tar.trim
+  cur.comp <- cur.trim
+
+  if(etc@ignore.white.space) {
+    tar.comp <- normalize_whitespace(tar.comp)
+    cur.comp <- normalize_whitespace(cur.comp)
+  }
   # Word diff is done in three steps: create an empty template vector structured
   # as the result of a call to `gregexpr` without matches, if dealing with
   # compliant atomic vectors in print mode, then update with the word diff
@@ -316,7 +314,7 @@ line_diff <- function(
   tar.dat <- list(
     orig=tar.capt, raw=tar.capt.p, trim=tar.trim,
     trim.ind.start=tar.trim.ind[, 1L], trim.ind.end=tar.trim.ind[, 2L],
-    comp=tar.trim, eq=tar.trim, fin=tar.capt.p,
+    comp=tar.comp, eq=tar.comp, fin=tar.capt.p,
     fill=logical(length(tar.capt.p)),
     word.ind=replicate(length(tar.capt.p), .word.diff.atom, simplify=FALSE),
     tok.rat=rep(1, length(tar.capt.p))
@@ -324,7 +322,7 @@ line_diff <- function(
   cur.dat <- list(
     orig=cur.capt, raw=cur.capt.p, trim=cur.trim,
     trim.ind.start=cur.trim.ind[, 1L], trim.ind.end=cur.trim.ind[, 2L],
-    comp=cur.trim, eq=cur.trim, fin=cur.capt.p,
+    comp=cur.comp, eq=cur.comp, fin=cur.capt.p,
     fill=logical(length(cur.capt.p)),
     word.ind=replicate(length(cur.capt.p), .word.diff.atom, simplify=FALSE),
     tok.rat=rep(1, length(cur.capt.p))
@@ -360,8 +358,8 @@ line_diff <- function(
   # diff data for each hunk, which might be slow
 
   if(etc@word.diff) {
-    # Word diffs on hunks; check first which lines already have diffs and identify
-    # the diff hunks that don't contain any of those lines
+    # Word diffs on hunks; check first which lines already have diffs and
+    # identify the diff hunks that don't contain any of those lines
 
     tar.l.w.d <- which(vapply(tar.dat$word.ind, "[", integer(1L), 1L) != -1L)
     cur.l.w.d <- which(vapply(cur.dat$word.ind, "[", integer(1L), 1L) != -1L)
