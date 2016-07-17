@@ -298,18 +298,18 @@ setMethod("as.character", "Diff",
       # This needs to account for "trim" effects
 
       msg <- "No visible differences between objects"
-      disp.eq <- all.equal(x@target, x@current)
-      msg.extra <- if(!isTRUE(disp.eq)) {
-        ", but objects are _not_ `all.equal`."
-      } else if(
-        ignore.white.space && x@etc@convert.hz.white.space &&
-        !all.equal(x@tar.dat$orig, x@cur.dat$orig)
+      msg.extra <- if(
+        (ignore.white.space || x@etc@convert.hz.white.space) &&
+        !isTRUE(all.equal(x@tar.dat$orig, x@cur.dat$orig)) &&
+        isTRUE(all.equal(x@tar.dat$comp, x@cur.dat$comp))
       ) {
-        msg <- paste0(
+        paste0(
           ", but there are white space differences; re-run diff with ",
-          "`ignore.white.space=FALSE` and `convert.hz.white.space` ",
-          "to show them."
+          "`ignore.white.space=FALSE` and `convert.hz.white.space=FALSE` ",
+          "to show them.", collapse=""
         )
+      } else if (!isTRUE(all.equal(x@target, x@current))) {
+        ", but objects are _not_ `all.equal`."
       } else "."
       res <- paste0(msg, msg.extra)
     }
