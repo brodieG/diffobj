@@ -292,8 +292,10 @@ make_diff_fun <- function(capt_fun) {
 #'   specifying the \code{format}, \code{brightness}, and \code{color.mode}
 #'   parameters.  See \code{\link{PaletteOfStyles}} for more details.
 #' @param frame environment the evaluation frame for the \code{print/show/str},
-#'   calls, allows user to ensure correct methods are used, not used by
-#'   \code{\link{diffChr}} or \code{\link{diffDeparse}}.
+#'   calls and for \code{diffObj}, also the evaluation frame for the
+#'   \code{diffPrint}/\code{diffStr} calls.  Defaults to the return value of
+#'   \code{\link{par_frame}}.  \code{\link{diffChr}} or
+#'   \code{\link{diffDeparse}}.
 #' @param interactive TRUE or FALSE whether the function is being run in
 #'   interactive mode, defaults to the return value of
 #'   \code{\link{interactive}}.  If in interactive mode, pager will be used if
