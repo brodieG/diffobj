@@ -89,6 +89,10 @@ test_that("Dual limit values", {
   expect_error(diffChr(A, B, line.limit=c(3, 13)), "larget than or")
 })
 
+test_that("Cause errors", {
+  expect_error(diffChr(letters, LETTERS, line.limit=1:3), "vector of length")
+})
+
 
 
 

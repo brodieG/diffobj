@@ -1,3 +1,4 @@
+context("check")
 
 test_that("is.less_flags", {
   expect_true(diffobj:::is.less_flags("RVXF"))
@@ -5,7 +6,7 @@ test_that("is.less_flags", {
   expect_false(diffobj:::is.less_flags(c("rvxF", "RVXF")))
   expect_false(diffobj:::is.less_flags(23))
   expect_false(diffobj:::is.less_flags("rv xF"))
-}
+})
 test_that("is.int.2L", {
   expect_true(diffobj:::is.int.2L(1:2))
   expect_true(diffobj:::is.int.2L(as.numeric(1:2)))
@@ -22,7 +23,7 @@ test_that("arg.funs", {
   )
   expect_match(diffobj:::is.one.arg.fun(NULL), "is not a fun")
   expect_match(diffobj:::is.one.arg.fun(function() NULL), "have at least")
-  expect_match(diffobj:::is.one.arg.fun(function(x, y) NULL), "cannot have non")
+  expect_match(diffobj:::is.one.arg.fun(function(x, y) NULL), "cannot have any")
 
   expect_true(diffobj:::is.two.arg.fun(function(x, y) NULL))
   expect_true(diffobj:::is.two.arg.fun(function(x, y=5) NULL))
@@ -33,7 +34,7 @@ test_that("arg.funs", {
   expect_match(diffobj:::is.two.arg.fun(NULL), "is not a fun")
   expect_match(diffobj:::is.two.arg.fun(function(x) NULL), "have at least")
   expect_match(
-    diffobj:::is.two.arg.fun(function(x, y, z) NULL), "cannot have non"
+    diffobj:::is.two.arg.fun(function(x, y, z) NULL), "cannot have any"
   )
 })
 

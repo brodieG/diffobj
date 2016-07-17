@@ -428,7 +428,7 @@ setClass("Rgb", contains="VIRTUAL")
 setClass("Yb", contains="VIRTUAL")
 
 #' @export StyleRaw
-t
+#' @exportClass StyleRaw
 #' @rdname Style
 
 StyleRaw <- setClass("StyleRaw", contains=c("Style", "Raw"))

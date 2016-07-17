@@ -38,36 +38,73 @@ c.factor <- function(..., recursive=FALSE) {
 
 stack_funs <- function(s.c) {
   if(!length(s.c)) stop("Logic Error: call stack empty; contact maintainer.")
-  r.s.c <- rev(s.c)
-  funs <- vapply(
-    r.s.c, function(x) if(is.name(x[[1L]])) as.character(x[[1L]])[[1L]] else "",
+  vapply(
+    s.c, function(x) if(is.name(x[[1L]])) as.character(x[[1L]])[[1L]] else "",
     character(1L)
   )
 }
 # Pull out the first call reading back from sys.calls that is likely to be
-# be the top level call and return the call along with the target and
-# current substituted values.  Part of complexity driven by possibility that
-# there is a user defined method.
+# be the top level call to the dif* funs
 
-extract_call <- function(s.c) {
+which_top <- function(s.c) {
+  if(!length(s.c))
+    stop("Logic Error: stack should have at least one call, contact maintainer")
   funs <- stack_funs(s.c)
-  r.s.c <- rev(s.c)
-  possible.calls <- which(
-    !funs %in% c(".local", ".nextMethod", "callNextMethod")
-  )
-  first.call <- if(!length(possible.calls)) 0L else min(possible.calls)
-  # Can't find call, just return the very first one
+  f.rle <-rle(funs)
+  val.calls <- f.rle$lengths == 2
 
-  found.call <- if(!first.call) {
-    r.s.c[[1L]]
-  } else r.s.c[[first.call]]
-
-  found.call.m <- match.call(
-    definition=get(as.character(found.call[[1L]])), call=found.call
-  )
-  if(length(found.call.m) < 3L) length(found.call.m) <- 3L
-  list(call=found.call.m, tar=found.call.m[[2L]], cur=found.call.m[[3L]])
+  if(any(val.calls)) {
+    # return first index of any pairs of identical calls in the call stack
+    rle_sub(f.rle, max(which(val.calls)))[[1L]][1L]
+  } else {
+    # failed to find a value, so just return last call on stack
+    length(s.c)
+  }
 }
+extract_call <- function(s.c, par.env) {
+  idx <- which_top(s.c)
+  found.call <- s.c[[idx]]
+  found.call.m <- try(
+    match.call(
+      definition=get(as.character(found.call[[1L]]), envir=par.env),
+      call=found.call
+    )
+  )
+  if(inherits(found.call, "try-error")) {
+    warning("Unable to match call that issued diff; see previous error.")
+    list(call=NULL, tar=NULL, cur=NULL)
+  } else {
+    if(length(found.call.m) < 3L) length(found.call.m) <- 3L
+    list(call=found.call.m, tar=found.call.m[[2L]], cur=found.call.m[[3L]])
+  }
+}
+#' Get Parent Frame of S4 Call Stack
+#'
+#' Implementation of the \code{function(x=parent.frame()) ...} pattern for the
+#' \code{\link{diff*}{diffPrint}} methods since the normal pattern does not
+#' work with S4 methods.  Works by looking through the call stack and
+#' identifying what call likely initiated the S4 dispatch.
+#'
+#' The function is not exported and intended only for use as the default value
+#' for the \code{frame} argument for the \code{\link{diff*}{diffPrint}}
+#' methods.
+#'
+#' Matching is done purely by looking for the first repeated call which is
+#' what usual happens with S4 dispatch since there will be a call to the generic
+#' and then to the method.  Since methods can be renamed by the user we make
+#' no attempt to verify method names.  This method could potentially be tricked
+#' if you implement custom \code{\link{diff*}{diffPrint}} methods that somehow
+#' issue two identical sequential calls before calling \code{callNextMethod}.
+#' Failure in this case means the wrong \code{frame} will be returned.
+#'
+#' @return an environment
+
+par_frame <- function() {
+  s.c <- head(sys.calls(), -1L)
+  top <- which_top(s.c)
+  sys.frame(sys.parent(top))
+}
+
 # check whether running in knitr
 # in_knitr <- function() isTRUE(getOption('knitr.in.progress'))
 

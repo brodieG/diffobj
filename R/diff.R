@@ -41,7 +41,7 @@ make_diff_fun <- function(capt_fun) {
     align=gdo("align"),
     style=gdo("style"),
     palette.of.styles=gdo("palette"),
-    frame=parent.frame(),
+    frame=par_frame(),
     interactive=gdo("interactive"),
     term.colors=gdo("term.colors"),
     tar.banner=NULL,
@@ -49,7 +49,8 @@ make_diff_fun <- function(capt_fun) {
     extra=list()
   ) {
   # nocov end
-    call.dat <- extract_call(sys.calls())
+    frame # force frame so that `par_frame` called in this context
+    call.dat <- extract_call(sys.calls(), frame)
 
     # Check args and evaluate all the auto-selection arguments
 
@@ -502,8 +503,9 @@ body(diff_obj) <- quote({
   if(length(extra))
     stop("Argument `extra` must be empty in `diffObj`.")
 
-  call.raw <- extract_call(sys.calls())$call
-  # call.raw[["silent"]] <- TRUE
+  frame # force frame so that `par_frame` called in this context
+  call.raw <- extract_call(sys.calls(), frame)$call
+  call.raw[["frame"]] <- frame
   call.str <- call.print <- call.raw
   call.str[[1L]] <- quote(diffStr)
   call.str[["extra"]] <- list(max.level="auto")
@@ -513,8 +515,8 @@ body(diff_obj) <- quote({
   # on some weighting of various factors including how many lines needed to be
   # omitted vs. how many differences were reported
 
-  res.print <- eval(call.print, parent.frame())
-  res.str <- eval(call.str, parent.frame())
+  res.print <- eval(call.print, frame)
+  res.str <- eval(call.str, frame)
 
   diff.p <- count_diff_hunks(res.print@diffs)
   diff.s <- count_diff_hunks(res.str@diffs)

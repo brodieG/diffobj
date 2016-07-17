@@ -1,5 +1,4 @@
 library(diffobj)
-library(crayon)
 
 test_that("simple wrap", {
   txt1 <- c(
@@ -26,10 +25,10 @@ test_that("simple wrap", {
 test_that("wrap with escape sequences", {
   txt3 <- c(
     paste0(
-      "humpty dumpty ", style("sat on a wall", "red"),
+      "humpty dumpty ", crayon::style("sat on a wall", "red"),
       " and had a big fall",
-      style(
-        style(
+      crayon::style(
+        crayon::style(
           "humpty sat on a wall and dumped a big fall",
           "green"
         ),
@@ -37,19 +36,20 @@ test_that("wrap with escape sequences", {
       ), "woohoo"
     ),
     paste0(
-      style("hello ", "inverse"), "beautiful ", style("world", "blue")
+      crayon::style("hello ", "inverse"), "beautiful ",
+      crayon::style("world", "blue")
     )
   )
   res3 <- diffobj:::wrap(txt3, 10, TRUE)
 
   expect_identical(
-    strip_style(
+    crayon::strip_style(
       gsub(" *$", "", vapply(res3, paste0, character(1L), collapse=""))
     ),
-    strip_style(txt3)
+    crayon::strip_style(txt3)
   )
   expect_equal(
-    lapply(res3, col_nchar),
+    lapply(res3, crayon::col_nchar),
     list(rep(10L, 10L), rep(10L, 3L))
   )
 })
@@ -95,7 +95,8 @@ test_that("strip hz whitespace", {
     "a         hello     b"
   )
   test.chr <- paste0(
-    red("000" %+% bgBlue("\r12345678")), "\rabcdef", green("\rABC")
+    crayon::red(crayon::`%+%`("000",  crayon::bgBlue("\r12345678"))),
+    "\rabcdef", crayon::green("\rABC")
   )
   # visually inspect these
 
@@ -110,7 +111,8 @@ test_that("strip hz whitespace", {
   # ovewrite prior screen state whereas spaces do
 
   test.chr.2 <- paste0(
-    red("000" %+% bgBlue("\r123\t456\t78")), "\rab\tcd f", green("\rABC")
+    crayon::red(crayon::`%+%`("000", crayon::bgBlue("\r123\t456\t78"))),
+    "\rab\tcd f", crayon::green("\rABC")
   )
   # cat("\n")
   # cat(test.chr.2, sep="\n")
