@@ -199,12 +199,6 @@ calc_width_pad <- function(width, mode) {
   width.tmp <- calc_width(width, mode)
   width.tmp - .pad[[mode]]
 }
-calc_width_unpad <- function(capt.width, mode) {
-  stopifnot(
-    is.character(mode), mode %in% c("context", "unified", "sidebyside")
-  )
-  capt.width + .pad[[mode]]
-}
 # Helper function to retrieve a palette parameter
 
 get_pal_par <- function(format, param) {
