@@ -102,7 +102,10 @@ extract_call <- function(s.c, par.env) {
 par_frame <- function() {
   s.c <- head(sys.calls(), -1L)
   top <- which_top(s.c)
-  sys.frames()[[sys.parents()[top]]]
+  par <- sys.parents()[top]
+  if(par) {
+    sys.frames()[[par]]
+  } else .GlobalEnv
 }
 
 # check whether running in knitr
