@@ -407,20 +407,3 @@ line_diff <- function(
     hit.diffs.max=!warn, tar.dat=tar.dat, cur.dat=cur.dat, etc=etc
   )
 }
-# Helper function encodes matches within mismatches so that we can later word
-# diff the mismatches
-
-match_mismatch <- function(x, y) {
-  mis.overlap <- min(x, y)
-  mis.extra <- max(x, y) - mis.overlap
-  mis.seq <- seq_len(mis.overlap)
-  mis.x <- x > y
-
-  # construct final match vector, any additional mismatches in one or
-  # other vector are mismatched and encoded as NAs
-
-  x.d <- c(mis.seq, rep(NA_integer_, if(mis.x) mis.extra else 0L))
-  y.d <- c(mis.seq, rep(NA_integer_, if(!mis.x) mis.extra else 0L))
-
-  list(target=x.d, current=y.d)
-}
