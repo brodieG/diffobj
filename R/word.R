@@ -200,8 +200,11 @@ word_to_line_map <- function(
   k <- 0
 
   while(j < length(tar.lines.p)) {
-    if((k <- k + 1L) > len.orig)
+    if((k <- k + 1L) > len.orig) {
+      # nocov start
       stop("Logic Error: infine loop in atomic hunk align; contact maintainer.")
+      # nocov end
+    }
     if(!length(tar.lines.p[[j]]) && !length(cur.lines.p[[j]])) {
       if(j > 1L) {
         tar.lo <- !length(tar.lines.p[[j - 1L]])
@@ -331,16 +334,22 @@ word_to_line_map <- function(
   cur.match <- unlist(lapply(seq_along(h.cont), hunk_match, l=cur.lines.f))
 
   pos.nums <- sum(tar.match)
-  if(pos.nums != length(unlist(cur.lines.f[h.cont])))
+  if(pos.nums != length(unlist(cur.lines.f[h.cont]))) {
+    # nocov start
     stop("Logic Error: pos nums incorrect; contact maintainer")
+    # nocov end
+  }
   neg.nums <- sum(!tar.match, !cur.match)
 
   strings <-
     make_unique_strings(pos.nums + neg.nums, c(tar.dat$raw, cur.dat$raw))
   strings.pos <- strings[seq.int(pos.nums)]
   strings.neg <- tail(strings, neg.nums)
-  if(neg.nums + pos.nums != length(strings))
+  if(neg.nums + pos.nums != length(strings)) {
+    # nocov start
     stop("Logic Error: num-string maping failed; contact maintainer")
+    # nocov end
+  }
 
   tar.dat$comp[tar.ind.a.l][tar.match] <- strings.pos
   cur.dat$comp[cur.ind.a.l][cur.match] <- strings.pos
