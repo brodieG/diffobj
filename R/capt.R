@@ -111,8 +111,8 @@ capt_str <- function(target, current, etc, err, extra){
     max.level.pos <- match("max.level", names(str.match), nomatch=0L)
   ) {
     # max.level specified in call; check for special 'auto' case
-    res <- eval_try(str.match, "max.level", etc@frame)
-    if(identical(res, "auto")) {
+    max.level.eval <- eval_try(str.match, "max.level", etc@frame)
+    if(identical(max.level.eval, "auto")) {
       auto.mode <- TRUE
       str.match[["max.level"]] <- NA
     } else {
@@ -158,7 +158,11 @@ capt_str <- function(target, current, etc, err, extra){
   cur.capt <- capture(cur.call, etc, err)
   cur.lvls <- str_levels(cur.capt, wrap=wrap)
 
-  prev.lvl.hi <- lvl <- max.depth <- max(tar.lvls, cur.lvls)
+  if(max.level.supplied) {
+    prev.lvl.hi <- lvl <- max.depth <- max.level.eval
+  } else {
+    prev.lvl.hi <- lvl <- max.depth <- max(tar.lvls, cur.lvls)
+  }
   prev.lvl.lo <- 0L
   first.loop <- TRUE
   safety <- 0L
@@ -166,6 +170,9 @@ capt_str <- function(target, current, etc, err, extra){
 
   if(isTRUE(etc@guides)) etc@guides <- guidesStr
   if(isTRUE(etc@trim)) etc@trim <- trimStr
+
+  # DEV NOTE: need to figure out how to record the diffs at the max possible
+  # display so we can then report when using max.level conceals differences.
 
   repeat{
     if((safety <- safety + 1L) > max.depth && !first.loop)
@@ -231,7 +238,7 @@ capt_str <- function(target, current, etc, err, extra){
   }
   if(auto.mode && !is.null(lvl) && lvl < max.depth) {
     str.match[[max.level.pos]] <- lvl
-  } else if (!max.level.supplied || is.null(lvl) || lvl >= max.depth) {
+  } else if (!max.level.supplied || is.null(lvl)) {
     str.match[[max.level.pos]] <- NULL
   }
   tar.call <- cur.call <- str.match
