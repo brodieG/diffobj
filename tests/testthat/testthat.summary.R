@@ -28,6 +28,11 @@ test_that("Small Summary", {
   expect_equal_to_reference(
     as.character(summary(diffPrint(iris.s, iris.c))), rdsf(400)
   )
+  # All equal
+
+  expect_equal_to_reference(
+    as.character(summary(diffChr(letters, letters))), rdsf(450)
+  )
 })
 test_that("Big Summary", {
   # Make sure we test summary reduction, wrapping
@@ -40,5 +45,18 @@ test_that("Big Summary", {
   )
   expect_equal_to_reference(
     as.character(summary(diffChr(chr.7, chr.8), scale.threshold=0)), rdsf(700)
+  )
+  # Force truncation of summary
+  expect_equal_to_reference(
+    as.character(
+      summary(diffChr(chr.7, chr.8), scale.threshold=0, max.lines=2)
+    ),
+    rdsf(800)
+  )
+})
+test_that("Show", {
+  expect_true(
+    paste0(capture.output(summary(diffChr(chr.7, chr.8))), collapse="\n") ==
+    as.character(summary(diffChr(chr.7, chr.8)))
   )
 })

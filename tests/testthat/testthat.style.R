@@ -36,6 +36,12 @@ test_that("palette of styles", {
     capture.output(summary(pos)), rdsf(400)
   )
 })
+test_that("Palette Subset", {
+  p.o.s <- PaletteOfStyles()
+  p.o.s["ansi256", "bright", "yb"] <- StyleRaw()
+  expect_equal(p.o.s["ansi256", "bright", "yb"], list(StyleRaw()))
+  expect_equal(p.o.s[["ansi256", "bright", "yb"]], StyleRaw())
+})
 test_that("auto style selection", {
   expect_error(
     diffChr(letters, LETTERS, style="auto", format="xml"),
@@ -68,6 +74,23 @@ test_that("auto style selection", {
       term.colors=1
     )@etc@style,
     "StyleHtml"
+  )
+})
+test_that("palette param selection", {
+  expect_equal_to_reference(
+    as.character(
+      diffChr(
+        letters, LETTERS, style="auto", format="ansi256",
+        brightness=c("light", ansi256="dark")
+    ) ),
+    rdsf(500)
+  )
+  expect_equal_to_reference(
+    as.character(
+      diffChr(
+        letters, LETTERS, style="auto", format="ansi256", brightness=c("dark")
+    ) ),
+    rdsf(500)
   )
 })
 test_that("style fun validation", {

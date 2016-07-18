@@ -52,3 +52,15 @@ test_that("Sub CSS", {
     rdsf(400)
   )
 })
+test_that("Tag funs", {
+  div_a <- div_f("A", c(color="red"))
+  expect_equal(
+    div_a(c("a", "b")),
+    c(
+      "<div class='A' style='color: red;'>a</div>",
+      "<div class='A' style='color: red;'>b</div>"
+    )
+  )
+  span_a <- span_f()
+  expect_equal(span_a(c("a", "b")), c("<span>a</span>", "<span>b</span>"))
+})

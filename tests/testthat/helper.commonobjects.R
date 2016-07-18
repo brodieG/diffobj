@@ -56,6 +56,10 @@ chr.8 <- chr.8[
   )
 ]
 
+chr.9 <- chr.10 <- letters
+ind <- c(4, 10, 18, 20, 26)
+chr.10[ind] <- LETTERS[ind]
+
 ## Data Frames ----------------
 
 set.seed(2)
