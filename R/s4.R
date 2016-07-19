@@ -274,16 +274,20 @@ setClass("Diff",
     sub.tail="integer",
     capt.mode="character",        # whether in print or str mode
     hit.diffs.max="logical",
+    diff.count.full="integer",         # only really used by diffStr when folding
     etc="Settings"
   ),
   prototype=list(
     capt.mode="print",
     trim.dat=list(lines=integer(2L), hunks=integer(2L), diffs=integer(2L)),
-    hit.diffs.max=FALSE
+    hit.diffs.max=FALSE, diff.count.full=-1L
   ),
   validity=function(object) {
     # Most of the validation is done by `check_args`
-    if(!is.chr.1L(object@capt.mode) || ! object@capt.mode %in% c("print", "str"))
+    if(
+      !is.chr.1L(object@capt.mode) || 
+      ! object@capt.mode %in% c("print", "str", "chr", "deparse", "file")
+    )
       return("slot `capt.mode` must be either \"print\" or \"str\"")
     if(
       !is.list(object@trim.dat) || length(object@trim.dat) != 3L ||

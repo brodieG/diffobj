@@ -326,7 +326,6 @@ setMethod("as.character", "Diff",
     # Trim hunks to the extented needed to make sure we fit in lines
 
     x@etc@line.limit <- line.limit.a
-    diff.count.orig <- count_diffs(x@diffs)
     hunk.grps <- trim_hunks(x)
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
 
@@ -395,9 +394,9 @@ setMethod("as.character", "Diff",
     ll <- !!lim.line[[1L]]
     lh <- !!lim.hunk[[1L]]
     diff.count <- count_diffs(hunk.grps)
-    str.fold.out <- if(diff.count.orig > diff.count) {
+    str.fold.out <- if(x@capt.mode == "str" && x@diff.count.full > diff.count) {
       paste0(
-        diff.count.orig  - diff.count,
+        x@diff.count.full - diff.count,
         " differences are hidden by our use of `max.level`"
       )
     }
