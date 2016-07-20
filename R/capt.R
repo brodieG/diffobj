@@ -188,17 +188,16 @@ capt_str <- function(target, current, etc, err, extra){
         diff.obj <- line_diff(
           target, current, tar.str, cur.str, etc=etc, warn=warn
         )
-      } else {
-        first.loop <- FALSE
-
-        # If there are no differences reducing levels isn't going to help to
-        # find one; additionally, if not in auto.mode we should not be going
-        # through this process
-
-        if(!has.diff || !auto.mode) break
       }
       if(diff.obj@hit.diffs.max) warn <- FALSE
       has.diff <- suppressWarnings(any(diff.obj))
+
+      # If there are no differences reducing levels isn't going to help to
+      # find one; additionally, if not in auto.mode we should not be going
+      # through this process
+
+      if(first.loop && !has.diff) break
+      first.loop <- FALSE
 
       if(line.limit[[1L]] < 1L) break
 
@@ -214,7 +213,7 @@ capt_str <- function(target, current, etc, err, extra){
         cur.call[[max.level.pos]] <- lvl
         next
       } else if(!has.diff) {
-        diff.obj <- diff.obj.first
+        diff.obj <- diff.obj.full
         lvl <- NULL
         break
       }
@@ -234,7 +233,7 @@ capt_str <- function(target, current, etc, err, extra){
       }
       # Couldn't get under limit, so use first run results
 
-      diff.obj <- diff.obj.first
+      diff.obj <- diff.obj.full
       lvl <- NULL
       break
     }
