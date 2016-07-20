@@ -38,9 +38,9 @@ test_that("palette of styles", {
 })
 test_that("Palette Subset", {
   p.o.s <- PaletteOfStyles()
-  p.o.s["ansi256", "bright", "yb"] <- StyleRaw()
-  expect_equal(p.o.s["ansi256", "bright", "yb"], list(StyleRaw()))
-  expect_equal(p.o.s[["ansi256", "bright", "yb"]], StyleRaw())
+  p.o.s["ansi256", "light", "yb"] <- list(StyleRaw())
+  expect_equal(c(p.o.s["ansi256", "light", "yb"]@data), list(StyleRaw()))
+  expect_equal(p.o.s[["ansi256", "light", "yb"]], StyleRaw())
 })
 test_that("auto style selection", {
   expect_error(
