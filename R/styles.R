@@ -827,7 +827,7 @@ PaletteOfStyles <- setClass(
       !all(
         vapply(
           valid.names,
-          function(x) !identical(
+          function(x) identical(
             .dfs.dims[[x]], head(dimnames(dat)[[x]], length(.dfs.dims[[x]]))
           ),
           logical(1L)
@@ -855,11 +855,12 @@ PaletteOfStyles <- setClass(
         vapply(
           dat["html", ,],
           function(x)
-            is(x, "classRepresentation") && extends(x, "StyleHTML") ||
+            is(x, "classRepresentation") && extends(x, "StyleHtml") ||
             is(x, "StyleHtml"),
-          logical(1L),)
+          logical(1L)
         )
       )
+    )
       return("Styles classifed as HTML must extend `StyleHtml`")
     TRUE
   }
