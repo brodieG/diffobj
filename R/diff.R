@@ -188,15 +188,15 @@ make_diff_fun <- function(capt_fun) {
 #'   you use should correspond to a \code{format}.  You must have one unnamed
 #'   value which will be used as the default for all \code{format}s that are
 #'   not explicitly specified.
-#' @param word.diff TRUE (default) or FALSE, whether to run a secondary word
-#'   diff on the on in-hunk diferences
 #' @param color.mode character, one of \dQuote{rgb} or \dQuote{yb}.
 #'   Defaults to \dQuote{yb}.  \dQuote{yb} stands for \dQuote{Yellow-Blue} for
 #'   color schemes that rely primarily on those colors to style diffs.
 #'   Those colors can be easily distinguished by individuals with
 #'   limited red-green color sensitivity.  See \code{\link{Palette}} for
 #'   details and limitations.  Also offers the same advanced usage as the
-#'   \code{brightness} paramter does.
+#'   \code{brightness} paramter.
+#' @param word.diff TRUE (default) or FALSE, whether to run a secondary word
+#'   diff on the on in-hunk diferences
 #' @param pager character(1L), one of \dQuote{auto}, \dQuote{on},
 #'   \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
 #'   pager is used to display the diff output.  If \dQuote{on} will use the
