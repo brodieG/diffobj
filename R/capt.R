@@ -285,7 +285,7 @@ capt_deparse <- function(target, current, etc, err, extra){
   dep.try <- try({
     tar.capt <- do.call(deparse, c(list(target), extra))
     cur.capt <- do.call(deparse, c(list(current), extra))
-  }
+  })
   if(inherits(dep.try, "try-error"))
     err("Error attempting to deparse object(s)")
 
