@@ -182,6 +182,7 @@ check_args <- function(
 
   # check T F args
 
+  if(is.null(interactive)) interactive <- interactive()
   TF.vars <- c(
     "ignore.white.space", "convert.hz.white.space", "rds", "word.diff",
     "unwrap.atomic", "interactive"
