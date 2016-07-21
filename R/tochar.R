@@ -544,21 +544,20 @@ setMethod("as.character", "Diff",
       match=function(x) es@funs@text(es@funs@text.match(x)),
       guide=function(x) es@funs@text(es@funs@text.guide(x)),
       fill=function(x) es@funs@text(es@funs@text.fill(x)),
+      context.sep=function(x) 
+        es@funs@text(es@funs@context.sep(es@text@context.sep)),
       header=es@funs@header
     )
     pre.render.s <- Map(
       function(dat, type, l.na) {
         res <- vector("list", length(dat))
-        res[type == "context.sep"] <- list(
-          es@funs@context.sep(es@text@context.sep)
-        )
         for(i in names(funs.ts))  # really need to loop through all?
           res[type == i] <- Map(
             function(y, l.na.i) {
               res.s <- y
               if(any(l.na.i))
                 res.s[l.na.i] <- funs.ts$fill(y[l.na.i])
-              res.s[!l.na.i] <- funs.ts[[i]](y[!l.na.i])
+              res.s[!l.na.i | i == "context.sep"] <- funs.ts[[i]](y[!l.na.i])
               res.s
             },
             dat[type == i],

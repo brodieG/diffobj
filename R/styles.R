@@ -594,6 +594,7 @@ StyleHtml <- setClass(
       gutter.guide=div_f("guide"),
       gutter.fill=div_f("fill"),
       gutter=div_f("gutter"),
+      context.sep=div_f("context_sep"),
       word.insert=span_f(c("word", "insert")),
       word.delete=span_f(c("word", "delete")),
       trim=span_f("trim"),
