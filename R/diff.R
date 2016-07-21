@@ -6,6 +6,7 @@
 #' \code{diff} utility, and provides alternate display modes.
 #'
 #' @import crayon
+#' @import methods
 #' @name diffobj-package
 #' @docType package
 
@@ -16,6 +17,7 @@ NULL
 # initial development process when they have not been set in stone yet.
 
 make_diff_fun <- function(capt_fun) {
+  # nocov start
   function(
     target, current,
     mode=gdo("mode"),
@@ -39,12 +41,16 @@ make_diff_fun <- function(capt_fun) {
     align=gdo("align"),
     style=gdo("style"),
     palette.of.styles=gdo("palette"),
-    frame=parent.frame(),
+    frame=par_frame(),
+    interactive=gdo("interactive"),
+    term.colors=gdo("term.colors"),
     tar.banner=NULL,
     cur.banner=NULL,
     extra=list()
   ) {
-    call.dat <- extract_call(sys.calls())
+  # nocov end
+    frame # force frame so that `par_frame` called in this context
+    call.dat <- extract_call(sys.calls(), frame)
 
     # Check args and evaluate all the auto-selection arguments
 
@@ -58,7 +64,7 @@ make_diff_fun <- function(capt_fun) {
       tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
       frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides,
       rds=rds, trim=trim, word.diff=word.diff, unwrap.atomic=unwrap.atomic,
-      extra=extra
+      extra=extra, interactive=interactive, term.colors=term.colors
     )
     # If in rds mode, try to see if either target or current reference an RDS
 
@@ -182,15 +188,15 @@ make_diff_fun <- function(capt_fun) {
 #'   you use should correspond to a \code{format}.  You must have one unnamed
 #'   value which will be used as the default for all \code{format}s that are
 #'   not explicitly specified.
-#' @param word.diff TRUE (default) or FALSE, whether to run a secondary word
-#'   diff on the on in-hunk diferences
 #' @param color.mode character, one of \dQuote{rgb} or \dQuote{yb}.
 #'   Defaults to \dQuote{yb}.  \dQuote{yb} stands for \dQuote{Yellow-Blue} for
 #'   color schemes that rely primarily on those colors to style diffs.
 #'   Those colors can be easily distinguished by individuals with
 #'   limited red-green color sensitivity.  See \code{\link{Palette}} for
 #'   details and limitations.  Also offers the same advanced usage as the
-#'   \code{brightness} paramter does.
+#'   \code{brightness} paramter.
+#' @param word.diff TRUE (default) or FALSE, whether to run a secondary word
+#'   diff on the on in-hunk diferences
 #' @param pager character(1L), one of \dQuote{auto}, \dQuote{on},
 #'   \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
 #'   pager is used to display the diff output.  If \dQuote{on} will use the
@@ -272,7 +278,10 @@ make_diff_fun <- function(capt_fun) {
 #' @param align numeric(1L) between 0 and 1, proportion of
 #'   words in a line of \code{target} that must be matched in a line of
 #'   \code{current} in the same hunk for those lines to be paired up when
-#'   displayed (defaults to 0.25), or a \code{\link{AlignThreshold}} object.
+#'   displayed (defaults to 0.25), or an \code{\link{AlignThreshold}} object.
+#'   Set to \code{1} to turn off alignment which will cause all lines in a hunk
+#'   from \code{target} to show up first, followed by all lines from
+#'   \code{current}.
 #' @param style \dQuote{auto}, or a \code{\link{Style}} object.
 #'   \dQuote{auto} by default.  If a \code{Style} object, will override the
 #'   the \code{format}, \code{brightness}, and \code{color.mode} parameters.
@@ -283,8 +292,23 @@ make_diff_fun <- function(capt_fun) {
 #'   specifying the \code{format}, \code{brightness}, and \code{color.mode}
 #'   parameters.  See \code{\link{PaletteOfStyles}} for more details.
 #' @param frame environment the evaluation frame for the \code{print/show/str},
-#'   calls, allows user to ensure correct methods are used, not used by
-#'   \code{\link{diffChr}} or \code{\link{diffDeparse}}.
+#'   calls and for \code{diffObj}, also the evaluation frame for the
+#'   \code{diffPrint}/\code{diffStr} calls.  Defaults to the return value of
+#'   \code{\link{par_frame}}.  \code{\link{diffChr}} or
+#'   \code{\link{diffDeparse}}.
+#' @param interactive TRUE or FALSE whether the function is being run in
+#'   interactive mode, defaults to the return value of
+#'   \code{\link{interactive}}.  If in interactive mode, pager will be used if
+#'   \code{pager} is \dQuote{auto}, and if ANSI styles are not supported and
+#'   \code{style} is \dQuote{auto}, output will be send to browser as HTML.
+#' @param term.colors integer(1L) how many ANSI colors are supported by the
+#'   terminal.  This variable is provided for when
+#'   \code{\link{crayon::num_colors}} does not properly detect how many ANSI
+#'   colors are supported by your terminal. Defaults to return value of
+#'   \code{\link{crayon::num_colors}} and should be 8 or 256 to allow ANSI
+#'   colors, or any other number to disallow them.  This only impacts output
+#'   format selection when \code{style} and \code{format} are both set to
+#'   \dQuote{auto}.
 #' @param tar.banner character(1L) or NULL, text to display ahead of the diff
 #'   section representing the target output.  If NULL will be
 #'   inferred from \code{target} and \code{current} expressions.
@@ -481,19 +505,20 @@ body(diff_obj) <- quote({
   if(length(extra))
     stop("Argument `extra` must be empty in `diffObj`.")
 
-  call.raw <- extract_call(sys.calls())$call
-  # call.raw[["silent"]] <- TRUE
+  frame # force frame so that `par_frame` called in this context
+  call.raw <- extract_call(sys.calls(), frame)$call
+  call.raw[["frame"]] <- frame
   call.str <- call.print <- call.raw
   call.str[[1L]] <- quote(diffStr)
-  call.str[["max.level"]] <- "auto"
+  call.str[["extra"]] <- list(max.level="auto")
   call.print[[1L]] <- quote(diffPrint)
 
   # Run both the print and str versions, and then decide which to use based
   # on some weighting of various factors including how many lines needed to be
   # omitted vs. how many differences were reported
 
-  res.print <- eval(call.print, parent.frame())
-  res.str <- eval(call.str, parent.frame())
+  res.print <- eval(call.print, frame)
+  res.str <- eval(call.str, frame)
 
   diff.p <- count_diff_hunks(res.print@diffs)
   diff.s <- count_diff_hunks(res.str@diffs)

@@ -38,74 +38,90 @@ c.factor <- function(..., recursive=FALSE) {
 
 stack_funs <- function(s.c) {
   if(!length(s.c)) stop("Logic Error: call stack empty; contact maintainer.")
-  r.s.c <- rev(s.c)
-  funs <- vapply(
-    r.s.c, function(x) if(is.name(x[[1L]])) as.character(x[[1L]])[[1L]] else "",
+  vapply(
+    s.c, function(x) if(is.name(x[[1L]])) as.character(x[[1L]])[[1L]] else "",
     character(1L)
   )
 }
 # Pull out the first call reading back from sys.calls that is likely to be
-# be the top level call and return the call along with the target and
-# current substituted values.  Part of complexity driven by possibility that
-# there is a user defined method.
+# be the top level call to the dif* funs
 
-extract_call <- function(s.c) {
+which_top <- function(s.c) {
+  if(!length(s.c))
+    stop("Logic Error: stack should have at least one call, contact maintainer")
   funs <- stack_funs(s.c)
-  r.s.c <- rev(s.c)
-  possible.calls <- which(
-    !funs %in% c(".local", ".nextMethod", "callNextMethod")
-  )
-  first.call <- if(!length(possible.calls)) 0L else min(possible.calls)
-  # Can't find call, just return the very first one
+  f.rle <-rle(funs)
+  val.calls <- f.rle$lengths == 2
 
-  found.call <- if(!first.call) {
-    r.s.c[[1L]]
-  } else r.s.c[[first.call]]
-
-  found.call.m <- match.call(
-    definition=get(as.character(found.call[[1L]])), call=found.call
-  )
-  if(length(found.call.m) < 3L) length(found.call.m) <- 3L
-  list(call=found.call.m, tar=found.call.m[[2L]], cur=found.call.m[[3L]])
+  if(any(val.calls)) {
+    # return first index of any pairs of identical calls in the call stack
+    rle_sub(f.rle, max(which(val.calls)))[[1L]][1L]
+  } else {
+    # failed to find a value, so just return last call on stack
+    length(s.c)
+  }
 }
-# check whether a `diff*` call is like from top level; used to determine
-# whether to use pager or not
-
-is_top_level <- function(s.c) {
-  top.fun <- tail(stack_funs(s.c), 1L)
-  length(top.fun) && top.fun %in% c(
-    "diffPrint", "diffStr", "diffChr", "diffFile", "diffCsv", "diffDeparse",
-    "diffObj"
+extract_call <- function(s.c, par.env) {
+  idx <- which_top(s.c)
+  found.call <- s.c[[idx]]
+  found.call.m <- try(
+    match.call(
+      definition=get(as.character(found.call[[1L]]), envir=par.env),
+      call=found.call
+    )
   )
+  if(inherits(found.call, "try-error")) {
+    warning("Unable to match call that issued diff; see previous error.")
+    list(call=NULL, tar=NULL, cur=NULL)
+  } else {
+    if(length(found.call.m) < 3L) length(found.call.m) <- 3L
+    list(call=found.call.m, tar=found.call.m[[2L]], cur=found.call.m[[3L]])
+  }
 }
-# check whether argument list contains non-default formals
+#' Get Parent Frame of S4 Call Stack
+#'
+#' Implementation of the \code{function(x=parent.frame()) ...} pattern for the
+#' \code{\link{diff*}{diffPrint}} methods since the normal pattern does not
+#' work with S4 methods.  Works by looking through the call stack and
+#' identifying what call likely initiated the S4 dispatch.
+#'
+#' The function is not exported and intended only for use as the default value
+#' for the \code{frame} argument for the \code{\link{diff*}{diffPrint}}
+#' methods.
+#'
+#' Matching is done purely by looking for the first repeated call which is
+#' what usual happens with S4 dispatch since there will be a call to the generic
+#' and then to the method.  Since methods can be renamed by the user we make
+#' no attempt to verify method names.  This method could potentially be tricked
+#' if you implement custom \code{\link{diff*}{diffPrint}} methods that somehow
+#' issue two identical sequential calls before calling \code{callNextMethod}.
+#' Failure in this case means the wrong \code{frame} will be returned.
+#'
+#' @return an environment
 
-has_non_def_formals <- function(arg.list) {
-  stopifnot(is.pairlist(arg.list) || is.list(arg.list))
-  any(
-    vapply(
-      arg.list,
-      function(x) is.name(x) && !nzchar(as.character(x)),
-      logical(1L)
-  ) )
+par_frame <- function() {
+  s.c <- head(sys.calls(), -1L)
+  top <- which_top(s.c)
+  par <- sys.parents()[top]
+  if(par) {
+    sys.frames()[[par]]
+  } else .GlobalEnv
 }
+
 # check whether running in knitr
-
-in_knitr <- function() isTRUE(getOption('knitr.in.progress'))
+# in_knitr <- function() isTRUE(getOption('knitr.in.progress'))
 
 make_err_fun <- function(call)
   function(...) stop(simpleError(do.call(paste0, list(...)), call=call))
 
 # Function used to match against `str` calls since the existing function
-# does not actually define `max.level`
+# does not actually define `max.level`; note it never is actually called
+# nocov start
 
-str_tpl <- function(object, max.level, ...) NULL
+str_tpl <- function(object, max.level, comp.str, indent.str, ...) NULL
 
-# Reduce `str` output to a level
+# nocov end
 
-trim_str <- function(str.txt, level, kj) {
-  NULL
-}
 # utility fun to deparse into chr1L
 
 dep <- function(x) paste0(deparse(x, width.cutoff=500L), collapse="")
@@ -158,25 +174,6 @@ str_levels <- function(str.txt, wrap=FALSE) {
 
 banner_len <- function(mode) if(mode == "sidebyside") 1L else 2L
 
-# Compute list depth including attributes
-#
-# These should line up with the max.level param of `str`
-
-list_depth <- function(x, depth=0L) {
-  max.lvl <- max.lvl.l <- max.lvl.a <- depth
-  depth <- depth + 1L
-  if(is.list(x)) {
-    max.lvl.l <- max(
-      unlist(lapply(x, list_depth, depth=depth), recursive=TRUE), depth
-    )
-  }
-  if(length(attrs <- attributes(x))) {
-    max.lvl.a <- max(
-      unlist(lapply(attrs, list_depth, depth=depth), recursive=TRUE), depth
-    )
-  }
-  max(max.lvl.l, max.lvl.a)
-}
 # Compute display width in characters
 #
 # Note this does not account for the padding required
@@ -202,12 +199,6 @@ calc_width_pad <- function(width, mode) {
   width.tmp <- calc_width(width, mode)
   width.tmp - .pad[[mode]]
 }
-calc_width_unpad <- function(capt.width, mode) {
-  stopifnot(
-    is.character(mode), mode %in% c("context", "unified", "sidebyside")
-  )
-  capt.width + .pad[[mode]]
-}
 # Helper function to retrieve a palette parameter
 
 get_pal_par <- function(format, param) {
@@ -219,6 +210,18 @@ get_pal_par <- function(format, param) {
     param[wild.match]
   } else stop("Logic Error: malformed palette parameter; contact maintainer.")
 }
+# check whether argument list contains non-default formals
+
+has_non_def_formals <- function(arg.list) {
+  stopifnot(is.pairlist(arg.list) || is.list(arg.list))
+  any(
+    vapply(
+      arg.list,
+      function(x) is.name(x) && !nzchar(as.character(x)),
+      logical(1L)
+  ) )
+}
+
 # Between
 
 `%bw%` <- function(x, y) {

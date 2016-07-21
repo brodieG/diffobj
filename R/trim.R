@@ -329,39 +329,31 @@ setMethod(
     trim_sub(obj.as.chr, stripped)
   }
 )
+# Helper function; returns untrimmed objects
+
+trim_identity <- function(obj, obj.as.chr)
+  cbind(rep(1L, length(obj.as.chr)), nchar(obj.as.chr))
+
+#' @export
+#' @rdname trim
+
+setGeneric("trimChr", function(obj, obj.as.chr) StandardGeneric("trimChr"))
+setMethod("trimChr", c("ANY", "character"), trim_identity)
+
 #' @export
 #' @rdname trim
 
 setGeneric(
-  "trimChr",
-  function(obj, obj.as.chr) StandardGeneric("trimChr")
+  "trimDeparse", function(obj, obj.as.chr) StandardGeneric("trimDeparse")
 )
-setMethod("trimChr", c("ANY", "character"),
-  function(obj, obj.as.chr)
-    cbind(rep(1L, length(obj.as.chr)), nchar(obj.as.chr))
-)
+setMethod("trimDeparse", c("ANY", "character"), trim_identity)
+
 #' @export
 #' @rdname trim
 
-setGeneric(
-  "trimDeparse",
-  function(obj, obj.as.chr) StandardGeneric("trimDeparse")
-)
-setMethod("trimDeparse", c("ANY", "character"),
-  function(obj, obj.as.chr)
-    cbind(rep(1L, length(obj.as.chr)), nchar(obj.as.chr))
-)
-#' @export
-#' @rdname trim
+setGeneric("trimFile", function(obj, obj.as.chr) StandardGeneric("trimFile"))
+setMethod("trimFile", c("ANY", "character"), trim_identity)
 
-setGeneric(
-  "trimFile",
-  function(obj, obj.as.chr) StandardGeneric("trimFile")
-)
-setMethod("trimFile", c("ANY", "character"),
-  function(obj, obj.as.chr)
-    cbind(rep(1L, length(obj.as.chr)), nchar(obj.as.chr))
-)
 # Helper fun used by trim functions that remove font of strings and rely on
 # string comparison to determine trim indices
 

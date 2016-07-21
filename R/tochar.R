@@ -151,6 +151,34 @@ fin_fun_sidebyside <- function(A, B, A.fill, B.fill, context, guide) {
           ifelse(context, "match", "insert")
   ) ) ) )
 }
+# Compute the character representation of a hunk header
+
+make_hh <- function(h.g, x, ranges.orig) {
+  stopifnot(is(x, "Diff"))
+
+  etc <- x@etc
+  mode <- etc@mode
+
+  h.ids <- vapply(h.g, "[[", integer(1L), "id")
+  h.head <- vapply(h.g, "[[", logical(1L), "guide")
+
+  # exclude header hunks from contributing to range, and adjust ranges for
+  # possible fill lines added to the data
+
+  h.ids.nh <- h.ids[!h.head]
+  tar.rng <- find_rng(h.ids.nh, ranges.orig[1:2, , drop=FALSE])
+  tar.rng.f <- cumsum(!x@tar.dat$fill)[tar.rng]
+  cur.rng <- find_rng(h.ids.nh, ranges.orig[3:4, , drop=FALSE])
+  cur.rng.f <- cumsum(!x@cur.dat$fill)[cur.rng]
+
+  hh.a <- paste0(rng_as_chr(tar.rng.f))
+  hh.b <- paste0(rng_as_chr(cur.rng.f))
+
+  if(mode == "sidebyside") sprintf("@@ %s @@", c(hh.a, hh.b)) else {
+    sprintf("@@ %s / %s @@", hh.a, hh.b)
+  }
+}
+
 # Convert a hunk group into text representation
 
 hunk_atom_as_char <- function(h.a, x) {
@@ -183,40 +211,21 @@ hunk_atom_as_char <- function(h.a, x) {
     context=h.a$context, guide=h.a$guide
   )
 }
-hunk_as_char <- function(h.g, ranges.orig, x) {
+hunk_as_char <- function(h.g, h.h, x) {
   stopifnot(is(x, "Diff"))
 
   etc <- x@etc
   mode <- etc@mode
-  disp.width <- etc@disp.width
-  ignore.white.space <- etc@ignore.white.space
-
-  max.w <- calc_width(disp.width, mode)
-  capt.width <- calc_width_pad(disp.width, mode)
-  h.ids <- vapply(h.g, "[[", integer(1L), "id")
-  h.head <- vapply(h.g, "[[", logical(1L), "guide")
-
-  # exclude header hunks from contributing to range, and adjust ranges for
-  # possible fill lines added to the data
-
-  h.ids.nh <- h.ids[!h.head]
-  tar.rng <- find_rng(h.ids.nh, ranges.orig[1:2, , drop=FALSE])
-  tar.rng.f <- cumsum(!x@tar.dat$fill)[tar.rng]
-  cur.rng <- find_rng(h.ids.nh, ranges.orig[3:4, , drop=FALSE])
-  cur.rng.f <- cumsum(!x@cur.dat$fill)[cur.rng]
-
-  hh.a <- paste0(rng_as_chr(tar.rng.f))
-  hh.b <- paste0(rng_as_chr(cur.rng.f))
 
   hunk.head <- if(length(h.g) && !h.g[[1L]]$completely.empty) {
     list(
       if(mode == "sidebyside") {
         hunkl(
-          col.1=sprintf("@@ %s @@", hh.a), col.2=sprintf("@@ %s @@", hh.b),
+          col.1=h.h[1L], col.2=h.h[2L],
           type.1=chrt("header"), type.2=chrt("header")
         )
       } else {
-        hunkl(col.1=sprintf("@@ %s / %s @@", hh.a, hh.b), type.1=chrt("header"))
+        hunkl(col.1=h.h, type.1=chrt("header"))
   } ) }
   # Generate hunk contents in aligned form
 
@@ -238,25 +247,6 @@ hunk_as_char <- function(h.g, ranges.orig, x) {
   # have same format
 
   c(hunk.head, hunk.fin)
-}
-# helper for in_hunk_diffs
-#
-# `nd` stands for new.diff.  Here we are just remapping the word diff data
-# from tar/cur to our A/B data.
-
-update_hunk_atom <- function(h.a, new.diff, A.pos, A.neg, B.pos, B.neg, ind) {
-  A.ind <- sprintf("A.%s", ind)
-  B.ind <- sprintf("B.%s", ind)
-  tar.ind <- sprintf("tar.%s", ind)
-  cur.ind <- sprintf("cur.%s", ind)
-
-  h.a[[A.ind]][A.pos] <- new.diff[[tar.ind]][seq_along(A.pos)]
-  h.a[[A.ind]][A.neg] <- new.diff[[cur.ind]][seq_along(A.neg)]
-
-  h.a[[B.ind]][B.pos] <- new.diff[[tar.ind]][seq_along(B.pos)]
-  h.a[[B.ind]][B.neg] <- new.diff[[cur.ind]][seq_along(B.neg)]
-
-  h.a
 }
 # Helper functions for 'as.character'
 
@@ -308,18 +298,18 @@ setMethod("as.character", "Diff",
       # This needs to account for "trim" effects
 
       msg <- "No visible differences between objects"
-      disp.eq <- all.equal(x@target, x@current)
-      msg.extra <- if(!isTRUE(disp.eq)) {
-        ", but objects are _not_ `all.equal`."
-      } else if(
-        ignore.white.space && x@etc@convert.hz.white.space &&
-        !all.equal(x@tar.dat$orig, x@cur.dat$orig)
+      msg.extra <- if(
+        (ignore.white.space || x@etc@convert.hz.white.space) &&
+        !isTRUE(all.equal(x@tar.dat$orig, x@cur.dat$orig)) &&
+        isTRUE(all.equal(x@tar.dat$comp, x@cur.dat$comp))
       ) {
-        msg <- paste0(
+        paste0(
           ", but there are white space differences; re-run diff with ",
-          "`ignore.white.space=FALSE` and `convert.hz.white.space` ",
-          "to show them."
+          "`ignore.white.space=FALSE` and `convert.hz.white.space=FALSE` ",
+          "to show them.", collapse=""
         )
+      } else if (!isTRUE(all.equal(x@target, x@current))) {
+        ", but objects are _not_ `all.equal`."
       } else "."
       res <- paste0(msg, msg.extra)
     }
@@ -336,22 +326,36 @@ setMethod("as.character", "Diff",
     # Trim hunks to the extented needed to make sure we fit in lines
 
     x@etc@line.limit <- line.limit.a
-    diff.count.orig <- count_diffs(x@diffs)
     hunk.grps <- trim_hunks(x)
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
 
-    # Compact to width of widest element, so retrieve all char values
+    # Compact to width of widest element, so retrieve all char values; also
+    # need to generate all the hunk headers b/c we need to use them in width
+    # computation as well; under no circumstances are hunk headers allowed to
+    # wrap as they are always assumed to take one line
 
     chr.ind <- unlist(lapply(hunks.flat, "[", c("A", "B")))
     chr.dat <- get_dat(x, chr.ind, "raw")
     chr.size <- integer(length(chr.dat))
+
+    ranges <- vapply(
+      hunks.flat, function(h.a) c(h.a$tar.rng.trim, h.a$cur.rng.trim),
+      integer(4L)
+    )
+    ranges.orig <- vapply(
+      hunks.flat, function(h.a) c(h.a$tar.rng.sub, h.a$cur.rng.sub), integer(4L)
+    )
+    hunk.heads <- lapply(hunk.grps, make_hh, x, ranges.orig)
+    h.h.chars <- nchar(chr_trim(unlist(hunk.heads), x@etc@line.width))
 
     if(s@wrap) {
       is.ansi <- is(x@etc@style, "StyleAnsi") &
         grepl(ansi_regex, chr.dat, perl=TRUE)
       if(any(is.ansi)) chr.size[is.ansi] <- crayon_nchar(chr.dat)
       chr.size[!is.ansi] <- nchar(chr.dat)
-      max.col.w <- max(0L, chr.size, .min.width) + gutter.dat@width
+      max.col.w <- max(
+        max(0L, chr.size, .min.width) + gutter.dat@width, h.h.chars
+      )
       max.w <- if(max.col.w < max.w) max.col.w else max.w
 
       # future calculations should assume narrower display
@@ -390,18 +394,20 @@ setMethod("as.character", "Diff",
     ll <- !!lim.line[[1L]]
     lh <- !!lim.hunk[[1L]]
     diff.count <- count_diffs(hunk.grps)
-    str.fold.out <- if(diff.count.orig > diff.count) {
+    str.fold.out <- if(x@capt.mode == "str" && x@diff.count.full > diff.count) {
       paste0(
-        diff.count.orig  - diff.count,
+        x@diff.count.full - diff.count,
         " differences are hidden by our use of `max.level`"
       )
     }
     limit.out <- if(ll || lh) {
       if(!is.null(str.fold.out)) {
+        # nocov start
         stop(
           "Logic Error: should not be str folding when limited; contact ",
           "maintainer."
         )
+        # nocov end
       }
       paste0(
         "... omitted ",
@@ -410,13 +416,6 @@ setMethod("as.character", "Diff",
         if(lh) sprintf("%d/%d hunks", lim.hunk[[1L]], lim.hunk[[2L]])
       )
     }
-    ranges <- vapply(
-      hunks.flat, function(h.a) c(h.a$tar.rng.trim, h.a$cur.rng.trim),
-      integer(4L)
-    )
-    ranges.orig <- vapply(
-      hunks.flat, function(h.a) c(h.a$tar.rng.sub, h.a$cur.rng.sub), integer(4L)
-    )
     tar.max <- max(ranges[2L, ], 0L)
     cur.max <- max(ranges[4L, ], 0L)
 
@@ -436,7 +435,7 @@ setMethod("as.character", "Diff",
     # as we need to unnest stuff; use rbind to make it a little easier.
 
     pre.render.raw <- unlist(
-      lapply(hunk.grps, hunk_as_char, ranges.orig=ranges.orig, x=x),
+      Map(hunk_as_char, hunk.grps, hunk.heads, x=list(x)),
       recursive=FALSE
     )
     pre.render.mx <- do.call(rbind, pre.render.raw)

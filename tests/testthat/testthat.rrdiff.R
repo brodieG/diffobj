@@ -1,7 +1,21 @@
-# Only run tests on machines that are likely to have diff utility
 
-if(identical(.Platform$OS.type, "unix")) {
-  library(diffobj)
+library(diffobj)
+context("Rdiff")
+
+test_that("diff util detection", {
+  with_mock(
+    `tools::Rdiff`=function(...) warning("test warning"),
+    expect_false(has_Rdiff())
+  )
+  with_mock(
+    `tools::Rdiff`=function(...) NULL,
+    expect_true(has_Rdiff())
+  )
+})
+# Only run tests on machines that are likely to have diff utility
+ 
+if(identical(.Platform$OS.type, "unix") && has_Rdiff()) {
+  context("w/ diff")
   A2 <- c("A", "B", "C")
   B2 <- c("X", "A", "Y", "C")
   A3 <- 1:3
@@ -22,12 +36,14 @@ if(identical(.Platform$OS.type, "unix")) {
     expect_identical(res.1, ref.res.1)
 
     # test coersion
-    expect_identical(Rdiff_chr(A3, B3), ref.res)
+    expect_identical(Rdiff_chr(A3, B3, minimal=TRUE, silent=TRUE), ref.res)
   })
   test_that("Rdiff_obj", {
     ref.res2 <- c("1c1", "< [1] \"A\" \"B\" \"C\"", "---", "> [1] \"X\" \"A\" \"Y\" \"C\"" )
     ref.res3 <- c("1c1")
-    expect_identical(Rdiff_obj(A2, B2), ref.res2)
-    expect_identical(Rdiff_obj(A2, B2, minimal=TRUE), ref.res3)
+    expect_identical(Rdiff_obj(A2, B2, silent=TRUE), ref.res2)
+    expect_identical(Rdiff_obj(A2, B2, minimal=TRUE, silent=TRUE), ref.res3)
   })
+} else {
+  context("w/o diff")
 }

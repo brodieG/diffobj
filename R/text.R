@@ -73,12 +73,6 @@ align_eq <- function(A, B, x, context) {
     A.tok.ratio <- get_dat(x, A, "tok.rat")
     B.tok.ratio <- get_dat(x, B, "tok.rat")
 
-    # Remove whitespace
-
-    if(etc@ignore.white.space) {
-      A.eq <- normalize_whitespace(A.eq)
-      B.eq <- normalize_whitespace(B.eq)
-    }
     # Need to match each element in A.eq to B.eq, though each match consumes the
     # match so we can't use `match`; unfortunately this is slow; for context
     # hunks the match is one to one for each line
@@ -98,12 +92,15 @@ align_eq <- function(A, B, x, context) {
     # the possible tokens and could be spurious; we should probably do this
     # ahead of the for loop since we could probably save some iterations
 
-    # TBD wither nchar here should be ansi-aware
+    # TBD whether nchar here should be ansi-aware; probably if in alnum only
+    # mode...
 
     B.tr <- B.tok.ratio[match(align, seq_along(B.tok.ratio))]
+    A.eq.trim <- if(etc@align@count.alnum.only)
+      gsub("[^[:alnum:]]", "", A.eq, perl=TRUE) else A.eq
     is.na(B.tr) <- 1
-    disallow.match <- nchar(A.eq) < etc@align@min.chars |
-      A.tok.ratio < etc@align@threshold | B.tr < etc@align@threshold
+    disallow.match <- nchar(A.eq.trim) < etc@align@min.chars |
+    A.tok.ratio <= etc@align@threshold | B.tr <= etc@align@threshold
     align[disallow.match] <- 0L
 
     # Group elements together.  We number the interstitial buckest as the
@@ -370,43 +367,3 @@ wrap <- function(txt, width, pad=FALSE) {
   if(pad) res.l[!has.na] <- lapply(res.l[!has.na], rpad, width=width)
   res.l
 }
-# Add the +/- in front of a text line and color accordingly
-#
-# Input is expected to be a list with character vectors of length one or more,
-# more when a vector is wrapped.  We use the `:` symbol to indicate the wrapping
-#
-# returns a list containing padded char vectors
-
-sign_pad <- function(txt, pad, rev=FALSE) {
-  use.ansi <- crayon_hascolor()
-  if(!length(txt)) return(txt)
-  stopifnot(
-    is.list(txt), all(vapply(txt, is.character, logical(1L))),
-    !any(is.na(unlist(txt))),
-    is.integer(pad), length(pad) == 1L || length(pad) == length(txt),
-    all(pad %in% 1:3)
-  )
-  pads <- if(!rev) c("  ", "+ ", "- ") else c("  ", " +", " -")
-  pad.ex <- if(!rev) ": " else " :"
-  if(length(pad) == 1L) pad <- rep(pad, length(txt))
-
-  lines <- vapply(txt, length, integer(1L))
-  pad.out <- lapply(
-    seq_along(txt),
-    function(x) {
-      len <- length(txt[[x]])
-      if(!len) character(0L) else {
-        color <- pad[[x]] > 1L
-        extras <- rep(if(color) pad.ex else "  ", len - 1L)
-        res <- c(pads[pad[[x]]], extras)
-        res
-  } } )
-  Map(paste0, if(rev) txt else pad.out, if(!rev) txt else pad.out)
-}
-# combine wrap and sign_pad
-
-wrap_and_sign_pad <- function(l, width, pad.type, wrap.pad=FALSE, style)
-  lapply(
-    l,
-    function(x) lapply(sign_pad(wrap(x, width, wrap.pad), pad.type), style)
-  )

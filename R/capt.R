@@ -67,8 +67,9 @@ capt_print <- function(target, current, etc, err, extra){
   if(isTRUE(etc@guides)) etc@guides <- guidesPrint
   if(isTRUE(etc@trim)) etc@trim <- trimPrint
 
-  diff <- line_diff(target, current, tar.capt, cur.capt, etc=etc, warn=TRUE)
-  diff
+  diff.out <- line_diff(target, current, tar.capt, cur.capt, etc=etc, warn=TRUE)
+  diff.out@capt.mode <- "print"
+  diff.out
 }
 # Tries various different `str` settings to get the best possible output
 
@@ -111,8 +112,8 @@ capt_str <- function(target, current, etc, err, extra){
     max.level.pos <- match("max.level", names(str.match), nomatch=0L)
   ) {
     # max.level specified in call; check for special 'auto' case
-    res <- eval_try(str.match, "max.level", etc@frame)
-    if(identical(res, "auto")) {
+    max.level.eval <- eval_try(str.match, "max.level", etc@frame)
+    if(identical(max.level.eval, "auto")) {
       auto.mode <- TRUE
       str.match[["max.level"]] <- NA
     } else {
@@ -167,70 +168,85 @@ capt_str <- function(target, current, etc, err, extra){
   if(isTRUE(etc@guides)) etc@guides <- guidesStr
   if(isTRUE(etc@trim)) etc@trim <- trimStr
 
-  repeat{
-    if((safety <- safety + 1L) > max.depth && !first.loop)
-      stop(
-        "Logic Error: exceeded list depth when comparing structures; contact ",
-        "maintainer."
-      )
-    tar.str <- tar.capt[tar.lvls <= lvl]
-    cur.str <- cur.capt[cur.lvls <= lvl]
+  tar.str <- tar.capt
+  cur.str <- cur.capt
 
-    diff.obj <- line_diff(target, current, tar.str, cur.str, etc=etc, warn=warn)
+  diff.obj <- diff.obj.full <- line_diff(
+    target, current, tar.str, cur.str, etc=etc, warn=warn
+  )
+  if(!max.level.supplied) {
+    repeat{
+      if((safety <- safety + 1L) > max.depth && !first.loop)
+        stop(
+          "Logic Error: exceeded list depth when comparing structures; contact ",
+          "maintainer."
+        )
+      if(!first.loop) {
+        tar.str <- tar.capt[tar.lvls <= lvl]
+        cur.str <- cur.capt[cur.lvls <= lvl]
 
-    if(diff.obj@hit.diffs.max) warn <- FALSE
-    has.diff <- any(diff.obj)
-
-    if(first.loop) {
-      diff.obj.first <- diff.obj
-      first.loop <- FALSE
+        diff.obj <- line_diff(
+          target, current, tar.str, cur.str, etc=etc, warn=warn
+        )
+      }
+      if(diff.obj@hit.diffs.max) warn <- FALSE
+      has.diff <- suppressWarnings(any(diff.obj))
 
       # If there are no differences reducing levels isn't going to help to
       # find one; additionally, if not in auto.mode we should not be going
       # through this process
 
-      if(!has.diff || !auto.mode) break
-    }
-    if(line.limit[[1L]] < 1L) break
+      if(first.loop && !has.diff) break
+      first.loop <- FALSE
 
-    line.len <- diff_line_len(
-      diff.obj@diffs, etc=etc, tar.capt=tar.str, cur.capt=cur.str
-    )
-    # We need a higher level if we don't have diffs
+      if(line.limit[[1L]] < 1L) break
 
-    if(!has.diff && prev.lvl.hi - lvl > 1L) {
-      prev.lvl.lo <- lvl
-      lvl <- lvl + as.integer((prev.lvl.hi - lvl) / 2)
-      tar.call[[max.level.pos]] <- lvl
-      cur.call[[max.level.pos]] <- lvl
-      next
-    } else if(!has.diff) {
-      diff.obj <- diff.obj.first
+      line.len <- diff_line_len(
+        diff.obj@diffs, etc=etc, tar.capt=tar.str, cur.capt=cur.str
+      )
+      # We need a higher level if we don't have diffs
+
+      if(!has.diff && prev.lvl.hi - lvl > 1L) {
+        prev.lvl.lo <- lvl
+        lvl <- lvl + as.integer((prev.lvl.hi - lvl) / 2)
+        tar.call[[max.level.pos]] <- lvl
+        cur.call[[max.level.pos]] <- lvl
+        next
+      } else if(!has.diff) {
+        diff.obj <- diff.obj.full
+        lvl <- NULL
+        break
+      }
+      # If we have diffs, need to check whether we should try to reduce lines
+      # to get under line limit
+
+      if(line.len <= line.limit[[1L]]) {
+        # We fit, nothing else to do
+        break
+      }
+      if(lvl - prev.lvl.lo > 1L) {
+        prev.lvl.hi <- lvl
+        lvl <- lvl - as.integer((lvl - prev.lvl.lo) / 2)
+        tar.call[[max.level.pos]] <- lvl
+        cur.call[[max.level.pos]] <- lvl
+        next
+      }
+      # Couldn't get under limit, so use first run results
+
+      diff.obj <- diff.obj.full
+      lvl <- NULL
       break
     }
-    # If we have diffs, need to check whether we should try to reduce lines
-    # to get under line limit
+  } else {
+    tar.str <- tar.capt[tar.lvls <= max.level.eval]
+    cur.str <- cur.capt[cur.lvls <= max.level.eval]
 
-    if(line.len <= line.limit[[1L]]) {
-      # We fit, nothing else to do
-      break
-    }
-    if(lvl - prev.lvl.lo > 1L) {
-      prev.lvl.hi <- lvl
-      lvl <- lvl - as.integer((lvl - prev.lvl.lo) / 2)
-      tar.call[[max.level.pos]] <- lvl
-      cur.call[[max.level.pos]] <- lvl
-      next
-    }
-    # Couldn't get under limit, so use first run results
-
-    diff.obj <- diff.obj.first
-    lvl <- NULL
-    break
+    lvl <- max.level.eval
+    diff.obj <- line_diff(target, current, tar.str, cur.str, etc=etc, warn=warn)
   }
   if(auto.mode && !is.null(lvl) && lvl < max.depth) {
     str.match[[max.level.pos]] <- lvl
-  } else if (!max.level.supplied || is.null(lvl) || lvl >= max.depth) {
+  } else if (!max.level.supplied || is.null(lvl)) {
     str.match[[max.level.pos]] <- NULL
   }
   tar.call <- cur.call <- str.match
@@ -241,6 +257,11 @@ capt_str <- function(target, current, etc, err, extra){
   if(is.null(etc@cur.banner))
     diff.obj@etc@cur.banner <- deparse(cur.call)[[1L]]
 
+  # Track total differences in fully expanded view so we can report hidden
+  # diffs when folding levels
+
+  diff.obj@diff.count.full <- count_diffs(diff.obj.full@diffs)
+  diff.obj@capt.mode <- "str"
   diff.obj
 }
 capt_chr <- function(target, current, etc, err, extra){
@@ -253,10 +274,12 @@ capt_chr <- function(target, current, etc, err, extra){
   if(isTRUE(etc@guides)) etc@guides <- guidesChr
   if(isTRUE(etc@trim)) etc@trim <- trimChr
 
-  line_diff(
+  diff.out <- line_diff(
     target, current, html_ent_sub(tar.capt, etc@style),
     html_ent_sub(cur.capt, etc@style), etc=etc
   )
+  diff.out@capt.mode <- "chr"
+  diff.out
 }
 capt_deparse <- function(target, current, etc, err, extra){
   tar.capt <- do.call(deparse, c(list(target), extra))
@@ -266,10 +289,12 @@ capt_deparse <- function(target, current, etc, err, extra){
   if(isTRUE(etc@guides)) etc@guides <- guidesDeparse
   if(isTRUE(etc@trim)) etc@trim <- trimDeparse
 
-  line_diff(
+  diff.out <- line_diff(
     target, current, html_ent_sub(tar.capt, etc@style),
     html_ent_sub(cur.capt, etc@style), etc=etc
   )
+  diff.out@capt.mode <- "deparse"
+  diff.out
 }
 capt_file <- function(target, current, etc, err, extra) {
   tar.capt <- try(do.call(readLines, c(list(target), extra)))
@@ -279,12 +304,14 @@ capt_file <- function(target, current, etc, err, extra) {
 
   etc <- set_mode(etc, tar.capt, cur.capt)
   if(isTRUE(etc@guides)) etc@guides <- guidesFile
-  if(isTRUE(etc@guides)) etc@trim <- trimFile
+  if(isTRUE(etc@trim)) etc@trim <- trimFile
 
-  line_diff(
+  diff.out <- line_diff(
     target, current, html_ent_sub(tar.capt, etc@style),
     html_ent_sub(cur.capt, etc@style), etc=etc
   )
+  diff.out@capt.mode <- "file"
+  diff.out
 }
 capt_csv <- function(target, current, etc, err, extra){
   tar.df <- try(do.call(read.csv, c(list(target), extra)))

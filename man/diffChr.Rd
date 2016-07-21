@@ -20,7 +20,8 @@ diffChr(target, current, ...)
   tab.stops = gdo("tab.stops"), line.limit = gdo("line.limit"),
   hunk.limit = gdo("hunk.limit"), align = gdo("align"),
   style = gdo("style"), palette.of.styles = gdo("palette"),
-  frame = parent.frame(), tar.banner = NULL, cur.banner = NULL,
+  frame = parent.frame(), interactive = gdo("interactive"),
+  term.colors = gdo("term.colors"), tar.banner = NULL, cur.banner = NULL,
   extra = list())
 }
 \arguments{
@@ -177,7 +178,10 @@ each other and become one.}
 \item{align}{numeric(1L) between 0 and 1, proportion of
 words in a line of \code{target} that must be matched in a line of
 \code{current} in the same hunk for those lines to be paired up when
-displayed (defaults to 0.25), or a \code{\link{AlignThreshold}} object.}
+displayed (defaults to 0.25), or an \code{\link{AlignThreshold}} object.
+Set to \code{1} to turn off alignment which will cause all lines in a hunk
+from \code{target} to show up first, followed by all lines from
+\code{current}.}
 
 \item{style}{\dQuote{auto}, or a \code{\link{Style}} object.
 \dQuote{auto} by default.  If a \code{Style} object, will override the
@@ -193,6 +197,21 @@ parameters.  See \code{\link{PaletteOfStyles}} for more details.}
 \item{frame}{environment the evaluation frame for the \code{print/show/str},
 calls, allows user to ensure correct methods are used, not used by
 \code{\link{diffChr}} or \code{\link{diffDeparse}}.}
+
+\item{interactive}{TRUE or FALSE whether the function is being run in
+interactive mode, defaults to the return value of
+\code{\link{interactive}}.  If in interactive mode, pager will be used if
+\code{pager} is \dQuote{auto}, and if ANSI styles are not supported and
+\code{style} is \dQuote{auto}, output will be send to browser as HTML.}
+
+\item{term.colors}{integer(1L) how many ANSI colors are supported by the
+terminal.  This variable is provided for when
+\code{\link{crayon::num_colors}} does not properly detect how many ANSI
+colors are supported by your terminal. Defaults to return value of
+\code{\link{crayon::num_colors}} and should be 8 or 256 to allow ANSI
+colors, or any other number to disallow them.  This only impacts output
+format selection when \code{style} and \code{format} are both set to
+\dQuote{auto}.}
 
 \item{tar.banner}{character(1L) or NULL, text to display ahead of the diff
 section representing the target output.  If NULL will be

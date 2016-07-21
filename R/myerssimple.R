@@ -6,7 +6,7 @@
 # for use since the MBA myers implemenation should be far superior
 
 myers_simple <- function(target, current) {
-  path <- char_diff_myers_simple_int(target, current)
+  path <- myers_simple_int(target, current)
   diff_path_to_diff(path, target, current)
 }
 myers_simple_int <- function(A, B) {

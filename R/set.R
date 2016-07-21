@@ -60,18 +60,17 @@ pager_is_less <- function() {
 # Returns the previous value of the variable, NA if it was not set
 
 set_less_var <- function(flags) {
-  LESS <- Sys.getenv("LESS", unset=NA)
+  LESS <- Sys.getenv("LESS", unset=NA) # NA return is NA_character_
   LESS.new <- NA
   if(is.character(LESS) && length(LESS) == 1L) {
     if(isTRUE(grepl("^\\s*$", LESS)) || is.na(LESS) || !nzchar(LESS)) {
       LESS.new <- sprintf("-%s", flags)
     } else if(
-      isTRUE(grepl("^\\s*-[[:alpha:]]++(\\s+-[[:alpha:]]+)\\s*$", LESS))
+      isTRUE(grepl("^\\s*-[[:alpha:]]+(\\s+-[[:alpha:]])*\\s*$", LESS))
     ) {
-      LESS.new <-
-        sub("\\s*(-[[:alpha:]]+)\\s*$", sprintf("\\1X%s", flags), LESS)
-    }
-  }
+      LESS.new <- sub(
+        "\\s*\\K(-[[:alpha:]]+)\\b$", sprintf("\\1%s", flags), LESS, perl=TRUE
+  ) } }
   if(!is.na(LESS.new)) Sys.setenv(LESS=LESS.new) else
     warning("Unable to set `LESS` system variable")
   LESS

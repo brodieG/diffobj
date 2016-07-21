@@ -41,12 +41,6 @@ is.TF <- function(x) isTRUE(x) || identical(x, FALSE)
 
 is.chr.1L <- function(x) is.character(x) && length(x) == 1L && !is.na(x)
 
-is.diffs <- function(x)
-  is.list(x) && length(x) == 4L &&
-  identical(names(x), c("hunks", "diffs", "diffs.max", "hit.diffs.max")) &&
-  is.list(x$hunks) && is.int.1L(x$diffs) && is.int.1L(x$diffs.max) &&
-  is.TF(x$hit.diffs.max)
-
 is.valid.palette.param <- function(x, param, palette) {
   stopifnot(is(palette, "PaletteOfStyles"))
   stopifnot(isTRUE(param %in% c("brightness", "color.mode")))
@@ -113,7 +107,7 @@ check_args <- function(
   color.mode, pager, ignore.white.space, max.diffs, align, disp.width,
   hunk.limit, convert.hz.white.space, tab.stops, style, palette.of.styles,
   frame, tar.banner, cur.banner, guides, rds, trim, word.diff, unwrap.atomic,
-  extra
+  extra, interactive, term.colors
 ) {
   err <- make_err_fun(call)
 
@@ -184,14 +178,13 @@ check_args <- function(
     err("Argument `trim` must be TRUE, FALSE, or a function")
   if(is.function(trim) && !isTRUE(t.f.err <- is.two.arg.fun(trim)))
     err("Argument `trim` ", t.f.err)
-  if(!is.function(trim) && !trim)
-    trim <- function(obj, obj.as.chr) obj.as.chr
+  if(!is.function(trim) && !trim) trim <- trim_identity
 
   # check T F args
 
   TF.vars <- c(
     "ignore.white.space", "convert.hz.white.space", "rds", "word.diff",
-    "unwrap.atomic"
+    "unwrap.atomic", "interactive"
   )
   msg.base <- "Argument `%s` must be TRUE or FALSE."
   for(x in TF.vars) if(!is.TF(get(x, inherits=FALSE))) err(sprintf(msg.base, x))
@@ -199,9 +192,12 @@ check_args <- function(
   # int 1L vars
 
   msg.base <- "Argument `%s` must be integer(1L) and not NA."
-  if(!is.int.1L(max.diffs)) err(sprintf(msg.base, "max.diffs"))
-  max.diffs <- as.integer(max.diffs)
-
+  int.1L.vars <- c("max.diffs", "term.colors")
+  for(x in int.1L.vars) {
+    if(!is.int.1L(int.val <- get(x, inherits=FALSE)))
+      err(sprintf(msg.base, "max.diffs"))
+    assign(x, as.integer(int.val))
+  }
   # char or NULL vars
 
   chr1LorNULL.vars <- c("tar.banner", "cur.banner")
@@ -261,7 +257,7 @@ check_args <- function(
 
   if(!is(pager, "Pager")) {
     pager <- if(
-      (pager == "auto" && interactive()) || pager == "on"
+      (pager == "auto" && interactive) || pager == "on"
     ) {
       "on"
     } else PagerOff()
@@ -275,29 +271,25 @@ check_args <- function(
     if(!format %in% valid.formats)
       err("Argument `format` must be one of `", dep(valid.formats) , "`.")
     if(format == "auto") {
-      clrs <- crayon::num_colors()
-      if(!is.int.1L(clrs))
+      if(!is.int.1L(term.colors))
         err(
           "Logic Error: unexpected return from `crayon::num_colors()`; ",
           "contact maintainer."
         )
       # No recognized color alternatives, try to use HTML if we can
 
-      format <- if(!clrs %in% c(8, 256) || in_knitr()) {
-        if(in_knitr() || interactive()) {
-          "html"
-        } else {
-          "raw"
-        }
-      } else if (clrs == 8) {
+      format <- if(!term.colors %in% c(8, 256)) {
+        if(interactive) "html" else "raw"
+      } else if (term.colors == 8) {
         "ansi8"
-      } else if (clrs == 256) {
+      } else if (term.colors == 256) {
         "ansi256"
       } else stop("Logic error: unhandled format; contact maintainer.")
     }
     style <- palette.of.styles[[
       format, get_pal_par(format, brightness), get_pal_par(format, color.mode)
     ]]
+    if(is(style, "classRepresentation")) style <- new(style)
   } else if(!is(style, "Style"))
     stop("Logic Error: unexpected style state; contact maintainer.")
 
@@ -318,8 +310,10 @@ check_args <- function(
   } else if(!style@disp.width) {
     d.w <- getOption("width")
     if(!is.valid.width(d.w)) {
+      # nocov start this should never happen
       warning("`getOption(\"width\") returned an invalid width, using 80L")
       d.w <- 80L
+      # nocov end
     }
     style@disp.width <- d.w
   }

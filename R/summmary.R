@@ -109,7 +109,7 @@ setMethod("as.character", "DiffSummary",
 
       if(sum(diffs.scale) > width) {
         repeat {
-          mp <- round((hi.bound - lo.bound) / 2) + lo.bound
+          mp <- ceiling((hi.bound - lo.bound) / 2) + lo.bound
           safety <- safety - 1L
           if(safety < 0L)
             stop("Logic Error: likely infinite loop; contact maintainer.")

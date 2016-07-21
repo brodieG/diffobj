@@ -24,17 +24,11 @@ NULL
 #' @slot min.chars integer(1L) positive, minimum number of characters that must
 #'   match across lines in order to align them.  This requirement is in addition
 #'   to \code{threshold} and helps minimize spurious alignments.  Defaults to
-#'   5.
+#'   3.
 #' @slot count.alnum.only logical(1L) modifier for \code{min.chars}, whether to
 #'   count alpha numeric characters only.  Helps reduce spurious alignment
 #'   caused by meta character sequences such as \dQuote{[[1]]} that would
 #'   otherwise meet the \code{min.chars} limit
-#' @slot ignore.row.head logical(1L) whether to ignore row / atomic vector index
-#'   headers such as \code{[1]} or \code{[1,]}; the implementation is rather
-#'   inelegant and strips things that look like they are row headers
-#'   with not much accounting of whether they really are or just look like them.
-#'   There is some overlap with \code{min.chars} and \code{count.alnum.only} to
-#'   the extent removed row headers do not count towards those parameters.
 #' @export AlignThreshold
 #' @exportClass AlignThreshold
 
@@ -42,8 +36,7 @@ AlignThreshold <- setClass("AlignThreshold",
   slots=c(
     threshold="numeric",
     min.chars="integer",
-    count.alnum.only="logical",
-    ignore.row.head="logical"
+    count.alnum.only="logical"
   ),
   validity=function(object) {
     if(
@@ -55,22 +48,18 @@ AlignThreshold <- setClass("AlignThreshold",
       return("Slot `min.chars` must be integer(1L) and positive")
     if(!is.TF(object@count.alnum.only))
       return("Slot `count.alnum.only` must be TRUE or FALSE")
-    if(!is.TF(object@ignore.row.head))
-      return("Slot `ignore.row.head` must be TRUE or FALSE")
   }
 )
 setMethod(
   "initialize", "AlignThreshold",
   function(
     .Object, threshold=gdo("align.threshold"), min.chars=gdo("align.min.chars"),
-    count.alnum.only=gdo("align.count.alnum.only"),
-    ignore.row.head=gdo("align.ignore.row.head"), ...
+    count.alnum.only=gdo("align.count.alnum.only"), ...
   ) {
     if(is.numeric(min.chars)) min.chars <- as.integer(min.chars)
     callNextMethod(
       .Object, threshold=threshold, min.chars=min.chars,
-      count.alnum.only=count.alnum.only,
-      ignore.row.head=ignore.row.head, ...
+      count.alnum.only=count.alnum.only, ...
     )
 } )
 
@@ -206,49 +195,6 @@ setMethod("sideBySide", "Settings",
     x
   }
 )
-# Classes for tracking intermediate diff obj data
-#
-# DiffDiffs contains a slot corresponding to each of target and current where
-# a TRUE value means the corresponding value matches in both objects and FALSE
-# means that it does not match
-#
-# Object deprecated in favor of list because to slow to instantiate and possible
-# instantiated as many times as there are hunks, + 1
-
-setClass("DiffDiffs",
-  slots=c(
-    hunks="list",
-    count.diffs="integer"  # used for `str` with auto `max.level`
-  ),
-  prototype=list(count.diffs=0L),
-  validity=function(object) {
-    rng.names <- paste0(
-      rep(c("tar.rng", "cur.rng"), 3L),
-      rep(c("", ".sub", ".trim"), each=2L)
-    )
-    nm <- c("id", "A", "B", "A.chr", "B.chr", "context", rng.names)
-    valid_rng <- function(x) length(x) == 2L && x[[2L]] - x[[1L]] >= 0L
-
-    hunks.flat <- unlist(object$hunks, recursive=FALSE)
-    hunk.check <- vapply(
-      hunks.flat,
-      function(y) {
-        if(
-          identical(names(y), nm) &&
-          is.integer(ab <- unlist(y[nm[-(3:5)]])) && !any(is.na(ab)) &&
-          all(vapply(y[rng.names], valid_rng, logical(1L)))
-        ) y$id else 0L
-      },
-      integer(1L)
-    )
-    if(!all(hunk.check)) return("slot `hunks` contains invalid hunks")
-    if(!identical(hunk.check, seq_along(hunks.flat)))
-      return("atomic hunk ids invalid")
-    if(!is.int.1L(object@count.diffs) || object@count.diffs < 0L)
-      return("Slot `max.diffs` must be integer(1L), non-NA, and positive")
-    TRUE
-  }
-)
 .diff.dat.cols <- c(
   "orig", "raw", "trim", "trim.ind.start", "trim.ind.end", "comp", "eq", "fin",
   "fill", "word.ind", "tok.rat"
@@ -328,16 +274,20 @@ setClass("Diff",
     sub.tail="integer",
     capt.mode="character",        # whether in print or str mode
     hit.diffs.max="logical",
+    diff.count.full="integer",         # only really used by diffStr when folding
     etc="Settings"
   ),
   prototype=list(
     capt.mode="print",
     trim.dat=list(lines=integer(2L), hunks=integer(2L), diffs=integer(2L)),
-    hit.diffs.max=FALSE
+    hit.diffs.max=FALSE, diff.count.full=-1L
   ),
   validity=function(object) {
     # Most of the validation is done by `check_args`
-    if(!is.chr.1L(object@capt.mode) || ! object@capt.mode %in% c("print", "str"))
+    if(
+      !is.chr.1L(object@capt.mode) || 
+      ! object@capt.mode %in% c("print", "str", "chr", "deparse", "file")
+    )
       return("slot `capt.mode` must be either \"print\" or \"str\"")
     if(
       !is.list(object@trim.dat) || length(object@trim.dat) != 3L ||
@@ -414,20 +364,6 @@ setMethod("any", "Diff",
       warning("No visible differences, but objects are NOT `all.equal`.")
     res
 } )
-#' @rdname diffobj_s4method_doc
-
-setMethod("any", "DiffDiffs",
-  function(x, ..., na.rm = FALSE) {
-    stop("function deprecated")
-    dots <- list(...)
-    if(length(dots))
-      stop("`any` method for `Diff` supports only one argument")
-    any(
-      which(
-        !vapply(unlist(x$hunks, recursive=FALSE), "[[", logical(1L), "context")
-    ) )
-} )
-
 setClass(
   "MyersMbaSes",
   slots=c(

@@ -4,35 +4,6 @@
 .word.diff.atom <- -1L
 attr(.word.diff.atom, "match.length") <- -1L
 
-# Try to use fancier word matching with vectors and matrices
-
-.brack.pat <- "^ *\\[\\d+\\]"
-
-# Determine if a string contains what appear to be standard index headers
-#
-# Returns index of elements in string that start with index headers.
-# Note that it is permissible to have ouput that doesn't match brackets
-# provided that it starts with brackets (e.g. attributes shown after break
-# pattern)
-
-find_brackets <- function(x) {
-  stopifnot(is.character(x), all(!is.na(x)))
-  matches <- regexpr(.brack.pat,  x)
-  vals <- regmatches(x, matches)
-  # the matching section must be uninterrupted starting from first line
-  # and must have consisten formatting
-
-  brackets <- which(cumsum(!nzchar(vals)) == 0L)
-  vals.in.brk <- vals[brackets]
-  nums.in.brk <- regmatches(vals.in.brk, regexpr("\\d+", vals.in.brk))
-
-  if(
-    length(brackets) && length(unique(nchar(vals.in.brk)) == 1L) &&
-    length(unique(diff(as.integer(nums.in.brk)))) <= 1L
-  ) {
-    brackets
-  } else integer(0L)
-}
 # Matches syntactically valid R variable names
 
 .reg.r.ident <- "(?:\\.[[:alpha:]]|[[:alpha:]])[[:alnum:]_.]*"
@@ -229,8 +200,11 @@ word_to_line_map <- function(
   k <- 0
 
   while(j < length(tar.lines.p)) {
-    if((k <- k + 1L) > len.orig)
+    if((k <- k + 1L) > len.orig) {
+      # nocov start
       stop("Logic Error: infine loop in atomic hunk align; contact maintainer.")
+      # nocov end
+    }
     if(!length(tar.lines.p[[j]]) && !length(cur.lines.p[[j]])) {
       if(j > 1L) {
         tar.lo <- !length(tar.lines.p[[j - 1L]])
@@ -360,16 +334,22 @@ word_to_line_map <- function(
   cur.match <- unlist(lapply(seq_along(h.cont), hunk_match, l=cur.lines.f))
 
   pos.nums <- sum(tar.match)
-  if(pos.nums != length(unlist(cur.lines.f[h.cont])))
+  if(pos.nums != length(unlist(cur.lines.f[h.cont]))) {
+    # nocov start
     stop("Logic Error: pos nums incorrect; contact maintainer")
+    # nocov end
+  }
   neg.nums <- sum(!tar.match, !cur.match)
 
   strings <-
     make_unique_strings(pos.nums + neg.nums, c(tar.dat$raw, cur.dat$raw))
   strings.pos <- strings[seq.int(pos.nums)]
   strings.neg <- tail(strings, neg.nums)
-  if(neg.nums + pos.nums != length(strings))
+  if(neg.nums + pos.nums != length(strings)) {
+    # nocov start
     stop("Logic Error: num-string maping failed; contact maintainer")
+    # nocov end
+  }
 
   tar.dat$comp[tar.ind.a.l][tar.match] <- strings.pos
   cur.dat$comp[cur.ind.a.l][cur.match] <- strings.pos
@@ -501,11 +481,22 @@ diff_word2 <- function(
     tar.unsplit, cur.unsplit, etc=etc, diff.mode=diff.mode, warn=warn
   )
   # Need to figure out which elements match, and which ones do not
+  #
+  # questions about the `abs`; should it be applied to both `tar` and `cur`?
+  # can definitely have negative numbers in `x$A`; stuff seems to work fine, but
+  # it seems like this should cause problems.  Maybe this only ever runs in
+  # context mode so it's fine?  Odd part is that in browsing when debuggin at
+  # some point we most definitely saw negative numbers in x$A, although it is
+  # possible we were at the wrong spot in the call stack and looked at the
+  # original line diff hunks instead of the word diff ones...
 
   hunks.flat <- diffs$hunks
-  tar.mism <- unlist(lapply(hunks.flat, function(x) if(!x$context) x$A))
-  cur.mism <- abs(unlist(lapply(hunks.flat, function(x) if(!x$context) x$B)))
-
+  tar.mism <- unlist(
+    lapply(hunks.flat, function(x) if(!x$context) x$A else integer(0L))
+  )
+  cur.mism <- abs(
+    unlist(lapply(hunks.flat, function(x) if(!x$context) x$B else integer(0L)))
+  )
   # Figure out which line each of these elements came from, and what index
   # in each of those lines they are; we use the recorded lengths in words of
   # each line to reconstruct this; also record original line length so we
@@ -557,80 +548,16 @@ make_unique_strings <- function(n, invalid) {
     dat.chr <- do.call(paste0, split(dat, col(dat)))
     rows <- which(duplicated(dat.chr) | dat.chr %in% invalid)
     if(!length(rows)) break
+    # nocov start
     if(safety <- safety + 1 > 100)
       stop(
         "Logic Error: unable to generate unique strings; this should be ",
         "incredibly rare as we are sampling from 10^31 elements, so try ",
         "again and if it happens again contact maintainer"
       )
+    # nocov end
   }
   dat.chr
-}
-# Apply line colors; returns a list with the A and B vectors colored,
-# note that all hunks will be collapsed.
-#
-# Really only intended to be used for stuff that produces a single hunk
-
-diff_color <- function(x, ins.fun, del.fun) {
-  if(!is.diffs(x))
-    stop("Logic Error: unexpected input; contact maintainer.")
-  h.flat <- unlist(x$hunks, recursive=FALSE)
-  # the & !logical(...) business is to ensure we get zero row matrices when
-  # the id vector is length zero
-
-  bind_hunks <- function(hunk, val)
-    do.call(
-      rbind,
-      lapply(
-        hunk,
-        function(y)
-          cbind(id=y[[val]], ctx=y$context & !logical(length(y[[val]])))
-    ) )
-
-  A.num <- bind_hunks(h.flat, "A")
-  B.num <- bind_hunks(h.flat, "B")
-  A.chr <- unlist(lapply(h.flat, "[[", "A.chr"))
-  B.chr <- unlist(lapply(h.flat, "[[", "B.chr"))
-
-  # The following contortions are to minimize number of calls to
-  # `crayon_style`
-
-  A.green <- which(A.num[, "id"] < 0 & !A.num[, "ctx"])
-  A.red <- which(A.num[, "id"] > 0 & !A.num[, "ctx"])
-  B.green <- which(B.num[, "id"] < 0 & !B.num[, "ctx"])
-  B.red <- which(B.num[, "id"] > 0 & !B.num[, "ctx"])
-
-  AB.green.in <- c(A.chr[A.green], B.chr[B.green])
-  AB.red.in <- c(A.chr[A.red], B.chr[B.red])
-  color.try <- try({
-    AB.green <- ins.fun(AB.green.in)
-    AB.red <- del.fun(AB.red.in)
-    NULL
-  })
-  if(inherits(color.try, "try-error"))
-    stop("Styling functions failed; see prior errors")
-  if(
-    !is.character(AB.green) || anyNA(AB.green) ||
-    length(AB.green) != length(AB.green.in)
-  )
-    stop("Insert styling function produced unexpected output")
-
-  # Make a version where the differences are replaced with blank strings; this
-  # will then allow us to line up the hunk lines
-
-  A.eq <- A.chr
-  B.eq <- B.chr
-  A.eq[c(A.green, A.red)] <- ""
-  B.eq[c(B.green, B.red)] <- ""
-
-  # Color the diffs
-
-  A.chr[A.green] <- head(AB.green, length(A.green))
-  A.chr[A.red] <- head(AB.red, length(A.red))
-  B.chr[B.green] <- tail(AB.green, length(B.green))
-  B.chr[B.red] <- tail(AB.red, length(B.red))
-
-  list(A=A.chr, B=B.chr, A.eq=A.eq, B.eq=B.eq)
 }
 # Add word diff highlighting
 
