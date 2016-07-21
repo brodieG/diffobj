@@ -282,8 +282,12 @@ capt_chr <- function(target, current, etc, err, extra){
   diff.out
 }
 capt_deparse <- function(target, current, etc, err, extra){
-  tar.capt <- do.call(deparse, c(list(target), extra))
-  cur.capt <- do.call(deparse, c(list(current), extra))
+  dep.try <- try({
+    tar.capt <- do.call(deparse, c(list(target), extra))
+    cur.capt <- do.call(deparse, c(list(current), extra))
+  }
+  if(inherits(dep.try, "try-error"))
+    err("Error attempting to deparse object(s)")
 
   etc <- set_mode(etc, tar.capt, cur.capt)
   if(isTRUE(etc@guides)) etc@guides <- guidesDeparse
