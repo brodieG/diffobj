@@ -106,7 +106,7 @@ This method of comparing vectors is a compromise that may in some circumstances 
 * `diffChr`: coerces the inputs to atomic character vectors with `as.character`, and runs the diff on the character vector
 * `diffFile`: compares the text content of two files
 * `diffCsv`: loads two CSV files into data frames and compares the data frames with `diffPrint`
-* `diffDeparse`: deparses and compares the character vectors produced by the depasing
+* `diffDeparse`: deparses and compares the character vectors produced by the deparsing
 * `ses`: computes the element by element shortest edit script on two character vectors
 
 Note the `diff*` functions use lowerCamelCase in keeping with S4 method name convention, whereas the package name itself is all lower case.
