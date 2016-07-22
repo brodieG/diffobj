@@ -83,7 +83,7 @@ PaletteOfStyles()["ansi256",,]
 ## the ansi256 / light / rgb style with our modified one
 ## which for illustrative purposes is the raw style
 defs <- PaletteOfStyles()
-my.style <- Style()   # See `?Style` for custom styles
+my.style <- StyleRaw()   # See `?Style` for custom styles
 defs["ansi256", "light", "rgb"] <- list(my.style) # note `list()`
 ## Output has no format now for format/color.mode/brightness
 ## we modified ...

@@ -253,7 +253,7 @@ strip_list_rh <- function(x, obj) {
 #' the diff, the diff can recognize that row 2 and 3  from the first matrix
 #' should be matched to row 1 and 2 of the second.
 #'
-#' These methods follow a similar interface as the \code{\link{guide*}{guide}}
+#' These methods follow a similar interface as the \code{\link[=guides]{guide*}}
 #' methods, with one available for each \code{diff*} method except for
 #' \code{diffCsv} since that one uses \code{diffPrint} internally.  The
 #' unsemantic differences are added back after the diff for display purposes,
@@ -276,16 +276,22 @@ strip_list_rh <- function(x, obj) {
 #' @rdname trim
 #' @name trim
 #' @aliases trimPrint, trimStr, trimChr, trimDeparse, trimFile
-#' @export
 #' @param obj the object
 #' @param obj.as.chr character the \code{print}ed representation of the object
 #' @return a \code{length(obj.as.chr) * 2} integer matrix with the start (first
 #'   column and end (second column) character positions of the sub string to
 #'   run diffs on.
 
+NULL
+
+#' @export
+#' @rdname trim
+
 setGeneric("trimPrint",
   function(obj, obj.as.chr) StandardGeneric("trimPrint")
 )
+#' @rdname trim
+
 setMethod(
   "trimPrint", c("ANY", "character"),
   function(obj, obj.as.chr) {
@@ -315,6 +321,8 @@ setMethod(
 setGeneric("trimStr",
   function(obj, obj.as.chr) StandardGeneric("trimStr")
 )
+#' @rdname trim
+
 setMethod(
   "trimStr", c("ANY", "character"),
   function(obj, obj.as.chr) {
@@ -338,6 +346,9 @@ trim_identity <- function(obj, obj.as.chr)
 #' @rdname trim
 
 setGeneric("trimChr", function(obj, obj.as.chr) StandardGeneric("trimChr"))
+
+#' @rdname trim
+
 setMethod("trimChr", c("ANY", "character"), trim_identity)
 
 #' @export
@@ -346,12 +357,17 @@ setMethod("trimChr", c("ANY", "character"), trim_identity)
 setGeneric(
   "trimDeparse", function(obj, obj.as.chr) StandardGeneric("trimDeparse")
 )
+#' @rdname trim
+
 setMethod("trimDeparse", c("ANY", "character"), trim_identity)
 
 #' @export
 #' @rdname trim
 
 setGeneric("trimFile", function(obj, obj.as.chr) StandardGeneric("trimFile"))
+
+#' @rdname trim
+
 setMethod("trimFile", c("ANY", "character"), trim_identity)
 
 # Helper fun used by trim functions that remove font of strings and rely on

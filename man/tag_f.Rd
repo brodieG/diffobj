@@ -18,9 +18,11 @@ span_f(class = character(), style = character())
 cont_f(class = character())
 }
 \arguments{
-\item{character}{class the CSS class(es)}
+\item{tag}{character(1L) a name of an HTML tag}
 
-\item{named}{character style inline styles, where the name is the CSS
+\item{class}{character the CSS class(es)}
+
+\item{style}{named character inline styles, where the name is the CSS
 property and the value the value.}
 }
 \value{
@@ -52,5 +54,4 @@ div_f("ex2", c(color="green", `font-family`="arial"))(LETTERS[1:5])
 ## and only one div is created around the entire data
 cont_f()(LETTERS[1:5])
 }
-\keyword{export}
 

@@ -19,7 +19,8 @@ NULL
 #' \code{Diff} object and using them to subset the \code{as.character} output.
 #' This mechanism explains the seemingly odd behavior documented above.
 #'
-#' @export
+#' @param x \code{Diff} object
+#' @param i subsetting index, must be numeric
 
 setMethod(
   "[", signature(x="Diff", i="numeric", j="missing", drop="missing"),
@@ -29,7 +30,6 @@ setMethod(
     x@sub.index <- as.integer(i)
     x
 } )
-#' @export
 
 setMethod("head", "Diff",
   function(x, n, ...) {
@@ -39,7 +39,6 @@ setMethod("head", "Diff",
     x@sub.head <- as.integer(n)
     x
 } )
-#' @export
 
 setMethod("tail", "Diff",
   function(x, n, ...) {

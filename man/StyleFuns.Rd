@@ -19,7 +19,7 @@ here)}
 
 \item{line.match}{function}
 
-\item{line.guide}{function formats guide lines (see \code{\link{guideLines}})}
+\item{line.guide}{function formats guide lines (see \code{\link{guides}})}
 
 \item{text}{function}
 
@@ -29,7 +29,7 @@ here)}
 
 \item{text.match}{function}
 
-\item{text.guide}{function formats guide lines (see \code{\link{guideLines}})}
+\item{text.guide}{function formats guide lines (see \code{\link{guides}})}
 
 \item{gutter}{function}
 

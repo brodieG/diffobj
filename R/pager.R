@@ -1,10 +1,10 @@
 #' Objects for Specifying Pager Settings
 #'
 #' Generate pager configuration objects to use as the \code{pager} argument to
-#' the \code{\link[=diffObj]{diff*}} methods or as the \code{pager} slot for
+#' the \code{\link[=diffPrint]{diff*}} methods or as the \code{pager} slot for
 #' \code{\link{Style}} objects.
 #'
-#' Several pre-defined pager configuration objects are available via S4
+#' Several pre-defined pager configuration objects are available via
 #' constructor functions:
 #' \itemize{
 #'   \item \code{PagerOff}: Turn off pager
@@ -30,11 +30,11 @@
 #'   will contain the text of the diff.  This is a temporary file that will be
 #'   deleted as soon as the pager function completes evaluation.
 #'   \code{PagerSystem} and \code{PagerSystemLess} use \code{\link{file.show}}
-#'   by default, and \code{PagerBrowser} uses \code{\link{browserURL}}.
+#'   by default, and \code{PagerBrowser} uses \code{\link{browseURL}}.
 #' @param file.ext character(1L) an extension to append to file name passed to
 #'   \code{pager}, \emph{without} the period.  For example, \code{PagerBrowser}
-#'   uses \dQuote{html} to cause \code{\link{browseURL}} to launch the web
-#'   browser.
+#'   uses \dQuote{html} to cause \code{\link{browseURL}} to launch the
+#'   web browser.
 #' @param threshold integer(1L) number of lines of output that triggers the use
 #'   of the pager; negative values lead to using
 #'   \code{\link{console_lines} + 1}, and zero leads to always using the pager
@@ -49,9 +49,10 @@
 #'   of the evaluation and is reset / unset afterwards. \emph{Note:} you must
 #'   specify this slot via the constructor as in the example.  If you set the
 #'   slot directly it will not have any effect.
+#' @param ... additional arguments to pass on to \code{new}, typically not used
 #'
 #' @aliases PagerOff, PagerSystem, PagerSystemLess, PagerBrowser
-#' @exportClass Pager
+#' @importFrom utils browseURL
 #' @rdname Pager
 #' @name Pager
 #' @examples
@@ -73,31 +74,46 @@ setClass(
     TRUE
   }
 )
-#' @export PagerOff
-#' @exportClass PagerOff
-#' @usage PagerOff()
+#' @export
 #' @rdname Pager
 
-PagerOff <- setClass("PagerOff", contains="Pager")
+setClass("PagerOff", contains="Pager")
 
-#' @export PagerSystem
-#' @exportClass PagerSystem
-#' @usage PagerSystem(pager=file.show, threshold=-1L, file.ext="")
+#' @export
 #' @rdname Pager
 
-PagerSystem <- setClass(
+PagerOff <- function(...) new("PagerOff", ...)
+
+#' @export
+#' @rdname Pager
+
+setClass(
   "PagerSystem", contains="Pager",
   prototype=list(pager=file.show, threshold=-1L),
 )
-#' @export PagerSystemLess
-#' @exportClass PagerSystemLess
-#' @usage PagerSystemLess(pager=file.show, threshold=-1L, file.ext="", flags="R")
+#' @export
 #' @rdname Pager
 
-PagerSystemLess <- setClass(
+PagerSystem <- function(pager=file.show, threshold=-1L, file.ext="", ...)
+  new("PagerSystem", pager=pager, threshold=threshold, file.ext=file.ext, ...)
+
+#' @export
+#' @rdname Pager
+
+setClass(
   "PagerSystemLess", contains="PagerSystem", slots=c("flags"),
   prototype=list(flags="R")
 )
+#' @export
+#' @rdname Pager
+
+PagerSystemLess <-
+  function(pager=file.show, threshold=-1L, file.ext="", flags="R", ...)
+    new(
+      "PagerSystemLess", pager=pager, threshold=threshold, file.ext=file.ext,
+      flags=flags, ...
+    )
+
 # Must use initialize so that the pager function can access the flags slot
 
 setMethod("initialize", "PagerSystemLess",
@@ -116,12 +132,10 @@ setMethod("initialize", "PagerSystemLess",
     }
     callNextMethod(.Object, ...)
 } )
-#' @export PagerBrowser
-#' @exportClass PagerBrowser
-#' @usage PagerBrowser(pager=browseURL, threshold=0L, file.ext="html")
+#' @export
 #' @rdname Pager
 
-PagerBrowser <- setClass(
+setClass(
   "PagerBrowser", contains="Pager",
   prototype=list(
     file.ext="html",
@@ -131,6 +145,12 @@ PagerBrowser <- setClass(
       readline("Press ENTER to continue...")
       invisible(res)
 } ) )
+#' @export
+#' @rdname Pager
+
+PagerBrowser <- function(pager=browseURL, threshold=0L, file.ext="html", ...)
+  new("PagerBrowser", pager=pager, threshold=threshold, file.ext=file.ext, ...)
+
 # Helper function to determine whether pager will be used or not
 
 use_pager <- function(pager, len) {

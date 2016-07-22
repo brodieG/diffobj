@@ -1,4 +1,4 @@
-#' Run \code{tools::Rdiff} Directly on R Objects
+#' Run Rdiff Directly on R Objects
 #'
 #' These functions are here for reference and testing purposes.  They are
 #' wrappers to \code{tools::Rdiff} and rely on an existing system diff utility.
@@ -21,7 +21,7 @@
 #'   installation without Rtools).
 #' @importFrom tools Rdiff
 #' @export
-#' @seealso \code{\link{diff_ses}}, \code{\link{diff_obj}}
+#' @seealso \code{\link{ses}}, \code{\link[=diffPrint]{diff*}}
 #' @param from character or object coercible to character for \code{Rdiff_chr},
 #'   any R object with \code{Rdiff_obj}, or a file pointing to an RDS object
 #' @param to character same as \code{from}

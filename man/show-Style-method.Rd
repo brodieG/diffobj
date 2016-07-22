@@ -3,9 +3,12 @@
 \docType{methods}
 \name{show,Style-method}
 \alias{show,Style-method}
+\alias{show,StyleHtml-method}
 \title{Show Method for Style Objects}
 \usage{
 \S4method{show}{Style}(object)
+
+\S4method{show}{StyleHtml}(object)
 }
 \arguments{
 \item{object}{a \code{Style} S4 object}

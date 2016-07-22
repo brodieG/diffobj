@@ -10,9 +10,11 @@ diffObj(target, current, ...)
 \item{target}{the reference object}
 
 \item{current}{the object being compared to \code{target}}
+
+\item{...}{unused, for compatibility of generics with methods}
 }
 \value{
-a \code{\link{Diff}} object; this object has a \code{show}
+a \code{Diff} object; this object has a \code{show}
   method that will display the diff to screen
 }
 \description{

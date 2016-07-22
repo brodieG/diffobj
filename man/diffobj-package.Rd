@@ -5,9 +5,10 @@
 \alias{diffobj-package}
 \title{Compare R Objects with a Text Diff}
 \description{
-Highlights differences between R objects in a familiar and intuitive way.
-This is similar to \code{\link{tools::Rdiff}} except the diff is computed
-directly on R objects instead of text files, does not rely on the system
-\code{diff} utility, and provides alternate display modes.
+Highlight differences between R objects in a familiar and intuitive way.
+This is inspired by \code{\link[=Rdiff]{tools::Rdiff}}, except the diff is
+computed directly on R objects instead of text files, the diff computation
+does not rely on the system \code{diff} utility, and the diff display is
+optimized to handle common R objects.
 }
 

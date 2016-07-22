@@ -17,9 +17,10 @@ NULL
 #'
 #' @note inputs are assumed to be valid class names or CSS styles.
 #'
-#' @keywords export
-#' @param character class the CSS class(es)
-#' @param named character style inline styles, where the name is the CSS
+#' @export
+#' @param tag character(1L) a name of an HTML tag
+#' @param class character the CSS class(es)
+#' @param style named character inline styles, where the name is the CSS
 #'   property and the value the value.
 #' @return a function that accepts a character parameter.  If applied, each
 #'   element in the character vector will be wrapped in the div tags

@@ -33,12 +33,12 @@ NULL
 #' @param line.insert function
 #' @param line.delete function
 #' @param line.match function
-#' @param line.guide function formats guide lines (see \code{\link{guideLines}})
+#' @param line.guide function formats guide lines (see \code{\link{guides}})
 #' @param text function
 #' @param text.insert function
 #' @param text.delete function
 #' @param text.match function
-#' @param text.guide function formats guide lines (see \code{\link{guideLines}})
+#' @param text.guide function formats guide lines (see \code{\link{guides}})
 #' @param gutter function
 #' @param gutter.insert function
 #' @param gutter.delete function
@@ -188,7 +188,7 @@ StyleText <- setClass(
 )
 #' Customize Appearance of Diff
 #'
-#' S4 objects that expose the formatting controls for \code{\link{Diff}}
+#' S4 objects that expose the formatting controls for \code{Diff}
 #' objects.  Many predifined formats are defined as classes that extend the
 #' base \code{Style} class.  You may fine tune styles by either extending
 #' the pre-defined classes, or modifying an instance thereof.
@@ -240,7 +240,7 @@ StyleText <- setClass(
 #' Most of the customization is done by specifying functions that operate on
 #' character vectors and return a modified character vector of the same length.
 #' The intended use case is to pass \code{crayon} functions such as
-#' \code{\link{crayon::red}}, although you may pass any function of your liking
+#' \code{crayon::red}, although you may pass any function of your liking
 #' that behaves as described.
 #'
 #' The visual representation of the diff has many nested components.  The
@@ -792,7 +792,7 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' ## the ansi256 / light / rgb style with our modified one
 #' ## which for illustrative purposes is the raw style
 #' defs <- PaletteOfStyles()
-#' my.style <- Style()   # See `?Style` for custom styles
+#' my.style <- StyleRaw()   # See `?Style` for custom styles
 #' defs["ansi256", "light", "rgb"] <- list(my.style) # note `list()`
 #' ## Output has no format now for format/color.mode/brightness
 #' ## we modified ...
@@ -905,6 +905,8 @@ setMethod("initialize", "PaletteOfStyles",
     callNextMethod(.Object, ...)
   }
 )
+#' @rdname Extract_PaletteOfStyles
+
 setReplaceMethod(
   "[", signature=c(x="PaletteOfStyles"),
   function(x, i, j, ..., value) {
@@ -912,6 +914,8 @@ setReplaceMethod(
     validObject(x)
     x
 } )
+#' @rdname Extract_PaletteOfStyles
+
 setMethod(
   "[", signature=c(x="PaletteOfStyles"),
   function(x, i, j, ..., drop=FALSE) {
@@ -919,15 +923,43 @@ setMethod(
     x
   }
 )
+#' Extract/Replace a Style Class or Object from PaletteOfStyles
+#'
+#' @rdname Extract_PaletteOfStyles
+#' @seealso \code{\link{diffPrint}} for explanations of \code{format},
+#'   \code{brightness}, and \code{color.mode}
+#' @param x a \code{\link{PaletteOfStyles}} object
+#' @param i numeric, or character corresponding to a valid style \code{format}
+#' @param j numeric, or character corresponding to a valid style
+#'   \code{brightness}
+#' @param ... pass a numeric or character corresponding to a valid
+#'   \code{color.mode}
+#' @param exact passed on to generic
+#' @param drop TRUE or FALSE, whether to drop dimensions, defaults to FALSE,
+#'   which is different than generic
+#' @param value a \emph{list} of \code{\link{Style}} class or
+#'   \code{\link{Style}} objects
+#' @return a \code{\link{Style}} class or \code{\link{Style}} object for
+#'    \code{[[}, and a list of the same for \code{[}
+
 setMethod(
   "[[", signature=c(x="PaletteOfStyles"),
   function(x, i, j, ..., exact=TRUE) {
     x@data[[i, j, ..., exact=exact]]
   }
 )
+#' Retrieve Dimnames for PaletteOfStyles Objects
+#'
+#' @param x a \code{\link{PaletteOfStyles}} object
+#' @return list the dimension names
+
 setMethod("dimnames", "PaletteOfStyles", function(x) dimnames(x@data))
 
 # Matrices used for show methods for styles
+
+#' Unexported Matrix Used for Sample Display
+#'
+#' @aliases .mx2
 
 .mx1 <- .mx2 <- matrix(1:50, ncol=2)
 .mx2[c(6L, 40L)] <- 99L
@@ -951,7 +983,7 @@ setMethod("show", "Style",
   function(object) {
     cat(sprintf("Object of class `%s`:\n\n", class(object)))
     d.p <- diffPrint(
-      diffobj:::.mx1, diffobj:::.mx2, context=1, line.limit=7L,
+      .mx1, .mx2, context=1, line.limit=7L,
       style=object, pager=PagerOff()
     )
     d.txt <- capture.output(show(d.p))
@@ -981,12 +1013,19 @@ setMethod("show", "Style",
     cat(d.txt, sep="\n")
     invisible(NULL)
 } )
+#' @rdname show-Style-method
+
 setMethod("show", "StyleHtml",
   function(object) {
     cat(sprintf("Class `%s` sample output:\n\n", class(object)))
     cat("[Object Renders in HTML]\n")
     invisible(NULL)
 } )
+#' Display a PaletteOfStyles
+#'
+#' @param object a \code{\link{PaletteOfStyles}} object
+#' @return NULL, invisibly
+
 setMethod("show", "PaletteOfStyles",
   function(object) {
     fmt <- dimnames(object)$format
@@ -1004,6 +1043,13 @@ setMethod("show", "PaletteOfStyles",
           )
           cat(paste0("  ", txt), sep="\n")
 } } } } )
+#' Display a Summarized Version of a PaletteOfStyles
+#'
+#' @param object a \code{\link{PaletteOfStyles}} object
+#' @param ... unused, for compatibility with generic
+#' @return character representation showing classes and/or objects in
+#'   PaletteOfStyles
+
 setMethod("summary", "PaletteOfStyles",
   function(object, ...)
     apply(

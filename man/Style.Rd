@@ -65,7 +65,7 @@ paging device to the function.}
 Style S4 object
 }
 \description{
-S4 objects that expose the formatting controls for \code{\link{Diff}}
+S4 objects that expose the formatting controls for \code{Diff}
 objects.  Many predifined formats are defined as classes that extend the
 base \code{Style} class.  You may fine tune styles by either extending
 the pre-defined classes, or modifying an instance thereof.
@@ -120,7 +120,7 @@ style object.
 Most of the customization is done by specifying functions that operate on
 character vectors and return a modified character vector of the same length.
 The intended use case is to pass \code{crayon} functions such as
-\code{\link{crayon::red}}, although you may pass any function of your liking
+\code{crayon::red}, although you may pass any function of your liking
 that behaves as described.
 
 The visual representation of the diff has many nested components.  The

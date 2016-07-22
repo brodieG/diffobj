@@ -1,9 +1,10 @@
 #' Compare R Objects with a Text Diff
 #'
-#' Highlights differences between R objects in a familiar and intuitive way.
-#' This is similar to \code{\link{tools::Rdiff}} except the diff is computed
-#' directly on R objects instead of text files, does not rely on the system
-#' \code{diff} utility, and provides alternate display modes.
+#' Highlight differences between R objects in a familiar and intuitive way.
+#' This is inspired by \code{\link[=Rdiff]{tools::Rdiff}}, except the diff is
+#' computed directly on R objects instead of text files, the diff computation
+#' does not rely on the system \code{diff} utility, and the diff display is
+#' optimized to handle common R objects.
 #'
 #' @import crayon
 #' @import methods
@@ -177,8 +178,8 @@ make_diff_fun <- function(capt_fun) {
 #'   on customization, \code{\link{style}} for full control of output format.
 #' @param brightness character, one of \dQuote{light}, \dQuote{dark},
 #'   \dQuote{neutral}, useful for adjusting color scheme to light or dark
-#'   terminals.  \dQuote{neutral} by default.  See \code{\link{Palette}} for
-#'   details and limitations.  Advanced: you may specify brightness as a
+#'   terminals.  \dQuote{neutral} by default.  See \code{\link{PaletteOfStyles}}
+#'   for details and limitations.  Advanced: you may specify brightness as a
 #'   function of \code{format}.  For example, if you typically wish to use a
 #'   \dQuote{dark} color scheme, except for when in \dQuote{html} format when
 #'   you prefer the \dQuote{light} scheme, you may use
@@ -192,7 +193,7 @@ make_diff_fun <- function(capt_fun) {
 #'   Defaults to \dQuote{yb}.  \dQuote{yb} stands for \dQuote{Yellow-Blue} for
 #'   color schemes that rely primarily on those colors to style diffs.
 #'   Those colors can be easily distinguished by individuals with
-#'   limited red-green color sensitivity.  See \code{\link{Palette}} for
+#'   limited red-green color sensitivity.  See \code{\link{PaletteOfStyles}} for
 #'   details and limitations.  Also offers the same advanced usage as the
 #'   \code{brightness} paramter.
 #' @param word.diff TRUE (default) or FALSE, whether to run a secondary word
@@ -200,21 +201,21 @@ make_diff_fun <- function(capt_fun) {
 #' @param pager character(1L), one of \dQuote{auto}, \dQuote{on},
 #'   \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
 #'   pager is used to display the diff output.  If \dQuote{on} will use the
-#'   pager associated with the \code{\link{Style} specified via the
-#'   \code{\link{style}}} parameters.  if \dQuote{auto} (default) will behave
+#'   pager associated with the \code{\link{Style}} specified via the
+#'   \code{\link{style}} parameters.  if \dQuote{auto} (default) will behave
 #'   like \dQuote{on} but only if the \code{diff*} method is called from the
 #'   top level (i.e. not nested inside another function).  If the pager is
 #'   enabled, default behavior is to pipe output to \code{link{file.show}} if
 #'   output is taller than the estimated terminal height and your terminal
 #'   supports ANSI escape sequences.  If not, the default is to attempt to pipe
-#'   output to a web browser with \code{\link{browserURL}}.  See
+#'   output to a web browser with \code{\link{browseURL}}.  See
 #'   \code{\link{Pager}}, \code{\link{Style}}, and \code{\link{PaletteOfStyles}}
 #'   for more details.
 #' @param guides TRUE (default), FALSE, or a function that accepts at least two
 #'   arguments and requires no more than two arguments.  Guides
 #'   are additional context lines that are not strictly part of a hunk, but
 #'   provide important contextual data (e.g. column headers).  See
-#'   \code{\link{guideLines}} for more details.
+#'   \code{\link{guides}} for more details.
 #' @param trim TRUE (default), FALSE, or a function that accepts at least two
 #'   arguments and requires no more than two arguments.  Function should compute
 #'   for each line in captured output what portion of those lines should be
@@ -265,7 +266,7 @@ make_diff_fun <- function(capt_fun) {
 #' @param ignore.white.space TRUE or FALSE, whether to consider differences in
 #'   horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
 #'   FALSE)
-#' @param convert.hz.whitespace TRUE or FALSE, whether modify input strings
+#' @param convert.hz.white.space TRUE or FALSE, whether modify input strings
 #'   that contain tabs and carriage returns in such a way that they display as
 #'   they would \bold{with} those characters, but without using those
 #'   characters (defaults to TRUE).  The conversion assumes that tab stops are
@@ -303,12 +304,12 @@ make_diff_fun <- function(capt_fun) {
 #'   \code{style} is \dQuote{auto}, output will be send to browser as HTML.
 #' @param term.colors integer(1L) how many ANSI colors are supported by the
 #'   terminal.  This variable is provided for when
-#'   \code{\link{crayon::num_colors}} does not properly detect how many ANSI
-#'   colors are supported by your terminal. Defaults to return value of
-#'   \code{\link{crayon::num_colors}} and should be 8 or 256 to allow ANSI
-#'   colors, or any other number to disallow them.  This only impacts output
-#'   format selection when \code{style} and \code{format} are both set to
-#'   \dQuote{auto}.
+#'   \code{\link[=num_colors]{crayon::num_colors}} does not properly detect how
+#'   many ANSI colors are supported by your terminal. Defaults to return value
+#'   of \code{\link[=num_colors]{crayon::num_colors}} and should be 8 or 256 to
+#'   allow ANSI colors, or any other number to disallow them.  This only
+#'   impacts output format selection when \code{style} and \code{format} are
+#'   both set to \dQuote{auto}.
 #' @param tar.banner character(1L) or NULL, text to display ahead of the diff
 #'   section representing the target output.  If NULL will be
 #'   inferred from \code{target} and \code{current} expressions.
@@ -316,10 +317,11 @@ make_diff_fun <- function(capt_fun) {
 #'   \code{current}
 #' @param extra list additional arguments to pass on to \code{print},
 #'   \code{str}, etc.
+#' @param ... unused, for compatibility of generics with methods
 #' @seealso \code{\link{diffObj}}, \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly,
 #'   \code{\link{diffDeparse}} to compare deparsed objects
-#' @return a \code{\link{Diff}} object; this object has a \code{show}
+#' @return a \code{Diff} object; this object has a \code{show}
 #'   method that will display the diff to screen or pager, as well as
 #'   \code{summary}, \code{any}, and \code{as.character} methods.  Note that
 #'   if you store the return value instead of displaying it to screen, and
@@ -354,7 +356,7 @@ setMethod("diffPrint", signature=c("ANY", "ANY"), make_diff_fun(capt_print))
 #'   \code{\link{diffObj}}, \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly,
 #'   \code{\link{diffDeparse}} to compare deparsed objects
-#' @return a \code{\link{Diff}} object; this object has a \code{show}
+#' @return a \code{Diff} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @rdname diffStr
 #' @export
@@ -375,7 +377,7 @@ setMethod("diffStr", signature=c("ANY", "ANY"), make_diff_fun(capt_str))
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
 #'   \code{\link{diffObj}}, \code{link{diffStr}},
 #'   \code{\link{diffDeparse}} to compare deparsed objects
-#' @return a \code{\link{Diff}} object; this object has a \code{show}
+#' @return a \code{Diff} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
 #' @rdname diffChr
@@ -398,7 +400,7 @@ setMethod("diffChr", signature=c("ANY", "ANY"), make_diff_fun(capt_chr))
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
 #'   \code{\link{diffObj}}, \code{link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly
-#' @return a \code{\link{Diff}} object; this object has a \code{show}
+#' @return a \code{Diff} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
 #' @rdname diffDeparse
@@ -424,7 +426,7 @@ setMethod("diffDeparse", signature=c("ANY", "ANY"), make_diff_fun(capt_deparse))
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
 #'   \code{\link{diffObj}}, \code{link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly
-#' @return a \code{\link{Diff}} object; this object has a \code{show}
+#' @return a \code{Diff} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
 #' @rdname diffFile
@@ -457,7 +459,7 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
 #'   \code{\link{diffObj}}, \code{link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly
-#' @return a \code{\link{Diff}} object; this object has a \code{show}
+#' @return a \code{Diff} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
 #' @rdname diffCsv
@@ -494,7 +496,7 @@ setMethod("diffCsv", signature=c("ANY", "ANY"), make_diff_fun(capt_csv))
 #'   \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly
 #'   \code{\link{diffDeparse}} to compare deparsed objects
-#' @return a \code{\link{Diff}} object; this object has a \code{show}
+#' @return a \code{Diff} object; this object has a \code{show}
 #'   method that will display the diff to screen
 #' @export
 

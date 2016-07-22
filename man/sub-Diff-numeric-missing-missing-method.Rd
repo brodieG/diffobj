@@ -7,6 +7,11 @@
 \usage{
 \S4method{[}{Diff,numeric,missing,missing}(x, i)
 }
+\arguments{
+\item{x}{\code{Diff} object}
+
+\item{i}{subsetting index, must be numeric}
+}
 \description{
 Methods to subset the character representation of the diff output.  The
 subsetting bears no link to the line numbers in the diffs, only to the actual

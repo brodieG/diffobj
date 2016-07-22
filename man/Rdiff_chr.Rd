@@ -3,7 +3,7 @@
 \name{Rdiff_chr}
 \alias{Rdiff_chr}
 \alias{Rdiff_obj}
-\title{Run \code{tools::Rdiff} Directly on R Objects}
+\title{Run Rdiff Directly on R Objects}
 \usage{
 Rdiff_chr(from, to, silent = FALSE, minimal = FALSE, nullPointers = TRUE)
 
@@ -49,6 +49,6 @@ These functions will try to use the system \code{diff} utility. This
   installation without Rtools).
 }
 \seealso{
-\code{\link{diff_ses}}, \code{\link{diff_obj}}
+\code{\link{ses}}, \code{\link[=diffPrint]{diff*}}
 }
 

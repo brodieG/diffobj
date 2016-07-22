@@ -246,8 +246,7 @@ detect_array_guides <- function(txt, dim.n) {
 #' methods for them (see examples), though if your objects are S3 you will need
 #' to use \code{\link{setOldClass}} as the \code{guides*} generics are S4.
 #'
-#' @aliases guidesStr, guidesChr, guidesDeparse
-#' @export
+#' @aliases guidesPrint, guidesStr, guidesChr, guidesDeparse
 #' @rdname guides
 #' @name guides
 #' @param obj an R object
@@ -270,10 +269,17 @@ detect_array_guides <- function(txt, dim.n) {
 #' } )
 #' }
 
+NULL
+
+#' @export
+#' @rdname guides
+
 setGeneric(
   "guidesPrint",
   function(obj, obj.as.chr) StandardGeneric("guidesPrint")
 )
+#' @rdname guides
+
 setMethod(
   "guidesPrint", c("ANY", "character"),
   function(obj, obj.as.chr) {
@@ -300,6 +306,8 @@ setGeneric(
   "guidesStr",
   function(obj, obj.as.chr) StandardGeneric("guidesStr")
 )
+#' @rdname guides
+
 setMethod("guidesStr", c("ANY", "character"),
   function(obj, obj.as.chr) {
     if(anyNA(obj.as.chr))
@@ -315,6 +323,8 @@ setGeneric(
   "guidesChr",
   function(obj, obj.as.chr) StandardGeneric("guidesChr")
 )
+#' @rdname guides
+
 setMethod("guidesChr", c("ANY", "character"),
   function(obj, obj.as.chr) integer(0L)
 )
@@ -325,6 +335,8 @@ setGeneric(
   "guidesDeparse",
   function(obj, obj.as.chr) StandardGeneric("guidesDeparse")
 )
+#' @rdname guides
+
 setMethod("guidesDeparse", c("ANY", "character"),
   function(obj, obj.as.chr) integer(0L)
 )
@@ -335,11 +347,11 @@ setGeneric(
   "guidesFile",
   function(obj, obj.as.chr) StandardGeneric("guidesFile")
 )
+#' @rdname guides
+
 setMethod("guidesFile", c("ANY", "character"),
   function(obj, obj.as.chr) integer(0L)
 )
-
-
 # Helper function to verify guide line computation worked out
 
 apply_guides <- function(obj, obj.as.chr, guide_fun) {
