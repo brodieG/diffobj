@@ -81,19 +81,19 @@ extract_call <- function(s.c, par.env) {
 #' Get Parent Frame of S4 Call Stack
 #'
 #' Implementation of the \code{function(x=parent.frame()) ...} pattern for the
-#' \code{\link{diff*}{diffPrint}} methods since the normal pattern does not
+#' \code{\link[=diffPrint]{diff*}} methods since the normal pattern does not
 #' work with S4 methods.  Works by looking through the call stack and
 #' identifying what call likely initiated the S4 dispatch.
 #'
 #' The function is not exported and intended only for use as the default value
-#' for the \code{frame} argument for the \code{\link{diff*}{diffPrint}}
+#' for the \code{frame} argument for the \code{\link[=diffPrint]{diff*}}
 #' methods.
 #'
 #' Matching is done purely by looking for the first repeated call which is
 #' what usual happens with S4 dispatch since there will be a call to the generic
 #' and then to the method.  Since methods can be renamed by the user we make
 #' no attempt to verify method names.  This method could potentially be tricked
-#' if you implement custom \code{\link{diff*}{diffPrint}} methods that somehow
+#' if you implement custom \code{\link[=diffPrint]{diff*}} methods that somehow
 #' issue two identical sequential calls before calling \code{callNextMethod}.
 #' Failure in this case means the wrong \code{frame} will be returned.
 #'

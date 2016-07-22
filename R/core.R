@@ -2,12 +2,12 @@
 
 NULL
 
-# Generate a character representation of Shortest Edit Sequence
-#
-# @seealso \code{\link{diff_ses}}
-# @param x S4 object of class \code{MyersMbaSes}
-# @param ... unused
-# @return character vector
+#' Generate a character representation of Shortest Edit Sequence
+#'
+#' @seealso \code{\link{ses}}
+#' @param x S4 object of class \code{MyersMbaSes}
+#' @param ... unused
+#' @return character vector
 
 setMethod("as.character", "MyersMbaSes",
   function(x, ...) {
@@ -182,20 +182,18 @@ setMethod("show", "MyersMbaSes",
     invisible(res)
 } )
 
-# Summary Method for Shortest Edit Path
-#
-# Displays the data required to generate the shortest edit path for comparison
-# between two strings.
-#
-# @param object the \code{diff_myers_mba} object to display
-# @param with.match logical(1L) whether to show what text the edit command
-#   refers to
-# @param ... forwarded to the data frame print method used to actually display
-#   the data
-# @return whatever the data frame print method returns
-# @export
-
-#' @rdname diffobj_s4method_doc
+#' Summary Method for Shortest Edit Path
+#'
+#' Displays the data required to generate the shortest edit path for comparison
+#' between two strings.
+#'
+#' @export
+#' @param object the \code{diff_myers_mba} object to display
+#' @param with.match logical(1L) whether to show what text the edit command
+#'   refers to
+#' @param ... forwarded to the data frame print method used to actually display
+#'   the data
+#' @return whatever the data frame print method returns
 
 setMethod("summary", "MyersMbaSes",
   function(object, with.match=FALSE, ...) {
@@ -261,6 +259,12 @@ line_diff <- function(
     )
   etc@guide.lines <-
     make_guides(target, tar.capt, current, cur.capt, etc@guides)
+
+  # Need to remove new lines as the processed captures do that anyway and we
+  # end up with mismatched lengths if we don't
+
+  if(any(nzchar(tar.capt))) tar.capt <- split_new_line(tar.capt)
+  if(any(nzchar(cur.capt))) cur.capt <- split_new_line(cur.capt)
 
   # Some debate as to whether we want to do this first, or last.  First has
   # many benefits so that everything is consistent, width calcs can work fine,
