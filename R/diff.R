@@ -393,7 +393,8 @@ setMethod("diffChr", signature=c("ANY", "ANY"), make_diff_fun(capt_chr))
 #' Diff Deparsed Objects
 #'
 #' Perform diff on the character vectors produced by \code{\link{deparse}}ing
-#' the objects.
+#' the objects.  Each element counts as a line.  If an element contains newlines
+#' it will be split into elements new lines by the newlines.
 #'
 #' @export
 #' @inheritParams diffPrint
