@@ -71,4 +71,8 @@ test_that("Whitespace", {
     ),
     rdsf(900)
   )
+  # New lines count as new elements
+  expect_equal_to_reference(
+    as.character(diffChr("woo\nhoo\nfoo", c("woo", "foo"))), rdsf(1000)
+  )
 })
