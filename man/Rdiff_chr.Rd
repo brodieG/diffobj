@@ -3,7 +3,7 @@
 \name{Rdiff_chr}
 \alias{Rdiff_chr}
 \alias{Rdiff_obj}
-\title{Run \code{tools::Rdiff} Directly on R Objects}
+\title{Run Rdiff Directly on R Objects}
 \usage{
 Rdiff_chr(from, to, silent = FALSE, minimal = FALSE, nullPointers = TRUE)
 
@@ -28,7 +28,7 @@ the Rdiff output, invisibly if \code{silent} is FALSE
 \description{
 These functions are here for reference and testing purposes.  They are
 wrappers to \code{tools::Rdiff} and rely on an existing system diff utility.
-You should be using \code{\link{ses}} or \code{\link{diffChr}}instead of
+You should be using \code{\link{ses}} or \code{\link{diffChr}} instead of
 \code{Rdiff_chr} and \code{\link{diffPrint}} instead of \code{Rdiff_obj}.
 See limitations in note.
 }
@@ -49,6 +49,6 @@ These functions will try to use the system \code{diff} utility. This
   installation without Rtools).
 }
 \seealso{
-\code{\link{diff_ses}}, \code{\link{diff_obj}}
+\code{\link{ses}}, \code{\link[=diffPrint]{diff*}}
 }
 

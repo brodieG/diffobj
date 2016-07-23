@@ -7,6 +7,13 @@ crayon_hascolor <- crayon::has_color
 crayon_split <- crayon::col_strsplit
 crayon_strip <- crayon::strip_style
 
+# Function to split a character vector by newlines; handles some special cases
+
+split_new_line <- function(x) {
+  y <- x
+  y[!nzchar(x)] <- "\n"
+  unlist(strsplit(y, "\n"))
+}
 html_ent_sub <- function(x, style) {
   if(is(style, "StyleHtml") && style@escape.html.entities) {
     x <- gsub("&", "&amp;", x, fixed=TRUE)

@@ -10,17 +10,18 @@ diffObj(target, current, ...)
 \item{target}{the reference object}
 
 \item{current}{the object being compared to \code{target}}
+
+\item{...}{unused, for compatibility of generics with methods}
 }
 \value{
-a \code{\link{Diff}} object; this object has a \code{show}
-  method that will display the diff to screen
+a \code{Diff} object; see \code{\link{diffPrint}}.
 }
 \description{
 Compare either the \code{print}ed or \code{str} screen representation of
 R objects depending on which is estimated to produce the most useful
 diff.  The selection process tries to minimize screen lines while maximizing
 differences shown subject to display constraints.  The decision algorithm is
-likely to evolve over time, so do not rely on this function making a
+likely to evolve over time, so do not rely on this function making
 a particular selection under specific circumstances.  Instead, use
 \code{\link{diffPrint}} or \code{\link{diffStr}} if you require one or the
 other output.

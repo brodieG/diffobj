@@ -14,8 +14,7 @@ auto_context(min = getOption("diffobj.context.auto.min"),
 }
 \value{
 S4 object containing configuration parameters, for use as the
-  \code{context} or parameter value in \code{\link{diff_obj}} and related
-  functions
+  \code{context} or parameter value in \code{\link[=diffPrint]{diff*}} methods
 }
 \description{
 Helper functions to help define parameters for selecting an appropriate

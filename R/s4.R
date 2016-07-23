@@ -350,6 +350,14 @@ setMethod("lineCoverage", "Diff",
     )
   }
 )
+#' Determine if Diff Object Has Differences
+#'
+#' @param x a \code{Diff} object
+#' @param ... unused, for compatibility with generic
+#' @param na.rm unused, for compatibility with generic
+#' @return TRUE if there are differences, FALSE if not, FALSE with warning if
+#'   there are no differences but objects are not \code{\link{all.equal}}
+
 setMethod("any", "Diff",
   function(x, ..., na.rm = FALSE) {
     dots <- list(...)

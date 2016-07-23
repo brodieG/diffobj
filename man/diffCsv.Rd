@@ -20,7 +20,7 @@ diffCsv(target, current, ...)
   tab.stops = gdo("tab.stops"), line.limit = gdo("line.limit"),
   hunk.limit = gdo("hunk.limit"), align = gdo("align"),
   style = gdo("style"), palette.of.styles = gdo("palette"),
-  frame = parent.frame(), interactive = gdo("interactive"),
+  frame = par_frame(), interactive = gdo("interactive"),
   term.colors = gdo("term.colors"), tar.banner = NULL, cur.banner = NULL,
   extra = list())
 }
@@ -29,6 +29,8 @@ diffCsv(target, current, ...)
 if character should point to a CSV file}
 
 \item{current}{like \code{target}}
+
+\item{...}{unused, for compatibility of generics with methods}
 
 \item{mode}{character(1L), one of:
 \itemize{
@@ -70,8 +72,8 @@ on customization, \code{\link{style}} for full control of output format.}
 
 \item{brightness}{character, one of \dQuote{light}, \dQuote{dark},
 \dQuote{neutral}, useful for adjusting color scheme to light or dark
-terminals.  \dQuote{neutral} by default.  See \code{\link{Palette}} for
-details and limitations.  Advanced: you may specify brightness as a
+terminals.  \dQuote{neutral} by default.  See \code{\link{PaletteOfStyles}}
+for details and limitations.  Advanced: you may specify brightness as a
 function of \code{format}.  For example, if you typically wish to use a
 \dQuote{dark} color scheme, except for when in \dQuote{html} format when
 you prefer the \dQuote{light} scheme, you may use
@@ -86,32 +88,38 @@ not explicitly specified.}
 Defaults to \dQuote{yb}.  \dQuote{yb} stands for \dQuote{Yellow-Blue} for
 color schemes that rely primarily on those colors to style diffs.
 Those colors can be easily distinguished by individuals with
-limited red-green color sensitivity.  See \code{\link{Palette}} for
+limited red-green color sensitivity.  See \code{\link{PaletteOfStyles}} for
 details and limitations.  Also offers the same advanced usage as the
-\code{brightness} paramter does.}
+\code{brightness} paramter.}
 
 \item{word.diff}{TRUE (default) or FALSE, whether to run a secondary word
-diff on the on in-hunk diferences}
+diff on the in-hunk diferences}
 
 \item{pager}{character(1L), one of \dQuote{auto}, \dQuote{on},
 \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
 pager is used to display the diff output.  If \dQuote{on} will use the
-pager associated with the \code{\link{Style} specified via the
-\code{\link{style}}} parameters.  if \dQuote{auto} (default) will behave
+pager associated with the \code{\link{Style}} specified via the
+\code{\link{style}} parameters.  if \dQuote{auto} (default) will behave
 like \dQuote{on} but only if the \code{diff*} method is called from the
 top level (i.e. not nested inside another function).  If the pager is
-enabled, default behavior is to pipe output to \code{link{file.show}} if
+enabled, default behavior is to pipe output to \code{\link{file.show}} if
 output is taller than the estimated terminal height and your terminal
 supports ANSI escape sequences.  If not, the default is to attempt to pipe
-output to a web browser with \code{\link{browserURL}}.  See
+output to a web browser with \code{\link{browseURL}}.  See
 \code{\link{Pager}}, \code{\link{Style}}, and \code{\link{PaletteOfStyles}}
 for more details.}
 
 \item{guides}{TRUE (default), FALSE, or a function that accepts at least two
 arguments and requires no more than two arguments.  Guides
 are additional context lines that are not strictly part of a hunk, but
-provide important contextual data (e.g. column headers).  See
-\code{\link{guideLines}} for more details.}
+provide important contextual data (e.g. column headers).  If TRUE, the
+context lines are shown in addition to the normal diff output, typically
+in a different color to inidicate they are not part of the hunk.  If a
+function, the function should accept as the first argument the object
+being diffed, and the second the character representation of the object.
+The function should return the indices of the elements of the second
+character representation that should be treated as guides.  See
+\code{\link{guides}} for more details.}
 
 \item{trim}{TRUE (default), FALSE, or a function that accepts at least two
 arguments and requires no more than two arguments.  Function should compute
@@ -138,8 +146,8 @@ vectors may well be wrapped with different periodicities this will result
 in lines that are paired up that look like they should not be paired up,
 though the locations of the differences should be.}
 
-\item{max.diffs}{integer(1L), number of differences after which we abandon
-the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
+\item{max.diffs}{integer(1L), number of \emph{differences} after which we
+abandon the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
 \code{-1L} to always stick to the original algorithm (defaults to 10000L).}
 
 \item{disp.width}{integer(1L) number of display columns to take up; note that
@@ -150,6 +158,13 @@ for normal styles and \code{120L} for HTML styles.}
 \item{ignore.white.space}{TRUE or FALSE, whether to consider differences in
 horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
 FALSE)}
+
+\item{convert.hz.white.space}{TRUE or FALSE, whether modify input strings
+that contain tabs and carriage returns in such a way that they display as
+they would \bold{with} those characters, but without using those
+characters (defaults to TRUE).  The conversion assumes that tab stops are
+spaced evenly eight characters apart on the terminal.  If this is not the
+case you may specify the tab stops explicitly with \code{tab.stops}.}
 
 \item{tab.stops}{integer, what tab stops to use when converting hard tabs to
 spaces.  If not integer will be coerced to integer (defaults to 8L).  You
@@ -195,9 +210,10 @@ contains all the \code{\link{Style}} objects that are selected by
 specifying the \code{format}, \code{brightness}, and \code{color.mode}
 parameters.  See \code{\link{PaletteOfStyles}} for more details.}
 
-\item{frame}{environment the evaluation frame for the \code{print/show/str},
-calls, allows user to ensure correct methods are used, not used by
-\code{\link{diffChr}} or \code{\link{diffDeparse}}.}
+\item{frame}{an environment to use as the evaluation frame for the
+\code{print/show/str}, calls and for \code{diffObj}, the evaluation frame
+for the \code{diffPrint}/\code{diffStr} calls.  Defaults to the return
+value of \code{\link{par_frame}}.}
 
 \item{interactive}{TRUE or FALSE whether the function is being run in
 interactive mode, defaults to the return value of
@@ -207,12 +223,12 @@ interactive mode, defaults to the return value of
 
 \item{term.colors}{integer(1L) how many ANSI colors are supported by the
 terminal.  This variable is provided for when
-\code{\link{crayon::num_colors}} does not properly detect how many ANSI
-colors are supported by your terminal. Defaults to return value of
-\code{\link{crayon::num_colors}} and should be 8 or 256 to allow ANSI
-colors, or any other number to disallow them.  This only impacts output
-format selection when \code{style} and \code{format} are both set to
-\dQuote{auto}.}
+\code{\link[=num_colors]{crayon::num_colors}} does not properly detect how
+many ANSI colors are supported by your terminal. Defaults to return value
+of \code{\link[=num_colors]{crayon::num_colors}} and should be 8 or 256 to
+allow ANSI colors, or any other number to disallow them.  This only
+impacts output format selection when \code{style} and \code{format} are
+both set to \dQuote{auto}.}
 
 \item{tar.banner}{character(1L) or NULL, text to display ahead of the diff
 section representing the target output.  If NULL will be
@@ -221,19 +237,20 @@ inferred from \code{target} and \code{current} expressions.}
 \item{cur.banner}{character(1L) like \code{tar.banner}, but for
 \code{current}}
 
-\item{extra}{list additional arguments to pass on to \code{print},
-\code{str}, etc.}
+\item{extra}{list additional arguments to pass on to the functions used to
+create text representation of the objects to diff (e.g. \code{print},
+\code{str}, etc.)}
 }
 \value{
-a \code{\link{Diff}} object; this object has a \code{show}
-  method that will display the diff to screen
+a \code{Diff} object; see \code{\link{diffPrint}}.
 }
 \description{
 Reads CSV files with \code{\link{read.csv}} and passes the resulting data
-frames onto \code{\link{diffPrint}}.  \code{...} arguments are passed to
-both \code{read.csv} and \code{print}.  To the extent you wish to use
-different \code{...} arguments for each of those functions you will need to
-\code{read.csv} the files and pass them to \code{diffPrint} yourself.
+frames onto \code{\link{diffPrint}}.  \code{extra} values are passed as
+arguments are passed to both \code{read.csv} and \code{print}.  To the
+extent you wish to use different \code{extra} arguments for each of those
+functions you will need to \code{read.csv} the files and pass them to
+\code{diffPrint} yourself.
 }
 \examples{
 iris.2 <- iris
@@ -247,7 +264,7 @@ unlink(c(f1, f2))
 }
 \seealso{
 \code{\link{diffPrint}} for details on the \code{diff*} functions,
-  \code{\link{diffObj}}, \code{link{diffStr}},
+  \code{\link{diffObj}}, \code{\link{diffStr}},
   \code{\link{diffChr}} to compare character vectors directly
 }
 

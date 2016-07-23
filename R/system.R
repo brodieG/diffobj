@@ -25,7 +25,7 @@
   diffobj.align.count.alnum.only=TRUE,
   diffobj.style="auto",
   diffobj.format="auto",
-  diffobj.interactive=interactive(),
+  diffobj.interactive=NULL,     # NULL == interactive()
   diffobj.color.mode="yb",
   diffobj.term.colors=crayon::num_colors(),
   diffobj.brightness="neutral",

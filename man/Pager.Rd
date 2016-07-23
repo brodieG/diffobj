@@ -16,32 +16,35 @@
 \alias{PagerSystemLess-class}
 \title{Objects for Specifying Pager Settings}
 \usage{
-PagerOff()
+PagerOff(...)
 
-PagerSystem(pager=file.show, threshold=-1L, file.ext="")
+PagerSystem(pager = file.show, threshold = -1L, file.ext = "", ...)
 
-PagerSystemLess(pager=file.show, threshold=-1L, file.ext="", flags="R")
+PagerSystemLess(pager = file.show, threshold = -1L, file.ext = "",
+  flags = "R", ...)
 
-PagerBrowser(pager=browseURL, threshold=0L, file.ext="html")
+PagerBrowser(pager = browseURL, threshold = 0L, file.ext = "html", ...)
 }
 \arguments{
+\item{...}{additional arguments to pass on to \code{new}, typically not used}
+
 \item{pager}{a function that accepts at least one parameter and does not
 require a parameter other than the first parameter.  This function will be
 called with a file name passed as the first argument.  The referenced file
 will contain the text of the diff.  This is a temporary file that will be
 deleted as soon as the pager function completes evaluation.
 \code{PagerSystem} and \code{PagerSystemLess} use \code{\link{file.show}}
-by default, and \code{PagerBrowser} uses \code{\link{browserURL}}.}
-
-\item{file.ext}{character(1L) an extension to append to file name passed to
-\code{pager}, \emph{without} the period.  For example, \code{PagerBrowser}
-uses \dQuote{html} to cause \code{\link{browseURL}} to launch the web
-browser.}
+by default, and \code{PagerBrowser} uses \code{\link{browseURL}}.}
 
 \item{threshold}{integer(1L) number of lines of output that triggers the use
 of the pager; negative values lead to using
 \code{\link{console_lines} + 1}, and zero leads to always using the pager
 irrespective of how many lines the output has.}
+
+\item{file.ext}{character(1L) an extension to append to file name passed to
+\code{pager}, \emph{without} the period.  For example, \code{PagerBrowser}
+uses \dQuote{html} to cause \code{\link{browseURL}} to launch the
+web browser.}
 
 \item{flags}{character(1L), only for \code{PagerSystemLess}, what flags to
 set with the \code{LESS} system environment variable.  By default the
@@ -56,11 +59,11 @@ slot directly it will not have any effect.}
 }
 \description{
 Generate pager configuration objects to use as the \code{pager} argument to
-the \code{\link[=diffObj]{diff*}} methods or as the \code{pager} slot for
+the \code{\link[=diffPrint]{diff*}} methods or as the \code{pager} slot for
 \code{\link{Style}} objects.
 }
 \details{
-Several pre-defined pager configuration objects are available via S4
+Several pre-defined pager configuration objects are available via
 constructor functions:
 \itemize{
   \item \code{PagerOff}: Turn off pager
@@ -75,12 +78,16 @@ constructor functions:
 
 
 If you wish to define your own pager object you should do so by extending the
-\code{Pager} virtual class.  Your pager should at a minimum specify the
-\code{pager} slot of the object (see slot definition).  If the function you
-use to handle the actual paging allows R code evaluation to continue after it
-is spawned, you may want to wrap it in a function that pauses evaluation
-(e.g. with \code{\link{readline}}), as otherwise the temporary file that
-contains the diff may be deleted before the pager has a chance to read it.
+\code{Pager} virtual class.  In most cases you should be able to use one of
+the existing objects configured with different parameters, but if your
+pager function requires special treatment then you can define a custom pager
+object.  At a minimum you should specify the \code{pager} slot of the object
+(see constructor function parameter definition).  If the function you
+use to handle the actual paging is non-blocking (i.e. allows R code
+evaluation to continue after it is spawned, you may want to wrap it in a
+function that pauses evaluation (e.g. with \code{\link{readline}}), as
+otherwise the temporary file that contains the diff may be deleted before the
+pager has a chance to read it.
 }
 \examples{
 ## Assuming system pager is `less` and terminal supports ANSI ESC sequences

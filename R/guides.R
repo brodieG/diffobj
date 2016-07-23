@@ -206,7 +206,7 @@ detect_array_guides <- function(txt, dim.n) {
 }
 #' Generic Methods to Implement Flexible Guide Line Computations
 #'
-#' Guides are context lines that would not normally be shown as part of a
+#' Guides are context lines that would normally be omitted from the
 #' diff because they are too far from any differences, but provide particularly
 #' useful contextual information.  Column headers are a common example.
 #' Modifying guide finding is an advanced feature intended for package
@@ -227,10 +227,14 @@ detect_array_guides <- function(txt, dim.n) {
 #' \code{\link{guidesPrint}}), with the exception of \code{\link{diffCsv}}
 #' since that method uses \code{diffPrint} internally.  The \code{guides*}
 #' methods expect an R object as the first parameter and the captured display
-#' representation of the object in a charater vector as the second.  This allows
-#' them to adapt what patterns they are looking for in the character
-#' representation of the object.  For example, a \code{list} like object will
-#' require a different guide finding strategy than a \code{matrix} object.
+#' representation of the object in a charater vector as the second.  The
+#' function should then identify which elements in the character representation
+#' should be treated as guides, and should return the numeric indices for them.
+#'
+#' The original object is passed as the first argument so that the generic can
+#' dispatch on it, and so the methods may adjust their guide finding behavior
+#' to data that is easily retrivable from the object, but less so from the
+#' character representation thereof.
 #'
 #' The default method for \code{guidesPrint} has special handling for 2D
 #' objects (e.g. data frames, matrices), arrays, time series, tables, and lists.
@@ -246,8 +250,7 @@ detect_array_guides <- function(txt, dim.n) {
 #' methods for them (see examples), though if your objects are S3 you will need
 #' to use \code{\link{setOldClass}} as the \code{guides*} generics are S4.
 #'
-#' @aliases guidesStr, guidesChr, guidesDeparse
-#' @export
+#' @aliases guidesPrint, guidesStr, guidesChr, guidesDeparse
 #' @rdname guides
 #' @name guides
 #' @param obj an R object
@@ -270,10 +273,17 @@ detect_array_guides <- function(txt, dim.n) {
 #' } )
 #' }
 
+NULL
+
+#' @export
+#' @rdname guides
+
 setGeneric(
   "guidesPrint",
   function(obj, obj.as.chr) StandardGeneric("guidesPrint")
 )
+#' @rdname guides
+
 setMethod(
   "guidesPrint", c("ANY", "character"),
   function(obj, obj.as.chr) {
@@ -300,6 +310,8 @@ setGeneric(
   "guidesStr",
   function(obj, obj.as.chr) StandardGeneric("guidesStr")
 )
+#' @rdname guides
+
 setMethod("guidesStr", c("ANY", "character"),
   function(obj, obj.as.chr) {
     if(anyNA(obj.as.chr))
@@ -315,6 +327,8 @@ setGeneric(
   "guidesChr",
   function(obj, obj.as.chr) StandardGeneric("guidesChr")
 )
+#' @rdname guides
+
 setMethod("guidesChr", c("ANY", "character"),
   function(obj, obj.as.chr) integer(0L)
 )
@@ -325,6 +339,8 @@ setGeneric(
   "guidesDeparse",
   function(obj, obj.as.chr) StandardGeneric("guidesDeparse")
 )
+#' @rdname guides
+
 setMethod("guidesDeparse", c("ANY", "character"),
   function(obj, obj.as.chr) integer(0L)
 )
@@ -335,11 +351,11 @@ setGeneric(
   "guidesFile",
   function(obj, obj.as.chr) StandardGeneric("guidesFile")
 )
+#' @rdname guides
+
 setMethod("guidesFile", c("ANY", "character"),
   function(obj, obj.as.chr) integer(0L)
 )
-
-
 # Helper function to verify guide line computation worked out
 
 apply_guides <- function(obj, obj.as.chr, guide_fun) {

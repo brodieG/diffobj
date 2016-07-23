@@ -1,8 +1,8 @@
-#' Run \code{tools::Rdiff} Directly on R Objects
+#' Run Rdiff Directly on R Objects
 #'
 #' These functions are here for reference and testing purposes.  They are
 #' wrappers to \code{tools::Rdiff} and rely on an existing system diff utility.
-#' You should be using \code{\link{ses}} or \code{\link{diffChr}}instead of
+#' You should be using \code{\link{ses}} or \code{\link{diffChr}} instead of
 #' \code{Rdiff_chr} and \code{\link{diffPrint}} instead of \code{Rdiff_obj}.
 #' See limitations in note.
 #'
@@ -21,7 +21,7 @@
 #'   installation without Rtools).
 #' @importFrom tools Rdiff
 #' @export
-#' @seealso \code{\link{diff_ses}}, \code{\link{diff_obj}}
+#' @seealso \code{\link{ses}}, \code{\link[=diffPrint]{diff*}}
 #' @param from character or object coercible to character for \code{Rdiff_chr},
 #'   any R object with \code{Rdiff_obj}, or a file pointing to an RDS object
 #' @param to character same as \code{from}
@@ -103,10 +103,11 @@ Rdiff_run <- function(from, to, nullPointers, silent, minimal) {
     invisible(res)
   }
 }
-#' Attempt to Detect Whether 'diff' Utility Available
+#' Attempt to Detect Whether diff Utility is Available
 #'
-#' Checks whether \code{tools::Rdiff} issues a warning and if it does assumes
-#' this is because the diff utility is not available.
+#' Checks whether \code{\link[=Rdiff]{tools::Rdiff}} issues a warning when
+#' running with \code{useDiff=TRUE} and if it does assumes this is because the
+#' diff utility is not available.  Intended primarily for testing purposes.
 #'
 #' @export
 #' @return TRUE or FALSE

@@ -23,8 +23,7 @@ console_lines <- function() {
 #' @param min integer(1L), positive, set to zero to allow any context
 #' @param max integer(1L), set to negative to allow any context
 #' @return S4 object containing configuration parameters, for use as the
-#'   \code{context} or parameter value in \code{\link{diff_obj}} and related
-#'   functions
+#'   \code{context} or parameter value in \code{\link[=diffPrint]{diff*}} methods
 
 auto_context <- function(
   min=getOption("diffobj.context.auto.min"),
@@ -36,7 +35,7 @@ auto_context <- function(
     stop("Argument `max` must be integer(1L) and not NA")
   new("AutoContext", min=as.integer(min), max=as.integer(max))
 }
-#' Check Whether System has less as Pager
+#' Check Whether System Has less as Pager
 #'
 #' Checks system \code{PAGER} variable and that \code{PAGER_PATH} is pointed
 #' at \dQuote{R_HOME/bin/pager}.  This is an approximation and may return

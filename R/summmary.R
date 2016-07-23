@@ -1,5 +1,7 @@
 #' @include s4.R
 
+NULL
+
 setClass("DiffSummary",
   slots=c(
     max.lines="integer", width="integer", style="Style",
@@ -15,8 +17,27 @@ setClass("DiffSummary",
     TRUE
   }
 )
-
-#' @export
+#' Summary Method for Diff Objects
+#'
+#' Provides high level count of insertions, deletions, and matches, as well as a
+#' \dQuote{map} of where the differences are.
+#'
+#' Sequences of single operations (e.g. "DDDDD") are compressed provided that
+#' compressing them does not distort the relative size of the sequence relative
+#' to the longest such sequence in the map by more than \code{scale.threshold}.
+#' Since length 1 sequences cannot be further compressed \code{scale.threshold}
+#' does not apply to them.
+#'
+#' @param object at \code{Diff} object
+#' @param scale.threshold numeric(1L) between 0 and 1, how much distortion to
+#'   allow when creating the summary map, where 0 is none and 1 is as much as
+#'   needed to fit under \code{max.lines}, defaults to 0.1
+#' @param max.lines integer(1L) how many lines to allow for the summary map,
+#'   defaults to 50
+#' @param width integer(1L) how many columns wide the output should be, defaults
+#'   to \code{getOption("width")}
+#' @param ... unused, for compatibility with generic
+#' @return a \code{DiffSummary} object
 
 setMethod("summary", "Diff",
   function(
@@ -51,7 +72,12 @@ setMethod("summary", "Diff",
     )
   }
 )
-#' @export
+#' Generate Character Representation of DiffSummary Object
+#'
+#' @param x a \code{DiffSummary} object
+#' @param ... not used, for compatibility with generic
+#' @return the summary as a character vector intended to be \code{cat}ed to
+#'   terminal
 
 setMethod("as.character", "DiffSummary",
   function(x, ...) {
@@ -228,7 +254,10 @@ setMethod("as.character", "DiffSummary",
     finalize(fin, x@style, length(res) + 2L)
   }
 )
-#' @export
+#' Display DiffSummary Objects
+#'
+#' @param object a \code{DiffSummary} object
+#' @return NULL, invisbly
 
 setMethod("show", "DiffSummary",
   function(object) {
