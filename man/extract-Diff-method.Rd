@@ -17,6 +17,10 @@
 \item{x}{\code{Diff} object}
 
 \item{i}{subsetting index, must be numeric}
+
+\item{n}{integer(1L), the size for the resulting object}
+
+\item{...}{unused, for compatibility with generics}
 }
 \value{
 \code{Diff} object with subsetting indices recorded for use by
@@ -30,12 +34,12 @@ displayed diff.
 \details{
 \code{[} only supports numeric indices, and returns without error if you
 specify out of bound indices.  If you apply multiple subsetting methods they
-will be applied in the following order irrespective of what order you 
+will be applied in the following order irrespective of what order you
 actually specify them in: \code{[}, then \code{head}, then \code{tail}.
 If you use the same subsetting method multiple times on the same object,
 the last call will define the outcome.
 
-These methods are implemented by storing the chosen indices in the 
+These methods are implemented by storing the chosen indices in the
 \code{Diff} object and using them to subset the \code{as.character} output.
 This mechanism explains the seemingly odd behavior documented above.
 }

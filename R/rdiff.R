@@ -2,7 +2,7 @@
 #'
 #' These functions are here for reference and testing purposes.  They are
 #' wrappers to \code{tools::Rdiff} and rely on an existing system diff utility.
-#' You should be using \code{\link{ses}} or \code{\link{diffChr}}instead of
+#' You should be using \code{\link{ses}} or \code{\link{diffChr}} instead of
 #' \code{Rdiff_chr} and \code{\link{diffPrint}} instead of \code{Rdiff_obj}.
 #' See limitations in note.
 #'
@@ -103,11 +103,11 @@ Rdiff_run <- function(from, to, nullPointers, silent, minimal) {
     invisible(res)
   }
 }
-#' Attempt to Detect Whether 'diff' Utility is Available
+#' Attempt to Detect Whether diff Utility is Available
 #'
-#' Checks whether \code{tools::Rdiff} issues a warning when running with
-#' \code{useDiff=TRUE} }and if it does assumes this is because the diff utility
-#' is not available.  Intended primarily for testing purposes.
+#' Checks whether \code{\link[=Rdiff]{tools::Rdiff}} issues a warning when
+#' running with \code{useDiff=TRUE} and if it does assumes this is because the
+#' diff utility is not available.  Intended primarily for testing purposes.
 #'
 #' @export
 #' @return TRUE or FALSE

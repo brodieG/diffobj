@@ -945,8 +945,9 @@ setMethod(
 #'   which is different than generic
 #' @param value a \emph{list} of \code{\link{Style}} class or
 #'   \code{\link{Style}} objects
-#' @return a \code{\link{Style}} class or \code{\link{Style}} object for
-#'    \code{[[}, and a list of the same for \code{[}
+#' @return a \code{\link{Style}} \code{ClassRepresentation} object or
+#'    \code{\link{Style}} object for \code{[[}, and a list of the same for
+#'    \code{[}
 
 setMethod(
   "[[", signature=c(x="PaletteOfStyles"),

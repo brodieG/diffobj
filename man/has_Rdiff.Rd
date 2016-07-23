@@ -2,11 +2,16 @@
 % Please edit documentation in R/rdiff.R
 \name{has_Rdiff}
 \alias{has_Rdiff}
-\title{Attempt to Detect Whether 'diff' Utility is Available}
+\title{Attempt to Detect Whether diff Utility is Available}
 \usage{
 has_Rdiff()
 }
 \value{
 TRUE or FALSE
+}
+\description{
+Checks whether \code{\link[=Rdiff]{tools::Rdiff}} issues a warning when
+running with \code{useDiff=TRUE} and if it does assumes this is because the
+diff utility is not available.  Intended primarily for testing purposes.
 }
 

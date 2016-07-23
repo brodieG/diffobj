@@ -28,7 +28,7 @@ the Rdiff output, invisibly if \code{silent} is FALSE
 \description{
 These functions are here for reference and testing purposes.  They are
 wrappers to \code{tools::Rdiff} and rely on an existing system diff utility.
-You should be using \code{\link{ses}} or \code{\link{diffChr}}instead of
+You should be using \code{\link{ses}} or \code{\link{diffChr}} instead of
 \code{Rdiff_chr} and \code{\link{diffPrint}} instead of \code{Rdiff_obj}.
 See limitations in note.
 }
