@@ -93,7 +93,7 @@ details and limitations.  Also offers the same advanced usage as the
 \code{brightness} paramter.}
 
 \item{word.diff}{TRUE (default) or FALSE, whether to run a secondary word
-diff on the on in-hunk diferences}
+diff on the in-hunk diferences}
 
 \item{pager}{character(1L), one of \dQuote{auto}, \dQuote{on},
 \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
@@ -102,7 +102,7 @@ pager associated with the \code{\link{Style}} specified via the
 \code{\link{style}} parameters.  if \dQuote{auto} (default) will behave
 like \dQuote{on} but only if the \code{diff*} method is called from the
 top level (i.e. not nested inside another function).  If the pager is
-enabled, default behavior is to pipe output to \code{link{file.show}} if
+enabled, default behavior is to pipe output to \code{\link{file.show}} if
 output is taller than the estimated terminal height and your terminal
 supports ANSI escape sequences.  If not, the default is to attempt to pipe
 output to a web browser with \code{\link{browseURL}}.  See
@@ -112,7 +112,13 @@ for more details.}
 \item{guides}{TRUE (default), FALSE, or a function that accepts at least two
 arguments and requires no more than two arguments.  Guides
 are additional context lines that are not strictly part of a hunk, but
-provide important contextual data (e.g. column headers).  See
+provide important contextual data (e.g. column headers).  If TRUE, the
+context lines are shown in addition to the normal diff output, typically
+in a different color to inidicate they are not part of the hunk.  If a
+function, the function should accept as the first argument the object
+being diffed, and the second the character representation of the object.
+The function should return the indices of the elements of the second
+character representation that should be treated as guides.  See
 \code{\link{guides}} for more details.}
 
 \item{trim}{TRUE (default), FALSE, or a function that accepts at least two
@@ -140,8 +146,8 @@ vectors may well be wrapped with different periodicities this will result
 in lines that are paired up that look like they should not be paired up,
 though the locations of the differences should be.}
 
-\item{max.diffs}{integer(1L), number of differences after which we abandon
-the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
+\item{max.diffs}{integer(1L), number of \emph{differences} after which we
+abandon the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
 \code{-1L} to always stick to the original algorithm (defaults to 10000L).}
 
 \item{disp.width}{integer(1L) number of display columns to take up; note that
@@ -204,11 +210,10 @@ contains all the \code{\link{Style}} objects that are selected by
 specifying the \code{format}, \code{brightness}, and \code{color.mode}
 parameters.  See \code{\link{PaletteOfStyles}} for more details.}
 
-\item{frame}{environment the evaluation frame for the \code{print/show/str},
-calls and for \code{diffObj}, also the evaluation frame for the
-\code{diffPrint}/\code{diffStr} calls.  Defaults to the return value of
-\code{\link{par_frame}}.  \code{\link{diffChr}} or
-\code{\link{diffDeparse}}.}
+\item{frame}{an environment to use as the evaluation frame for the
+\code{print/show/str}, calls and for \code{diffObj}, the evaluation frame
+for the \code{diffPrint}/\code{diffStr} calls.  Defaults to the return
+value of \code{\link{par_frame}}.}
 
 \item{interactive}{TRUE or FALSE whether the function is being run in
 interactive mode, defaults to the return value of
@@ -232,19 +237,20 @@ inferred from \code{target} and \code{current} expressions.}
 \item{cur.banner}{character(1L) like \code{tar.banner}, but for
 \code{current}}
 
-\item{extra}{list additional arguments to pass on to \code{print},
-\code{str}, etc.}
+\item{extra}{list additional arguments to pass on to the functions used to
+create text representation of the objects to diff (e.g. \code{print},
+\code{str}, etc.)}
 }
 \value{
-a \code{Diff} object; this object has a \code{show}
-  method that will display the diff to screen
+a \code{Diff} object; see \code{\link{diffPrint}}.
 }
 \description{
 Reads CSV files with \code{\link{read.csv}} and passes the resulting data
-frames onto \code{\link{diffPrint}}.  \code{...} arguments are passed to
-both \code{read.csv} and \code{print}.  To the extent you wish to use
-different \code{...} arguments for each of those functions you will need to
-\code{read.csv} the files and pass them to \code{diffPrint} yourself.
+frames onto \code{\link{diffPrint}}.  \code{extra} values are passed as
+arguments are passed to both \code{read.csv} and \code{print}.  To the
+extent you wish to use different \code{extra} arguments for each of those
+functions you will need to \code{read.csv} the files and pass them to
+\code{diffPrint} yourself.
 }
 \examples{
 iris.2 <- iris
@@ -258,7 +264,7 @@ unlink(c(f1, f2))
 }
 \seealso{
 \code{\link{diffPrint}} for details on the \code{diff*} functions,
-  \code{\link{diffObj}}, \code{link{diffStr}},
+  \code{\link{diffObj}}, \code{\link{diffStr}},
   \code{\link{diffChr}} to compare character vectors directly
 }
 

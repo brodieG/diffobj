@@ -78,12 +78,16 @@ constructor functions:
 
 
 If you wish to define your own pager object you should do so by extending the
-\code{Pager} virtual class.  Your pager should at a minimum specify the
-\code{pager} slot of the object (see slot definition).  If the function you
-use to handle the actual paging allows R code evaluation to continue after it
-is spawned, you may want to wrap it in a function that pauses evaluation
-(e.g. with \code{\link{readline}}), as otherwise the temporary file that
-contains the diff may be deleted before the pager has a chance to read it.
+\code{Pager} virtual class.  In most cases you should be able to use one of
+the existing objects configured with different parameters, but if your
+pager function requires special treatment then you can define a custom pager
+object.  At a minimum you should specify the \code{pager} slot of the object
+(see constructor function parameter definition).  If the function you
+use to handle the actual paging is non-blocking (i.e. allows R code
+evaluation to continue after it is spawned, you may want to wrap it in a
+function that pauses evaluation (e.g. with \code{\link{readline}}), as
+otherwise the temporary file that contains the diff may be deleted before the
+pager has a chance to read it.
 }
 \examples{
 ## Assuming system pager is `less` and terminal supports ANSI ESC sequences

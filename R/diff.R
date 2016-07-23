@@ -119,14 +119,13 @@ make_diff_fun <- function(capt_fun) {
 #' Runs the diff between the \code{print} or \code{show} output produced by
 #' \code{target} and \code{current}.
 #'
-#' This documentation page is intended as a reference document for all the
-#' \code{diff*} methods.  For a high level introduction see
-#' \code{vignette("diffobj")} and the examples.
-#'
-#' Almost all aspects of how the diffs are computed and displayed are
-#' controllable through the \code{diff*} methods parameters.  This results in
-#' a lengthy parameter list, but in practice, you should rarely need to adjust
-#' anything past the \code{color.mode} parameter.  Default values are specified
+#' @description This documentation page is intended as a reference document
+#' for all the \code{diff*} methods.  For a high level introduction see
+#' \code{vignette("diffobj")} and the examples.  Almost all aspects of how the
+#' diffs are computed and displayed are controllable through the \code{diff*}
+#' methods parameters.  This results in a lengthy parameter list, but in
+#' practice, you should rarely need to adjust anything past the
+#' \code{color.mode} parameter.  Default values are specified
 #' as options so that users may configure diffs in a persistent manner.
 #' \code{\link{gdo}} is a shorthand function to access \code{diffobj} options.
 #'
@@ -197,7 +196,7 @@ make_diff_fun <- function(capt_fun) {
 #'   details and limitations.  Also offers the same advanced usage as the
 #'   \code{brightness} paramter.
 #' @param word.diff TRUE (default) or FALSE, whether to run a secondary word
-#'   diff on the on in-hunk diferences
+#'   diff on the in-hunk diferences
 #' @param pager character(1L), one of \dQuote{auto}, \dQuote{on},
 #'   \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
 #'   pager is used to display the diff output.  If \dQuote{on} will use the
@@ -205,7 +204,7 @@ make_diff_fun <- function(capt_fun) {
 #'   \code{\link{style}} parameters.  if \dQuote{auto} (default) will behave
 #'   like \dQuote{on} but only if the \code{diff*} method is called from the
 #'   top level (i.e. not nested inside another function).  If the pager is
-#'   enabled, default behavior is to pipe output to \code{link{file.show}} if
+#'   enabled, default behavior is to pipe output to \code{\link{file.show}} if
 #'   output is taller than the estimated terminal height and your terminal
 #'   supports ANSI escape sequences.  If not, the default is to attempt to pipe
 #'   output to a web browser with \code{\link{browseURL}}.  See
@@ -214,7 +213,13 @@ make_diff_fun <- function(capt_fun) {
 #' @param guides TRUE (default), FALSE, or a function that accepts at least two
 #'   arguments and requires no more than two arguments.  Guides
 #'   are additional context lines that are not strictly part of a hunk, but
-#'   provide important contextual data (e.g. column headers).  See
+#'   provide important contextual data (e.g. column headers).  If TRUE, the
+#'   context lines are shown in addition to the normal diff output, typically
+#'   in a different color to inidicate they are not part of the hunk.  If a
+#'   function, the function should accept as the first argument the object
+#'   being diffed, and the second the character representation of the object.
+#'   The function should return the indices of the elements of the second
+#'   character representation that should be treated as guides.  See
 #'   \code{\link{guides}} for more details.
 #' @param trim TRUE (default), FALSE, or a function that accepts at least two
 #'   arguments and requires no more than two arguments.  Function should compute
@@ -256,8 +261,8 @@ make_diff_fun <- function(capt_fun) {
 #'   particular diff is a function of how many differences, and also how much
 #'   \code{context} is used since context can cause two hunks to bleed into
 #'   each other and become one.
-#' @param max.diffs integer(1L), number of differences after which we abandon
-#'   the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
+#' @param max.diffs integer(1L), number of \emph{differences} after which we
+#'   abandon the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
 #'   \code{-1L} to always stick to the original algorithm (defaults to 10000L).
 #' @param disp.width integer(1L) number of display columns to take up; note that
 #'   in \dQuote{sidebyside} \code{mode} the effective display width is half this
@@ -292,11 +297,10 @@ make_diff_fun <- function(capt_fun) {
 #'   contains all the \code{\link{Style}} objects that are selected by
 #'   specifying the \code{format}, \code{brightness}, and \code{color.mode}
 #'   parameters.  See \code{\link{PaletteOfStyles}} for more details.
-#' @param frame environment the evaluation frame for the \code{print/show/str},
-#'   calls and for \code{diffObj}, also the evaluation frame for the
-#'   \code{diffPrint}/\code{diffStr} calls.  Defaults to the return value of
-#'   \code{\link{par_frame}}.  \code{\link{diffChr}} or
-#'   \code{\link{diffDeparse}}.
+#' @param frame an environment to use as the evaluation frame for the
+#'   \code{print/show/str}, calls and for \code{diffObj}, the evaluation frame
+#'   for the \code{diffPrint}/\code{diffStr} calls.  Defaults to the return
+#'   value of \code{\link{par_frame}}.
 #' @param interactive TRUE or FALSE whether the function is being run in
 #'   interactive mode, defaults to the return value of
 #'   \code{\link{interactive}}.  If in interactive mode, pager will be used if
@@ -315,21 +319,25 @@ make_diff_fun <- function(capt_fun) {
 #'   inferred from \code{target} and \code{current} expressions.
 #' @param cur.banner character(1L) like \code{tar.banner}, but for
 #'   \code{current}
-#' @param extra list additional arguments to pass on to \code{print},
-#'   \code{str}, etc.
+#' @param extra list additional arguments to pass on to the functions used to
+#'   create text representation of the objects to diff (e.g. \code{print},
+#'   \code{str}, etc.)
 #' @param ... unused, for compatibility of generics with methods
 #' @seealso \code{\link{diffObj}}, \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly,
 #'   \code{\link{diffDeparse}} to compare deparsed objects
 #' @return a \code{Diff} object; this object has a \code{show}
 #'   method that will display the diff to screen or pager, as well as
-#'   \code{summary}, \code{any}, and \code{as.character} methods.  Note that
-#'   if you store the return value instead of displaying it to screen, and
+#'   \code{summary}, \code{any}, and \code{as.character} methods.
+#'   If you store the return value instead of displaying it to screen, and
 #'   display it later, it is possible for the display to be thrown off if
-#'   there are environment changes (e.g. display width changes).
+#'   there are environment changes (e.g. display width changes) in between
+#'   the time you compute the diff and the time you display it.
 #' @rdname diffPrint
 #' @name diffPrint
 #' @export
+#' @examples
+#' diffPrint(letters, letters[-5])
 
 setGeneric(
   "diffPrint", function(target, current, ...) standardGeneric("diffPrint")
@@ -356,8 +364,7 @@ setMethod("diffPrint", signature=c("ANY", "ANY"), make_diff_fun(capt_print))
 #'   \code{\link{diffObj}}, \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly,
 #'   \code{\link{diffDeparse}} to compare deparsed objects
-#' @return a \code{Diff} object; this object has a \code{show}
-#'   method that will display the diff to screen
+#' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @rdname diffStr
 #' @export
 
@@ -375,10 +382,9 @@ setMethod("diffStr", signature=c("ANY", "ANY"), make_diff_fun(capt_str))
 #'
 #' @inheritParams diffPrint
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
-#'   \code{\link{diffObj}}, \code{link{diffStr}},
+#'   \code{\link{diffObj}}, \code{\link{diffStr}},
 #'   \code{\link{diffDeparse}} to compare deparsed objects
-#' @return a \code{Diff} object; this object has a \code{show}
-#'   method that will display the diff to screen
+#' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @export
 #' @rdname diffChr
 #' @examples
@@ -399,10 +405,9 @@ setMethod("diffChr", signature=c("ANY", "ANY"), make_diff_fun(capt_chr))
 #' @export
 #' @inheritParams diffPrint
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
-#'   \code{\link{diffObj}}, \code{link{diffStr}},
+#'   \code{\link{diffObj}}, \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly
-#' @return a \code{Diff} object; this object has a \code{show}
-#'   method that will display the diff to screen
+#' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @export
 #' @rdname diffDeparse
 #' @examples
@@ -417,7 +422,8 @@ setMethod("diffDeparse", signature=c("ANY", "ANY"), make_diff_fun(capt_deparse))
 
 #' Diff Files
 #'
-#' Reads text files and performs a diff on the resulting character vectors.
+#' Reads text files with \code{\link{readLines}} and performs a diff on the
+#' resulting character vectors.
 #'
 #' @export
 #' @param target character(1L) or file connection with read capability; if
@@ -425,10 +431,9 @@ setMethod("diffDeparse", signature=c("ANY", "ANY"), make_diff_fun(capt_deparse))
 #' @param current like \code{target}
 #' @inheritParams diffPrint
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
-#'   \code{\link{diffObj}}, \code{link{diffStr}},
+#'   \code{\link{diffObj}}, \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly
-#' @return a \code{Diff} object; this object has a \code{show}
-#'   method that will display the diff to screen
+#' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @export
 #' @rdname diffFile
 #' @examples
@@ -447,10 +452,11 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 #' Diff CSV Files
 #'
 #' Reads CSV files with \code{\link{read.csv}} and passes the resulting data
-#' frames onto \code{\link{diffPrint}}.  \code{...} arguments are passed to
-#' both \code{read.csv} and \code{print}.  To the extent you wish to use
-#' different \code{...} arguments for each of those functions you will need to
-#' \code{read.csv} the files and pass them to \code{diffPrint} yourself.
+#' frames onto \code{\link{diffPrint}}.  \code{extra} values are passed as
+#' arguments are passed to both \code{read.csv} and \code{print}.  To the
+#' extent you wish to use different \code{extra} arguments for each of those
+#' functions you will need to \code{read.csv} the files and pass them to
+#' \code{diffPrint} yourself.
 #'
 #' @export
 #' @param target character(1L) or file connection with read capability;
@@ -458,10 +464,9 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 #' @param current like \code{target}
 #' @inheritParams diffPrint
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
-#'   \code{\link{diffObj}}, \code{link{diffStr}},
+#'   \code{\link{diffObj}}, \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly
-#' @return a \code{Diff} object; this object has a \code{show}
-#'   method that will display the diff to screen
+#' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @export
 #' @rdname diffCsv
 #' @examples
@@ -487,7 +492,7 @@ setMethod("diffCsv", signature=c("ANY", "ANY"), make_diff_fun(capt_csv))
 #' R objects depending on which is estimated to produce the most useful
 #' diff.  The selection process tries to minimize screen lines while maximizing
 #' differences shown subject to display constraints.  The decision algorithm is
-#' likely to evolve over time, so do not rely on this function making a
+#' likely to evolve over time, so do not rely on this function making
 #' a particular selection under specific circumstances.  Instead, use
 #' \code{\link{diffPrint}} or \code{\link{diffStr}} if you require one or the
 #' other output.
@@ -497,8 +502,7 @@ setMethod("diffCsv", signature=c("ANY", "ANY"), make_diff_fun(capt_csv))
 #'   \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly
 #'   \code{\link{diffDeparse}} to compare deparsed objects
-#' @return a \code{Diff} object; this object has a \code{show}
-#'   method that will display the diff to screen
+#' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @export
 
 setGeneric("diffObj", function(target, current, ...) standardGeneric("diffObj"))

@@ -25,8 +25,8 @@ setClass("DiffSummary",
 #' Sequences of single operations (e.g. "DDDDD") are compressed provided that
 #' compressing them does not distort the relative size of the sequence relative
 #' to the longest such sequence in the map by more than \code{scale.threshold}.
-#' Since length 1 sequences cannot be further compressed these will end up
-#' with a distorted scaling relative to longer sequences.
+#' Since length 1 sequences cannot be further compressed \code{scale.threshold}
+#' does not apply to them.
 #'
 #' @param object at \code{Diff} object
 #' @param scale.threshold numeric(1L) between 0 and 1, how much distortion to

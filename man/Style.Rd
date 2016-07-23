@@ -80,7 +80,7 @@ appropriate \code{Style} for each combination of the \code{format},
 parameter is set to \dQuote{auto}.  The following classes are pre-defined:
 
 \itemize{
-  \item \code{Style}: No styles applied
+  \item \code{StyleRaw}: No styles applied
   \item \code{StyleAnsi8NeutralRgb}
   \item \code{StyleAnsi8NeutralYb}
   \item \code{StyleAnsi256LightRgb}
@@ -126,7 +126,7 @@ that behaves as described.
 The visual representation of the diff has many nested components.  The
 functions you specify here will be applied starting with the innermost ones.
 A schematic of the various component that represent an inserted line follows
-(note dQuote{insert} abbreviated to \dQuote{ins}, and \dQuote{gutter}
+(note \dQuote{insert} abbreviated to \dQuote{ins}, and \dQuote{gutter}
 abbreviated to \dQuote{gtr}):
 \preformatted{+- line ---------------------------------------------------+
 |+- line.ins ---------------------------------------------+|
@@ -144,9 +144,8 @@ A similar model applies to deleted and matching lines.  The boxes represent
 functions.  \code{gutter.insert.txt} represents the text to use in the gutter
 and is not a function. \code{DIFF TEXT HERE} is text from the objects being
 diffed, with the portion that has different words inside the
-\code{word.insert} and is obviously not a function either.
-\code{gutter.pad} and \code{gutter.pad.txt} are used to separate the gutter
-from the text and usually end up resolving to a space.
+\code{word.insert}.  \code{gutter.pad} and \code{gutter.pad.txt} are used to
+separate the gutter from the text and usually end up resolving to a space.
 
 Most of the functions defined here default to \code{\link{identity}}, but
 you are given the flexibility to fully format the diff.  See
@@ -176,9 +175,9 @@ css use \code{html.ouput="diff.only"} when you instantiate the \code{Style}
 object (see examples), or disable the \code{\link{Pager}}.  Another option
 is \code{html.output="diff.w.style"} which will add a \code{<style></style>}
 tag pair with all the CSS styles crammed therein.  This last option results
-in illegal HTML with a \code{<style>} floating around the
-\code{<body>}, but appears to work and is useful if you want to embed HTML
-someplace but do not have access to the headers.
+in illegal HTML with a \code{<style>} block insite the \code{<body>} block,
+but appears to work and is useful if you want to embed HTML someplace but do
+not have access to the headers.
 
 Unlike with ANSI styles, you should not modify the styling functions in the
 \code{@funs} slot of the \code{Style} object.  Instead, provide your own
@@ -186,10 +185,14 @@ styles.  See \code{diffobj_css()} for the predefined styles.  The styles are
 structured so that they are applied to any element within a container of a
 particular class.
 
-To provide your own custom CSS style specify it with a \code{Style} object
-as the value for the \code{style} parameter for the \code{diff*} methods
-(see example), or modify the default \code{\link{PaletteOfStyles}} object,
-set the \dQuote{diffobj.css} option.
+To provide your own custom CSS style sheet you may:
+\itemize{
+  \item specify it through the \code{css} slot of a \code{StyleHtml} object,
+    and pass that object as the value for the \code{style} parameter for the
+    \code{diff*} methods (see example)
+  \item as above, but asign the object to the active \code{PaletteOfStyles}
+  \item  set the \dQuote{diffobj.css} option
+}
 
 If you define your own custom \code{StyleHtml} object you may want to modify
 the slot \code{@funs@container}.  This slot contains a function that is

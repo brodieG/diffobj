@@ -202,7 +202,7 @@ StyleText <- setClass(
 #' parameter is set to \dQuote{auto}.  The following classes are pre-defined:
 #'
 #' \itemize{
-#'   \item \code{Style}: No styles applied
+#'   \item \code{StyleRaw}: No styles applied
 #'   \item \code{StyleAnsi8NeutralRgb}
 #'   \item \code{StyleAnsi8NeutralYb}
 #'   \item \code{StyleAnsi256LightRgb}
@@ -246,7 +246,7 @@ StyleText <- setClass(
 #' The visual representation of the diff has many nested components.  The
 #' functions you specify here will be applied starting with the innermost ones.
 #' A schematic of the various component that represent an inserted line follows
-#' (note dQuote{insert} abbreviated to \dQuote{ins}, and \dQuote{gutter}
+#' (note \dQuote{insert} abbreviated to \dQuote{ins}, and \dQuote{gutter}
 #' abbreviated to \dQuote{gtr}):
 #' \preformatted{+- line ---------------------------------------------------+
 #' |+- line.ins ---------------------------------------------+|
@@ -264,9 +264,8 @@ StyleText <- setClass(
 #' functions.  \code{gutter.insert.txt} represents the text to use in the gutter
 #' and is not a function. \code{DIFF TEXT HERE} is text from the objects being
 #' diffed, with the portion that has different words inside the
-#' \code{word.insert} and is obviously not a function either.
-#' \code{gutter.pad} and \code{gutter.pad.txt} are used to separate the gutter
-#' from the text and usually end up resolving to a space.
+#' \code{word.insert}.  \code{gutter.pad} and \code{gutter.pad.txt} are used to
+#' separate the gutter from the text and usually end up resolving to a space.
 #'
 #' Most of the functions defined here default to \code{\link{identity}}, but
 #' you are given the flexibility to fully format the diff.  See
@@ -294,9 +293,9 @@ StyleText <- setClass(
 #' object (see examples), or disable the \code{\link{Pager}}.  Another option
 #' is \code{html.output="diff.w.style"} which will add a \code{<style></style>}
 #' tag pair with all the CSS styles crammed therein.  This last option results
-#' in illegal HTML with a \code{<style>} floating around the
-#' \code{<body>}, but appears to work and is useful if you want to embed HTML
-#' someplace but do not have access to the headers.
+#' in illegal HTML with a \code{<style>} block insite the \code{<body>} block,
+#' but appears to work and is useful if you want to embed HTML someplace but do
+#' not have access to the headers.
 #'
 #' Unlike with ANSI styles, you should not modify the styling functions in the
 #' \code{@funs} slot of the \code{Style} object.  Instead, provide your own
@@ -304,10 +303,14 @@ StyleText <- setClass(
 #' structured so that they are applied to any element within a container of a
 #' particular class.
 #'
-#' To provide your own custom CSS style specify it with a \code{Style} object
-#' as the value for the \code{style} parameter for the \code{diff*} methods
-#' (see example), or modify the default \code{\link{PaletteOfStyles}} object,
-#' set the \dQuote{diffobj.css} option.
+#' To provide your own custom CSS style sheet you may:
+#' \itemize{
+#'   \item specify it through the \code{css} slot of a \code{StyleHtml} object,
+#'     and pass that object as the value for the \code{style} parameter for the
+#'     \code{diff*} methods (see example)
+#'   \item as above, but asign the object to the active \code{PaletteOfStyles}
+#'   \item  set the \dQuote{diffobj.css} option
+#' }
 #'
 #' If you define your own custom \code{StyleHtml} object you may want to modify
 #' the slot \code{@funs@container}.  This slot contains a function that is
@@ -762,13 +765,12 @@ setMethod("initialize", "StyleHtmlLightYb",
 #'
 #' The array/list must be fully populated with objects that are or inherit
 #' \code{Style}, or are \dQuote{classRepresentation} objects (i.e. those of
-#' the type returned by \code{\link{getClassDef}}.  There is no explicit check
-#' that the objects in the list comply with the descriptions implied by their
-#' coordinates, although the default object provided by the package does comply
-#' for the most part.  One check that is carried out is that any element that
-#' has a \dQuote{html} value in the \code{format} dimension extends
-#' \code{StyleHtml}.  The example below purposefully subverts this for
-#' illustrative purposes.
+#' the type returned by \code{\link{getClassDef}}) that extend \code{Style}.
+#' There is no explicit check that the objects in the list comply with the
+#' descriptions implied by their coordinates, although the default object
+#' provided by the package does comply for the most part.  One check that is
+#' carried out is that any element that has a \dQuote{html} value in the
+#' \code{format} dimension extends \code{StyleHtml}.
 #'
 #' Every cell in the list must be populated.  If there is a particular
 #' combination of coordinates that does not have a corresponding defined style
@@ -791,12 +793,16 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' ## Generate the default style object palette, and replace
 #' ## the ansi256 / light / rgb style with our modified one
 #' ## which for illustrative purposes is the raw style
-#' defs <- PaletteOfStyles()
+#' my.pal <- PaletteOfStyles()
 #' my.style <- StyleRaw()   # See `?Style` for custom styles
-#' defs["ansi256", "light", "rgb"] <- list(my.style) # note `list()`
+#' my.style@funs@word.delete <- crayon::bgBlue
+#' my.pal["ansi256", "light", "rgb"] <- list(my.style) # note `list()`
 #' ## Output has no format now for format/color.mode/brightness
 #' ## we modified ...
-#' diffPrint(1:3, 2:5, format="ansi256", color.mode="rgb", brightness="light")
+#' diffPrint(
+#'    1:3, 2:5, format="ansi256", color.mode="rgb", brightness="light",
+#'    palette.of.styles=my.pal
+#' )
 #' ## If so desired, set our new style palette as the default
 #' ## one; could also pass directly as argument to `diff*` funs
 #' \dontrun{
@@ -977,7 +983,7 @@ setMethod("dimnames", "PaletteOfStyles", function(x) dimnames(x@data))
 #' @param object a \code{Style} S4 object
 #' @return NULL, invisibly
 #' @examples
-#' StyleAnsi256LightYb()  # assumes ANSI colors supported
+#' show(StyleAnsi256LightYb())  # assumes ANSI colors supported
 
 setMethod("show", "Style",
   function(object) {

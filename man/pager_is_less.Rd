@@ -2,7 +2,7 @@
 % Please edit documentation in R/set.R
 \name{pager_is_less}
 \alias{pager_is_less}
-\title{Check Whether System has less as Pager}
+\title{Check Whether System Has less as Pager}
 \usage{
 pager_is_less()
 }

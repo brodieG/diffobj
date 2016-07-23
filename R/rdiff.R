@@ -103,10 +103,11 @@ Rdiff_run <- function(from, to, nullPointers, silent, minimal) {
     invisible(res)
   }
 }
-#' Attempt to Detect Whether 'diff' Utility Available
+#' Attempt to Detect Whether 'diff' Utility is Available
 #'
-#' Checks whether \code{tools::Rdiff} issues a warning and if it does assumes
-#' this is because the diff utility is not available.
+#' Checks whether \code{tools::Rdiff} issues a warning when running with
+#' \code{useDiff=TRUE} }and if it does assumes this is because the diff utility
+#' is not available.  Intended primarily for testing purposes.
 #'
 #' @export
 #' @return TRUE or FALSE

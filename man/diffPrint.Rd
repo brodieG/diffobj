@@ -92,7 +92,7 @@ details and limitations.  Also offers the same advanced usage as the
 \code{brightness} paramter.}
 
 \item{word.diff}{TRUE (default) or FALSE, whether to run a secondary word
-diff on the on in-hunk diferences}
+diff on the in-hunk diferences}
 
 \item{pager}{character(1L), one of \dQuote{auto}, \dQuote{on},
 \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
@@ -101,7 +101,7 @@ pager associated with the \code{\link{Style}} specified via the
 \code{\link{style}} parameters.  if \dQuote{auto} (default) will behave
 like \dQuote{on} but only if the \code{diff*} method is called from the
 top level (i.e. not nested inside another function).  If the pager is
-enabled, default behavior is to pipe output to \code{link{file.show}} if
+enabled, default behavior is to pipe output to \code{\link{file.show}} if
 output is taller than the estimated terminal height and your terminal
 supports ANSI escape sequences.  If not, the default is to attempt to pipe
 output to a web browser with \code{\link{browseURL}}.  See
@@ -111,7 +111,13 @@ for more details.}
 \item{guides}{TRUE (default), FALSE, or a function that accepts at least two
 arguments and requires no more than two arguments.  Guides
 are additional context lines that are not strictly part of a hunk, but
-provide important contextual data (e.g. column headers).  See
+provide important contextual data (e.g. column headers).  If TRUE, the
+context lines are shown in addition to the normal diff output, typically
+in a different color to inidicate they are not part of the hunk.  If a
+function, the function should accept as the first argument the object
+being diffed, and the second the character representation of the object.
+The function should return the indices of the elements of the second
+character representation that should be treated as guides.  See
 \code{\link{guides}} for more details.}
 
 \item{trim}{TRUE (default), FALSE, or a function that accepts at least two
@@ -139,8 +145,8 @@ vectors may well be wrapped with different periodicities this will result
 in lines that are paired up that look like they should not be paired up,
 though the locations of the differences should be.}
 
-\item{max.diffs}{integer(1L), number of differences after which we abandon
-the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
+\item{max.diffs}{integer(1L), number of \emph{differences} after which we
+abandon the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
 \code{-1L} to always stick to the original algorithm (defaults to 10000L).}
 
 \item{disp.width}{integer(1L) number of display columns to take up; note that
@@ -203,11 +209,10 @@ contains all the \code{\link{Style}} objects that are selected by
 specifying the \code{format}, \code{brightness}, and \code{color.mode}
 parameters.  See \code{\link{PaletteOfStyles}} for more details.}
 
-\item{frame}{environment the evaluation frame for the \code{print/show/str},
-calls and for \code{diffObj}, also the evaluation frame for the
-\code{diffPrint}/\code{diffStr} calls.  Defaults to the return value of
-\code{\link{par_frame}}.  \code{\link{diffChr}} or
-\code{\link{diffDeparse}}.}
+\item{frame}{an environment to use as the evaluation frame for the
+\code{print/show/str}, calls and for \code{diffObj}, the evaluation frame
+for the \code{diffPrint}/\code{diffStr} calls.  Defaults to the return
+value of \code{\link{par_frame}}.}
 
 \item{interactive}{TRUE or FALSE whether the function is being run in
 interactive mode, defaults to the return value of
@@ -231,30 +236,27 @@ inferred from \code{target} and \code{current} expressions.}
 \item{cur.banner}{character(1L) like \code{tar.banner}, but for
 \code{current}}
 
-\item{extra}{list additional arguments to pass on to \code{print},
-\code{str}, etc.}
+\item{extra}{list additional arguments to pass on to the functions used to
+create text representation of the objects to diff (e.g. \code{print},
+\code{str}, etc.)}
 }
 \value{
 a \code{Diff} object; this object has a \code{show}
   method that will display the diff to screen or pager, as well as
-  \code{summary}, \code{any}, and \code{as.character} methods.  Note that
-  if you store the return value instead of displaying it to screen, and
+  \code{summary}, \code{any}, and \code{as.character} methods.
+  If you store the return value instead of displaying it to screen, and
   display it later, it is possible for the display to be thrown off if
-  there are environment changes (e.g. display width changes).
+  there are environment changes (e.g. display width changes) in between
+  the time you compute the diff and the time you display it.
 }
 \description{
-Runs the diff between the \code{print} or \code{show} output produced by
-\code{target} and \code{current}.
-}
-\details{
-This documentation page is intended as a reference document for all the
-\code{diff*} methods.  For a high level introduction see
-\code{vignette("diffobj")} and the examples.
-
-Almost all aspects of how the diffs are computed and displayed are
-controllable through the \code{diff*} methods parameters.  This results in
-a lengthy parameter list, but in practice, you should rarely need to adjust
-anything past the \code{color.mode} parameter.  Default values are specified
+This documentation page is intended as a reference document
+for all the \code{diff*} methods.  For a high level introduction see
+\code{vignette("diffobj")} and the examples.  Almost all aspects of how the
+diffs are computed and displayed are controllable through the \code{diff*}
+methods parameters.  This results in a lengthy parameter list, but in
+practice, you should rarely need to adjust anything past the
+\code{color.mode} parameter.  Default values are specified
 as options so that users may configure diffs in a persistent manner.
 \code{\link{gdo}} is a shorthand function to access \code{diffobj} options.
 
@@ -265,6 +267,13 @@ use this to set up methods to pre-process or set specific parameters for
 selected clases that can then \code{callNextMethod} for the actual diff.
 Note that while the generics include \code{...} as an argument, none of the
 methods do.
+}
+\details{
+Runs the diff between the \code{print} or \code{show} output produced by
+\code{target} and \code{current}.
+}
+\examples{
+diffPrint(letters, letters[-5])
 }
 \seealso{
 \code{\link{diffObj}}, \code{\link{diffStr}},

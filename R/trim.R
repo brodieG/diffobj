@@ -233,8 +233,7 @@ strip_list_rh <- function(x, obj) {
 #' representation of an object prior to running the diff to reduce the incidence
 #' of spurious mismatches caused by unsemantic differences.  For example, we
 #' look to remove matrix row indices and atomic vector indices (i.e. the
-#' \preformatted{[1]} or \preformatted{[1,]} strings at the beginning of each
-#' display line).
+#' \samp{[1]} or \samp{[1,]} strings at the beginning of each display line).
 #'
 #' Consider: \preformatted{
 #' > matrix(10:12)
@@ -257,13 +256,13 @@ strip_list_rh <- function(x, obj) {
 #' methods, with one available for each \code{diff*} method except for
 #' \code{diffCsv} since that one uses \code{diffPrint} internally.  The
 #' unsemantic differences are added back after the diff for display purposes,
-#' and are colored in grey to indicate they were not part of the diff.
+#' and are colored in grey to indicate they are ignored in the diff.
 #'
 #' Currently only \code{trimPrint} and \code{trimStr} do anything meaningful.
 #' \code{trimPrint} removes row index headers provided that they are of the
 #' default un-named variety.  If you add row names, or if numeric row indices
 #' are not ascending from 1, they will not be stripped as those have meaning.
-#' \code{trimStr} removes the \preformatted{..$} and \preformatted{..-} tokens
+#' \code{trimStr} removes the \samp{..$} and \samp{..-} tokens
 #' to minimize spurious matches.
 #'
 #' You can modify how text is trimmed by providing your own functions to the
@@ -278,9 +277,9 @@ strip_list_rh <- function(x, obj) {
 #' @aliases trimPrint, trimStr, trimChr, trimDeparse, trimFile
 #' @param obj the object
 #' @param obj.as.chr character the \code{print}ed representation of the object
-#' @return a \code{length(obj.as.chr) * 2} integer matrix with the start (first
-#'   column and end (second column) character positions of the sub string to
-#'   run diffs on.
+#' @return a \code{length(obj.as.chr)} row and 2 column integer matrix with the
+#'   start (first column) and end (second column) character positions of the sub
+#'   string to run diffs on.
 
 NULL
 

@@ -35,7 +35,7 @@ auto_context <- function(
     stop("Argument `max` must be integer(1L) and not NA")
   new("AutoContext", min=as.integer(min), max=as.integer(max))
 }
-#' Check Whether System has less as Pager
+#' Check Whether System Has less as Pager
 #'
 #' Checks system \code{PAGER} variable and that \code{PAGER_PATH} is pointed
 #' at \dQuote{R_HOME/bin/pager}.  This is an approximation and may return
