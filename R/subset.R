@@ -19,8 +19,12 @@ NULL
 #' \code{Diff} object and using them to subset the \code{as.character} output.
 #' This mechanism explains the seemingly odd behavior documented above.
 #'
+#' @export
+#' @rdname extract-Diff-method
 #' @param x \code{Diff} object
 #' @param i subsetting index, must be numeric
+#' @return \code{Diff} object with subsetting indices recorded for use by
+#'   \code{show}
 
 setMethod(
   "[", signature(x="Diff", i="numeric", j="missing", drop="missing"),
@@ -31,6 +35,9 @@ setMethod(
     x
 } )
 
+#' @export
+#' @rdname extract-Diff-method
+
 setMethod("head", "Diff",
   function(x, n, ...) {
     if(length(list(...)))
@@ -39,6 +46,8 @@ setMethod("head", "Diff",
     x@sub.head <- as.integer(n)
     x
 } )
+#' @export
+#' @rdname extract-Diff-method
 
 setMethod("tail", "Diff",
   function(x, n, ...) {

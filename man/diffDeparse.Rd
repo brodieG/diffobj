@@ -240,7 +240,8 @@ a \code{Diff} object; this object has a \code{show}
 }
 \description{
 Perform diff on the character vectors produced by \code{\link{deparse}}ing
-the objects.
+the objects.  Each element counts as a line.  If an element contains newlines
+it will be split into elements new lines by the newlines.
 }
 \examples{
 diffDeparse(matrix(1:9, 3), 1:9)

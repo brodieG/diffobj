@@ -984,7 +984,8 @@ setMethod("show", "Style",
     cat(sprintf("Object of class `%s`:\n\n", class(object)))
     d.p <- diffPrint(
       .mx1, .mx2, context=1, line.limit=7L,
-      style=object, pager=PagerOff()
+      style=object, pager=PagerOff(),
+      tar.banner="diffobj:::.mx1", cur.banner="diffobj:::.mx2"
     )
     d.txt <- capture.output(show(d.p))
     if(is(object, "Ansi")) {

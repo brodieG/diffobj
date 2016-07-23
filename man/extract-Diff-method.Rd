@@ -3,14 +3,24 @@
 \docType{methods}
 \name{[,Diff,numeric,missing,missing-method}
 \alias{[,Diff,numeric,missing,missing-method}
+\alias{head,Diff-method}
+\alias{tail,Diff-method}
 \title{Subsetting Methods for Diff Objects}
 \usage{
 \S4method{[}{Diff,numeric,missing,missing}(x, i)
+
+\S4method{head}{Diff}(x, n, ...)
+
+\S4method{tail}{Diff}(x, n, ...)
 }
 \arguments{
 \item{x}{\code{Diff} object}
 
 \item{i}{subsetting index, must be numeric}
+}
+\value{
+\code{Diff} object with subsetting indices recorded for use by
+  \code{show}
 }
 \description{
 Methods to subset the character representation of the diff output.  The
