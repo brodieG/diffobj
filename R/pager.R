@@ -14,6 +14,9 @@
 #'      additional configuration options if it the system pager is \code{less}
 #'   \item \code{PagerBrowser}: Use \code{\link{browseURL}} as the pager
 #' }
+#' Make sure you instantiate the pagers with the constructor functions rather
+#' than with \code{new} to make sure they are properly configured.
+#'
 #' @section Custom Pagers:
 #'
 #' If you wish to define your own pager object you should do so by extending the
@@ -24,7 +27,7 @@
 #' (see constructor function parameter definition).  If the function you
 #' use to handle the actual paging is non-blocking (i.e. allows R code
 #' evaluation to continue after it is spawned, you may want to wrap it in a
-#' function that pauses evaluation (e.g. with \code{\link{readline}}), as
+#' function that pauses evaluation such as \code{\link{make_blocking}}, as
 #' otherwise the temporary file that contains the diff may be deleted before the
 #' pager has a chance to read it.
 #'
@@ -122,37 +125,55 @@ PagerSystemLess <-
 
 setMethod("initialize", "PagerSystemLess",
   function(.Object, ...) {
-
     dots <- list(...)
     if("flags" %in% names(dots)) {
       flags <- dots$flags
       if(!is.chr.1L(flags))
         stop("Argument `flags` must be character(1L) and not NA")
     } else flags <- .Object@flags
-    .Object@pager <- function(x) {
+    pager.old <- dots$pager
+    pager <- function(x) {
       old.less <- set_less_var(flags)
       on.exit(reset_less_var(old.less), add=TRUE)
-      file.show(x)
+      pager.old(x)
     }
-    callNextMethod(.Object, ...)
+    dots$flags <- flags
+    dots$pager <- pager
+    do.call(callNextMethod, c(list(.Object), dots))
 } )
+#' Create a Blocking Version of a Function
+#'
+#' Wraps \code{fun} in a function that runs \code{fun} and then issues a
+#' \code{readline} prompt to prevent further R code evaluation until user
+#' presses a key.
+#'
+#' @export
+#' @param fun a function
+#' @param msg character(1L) a message to use as the \code{readline} prompt
+#' @param invisible.res whether to return the result of \code{fun} invisibly
+#' @return \code{fun}, wrapped in a function that does the blocking
+
+make_blocking <- function(
+  fun, msg="Press any key to continue...", invisible.res=TRUE
+) {
+  if(!is.function(fun)) stop("Argument `fun` must be a function")
+  if(!is.chr.1L(msg)) stop("Argument `msg` must be character(1L) and not NA")
+  if(!is.TF(invisible.res))
+    stop("Argument `invisible.res` must be TRUE or FALSE")
+  function(...) {
+    res <- fun(...)
+    readline(msg)
+    if(invisible.res) invisible(res) else res
+  }
+}
+setClass("PagerBrowser", contains="Pager")
+
 #' @export
 #' @rdname Pager
 
-setClass(
-  "PagerBrowser", contains="Pager",
-  prototype=list(
-    file.ext="html",
-    threshold=0L,
-    pager=function(x) {
-      res <- browseURL(x)
-      readline("Press ENTER to continue...")
-      invisible(res)
-} ) )
-#' @export
-#' @rdname Pager
-
-PagerBrowser <- function(pager=browseURL, threshold=0L, file.ext="html", ...)
+PagerBrowser <- function(
+  pager=make_blocking(browseURL), threshold=0L, file.ext="html", ...
+)
   new("PagerBrowser", pager=pager, threshold=threshold, file.ext=file.ext, ...)
 
 # Helper function to determine whether pager will be used or not
