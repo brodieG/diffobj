@@ -122,19 +122,21 @@ PagerSystemLess <-
 
 setMethod("initialize", "PagerSystemLess",
   function(.Object, ...) {
-
     dots <- list(...)
     if("flags" %in% names(dots)) {
       flags <- dots$flags
       if(!is.chr.1L(flags))
         stop("Argument `flags` must be character(1L) and not NA")
     } else flags <- .Object@flags
-    .Object@pager <- function(x) {
+    pager.old <- dots$pager
+    pager <- function(x) {
       old.less <- set_less_var(flags)
       on.exit(reset_less_var(old.less), add=TRUE)
-      file.show(x)
+      pager.old(x)
     }
-    callNextMethod(.Object, ...)
+    dots$flags <- flags
+    dots$pager <- pager
+    do.call(callNextMethod, c(list(.Object), dots))
 } )
 #' @export
 #' @rdname Pager
