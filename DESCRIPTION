@@ -28,6 +28,7 @@ RoxygenNote: 5.0.1
 VignetteBuilder: knitr
 Suggests:
     knitr,
+    rmarkdown,
     testthat
 Collate:
     'capt.R'
