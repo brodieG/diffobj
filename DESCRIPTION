@@ -1,12 +1,17 @@
 Package: diffobj
 Type: Package
-Title: Compare R Objects with a Text Diff
-Description: Compare R objects by computing a `diff` on their text
-    representations (e.g. the `print`ed console output). This is similar to
-    `tools::Rdiff` except the diff is computed directly on R objects instead of
-    text files and does not rely on the system `diff` utility.
-Version: 0.0.1
-Date: 2016-01-20
+Title: Compare R Objects with a Diff
+Description: Diffs provide a clear and intuitive accounting of the differences
+    between two objects because they present the objects in usual way except
+    modified to highlight the differences.  This package contains a collection
+    of functions for carrying out and displaying colorized diffs on R objects
+    for display in a terminal or in a browser.  This is inspired by
+    `tools::Rdiff`, except the diff is computed directly on R objects instead
+    of text files, the diff computation is independent of the system `diff`
+    utility, and the diff display is colorized and optimized to handle common R
+    objects.
+Version: 0.1.0
+Date: 2016-07-24
 Authors@R: c(
     person(
     "Brodie", "Gaslam", email="brodie.gaslam@yahoo.com",
@@ -50,7 +55,7 @@ Collate:
     'trim.R'
     'word.R'
 Imports:
-    crayon (>= 1.3.1),
+    crayon (>= 1.3.2),
     tools,
     methods,
     utils
