@@ -10,7 +10,7 @@ See [vignette](http://htmlpreview.github.io/?https://raw.githubusercontent.com/b
 
 Output can be colorized with ANSI escape sequences, or in HTML.  Some examples or terminal output:
 
-![samples](/vignettes/ans256brightness.jpg)
+![samples](/vignettes/ans256brightness.png)
 
 ## Installation
 
