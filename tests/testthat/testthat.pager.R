@@ -29,7 +29,7 @@ test_that("Setting LESS var", {
   less.orig <- Sys.getenv("LESS")
   old.opt <- options(crayon.enabled=FALSE)  # problems with crayon and LESS
   on.exit({
-    diffobj:::reset_less_var# should be tested..., but super simple
+    diffobj:::reset_less_var(less.orig) # should be tested..., but super simple
     options(old.opt)
   })
   # Here we change the LESS variable even though we're mocking getenv
