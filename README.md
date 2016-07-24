@@ -8,7 +8,7 @@ See [vignette](http://htmlpreview.github.io/?https://raw.githubusercontent.com/b
 
 ## Examples
 
-Output can be colorized with ANSI escape sequences, or in HTML.  Some examples or terminal output:
+Output can be colorized with ANSI escape sequences, or in HTML.  Some examples of terminal output:
 
 ![samples](/vignettes/ansi256brightness.png)
 
