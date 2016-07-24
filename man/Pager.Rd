@@ -4,7 +4,6 @@
 \name{Pager}
 \alias{Pager}
 \alias{PagerBrowser}
-\alias{PagerBrowser-class}
 \alias{PagerOff}
 \alias{PagerOff,}
 \alias{PagerOff-class}
@@ -23,7 +22,8 @@ PagerSystem(pager = file.show, threshold = -1L, file.ext = "", ...)
 PagerSystemLess(pager = file.show, threshold = -1L, file.ext = "",
   flags = "R", ...)
 
-PagerBrowser(pager = browseURL, threshold = 0L, file.ext = "html", ...)
+PagerBrowser(pager = make_blocking(browseURL), threshold = 0L,
+  file.ext = "html", ...)
 }
 \arguments{
 \item{...}{additional arguments to pass on to \code{new}, typically not used}
@@ -73,6 +73,8 @@ constructor functions:
      additional configuration options if it the system pager is \code{less}
   \item \code{PagerBrowser}: Use \code{\link{browseURL}} as the pager
 }
+Make sure you instantiate the pagers with the constructor functions rather
+than with \code{new} to make sure they are properly configured.
 }
 \section{Custom Pagers}{
 
@@ -85,7 +87,7 @@ object.  At a minimum you should specify the \code{pager} slot of the object
 (see constructor function parameter definition).  If the function you
 use to handle the actual paging is non-blocking (i.e. allows R code
 evaluation to continue after it is spawned, you may want to wrap it in a
-function that pauses evaluation (e.g. with \code{\link{readline}}), as
+function that pauses evaluation such as \code{\link{make_blocking}}, as
 otherwise the temporary file that contains the diff may be deleted before the
 pager has a chance to read it.
 }
