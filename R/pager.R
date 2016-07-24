@@ -14,6 +14,9 @@
 #'      additional configuration options if it the system pager is \code{less}
 #'   \item \code{PagerBrowser}: Use \code{\link{browseURL}} as the pager
 #' }
+#' Make sure you instantiate the pagers with the constructor functions rather
+#' than with \code{new} to make sure they are properly configured.
+#'
 #' @section Custom Pagers:
 #'
 #' If you wish to define your own pager object you should do so by extending the
