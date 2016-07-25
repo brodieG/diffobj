@@ -4,9 +4,9 @@ cache: packages
 
 branches:
   only:
-  - master
-  - development
-  - rc
+    - master
+    - development
+    - rc
 
 after_success:
   - Rscript -e 'covr::codecov()'
