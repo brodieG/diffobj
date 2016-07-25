@@ -29,7 +29,8 @@ VignetteBuilder: knitr
 Suggests:
     knitr,
     rmarkdown,
-    testthat
+    testthat,
+    covr
 Collate:
     'capt.R'
     'check.R'
