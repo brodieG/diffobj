@@ -59,4 +59,5 @@ Imports:
     crayon (>= 1.3.2),
     tools,
     methods,
-    utils
+    utils,
+    stats
