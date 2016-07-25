@@ -9,7 +9,7 @@ Diffs provide a clear and intuitive accounting of the differences between two
 objects because they present the objects in usual way except modified to
 highlight the differences.  This package contains a collection of functions
 for carrying out and displaying colorized diffs on R objects for display in
-a terminal or in a browser.  This is inspired by 
+a terminal or in a browser.  This is inspired by
 \code{\link[=Rdiff]{tools::Rdiff}}, except the diff is
 computed directly on R objects instead of text files, the diff computation
 is independent of the system \code{diff} utility, and the diff display is
