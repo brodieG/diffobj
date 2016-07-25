@@ -1,15 +1,8 @@
 Package: diffobj
 Type: Package
 Title: Compare R Objects with a Diff
-Description: Diffs provide a clear and intuitive accounting of the differences
-    between two objects because they present the objects in usual way except
-    modified to highlight the differences.  This package contains a collection
-    of functions for carrying out and displaying colorized diffs on R objects
-    for display in a terminal or in a browser.  This is inspired by
-    `tools::Rdiff`, except the diff is computed directly on R objects instead
-    of text files, the diff computation is independent of the system `diff`
-    utility, and the diff display is colorized and optimized to handle common R
-    objects.
+Description:  Colorized diffs to quickly identify _and understand_ differences
+    between R objects.  See `vignette("diffobj")` for details.
 Version: 0.1.0
 Date: 2016-07-24
 Authors@R: c(

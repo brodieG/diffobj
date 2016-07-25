@@ -5,17 +5,15 @@
   <img src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=master'>
 </a>
 
-## Overview
+Colorized diffs to quickly identify _and understand_ differences between R objects.  See [vignette](http://htmlpreview.github.io/?https://raw.githubusercontent.com/brodieG/diffobj/rc/inst/doc/diffobj.html) for details.
 
-Diffs provide a clear and intuitive accounting of the differences between two objects because they present the objects in usual way except modified to highlight the differences.  This package contains a collection of functions for carrying out and displaying colorized diffs on R objects for display in a terminal or in a browser.  This is inspired by `tools::Rdiff`, except the diff is computed directly on R objects instead of text files, the diff computation is independent of the system `diff` utility, and the diff display is colorized and optimized to handle common R objects.
+## Ouput
 
-See [vignette](http://htmlpreview.github.io/?https://raw.githubusercontent.com/brodieG/diffobj/rc/inst/doc/diffobj.html) for details.
+If your terminal supports formatting through ANSI escape sequences, `diffobj` will output colored diffs to the terminal.  Here are some examples from a 256 color terminal:
 
-## Examples
+![Color Scheme Examples](vignettes/ansi256brightness.png)
 
-Output can be colorized with ANSI escape sequences, or in HTML.  Some examples of terminal output:
-
-![samples](/vignettes/ansi256brightness.png)
+If ANSI support is not detected, output will be colored with HTML/CSS and sent to your browser.
 
 ## Installation
 
@@ -28,25 +26,37 @@ vignette("diffobj", package="diffobj")
 
 ## Branch Status
 
-<table style="border: none; background-color: transparent; vertical-align: middle;">
+<table style="border: none; background-color: transparent;">
   <tr style="border: none; background-color: transparent; padding: 2px;">
-    <td style="border: none; background-color: transparent; padding: 2px;">rc:
-    <td style="border: none; background-color: transparent; padding: 2px;">
-      <a href='https://travis-ci.org/brodieG/diffobj'>
-        <img src='https://travis-ci.org/brodieG/diffobj.png?branch=rc'>
-      </a>
-    <td style="border: none; background-color: transparent; padding: 2px;">development:
-    <td style="border: none; background-color: transparent; padding: 2px;">
-      <a href='https://travis-ci.org/brodieG/diffobj'>
-        <img src='https://travis-ci.org/brodieG/diffobj.png?branch=development'>
-      </a>
+  <th style="text-align: right;">rc: 
+  <td>
+  <a href='https://travis-ci.org/brodieG/diffobj'>
+    <img
+      style="vertical-align: middle;"
+      src='https://travis-ci.org/brodieG/diffobj.png?branch=rc'
+    >
+  </a>
+  <td>
+  <a href='https://codecov.io/github/brodieG/diffobj?branch=rc'>
+    <img 
+      src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=rc'
+      style="vertical-align: middle;"
+    >
+  </a>
   <tr style="border: none; background-color: transparent; padding: 2px;">
-    <td style="border: none; background-color: transparent; padding: 2px;">rc:
-    <td style="border: none; background-color: transparent; padding: 2px;">
-      <a href='https://codecov.io/github/brodieG/diffobj?branch=rc'>
-      <img src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=rc'></a>
-    <td style="border: none; background-color: transparent; padding: 2px;">development:
-    <td style="border: none; background-color: transparent; padding: 2px;">
-      <a href='https://codecov.io/github/brodieG/diffobj?branch=dev'><img src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=development'></a>
+  <th style="text-align: right;">development: 
+  <td>
+  <a href='https://travis-ci.org/brodieG/diffobj'>
+    <img
+      style="vertical-align: middle;"
+      src='https://travis-ci.org/brodieG/diffobj.png?branch=development'
+    >
+  </a>
+  <td>
+  <a href='https://codecov.io/github/brodieG/diffobj?branch=development'>
+    <img 
+      src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=development'
+      style="vertical-align: middle;"
+    >
+  </a>
 </table>
-
