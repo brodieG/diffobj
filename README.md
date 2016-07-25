@@ -30,23 +30,22 @@ vignette("diffobj", package="diffobj")
 
 <table style="border: none; background-color: transparent; vertical-align: middle;">
   <tr style="border: none; background-color: transparent; padding: 2px;">
-    <td style="border: none; background-color: transparent; padding: 2px;">RC:
+    <td style="border: none; background-color: transparent; padding: 2px;">rc:
     <td style="border: none; background-color: transparent; padding: 2px;">
       <a href='https://travis-ci.org/brodieG/diffobj'>
         <img src='https://travis-ci.org/brodieG/diffobj.png?branch=rc'>
       </a>
-    <td style="border: none; background-color: transparent; padding: 2px;">Dev:
+    <td style="border: none; background-color: transparent; padding: 2px;">development:
     <td style="border: none; background-color: transparent; padding: 2px;">
       <a href='https://travis-ci.org/brodieG/diffobj'>
         <img src='https://travis-ci.org/brodieG/diffobj.png?branch=development'>
       </a>
   <tr style="border: none; background-color: transparent; padding: 2px;">
-    <td style="border: none; background-color: transparent; padding: 2px; padding-right: 50px;">
-    <td style="border: none; background-color: transparent; padding: 2px;">RC:
+    <td style="border: none; background-color: transparent; padding: 2px;">rc:
     <td style="border: none; background-color: transparent; padding: 2px;">
       <a href='https://codecov.io/github/brodieG/diffobj?branch=rc'>
       <img src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=rc'></a>
-    <td style="border: none; background-color: transparent; padding: 2px;">Dev:
+    <td style="border: none; background-color: transparent; padding: 2px;">development:
     <td style="border: none; background-color: transparent; padding: 2px;">
       <a href='https://codecov.io/github/brodieG/diffobj?branch=dev'><img src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=development'></a>
 </table>
