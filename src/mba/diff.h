@@ -21,7 +21,8 @@ extern "C" {
 #endif /* LIBMBA_API */
 
 typedef enum {
-	DIFF_MATCH = 1,
+        DIFF_NULL = 0,
+	DIFF_MATCH,
 	DIFF_DELETE,
 	DIFF_INSERT
 } diff_op;

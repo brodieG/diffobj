@@ -4,12 +4,12 @@ NULL
 
 #' Generate a character representation of Shortest Edit Sequence
 #'
-#' @seealso \code{\link{diff_ses}}
-#' @param x S4 object of class \code{diffObjMyersMbaSes}
+#' @seealso \code{\link{ses}}
+#' @param x S4 object of class \code{MyersMbaSes}
 #' @param ... unused
 #' @return character vector
 
-setMethod("as.character", "diffObjMyersMbaSes",
+setMethod("as.character", "MyersMbaSes",
   function(x, ...) {
     dat <- as.data.frame(x)
 
@@ -31,11 +31,11 @@ setMethod("as.character", "diffObjMyersMbaSes",
         del <- sum(d$len[d$type == "Delete"])
         ins <- sum(d$len[d$type == "Insert"])
         if(del) {
-          del.first <- which.min(d$type == "Delete")
+          del.first <- which(d$type == "Delete")[[1L]]
           del.off <- d$off[del.first]
         }
         if(ins) {
-          ins.first <- which.min(d$type == "Insert")
+          ins.first <- which(d$type == "Insert")[[1L]]
           ins.off <- d$off[ins.first]
         }
         if(del && ins) {
@@ -50,7 +50,44 @@ setMethod("as.character", "diffObjMyersMbaSes",
       },
       character(1L)
 ) } )
-setMethod("as.data.frame", "diffObjMyersMbaSes",
+# Used for mapping edit actions to numbers so we can use numeric matrices
+.edit.map <- c("Match", "Insert", "Delete")
+
+setMethod("as.matrix", "MyersMbaSes",
+  function(x, row.names=NULL, optional=FALSE, ...) {
+    # map del/ins/match to numbers
+
+    len <- length(x@type)
+
+    edit <- match(x@type, .edit.map)
+    matches <- .edit.map[edit] == "Match"
+    section <- cumsum(matches + c(0L, head(matches, -1L)))
+
+    # Track what the max offset observed so far for elements of the `a` string
+    # so that if we have an insert command we can get the insert position in
+    # `a`
+
+    last.a <- c(
+      if(len) 0L,
+      head(
+        cummax(
+          ifelse(.edit.map[edit] != "Insert", x@offset + x@length, 1L)
+        ) - 1L, -1L
+    ) )
+
+    # Do same thing with `b`, complicated because the matching entries are all
+    # in terms of `a`
+
+    last.b <- c(
+      if(len) 0L,
+      head(cumsum(ifelse(.edit.map[edit] != "Delete", x@length, 0L)), -1L)
+    )
+    cbind(
+      type=edit, len=x@length, off=x@offset, section=section, last.a=last.a,
+      last.b = last.b
+    )
+} )
+setMethod("as.data.frame", "MyersMbaSes",
   function(x, row.names=NULL, optional=FALSE, ...) {
     len <- length(x@type)
     mod <- c("Insert", "Delete")
@@ -62,77 +99,27 @@ setMethod("as.data.frame", "diffObjMyersMbaSes",
     # so that if we have an insert command we can get the insert position in
     # `a`
 
-    dat$last.a <-
-      cummax(ifelse(dat$type != "Insert", dat$off + dat$len, 1L)) - 1L
+    dat$last.a <- c(
+      if(nrow(dat)) 0L,
+      head(
+        cummax(ifelse(dat$type != "Insert", dat$off + dat$len, 1L)) - 1L, -1L
+    ) )
 
     # Do same thing with `b`, complicated because the matching entries are all
     # in terms of `a`
 
-    dat$last.b <- cumsum(ifelse(dat$type != "Delete", dat$len, 0L))
+    dat$last.b <- c(
+      if(nrow(dat)) 0L,
+      head(cumsum(ifelse(dat$type != "Delete", dat$len, 0L)), -1L)
+    )
     dat
 } )
-# Used to generate data in format closer to existing `diffobj` functions.
-# Not super efficient, but should be good enough for our purposes.
-
-setGeneric("diffObjCompact", function(x, ...) standardGeneric("diffObjCompact"))
-setMethod("diffObjCompact", "diffObjMyersMbaSes",
-  function(x, ...) {
-    # Split our data into sections that have either deletes/inserts or matches
-
-    dat <- as.data.frame(x)
-    d.s <- split(dat, dat$section)
-    j <- 0L
-
-    # For each section, figure out how to represent target and current where
-    # 0 means match, 1:n is a matched mismatch (change in edit script parlance),
-    # and NA is a full mismatch (d or i).
-
-    res.l <- lapply(
-      seq_along(d.s),
-      function(i) {
-        d <- d.s[[i]]
-        un.type <- length(unique(d$type))
-        if(un.type == 2L) { # must have delete/insert
-          if(!all(d$type %in% c("Delete", "Insert")))
-            stop("Logic Error: unexpected edit types; contact maintainer.")
-          # Idea here is to number all the insert/deletes so that we can then
-          # line them up later; we use `j` to ensure we produce unique indices
-
-          ins.len <- d$len[[which(d$type == "Insert")]]
-          del.len <- d$len[[which(d$type == "Delete")]]
-          min.len <- min(ins.len, del.len)
-          match.seq <- seq_len(min.len) + j
-          j <<- j + min.len
-
-          tar <- c(match.seq, rep(NA_integer_, del.len - min.len))
-          cur <- c(match.seq, rep(NA_integer_, ins.len - min.len))
-        } else if (un.type == 1L) {
-          if(d$type == "Match") {
-            tar <- cur <- rep(0L, d$len)
-          } else if (d$type == "Insert") {
-            tar <- integer()
-            cur <- rep(NA_integer_, d$len)
-          } else if (d$type == "Delete") {
-            cur <- integer()
-            tar <- rep(NA_integer_, d$len)
-          } else
-            stop("Logic Error: unexpected edit types 2; contact maintainer.")
-        }
-        list(target=tar, current=cur)
-    } )
-    tars <- unlist(lapply(res.l, "[[", "target"))
-    curs <- unlist(lapply(res.l, "[[", "current"))
-    if(length(tars) != length(x@a) || length(curs) != length(x@b))
-      stop(
-        "Logic Error: mismatch ids don't match original string lengths; ",
-        "contact maintainer"
-      )
-    list(target=tars, current=curs)
-} )
-#' Produce Shortest Edit Script
+#' Shortest Edit Script
 #'
-#' Intended primarily for debugging or for other applications that understand
-#' that particular format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}
+#' Computes shortest edit script to convert \code{a} into \code{b} by removing
+#' elements from \code{a} and adding elements from \code{b}.  Intended primarily
+#' for debugging or for other applications that understand that particular
+#' format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}
 #' for how to interpret the symbols.
 #'
 #' @export
@@ -140,12 +127,13 @@ setMethod("diffObjCompact", "diffObjMyersMbaSes",
 #' @param b character
 #' @return character
 
-diff_ses <- function(a, b) as.character(diff_myers_mba(a, b))
+ses <- function(a, b) as.character(diff_myers_mba(a, b))
 
 #' Diff two character vectors
 #'
 #' Implementation of Myer's with linear space refinement originally implemented
-#' by Mike B. Allen as part of \href{libmba}{http://www.ioplex.com/~miallen/libmba/}
+#' by Mike B. Allen as part of
+#' \href{libmba}{http://www.ioplex.com/~miallen/libmba/}
 #' version 0.9.1.  This implementation uses the exact same algorithm, except
 #' that the C code is simplified by using fixed size arrays instead of variable
 #' ones for tracking the longest reaching paths and for recording the shortest
@@ -155,17 +143,21 @@ diff_ses <- function(a, b) as.character(diff_myers_mba(a, b))
 #' @keywords internal
 #' @param a character
 #' @param b character
+#' @param max.diffs integer(1L) how many differences before giving up; set to
+#'   zero to allow as many as there are
 #' @return list
 #' @useDynLib diffobj, .registration=TRUE, .fixes="DIFFOBJ_"
 
-diff_myers_mba <- function(a, b) {
-  stopifnot(is.character(a), is.character(b), all(!is.na(c(a, b))))
-  res <- .Call(DIFFOBJ_diffobj, a, b)
-  res <- setNames(res, c("type", "length", "offset"))
-  types <- c("Match", "Insert", "Delete")
+diff_myers_mba <- function(a, b, max.diffs=0L) {
+  stopifnot(
+    is.character(a), is.character(b), all(!is.na(c(a, b))), is.int.1L(max.diffs)
+  )
+  res <- .Call(DIFFOBJ_diffobj, a, b, max.diffs)
+  res <- setNames(res, c("type", "length", "offset", "diffs"))
+  types <- .edit.map
   res$type <- factor(types[res$type], levels=types)
   res$offset <- res$offset + 1L  # C 0-indexing originally
-  res.s4 <- try(do.call("new", c(list("diffObjMyersMbaSes", a=a, b=b), res)))
+  res.s4 <- try(do.call("new", c(list("MyersMbaSes", a=a, b=b), res)))
   if(inherits(res.s4, "try-error"))
     stop(
       "Logic Error: unable to instantiate shortest edit script object; contact ",
@@ -173,33 +165,37 @@ diff_myers_mba <- function(a, b) {
     )
   res.s4
 }
-#' Print Method for Shortest Edit Path
-#'
-#' Bare bones display of shortest edit path using GNU diff conventions
-#'
-#' @param object object to display
-#' @return character the shortest edit path character representation, invisibly
+# Print Method for Shortest Edit Path
+#
+# Bare bones display of shortest edit path using GNU diff conventions
+#
+# @param object object to display
+# @return character the shortest edit path character representation, invisibly
+# @rdname diffobj_s4method_doc
 
-setMethod("show", "diffObjMyersMbaSes",
+#' @rdname diffobj_s4method_doc
+
+setMethod("show", "MyersMbaSes",
   function(object) {
     res <- as.character(object)
     cat(res, sep="\n")
     invisible(res)
 } )
+
 #' Summary Method for Shortest Edit Path
 #'
 #' Displays the data required to generate the shortest edit path for comparison
 #' between two strings.
 #'
+#' @export
 #' @param object the \code{diff_myers_mba} object to display
 #' @param with.match logical(1L) whether to show what text the edit command
 #'   refers to
 #' @param ... forwarded to the data frame print method used to actually display
 #'   the data
 #' @return whatever the data frame print method returns
-#' @export
 
-setMethod("summary", "diffObjMyersMbaSes",
+setMethod("summary", "MyersMbaSes",
   function(object, with.match=FALSE, ...) {
     what <- vapply(
       seq_along(object@type),
@@ -207,7 +203,7 @@ setMethod("summary", "diffObjMyersMbaSes",
         t <- object@type[[y]]
         o <- object@offset[[y]]
         l <- object@length[[y]]
-        vec <- if(t == "Insert") b else a
+        vec <- if(t == "Insert") object@b else object@a
         paste0(vec[o:(o + l - 1L)], collapse="")
       },
       character(1L)
@@ -218,256 +214,200 @@ setMethod("summary", "diffObjMyersMbaSes",
     if(!with.match) res <- res[-2L]
     print(res, ...)
 } )
-# Carries out the comparison between two character vectors and returns the
-# elements that match and those that don't as a unitizerDiffDiffs object
+# mode is display mode (sidebyside, etc.)
+# diff.mode is whether we are doing the first pass line diff, or doing the
+#   in-hunk or word-wrap versions
+# warn is to allow us to suppress warnings after first hunk warning
 
-char_diff <- function(x, y, white.space=FALSE) {
-  if(!white.space) {
-    pat.1 <- "^[\\t ]*|[\\t ]*$"
-    pat.2 <- "[\\t ]+"
-    x <- gsub(pat.2, " ", gsub(pat.1, "", x))
-    y <- gsub(pat.2, " ", gsub(pat.1, "", y))
-  }
-  diffs.int <- diffObjCompact(diff_myers_mba(x, y))
-  if(sum(!diffs.int[[1L]], na.rm=TRUE) != sum(!diffs.int[[2L]], na.rm=TRUE))
-    stop(
-      "Logic Error: diff produced unequal number of matching lines; contact ",
-      "maintainer."
+char_diff <- function(x, y, context=-1L, etc, diff.mode, warn) {
+  stopifnot(
+    diff.mode %in% c("line", "hunk", "wrap"),
+    isTRUE(warn) || identical(warn, FALSE)
+  )
+  max.diffs <- etc@max.diffs
+  diff <- diff_myers_mba(x, y, max.diffs)  # probably shouldn't generate S4
+
+  hunks <- as.hunks(diff, etc=etc)
+  hit.diffs.max <- FALSE
+  if(diff@diffs < 0L) {
+    hit.diffs.max <- TRUE
+    diff@diffs <- -diff@diffs
+    diff.msg <- c(
+      line="overall", hunk="in-hunk word", wrap="atomic wrap-word"
     )
-  do.call(
-    "new", c(list("diffObjDiffDiffs", white.space=white.space), diffs.int)
-  )
-}
-# Helper function encodes matches within mismatches so that we can later word
-# diff the mismatches
-
-match_mismatch <- function(x, y) {
-  mis.overlap <- min(x, y)
-  mis.extra <- max(x, y) - mis.overlap
-  mis.seq <- seq_len(mis.overlap)
-  mis.x <- x > y
-
-  # construct final match vector, any additional mismatches in one or
-  # other vector are mismatched and encoded as NAs
-
-  x.d <- c(mis.seq, rep(NA_integer_, if(mis.x) mis.extra else 0L))
-  y.d <- c(mis.seq, rep(NA_integer_, if(!mis.x) mis.extra else 0L))
-
-  list(target=x.d, current=y.d)
-}
-char_diff_int <- function(x, y) {
-  stopifnot(
-    is.character(x), is.character(y), !any(is.na(c(x, y)))
-  )
-  # find first difference
-
-  x.d <- y.d <- logical()
-  len.match <- min(length(x), length(y))
-  eq <- head(x, len.match) == head(y, len.match)
-  diffs <- which(!eq)
-  if(!length(diffs)) {
-    # extras at end
-    x.d <- c(rep(0L, len.match), c(rep(NA_integer_, length(x) - len.match)))
-    y.d <- c(rep(0L, len.match), c(rep(NA_integer_, length(y) - len.match)))
-  } else {
-    first.diff <- diffs[[1L]]
-    eq.so.far <- rep(0L, first.diff - 1L)
-    eq.extra <- 0L
-
-    # Try to see if difference exists in y, and if not see if any subsequent
-    # line does exist, indicating deletions from x.  However, make sure that
-    # we don't have the same number of matches in x as well as in y, as that
-    # would suggest the match in y is just a coincidence
-
-    # This grows vectors, but doesn't seem to be a huge performance issue at
-    # the normal scale we run this.
-
-    diff.found <- FALSE
-    for(i in seq(first.diff, length(x), by=1L)) {
-      n.match.self <- which(x[[i]] == tail(x, -i))
-      n.match <- which(
-        x[[i]] == tail(y, if(first.diff == 1L) Inf else  -first.diff + 1L)
+    if(warn)
+      warning(
+        "Exceeded diff limit during diff computation (",
+        diff@diffs, " vs. ", max.diffs, " allowed); ",
+        diff.msg[diff.mode], " diff is likely not optimal",
+        call.=FALSE
       )
-      if(length(n.match) && length(n.match) > length(n.match.self)) {
-        tmp.res <- Recall(
-          x[i:length(x)], y[(n.match[[1L]] + first.diff - 1L):length(y)]
-        )
-        # compute matched mismatches and line them up so they have the same
-        # non-zero non-NA integer value in both x and y
-
-        m.match <- match_mismatch(eq.extra, n.match[[1L]] - 1L)
-
-        # re-adjust recursion values by how many matched mismatches we have
-        m.max <- max(0L, unlist(m.match), na.rm=TRUE)
-        tmp.res <- lapply(
-          tmp.res, function(y) ifelse(!is.na(y) & !!y, y + m.max, y)
-        )
-        # construct final match vector, any additional mismatches in one or
-        # other vector are mismatched and encoded as NAs
-        x.d <- c(eq.so.far, m.match[[1L]], tmp.res[[1L]])
-        y.d <- c(eq.so.far, m.match[[2L]], tmp.res[[2L]])
-        diff.found <- TRUE
-        break
-      }
-      eq.extra <- eq.extra + 1L
-    }
-    if(!diff.found) {  # Difference did not exist in y
-      m.match <- match_mismatch(eq.extra, length(y) - first.diff + 1L)
-      x.d <- c(eq.so.far, m.match[[1L]])
-      y.d <- c(eq.so.far, m.match[[2L]])
-    }
   }
-  list(target=x.d, current=y.d)
+  # used to be a `DiffDiffs` object, but too slow
+
+  list(hunks=hunks, hit.diffs.max=hit.diffs.max)
 }
-# Alternate implementation of Myers algorithm in R, without linear space
-# modification.  Included here mostly for reference purposes and not intended
-# for use since the MBA myers implemenation should be far superior
+# Variation on `char_diff` used for the overall diff where we don't need
+# to worry about overhead from creating the `Diff` object
 
-char_diff_myers_simple <- function(target, current) {
-  path <- char_diff_myers_simple_int(target, current)
-  diff_path_to_diff(path, target, current)
-}
-char_diff_myers_simple_int <- function(A, B) {
-  N <- length(A)
-  M <- length(B)
-  MAX <- M + N + 1L
-  if(!MAX) return(matrix(integer(0L), ncol=2))
-  OFF <- MAX + 1L  # offset to adjust to R indexing
-  Vl <- vector("list", MAX)
-  for(D in seq_len(MAX) - 1L) {
-    Vl[[D + 1L]] <- if(!D) integer(2L * MAX + 1L) else Vl[[D]]
-    for(k in seq(-D, D, by=2L)) {
-      # not sure of precendence for || vs &&
-      # k == -D means x == 0
-      V <- Vl[[D + 1L]]
-      if(k == -D || (k != D && V[k - 1L + OFF] < V[k + 1L + OFF])) {
-        x <- V[k + 1L + OFF]
-      } else {
-        x <- V[k - 1L + OFF] + 1L
-      }
-      y <- x - k
+line_diff <- function(
+  target, current, tar.capt, cur.capt, context, etc, warn=TRUE, strip=TRUE
+) {
+  if(!is.valid.guide.fun(etc@guides))
+    stop(
+      "Logic Error: guides are not a valid guide function; contact maintainer"
+    )
+  etc@guide.lines <-
+    make_guides(target, tar.capt, current, cur.capt, etc@guides)
 
-      # Move on diagonal
-      while (x < N && y < M && A[x + 1L] == B[y + 1L]) {
-        x <- x + 1L
-        y <- y + 1L
-      }
-      # Record last match or end; if a mismatch no longer increment
+  # Need to remove new lines as the processed captures do that anyway and we
+  # end up with mismatched lengths if we don't
 
-      Vl[[D + 1L]][k + OFF] <- x
-      if(x >= N && y >= M) {
-        # Create matrix to hold entire result path; should be longest of
-        # A and B plus recorded differences
+  if(any(nzchar(tar.capt))) tar.capt <- split_new_line(tar.capt)
+  if(any(nzchar(cur.capt))) cur.capt <- split_new_line(cur.capt)
 
-        path.len <- D + max(N, M)
-        res <- matrix(integer(1L), nrow=path.len, ncol=2)
-        res[path.len, ] <- c(x, y)
-        path.len <- path.len - 1L
+  # Some debate as to whether we want to do this first, or last.  First has
+  # many benefits so that everything is consistent, width calcs can work fine,
+  # etc., but only issue is that user provided trim functions might not expect
+  # the transformation of the data; this needs to be documented with the trim
+  # docs.
 
-        for(d in rev(seq_len(D))) {
-          Vp <- Vl[[d]]
-          break.out <- FALSE
-          repeat {
-            # can't match to zero since that is the initialized value
-            shift.up <- Vp[k + 1L + OFF] == x && x
-            shift.left <- Vp[k - 1L + OFF] == x - 1L && x > 1L
-            if(x <= 0L && y <= 0L) {
-              break
-            } else if(!shift.up && !shift.left) {
-              # must be on snake or about to hit 0,0
-              x <- max(x - 1L, 0L)
-              y <- max(y - 1L, 0L)
-            } else {
-              if(shift.up) {
-                y <- y - 1L
-                k <- k + 1L
-              } else {
-                x <- x - 1L
-                k <- k - 1L
-              }
-              break.out <- TRUE
-            }
-            res[path.len, ] <- c(x, y)
-            path.len <- path.len - 1L
-            if(break.out) break
-          }
-        }
-        if(any(res < 0L))
-          stop("Logic Error: diff generated illegal coords; contact maintainer.")
-        return(res)
-      }
-    }
+  tar.capt.p <- tar.capt
+  cur.capt.p <- cur.capt
+  if(strip) {
+    tar.capt.p <- strip_hz_control(tar.capt, stops=etc@tab.stops)
+    cur.capt.p <- strip_hz_control(cur.capt, stops=etc@tab.stops)
   }
-  stop("Logic Error, should not get here")
-}
-# Translates a diff path produced by the simple Myers Algorithm into the
-# standard format we use in the rest of the package
+  # Apply trimming to remove row heads, etc
 
-diff_path_to_diff <- function(path, target, current) {
-  stopifnot(
-    is.character(target), is.character(current),
-    is.matrix(path), is.integer(path), ncol(path) == 2,
-    all(path[, 1L] %in% c(0L, seq_along(target))),
-    all(path[, 2L] %in% c(0L, seq_along(current)))
+  tar.trim.ind <- apply_trim(target, tar.capt.p, etc@trim)
+  tar.trim <- do.call(
+    substr, list(tar.capt.p, tar.trim.ind[, 1L], tar.trim.ind[, 2L])
   )
-  # Path specifies 0s as well as duplicate coordinates, which we don't use
-  # in our other formats.  For dupes, find first value for each index that is
-  # lined up with a real value in the other column
+  cur.trim.ind <- apply_trim(current, cur.capt.p, etc@trim)
+  cur.trim <- do.call(
+    substr, list(cur.capt.p, cur.trim.ind[, 1L], cur.trim.ind[, 2L])
+  )
+  # Remove whitespace if warranted
 
-  get_dupe <- function(x) {
-    base <- !logical(length(x))
-    if(!length(y <- which(x != 0L)))
-      base[[1L]] <- FALSE else base[[min(y)]] <- FALSE
-    base
+  tar.comp <- tar.trim
+  cur.comp <- cur.trim
+
+  if(etc@ignore.white.space) {
+    tar.comp <- normalize_whitespace(tar.comp)
+    cur.comp <- normalize_whitespace(cur.comp)
   }
-  cur.dup <- as.logical(ave(path[, 1L], path[, 2L], FUN=get_dupe))
-  tar.dup <- as.logical(ave(path[, 2L], path[, 1L], FUN=get_dupe))
+  # Word diff is done in three steps: create an empty template vector structured
+  # as the result of a call to `gregexpr` without matches, if dealing with
+  # compliant atomic vectors in print mode, then update with the word diff
+  # matches, finally, update with in-hunk word diffs for hunks that don't have
+  # any existing word diffs:
 
-  path[!path] <- NA_integer_
-  path[tar.dup, 1L] <- NA_integer_
-  path[cur.dup, 2L] <- NA_integer_
+  # Set up data lists with all relevant info; need to pass to diff_word so it
+  # can be modified.
+  # - orig: the very original string
+  # - raw: the original captured text line by line, with strip_hz applied
+  # - trim: as above, but with row meta data removed
+  # - trim.ind: the indices used to re-insert `trim` into `raw`
+  # - comp: the strings that will have the line diffs run on
+  # - eq: the portion of `trim` that is equal post word-diff
+  # - fin: the final character string for display to user
+  # - word.ind: for use by `regmatches<-` to re-insert colored words
+  # - tok.rat: for use by `align_eq` when lining up lines within hunks
 
-  # Now create the character equivalents of the path matrix
+  tar.dat <- list(
+    orig=tar.capt, raw=tar.capt.p, trim=tar.trim,
+    trim.ind.start=tar.trim.ind[, 1L], trim.ind.end=tar.trim.ind[, 2L],
+    comp=tar.comp, eq=tar.comp, fin=tar.capt.p,
+    fill=logical(length(tar.capt.p)),
+    word.ind=replicate(length(tar.capt.p), .word.diff.atom, simplify=FALSE),
+    tok.rat=rep(1, length(tar.capt.p))
+  )
+  cur.dat <- list(
+    orig=cur.capt, raw=cur.capt.p, trim=cur.trim,
+    trim.ind.start=cur.trim.ind[, 1L], trim.ind.end=cur.trim.ind[, 2L],
+    comp=cur.comp, eq=cur.comp, fin=cur.capt.p,
+    fill=logical(length(cur.capt.p)),
+    word.ind=replicate(length(cur.capt.p), .word.diff.atom, simplify=FALSE),
+    tok.rat=rep(1, length(cur.capt.p))
+  )
+  # Word diffs in wrapped form is atomic; note this will potentially change
+  # the length of the vectors
 
-  tar.path <- target[path[, 1L]]
-  cur.path <- current[path[, 2L]]
-
-  # Mark the equalities in the path matrix by setting them negative
-
-  path[which(tar.path == cur.path), ] <- -path[which(tar.path == cur.path), ]
-
-  # Remaining numbers are the mismatches which we will arbitrarily assign to
-  # each other; to do so we first split our data into groups of matches and
-  # mismatches and do the mapping there-in.  We also get rid of non-matching
-  # entries.
-
-  matched <- ifelse(!is.na(path[, 1]) & path[, 1] < 0L, 1L, 0L)
-  splits <- cumsum(abs(diff(c(0, matched))))
-  chunks <- split.data.frame(path, splits)
-  res.tar <- res.cur <- vector("list", length(chunks))
-  mm.count <- 0L  # for tracking matched mismatches
-
-  for(i in seq_along(chunks)) {
-    x <- chunks[[i]]
-    if((neg <- any(x < 0L, na.rm=TRUE)) && !all(x < 0L, na.rm=TRUE))
-      stop("Logic Error: match group error; contact maintainer")
-    if(neg) {
-      # Matches, so equal length and set to zero
-      res.tar[[i]] <- res.cur[[i]] <- integer(nrow(x))
-    } else {
-      # Mismatches
-      tar.mm <- Filter(Negate(is.na), x[, 1L])
-      cur.mm <- Filter(Negate(is.na), x[, 2L])
-
-      x.min.len <- min(length(tar.mm), length(cur.mm))
-      res.tar[[i]] <- res.cur[[i]] <- seq_len(x.min.len) + mm.count
-      mm.count <- x.min.len + mm.count
-      length(res.tar[[i]]) <- length(tar.mm)
-      length(res.cur[[i]]) <- length(cur.mm)
-    }
+  if(
+    is.atomic(target) && is.atomic(current) &&
+    length(tar.rh <- which_atomic_rh(tar.capt.p)) &&
+    length(cur.rh <- which_atomic_rh(cur.capt.p)) &&
+    etc@unwrap.atomic && etc@word.diff
+  ) {
+    diff.word <- diff_word2(
+      tar.dat, cur.dat, tar.ind=tar.rh, cur.ind=cur.rh,
+      diff.mode="wrap", warn=warn, etc=etc
+    )
+    warn <- !diff.word$hit.diffs.max
+    tar.dat <- diff.word$tar.dat
+    cur.dat <- diff.word$cur.dat
   }
-  if(!length(res.tar)) res.tar <- integer()
-  if(!length(res.cur)) res.cur <- integer()
+  # Actual line diff
 
-  return(list(target=unlist(res.tar), current=unlist(res.cur)))
+  diffs <- char_diff(
+    tar.dat$comp, cur.dat$comp, etc=etc, diff.mode="line", warn=warn
+  )
+  warn <- !diffs$hit.diffs.max
+
+  hunks.flat <- diffs$hunks
+
+  # For each of those hunks, run the word diffs and store the results in the
+  # word.diffs list; bad part here is that we keep overwriting the overall
+  # diff data for each hunk, which might be slow
+
+  if(etc@word.diff) {
+    # Word diffs on hunks; check first which lines already have diffs and
+    # identify the diff hunks that don't contain any of those lines
+
+    tar.l.w.d <- which(vapply(tar.dat$word.ind, "[", integer(1L), 1L) != -1L)
+    cur.l.w.d <- which(vapply(cur.dat$word.ind, "[", integer(1L), 1L) != -1L)
+    all.l.w.d <- c(tar.l.w.d, -cur.l.w.d)
+
+    hunks.w.o.w.diff <- vapply(
+      hunks.flat,
+      function(y) !y$context && !any(unlist(y[c("A", "B")]) %in% all.l.w.d),
+      logical(1L)
+    )
+    for(i in which(hunks.w.o.w.diff)) {
+      h.a <- hunks.flat[[i]]
+      h.a.ind <- c(h.a$A, h.a$B)
+      h.a.tar.ind <- h.a.ind[h.a.ind > 0]
+      h.a.cur.ind <- abs(h.a.ind[h.a.ind < 0])
+      h.a.w.d <- diff_word2(
+        tar.dat, cur.dat, h.a.tar.ind, h.a.cur.ind, diff.mode="hunk", warn=warn,
+        etc=etc
+      )
+      tar.dat <- h.a.w.d$tar.dat
+      cur.dat <- h.a.w.d$cur.dat
+      warn <- !h.a.w.d$hit.diffs.max
+  } }
+  # Compute the token ratios
+
+  tok_ratio_compute <- function(z) vapply(
+    z,
+    function(y)
+      if(is.null(wc <- attr(y, "word.count"))) 1
+      else max(0, (wc - length(y)) / wc),
+    numeric(1L)
+  )
+  tar.dat$tok.rat <- tok_ratio_compute(tar.dat$word.ind)
+  cur.dat$tok.rat <- tok_ratio_compute(cur.dat$word.ind)
+  tar.dat$eq <- `regmatches<-`(tar.dat$trim, tar.dat$word.ind, value="")
+  cur.dat$eq <- `regmatches<-`(cur.dat$trim, cur.dat$word.ind, value="")
+
+  # Instantiate result
+
+  hunk.grps <- group_hunks(
+    hunks.flat, etc=etc, tar.capt=tar.dat$raw, cur.capt=cur.dat$raw
+  )
+  new(
+    "Diff", diffs=hunk.grps, target=target, current=current,
+    hit.diffs.max=!warn, tar.dat=tar.dat, cur.dat=cur.dat, etc=etc
+  )
 }

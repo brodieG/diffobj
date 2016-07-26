@@ -1,28 +1,7 @@
--------------------------------------------------------------------------------
+Code in src/* is based on MIT Licensed code (see inst/COPYRIGHT):
 
-  The MIT License
+YEAR: 2004
+COPYRIGHT HOLDER: Michael B. Allen <mba2000 ioplex.com>
+https://www.r-project.org/Licenses/MIT
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
-
-  The above copyright notice and this permission notice shall be included
-  in all copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-  OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-  OTHER DEALINGS IN THE SOFTWARE.
-
--------------------------------------------------------------------------------
-
-  GNU GENERAL PUBLIC LICENSE Version 3 (GPL-3)
-
-  See <http://www.gnu.org/licenses/gpl-3.0.txt>.
-
+The modified code in src/* is licensed under GPL-3

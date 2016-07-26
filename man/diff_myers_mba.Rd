@@ -4,19 +4,23 @@
 \alias{diff_myers_mba}
 \title{Diff two character vectors}
 \usage{
-diff_myers_mba(a, b)
+diff_myers_mba(a, b, max.diffs = 0L)
 }
 \arguments{
 \item{a}{character}
 
 \item{b}{character}
+
+\item{max.diffs}{integer(1L) how many differences before giving up; set to
+zero to allow as many as there are}
 }
 \value{
 list
 }
 \description{
 Implementation of Myer's with linear space refinement originally implemented
-by Mike B. Allen as part of \href{libmba}{http://www.ioplex.com/~miallen/libmba/}
+by Mike B. Allen as part of
+\href{libmba}{http://www.ioplex.com/~miallen/libmba/}
 version 0.9.1.  This implementation uses the exact same algorithm, except
 that the C code is simplified by using fixed size arrays instead of variable
 ones for tracking the longest reaching paths and for recording the shortest

@@ -1,0 +1,43 @@
+library(diffobj)
+
+test_that("trim_str", {
+  a <- structure("hello", class="A", xx="B")
+  b <- structure(1:10, yy=a)
+  long.string <- "I'm a string long enough to force wrapping under most cases so that I may be useful for tests andiamareallylongwordtoseehowwrappingbreakslongwordsthatexceed"
+  obj <- list(
+    a=a, b=b, c=1:50,
+    d=long.string,
+    e=list(1, structure(2, zz=list(a=1, b=list("a", ls=long.string))), e=letters)
+  )
+  str.txt <- capture.output(str(obj))
+  expect_equal(
+    diffobj:::str_levels(str.txt, wrap=FALSE),
+    c(0L, 1L, 3L, 1L, 2L, 4L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L,  5L, 2L)
+  )
+  str.txt.w <- capture.output(str(obj, width=30L, strict.width="wrap"))
+  expect_equal(
+    diffobj:::str_levels(str.txt.w, wrap=TRUE),
+    c(0L, 1L, 1L, 3L, 1L, 1L, 2L, 2L, 4L, 4L, 1L, 1L, 1L, 1L, 1L,  1L, 1L, 1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L,  5L, 5L, 2L, 2L)
+  )
+  # cat(
+  #   paste(
+  #     format(substr(str.txt.w, 1, 20)), diffobj:::str_levels(str.txt.w, TRUE),
+  #     sep=": "
+  #   ),
+  #   sep="\n"
+  # )
+})
+
+test_that("rle_sub", {
+  x <- c(1, 1, 1, 2, 2, 1, 1, 3, 3, 4, 4, 4, 5, 2, 2)
+  r <- rle(x)
+  expect_equal(diffobj:::rle_sub(r, r$values == 1L), list(1:3, 6:7))
+  expect_equal(diffobj:::rle_sub(r, r$values == 2L), list(4:5, 14:15))
+  expect_true(all(x[unlist(diffobj:::rle_sub(r, r$values == 1L))] == 1))
+  expect_true(all(x[unlist(diffobj:::rle_sub(r, r$values == 2L))] == 2))
+  expect_true(all(x[unlist(diffobj:::rle_sub(r, r$values == 3L))] == 3))
+})
+
+test_that("myers_simple", {
+
+})

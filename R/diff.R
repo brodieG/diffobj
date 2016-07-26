@@ -1,827 +1,572 @@
-#' @include s4.R
-
-NULL
-
-#' Compare R Objects with a Text Diff
+#' Compare R Objects with a Diff
 #'
-#' Compare R objects by computing a \code{diff} on their text representations
-#' (e.g. the \code{print}ed console output).  This is similar to
-#' \code{\link{tools::Rdiff}} except the diff is computed directly on R objects
-#' instead of text files and does not rely on the system \code{diff} utility.
+#' Colorized diffs to quickly identify _and understand_ differences between R
+#' objects.  See `vignette("diffobj")` for details.
 #'
-#' @import ansistyle
+#' @import crayon
+#' @import methods
+#' @importFrom utils capture.output file_test packageVersion read.csv
+#' @importFrom stats ave frequency is.ts setNames
+#' @importFrom grDevices rgb
 #' @name diffobj-package
 #' @docType package
 
 NULL
 
-#' @rdname diffobj_s4method_doc
+# Because all these functions are so similar, we have constructed them with a
+# function factory.  This allows us to easily maintain consisten formals during
+# initial development process when they have not been set in stone yet.
 
-setMethod("any", "diffObjDiff",
-  function(x, ..., na.rm = FALSE) {
-    dots <- list(...)
-    if(length(dots))
-      stop("`any` method for `diffObjDiff` supports only one argument")
-    any(tarDiff(x), curDiff(x))
-} )
-#' @rdname diffobj_s4method_doc
-
-setMethod("any", "diffObjDiffDiffs",
-  function(x, ..., na.rm = FALSE) {
-    dots <- list(...)
-    if(length(dots))
-      stop("`any` method for `diffObjDiff` supports only one argument")
-    any(tarDiff(x), curDiff(x))
-} )
-#' @rdname diffobj_s4method_doc
-
-setMethod("as.character", "diffObjDiff",
-  function(x, context, width, ...) {
-    context <- check_context(context)
-    width <- check_width(width)
-    white.space <- x@diffs@white.space
-
-    len.max <- max(length(x@tar.capt), length(x@cur.capt))
-    if(!any(x)) {
-      msg <- "No visible differences between objects"
-      if(!x@diffs@white.space) {
-        xa <- char_diff(x@tar.capt, x@cur.capt, white.space=TRUE)
-        if(any(xa))
-          msg <- paste0(
-            "Only visible differences between objects are horizontal white ",
-            "spaces. You can re-run diff with `white.space=TRUE` to show them."
-          )
-      }
-      return(
-        ansi_style(
-          word_wrap(msg, width=width), "silver",
-          use.style=getOption("diffobj.use.ansi")
-    ) ) }
-    show.range <- diff_range(x, context)
-    show.range.tar <- intersect(show.range, seq_along(x@tar.capt))
-    show.range.cur <- intersect(show.range, seq_along(x@cur.capt))
-
-    # Detect whether we should attempt to deal with wrapping objects, if so
-    # overwrite cur/tar.body/rest variables with the color diffed wrap word
-    # diffs; note that if the tar/cur.capt.def is not NULL then the objects
-    # being compared must be atomic vectors
-
-    cur.body <- tar.body <- character(0L)
-    cur.rest <- show.range.cur
-    tar.rest <- show.range.tar
-
-    if(
-      identical(x@mode, "print") && identical(x@tar.capt, x@tar.capt.def) &&
-      identical(x@cur.capt, x@cur.capt.def)
-    ) {
-      # Separate out the stuff that can wrap (starts with index headers vs. not)
-
-      cur.head.raw <- find_brackets(x@cur.capt)
-      tar.head.raw <- find_brackets(x@tar.capt)
-
-      cur.head <- cur.head.raw[cur.head.raw %in% show.range]
-      tar.head <- tar.head.raw[tar.head.raw %in% show.range]
-
-      if(length(cur.head) && length(tar.head)) {
-        # note we modify `x` here so that subsequent steps can re-use `x` with
-        # modifications
-
-        pat <- sprintf("%s\\K.*", .brack.pat)
-        cur.body <- regexpr(pat, x@cur.capt[cur.head], perl=TRUE)
-        tar.body <- regexpr(pat, x@tar.capt[tar.head], perl=TRUE)
-
-        body.diff <- diff_word(
-          regmatches(x@tar.capt[tar.head], tar.body),
-          regmatches(x@cur.capt[cur.head], cur.body),
-          across.lines=TRUE, white.space=white.space,
-          match.quotes=is.chr.vec(x@tar.obj) && is.chr.vec(x@cur.obj)
-        )
-        regmatches(x@tar.capt[tar.head], tar.body) <- body.diff$target
-        regmatches(x@cur.capt[cur.head], cur.body) <- body.diff$current
-
-        # We also need to diff the row headers
-
-        cur.r.h <- regexpr(.brack.pat, x@cur.capt[cur.head], perl=TRUE)
-        tar.r.h <- regexpr(.brack.pat, x@tar.capt[tar.head], perl=TRUE)
-
-        cur.r.h.txt <- regmatches(x@cur.capt[cur.head], cur.r.h)
-        tar.r.h.txt <- regmatches(x@tar.capt[tar.head], tar.r.h)
-
-        x.r.h <- new(
-          "diffObjDiff", tar.capt=tar.r.h.txt, cur.capt=cur.r.h.txt,
-          diffs=char_diff(tar.r.h.txt, cur.r.h.txt, white.space=white.space)
-        )
-        r.h.diff <- diff_line(x.r.h)
-        regmatches(x@tar.capt[tar.head], tar.r.h) <- r.h.diff$target
-        regmatches(x@cur.capt[cur.head], cur.r.h) <- r.h.diff$current
-
-        # Everything else gets a normal line diff
-
-        cur.rest <- show.range.cur[!show.range.cur %in% cur.head]
-        tar.rest <- show.range.tar[!show.range.tar %in% tar.head]
-      }
-    }
-    # Do the line diffs
-
-    diff.fin <- diff_line(x, tar.rest, cur.rest)
-
-    # Add all the display stuff
-
-    c(
-      obj_screen_chr(
-        diff.fin$target,  x@tar.exp, diffs=tarDiff(x), range=show.range,
-        width=width, pad= "-  ", color="red"
-      ),
-      obj_screen_chr(
-        diff.fin$current,  x@cur.exp, diffs=curDiff(x), range=show.range,
-        width=width, pad= "+  ", color="green"
-    ) )
-} )
-setGeneric("tarDiff", function(x, ...) standardGeneric("tarDiff"))
-setMethod("tarDiff", "diffObjDiff", function(x, ...) tarDiff(x@diffs))
-setGeneric("curDiff", function(x, ...) standardGeneric("curDiff"))
-setMethod("curDiff", "diffObjDiff", function(x, ...) curDiff(x@diffs))
-setMethod("tarDiff", "diffObjDiffDiffs", function(x, ...) {
-  is.na(x@target) | !!x@target
-} )
-setMethod("curDiff", "diffObjDiffDiffs", function(x, ...) {
-  is.na(x@current) | !!x@current
-} )
-diff_rdiff <- function(target, current) {
-  stopifnot(is.character(target), is.character(current))
-  a <- tempfile("diffObjRdiffa")
-  writeLines(target, a)
-  b <- tempfile("diffObjRdiffb")
-  writeLines(current, b)
-  diff <- capture.output(system(paste("diff -bw", shQuote(a), shQuote(b))))
-}
-# If there is an error, we want to show as much of the objects as we can
-# centered on the error.  If we can show the entire objects without centering
-# then we do that.
-#
-# Returns the range of values that should be shown on both objects.  Note that
-# this can include out of range indices if one object is larger than the other
-
-diff_range <- function(x, context) {
-  stopifnot(is(x, "diffObjDiff"))
-  context <- check_context(context)
-  len.max <- max(length(x@tar.capt), length(x@cur.capt))
-  first.diff <- if(!any(x)) 1L else min(which(tarDiff(x)), which(curDiff(x)))
-
-  show.range <- if(len.max <= 2 * context[[1L]] + 1) {
-    1:len.max
-  } else {
-    rng.trim <- 2 * context[[2L]] + 1
-    if(first.diff <= rng.trim) {
-      # if can show first diff starting from beginning, do that
-      1:rng.trim
-    } else if (len.max - first.diff + 1 <= rng.trim) {
-      # if first diff is close to end, then show through end
-      tail(1:len.max, rng.trim)
-    } else {
-      # if first diff is too close to beginning or end, use extra context on
-      # other side of error
-
-      end.extra <- max(0, context[[2L]] - first.diff)
-      start.extra <- max(0, context[[2L]] - (len.max - first.diff))
-      seq(
-        max(first.diff - context[[2L]] - start.extra, 1),
-        min(first.diff + context[[2L]] + end.extra, len.max)
-      )
-    }
-  }
-  show.range
-}
-
-# Matches up mismatched lines and word diffs them line by line, lines that
-# cannot be matched up are fully diffed
-#
-# Designed to operate on subsets of an original diff, hence tar.range and
-# cur.range
-
-diff_line <- function(
-  x, tar.range=seq_along(tarDiff(x)), cur.range=seq_along(curDiff(x))
-) {
-  # Run line diffs on the remaining lines
-  # Match up the diffs; first step is to do word diffs on the matched
-  # mismatches. Start by getting the match ids that are not NA and
-  # greater than zero
-
-  white.space <- x@diffs@white.space
-  tar.diff <- x@diffs@target[tar.range]
-  cur.diff <- x@diffs@current[cur.range]
-
-  match.ids <- Filter(identity, tar.diff)
-
-  # Now find the indeces of these ids that are in display range
-
-  tar.ids.mismatch <- match(match.ids, x@diffs@target[tar.range])
-  cur.ids.mismatch <- match(match.ids, x@diffs@current[cur.range])
-  if( any(is.na(c(tar.ids.mismatch, cur.ids.mismatch))))
-    stop("Logic Error: mismatched mismatches; contact maintainer.")
-
-  # Add word colors
-
-  tar.txt <- x@tar.capt[tar.range]
-  cur.txt <- x@cur.capt[cur.range]
-
-  word.color <-
-    diff_word(
-      tar.txt[tar.ids.mismatch], cur.txt[cur.ids.mismatch],
-      white.space=white.space
-    )
-
-  tar.txt[tar.ids.mismatch] <- word.color$target
-  cur.txt[cur.ids.mismatch] <- word.color$current
-
-  # Color lines that were not word colored
-
-  tar.seq <- seq_along(tar.txt)
-  cur.seq <- seq_along(cur.txt)
-  tar.line.diff <- setdiff(which(tarDiff(x)[tar.range]), tar.ids.mismatch)
-  cur.line.diff <- setdiff(which(curDiff(x)[cur.range]), cur.ids.mismatch)
-
-  tar.txt[tar.line.diff] <- ansi_style(
-    tar.txt[tar.line.diff], style="red", use.style=getOption("diffobj.use.ansi")
-  )
-  cur.txt[cur.line.diff] <- ansi_style(
-    cur.txt[cur.line.diff], style="green",
-    use.style=getOption("diffobj.use.ansi")
-  )
-  # Re-sub back into the entire character vector
-
-  x@tar.capt[tar.range] <- tar.txt
-  x@cur.capt[cur.range] <- cur.txt
-
-  # return
-
-  list(target=x@tar.capt, current=x@cur.capt)
-}
-
-# groups characters based on whether they are different or not and colors
-# them; assumes that the chrs vector values are words that were previously
-# separated by spaces, and collapses the strings back with the spaces at the
-# end
-
-color_words <- function(chrs, diffs, color) {
-  stopifnot(length(chrs) == length(diffs))
-  if(length(chrs)) {
-    grps <- cumsum(c(0, abs(diff(diffs))))
-    chrs.grp <- tapply(chrs, grps, paste0, collapse=" ")
-    diff.grp <- tapply(diffs, grps, head, 1L)
-    paste0(
-      diff_color(chrs.grp, diff.grp, seq_along(chrs.grp), color), collapse=" "
-    )
-  } else paste0(chrs, collapse="")
-}
-# Try to use fancier word matching with vectors and matrices
-
-.brack.pat <- "^ *\\[\\d+\\]"
-
-# Determine if a string contains what appear to be standard index headers
-#
-# Returns index of elements in string that start with index headers.
-# Note that it is permissible to have ouput that doesn't match brackets
-# provided that it starts with brackets (e.g. attributes shown after break
-# pattern)
-
-find_brackets <- function(x) {
-  stopifnot(is.character(x), all(!is.na(x)))
-  matches <- regexpr(.brack.pat,  x)
-  vals <- regmatches(x, matches)
-  # the matching section must be uninterrupted starting from first line
-  # and must have consisten formatting
-
-  brackets <- which(cumsum(!nzchar(vals)) == 0L)
-  vals.in.brk <- vals[brackets]
-  nums.in.brk <- regmatches(vals.in.brk, regexpr("\\d+", vals.in.brk))
-
-  if(
-    length(brackets) && length(unique(nchar(vals.in.brk)) == 1L) &&
-    length(unique(diff(as.integer(nums.in.brk)))) <= 1L
+make_diff_fun <- function(capt_fun) {
+  # nocov start
+  function(
+    target, current,
+    mode=gdo("mode"),
+    context=gdo("context"),
+    format=gdo("format"),
+    brightness=gdo("brightness"),
+    color.mode=gdo("color.mode"),
+    word.diff=gdo("word.diff"),
+    pager=gdo("pager"),
+    guides=gdo("guides"),
+    trim=gdo("trim"),
+    rds=gdo("rds"),
+    unwrap.atomic=gdo("unwrap.atomic"),
+    max.diffs=gdo("max.diffs"),
+    disp.width=gdo("disp.width"),
+    ignore.white.space=gdo("ignore.white.space"),
+    convert.hz.white.space=gdo("convert.hz.white.space"),
+    tab.stops=gdo("tab.stops"),
+    line.limit=gdo("line.limit"),
+    hunk.limit=gdo("hunk.limit"),
+    align=gdo("align"),
+    style=gdo("style"),
+    palette.of.styles=gdo("palette"),
+    frame=par_frame(),
+    interactive=gdo("interactive"),
+    term.colors=gdo("term.colors"),
+    tar.banner=NULL,
+    cur.banner=NULL,
+    extra=list()
   ) {
-    brackets
-  } else integer(0L)
-}
-# Apply diff algorithm within lines
-#
-# For each line, splits into words, runs diffs, and colors them appropriately.
-# For `across.lines=TRUE`, merges all lines into one and does the word diff on
-# a single line to allow for the diff to look for matches across lines, though
-# the result is then unwrapped back to the original lines.
-#
-# `match.quotes` will make "words" starting and ending with quotes; it should
-# only be used if the objects are known to be attribute-less character vectors
-# that are printed (as that is the only way we can know for sure how to match
-# the quoted bits)
+  # nocov end
+    frame # force frame so that `par_frame` called in this context
+    call.dat <- extract_call(sys.calls(), frame)
 
-diff_word <- function(
-  target, current, across.lines=FALSE, white.space, match.quotes=FALSE
-) {
-  stopifnot(
-    is.character(target), is.character(current),
-    all(!is.na(target)), all(!is.na(current)),
-    is.TF(across.lines),
-    is.TF(match.quotes),
-    across.lines || length(target) == length(current)
-  )
-  # Compute the char by char diffs for each line
+    # Check args and evaluate all the auto-selection arguments
 
-  reg <- paste0(
-    if(match.quotes) "((?<= )|(?<=^))\"([^\"]|\\\")*?\"((?= )|(?=$))",
-    "|-?\\d+(\\.\\d+)?(e-?\\d{1,3})?",
-    "|\\w+|\\d+|[^[:alnum:]_[:blank:]]+"
-  )
-  tar.reg <- gregexpr(reg, target, perl=TRUE)
-  cur.reg <- gregexpr(reg, current, perl=TRUE)
-
-  tar.split <- regmatches(target, tar.reg)
-  cur.split <- regmatches(current, cur.reg)
-
-  # Collapse into one line if we want to do the diff across lines, but record
-  # item counts so we can reconstitute the lines at the end
-
-  if(across.lines) {
-    tar.lens <- vapply(tar.split, length, integer(1L))
-    cur.lens <- vapply(cur.split, length, integer(1L))
-
-    tar.split <- list(unlist(tar.split))
-    cur.split <- list(unlist(cur.split))
-  }
-  diffs <- mapply(
-    char_diff, tar.split, cur.split, MoreArgs=list(white.space=white.space),
-    SIMPLIFY=FALSE
-  )
-  # Color
-
-  tar.colored <- lapply(
-    seq_along(tar.split),
-    function(i)
-      diff_color(
-        tar.split[[i]], tarDiff(diffs[[i]]), seq_along(tar.split[[i]]), "red"
-      )
-  )
-  cur.colored <- lapply(
-    seq_along(cur.split),
-    function(i)
-      diff_color(
-        cur.split[[i]], curDiff(diffs[[i]]), seq_along(cur.split[[i]]), "green"
-      )
-  )
-  # Reconstitute lines if needed
-
-  if(across.lines) {
-    tar.colored <- split(
-      tar.colored[[1L]], rep(seq_along(tar.lens), tar.lens)
+    etc.proc <- check_args(
+      call=call.dat$call, tar.exp=call.dat$tar, cur.exp=call.dat$cur,
+      mode=mode, context=context, line.limit=line.limit, format=format,
+      brightness=brightness, color.mode=color.mode, pager=pager,
+      ignore.white.space=ignore.white.space, max.diffs=max.diffs,
+      align=align, disp.width=disp.width,
+      hunk.limit=hunk.limit, convert.hz.white.space=convert.hz.white.space,
+      tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
+      frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides,
+      rds=rds, trim=trim, word.diff=word.diff, unwrap.atomic=unwrap.atomic,
+      extra=extra, interactive=interactive, term.colors=term.colors
     )
-    cur.colored <- split(
-      cur.colored[[1L]], rep(seq_along(cur.lens), cur.lens)
-    )
+    # If in rds mode, try to see if either target or current reference an RDS
+
+    if(rds) {
+      target <- get_rds(target)
+      current <- get_rds(current)
+    }
+    # Force crayon to whatever ansi status we chose; note we must do this after
+    # touching vars in case someone passes `options(crayon.enabled=...)` as one
+    # of the arguments
+
+    old.crayon.opt <-
+      options(crayon.enabled=is(etc.proc@style, "StyleAnsi"))
+    on.exit(options(old.crayon.opt), add=TRUE)
+    err <- make_err_fun(sys.call())
+
+    # Compute gutter values so that we know correct widths to use for capture,
+    # etc. If not a base text type style, assume gutter and column padding are
+    # zero even though that may not always be correct
+
+    nc_fun <- if(is(etc.proc@style, "StyleAnsi")) crayon_nchar else nchar
+    etc.proc@gutter <- gutter_dat(etc.proc)
+
+    col.pad.width <- gutt.width <- 0L
+    if(is(etc.proc@style, "StyleRaw")) {
+      col.pad.width <- nc_fun(etc.proc@style@text@pad.col)
+      gutt.width <- etc.proc@gutter@width
+    }
+    half.width <- as.integer((etc.proc@disp.width - col.pad.width) / 2)
+    etc.proc@line.width <-
+      max(etc.proc@disp.width, .min.width + gutt.width)
+    etc.proc@text.width <- etc.proc@line.width - gutt.width
+    etc.proc@line.width.half <- max(half.width, .min.width + gutt.width)
+    etc.proc@text.width.half <- etc.proc@line.width.half - gutt.width
+
+    # If in side by side mode already then we know we want half-width, and if
+    # width is less than 80 we know we want unitfied
+
+    if(etc.proc@mode == "auto" && etc.proc@disp.width < 80L)
+      etc.proc@mode <- "unified"
+    if(etc.proc@mode == "sidebyside") etc.proc <- sideBySide(etc.proc)
+
+    # Capture and diff
+
+    diff <- capt_fun(target, current, etc=etc.proc, err=err, extra)
+    diff
   }
-  # Merge back into original
-
-  regmatches(target, tar.reg) <- tar.colored
-  regmatches(current, cur.reg) <- cur.colored
-
-  list(target=target, current=current)
 }
-# Apply line colors
-
-diff_color <- function(txt, diffs, range, color) {
-  stopifnot(
-    is.character(txt), is.logical(diffs), !any(is.na(diffs)),
-    length(txt) == length(diffs), is.integer(range), !any(is.na(range)),
-    all(range > 0 & range <= length(txt)), is.chr1(color)
-  )
-  to.color <- diffs & seq_along(diffs) %in% range
-  txt[to.color] <- ansi_style(
-    txt[to.color], color, use.style=getOption("diffobj.use.ansi")
-  )
-  txt
-}
-#' Show Diffs Between the Screen Display Versions of Two Objects
+#' Diff \code{print}ed Objects
 #'
-#' Designed to highlight at a glance the \bold{display} differences between
-#' two objects.  Lack of visual differences is not guarantee that the objects
-#' are the same.  These functions are designed to help you quickly understand
-#' the nature of differences between objects when they are known to be different
-#' (e.g. not \code{identical} or \code{all.equal}).  The diff algorithms are far
-#' from perfect and in some cases will likely make seemingly odd choices on what
-#' to highlight as being different.
+#' Runs the diff between the \code{print} or \code{show} output produced by
+#' \code{target} and \code{current}.
 #'
-#' These functions focus on the first display difference between two objects.
-#' If you want to see the full object diff try \code{\link{Rdiff_obj}}.
+#' @description This documentation page is intended as a reference document
+#' for all the \code{diff*} methods.  For a high level introduction see
+#' \code{vignette("diffobj")} and the examples.  Almost all aspects of how the
+#' diffs are computed and displayed are controllable through the \code{diff*}
+#' methods parameters.  This results in a lengthy parameter list, but in
+#' practice, you should rarely need to adjust anything past the
+#' \code{color.mode} parameter.  Default values are specified
+#' as options so that users may configure diffs in a persistent manner.
+#' \code{\link{gdo}} is a shorthand function to access \code{diffobj} options.
 #'
-#' \itemize{
-#'   \item \code{diff_print} shows the differences in the \code{print} or
-#'     \code{show} screen output of the two objects
-#'   \item \code{diff_str} shows the differences in the \code{str} screen output
-#'     of the two objects; will show as many recursive levels as possible so
-#'     long as context lines are not exceeded, and if they are, as few as
-#'     possible to show at least one error (see \code{max.level})
-#'   \item \code{diff_obj} picks between \code{diff_print} and \code{diff_str}
-#'     depending on which one it thinks will provide the most useful diff
-#' }
-#' @note: differences shown or reported by these functions may not be the
-#'   totality of the differences between objects since display methods may not
-#'   display all differences.  This is particularly true when using \code{str}
-#'   for comparisons with \code{max.level} since differences inside unexpanded
-#'   recursive levels will not be shown at all.
+#' This and other \code{diff*} functions are S4 generics that dispatch on the
+#' \code{target} and \code{current} parameters.  Methods with signature
+#' \code{c("ANY", "ANY")} are defined and act as the default methods.  You can
+#' use this to set up methods to pre-process or set specific parameters for
+#' selected clases that can then \code{callNextMethod} for the actual diff.
+#' Note that while the generics include \code{...} as an argument, none of the
+#' methods do.
+#'
 #' @export
 #' @param target the reference object
 #' @param current the object being compared to \code{target}
-#' @param context 2 length integer vector representing how many lines of context
-#'   are shown on either side of differences.  The first value is the maximum
-#'   before we start trimming output.  The second value is the maximum to be
-#'   shown before we start trimming.  We will always attempt to show as much as
-#'   \code{2 * context + 1} lines of output so context may not be centered if
-#'   objects display as less than \code{2 * context + 1} lines.
-#' @param white.space TRUE or FALSE, whether to consider differences in
+#' @param mode character(1L), one of:
+#'   \itemize{
+#'     \item \dQuote{unified}: diff mode used by \code{git diff}
+#'     \item \dQuote{sidebyside}: line up the differences side by side
+#'     \item \dQuote{context}: show the target and current hunks in their
+#'       entirety; this mode takes up a lot of screen space but makes it easier
+#'       to see what the objects actually look like
+#'     \item \dQuote{auto}: default mode; pick one of the above, will favor
+#'       \dQuote{sidebyside} unless \code{getOption("width")} is less than 80,
+#'       or in \code{diffPrint} and objects are dimensioned and do not fit side
+#'       by side, or in \code{diffChr}, \code{diffDeparse}, \code{diffFile} and
+#'       output does not fit in side by side without wrapping
+#'   }
+#' @param context integer(1L) how many lines of context are shown on either side
+#'   of differences (defaults to 2).  Set to \code{-1L} to allow as many as
+#'   there are.  Set to \dQuote{auto}  to display as many as 10 lines or as few
+#'   as 1 depending on whether total screen lines fit within the number of lines
+#'   specified in \code{line.limit}.  Alternatively pass the return value of
+#'   \code{\link{auto_context}} to fine tune the parameters of the auto context
+#'   calculation.
+#' @param format character(1L), controls the diff output format, one of:
+#'   \itemize{
+#'     \item \dQuote{auto}: to select output format based on terminal
+#'       capabilities; will attempt to use one of the ANSI formats if they
+#'       appear to be supported, and if not will attempt to use HTML and
+#'       browser output if in interactive mode.
+#'     \item \dQuote{raw}: plain text
+#'     \item \dQuote{ansi8}: color and format diffs using basic ANSI escape
+#'       sequences
+#'     \item \dQuote{ansi256}: like \dQuote{ansi8}, except using the full range
+#'       of ANSI formatting options
+#'     \item \dQuote{html}: color and format using HTML markup
+#'   }
+#'   Defaults to \dQuote{auto}.  See \code{\link{PaletteOfStyles}} for details
+#'   on customization, \code{\link{style}} for full control of output format.
+#' @param brightness character, one of \dQuote{light}, \dQuote{dark},
+#'   \dQuote{neutral}, useful for adjusting color scheme to light or dark
+#'   terminals.  \dQuote{neutral} by default.  See \code{\link{PaletteOfStyles}}
+#'   for details and limitations.  Advanced: you may specify brightness as a
+#'   function of \code{format}.  For example, if you typically wish to use a
+#'   \dQuote{dark} color scheme, except for when in \dQuote{html} format when
+#'   you prefer the \dQuote{light} scheme, you may use
+#'   \code{c("dark", html="light")} as the value for this parameter.  This is
+#'   particularly useful if \code{format} is set to \dQuote{auto} or if you
+#'   want to specify a default value for this parameter via options.  Any names
+#'   you use should correspond to a \code{format}.  You must have one unnamed
+#'   value which will be used as the default for all \code{format}s that are
+#'   not explicitly specified.
+#' @param color.mode character, one of \dQuote{rgb} or \dQuote{yb}.
+#'   Defaults to \dQuote{yb}.  \dQuote{yb} stands for \dQuote{Yellow-Blue} for
+#'   color schemes that rely primarily on those colors to style diffs.
+#'   Those colors can be easily distinguished by individuals with
+#'   limited red-green color sensitivity.  See \code{\link{PaletteOfStyles}} for
+#'   details and limitations.  Also offers the same advanced usage as the
+#'   \code{brightness} paramter.
+#' @param word.diff TRUE (default) or FALSE, whether to run a secondary word
+#'   diff on the in-hunk diferences
+#' @param pager character(1L), one of \dQuote{auto}, \dQuote{on},
+#'   \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
+#'   pager is used to display the diff output.  If \dQuote{on} will use the
+#'   pager associated with the \code{\link{Style}} specified via the
+#'   \code{\link{style}} parameters.  if \dQuote{auto} (default) will behave
+#'   like \dQuote{on} but only if in interactive mode.  If the pager is
+#'   enabled, default behavior is to pipe output to \code{\link{file.show}} if
+#'   output is taller than the estimated terminal height and your terminal
+#'   supports ANSI escape sequences.  If not, the default is to attempt to pipe
+#'   output to a web browser with \code{\link{browseURL}}.  See
+#'   \code{\link{Pager}}, \code{\link{Style}}, and \code{\link{PaletteOfStyles}}
+#'   for more details.
+#' @param guides TRUE (default), FALSE, or a function that accepts at least two
+#'   arguments and requires no more than two arguments.  Guides
+#'   are additional context lines that are not strictly part of a hunk, but
+#'   provide important contextual data (e.g. column headers).  If TRUE, the
+#'   context lines are shown in addition to the normal diff output, typically
+#'   in a different color to inidicate they are not part of the hunk.  If a
+#'   function, the function should accept as the first argument the object
+#'   being diffed, and the second the character representation of the object.
+#'   The function should return the indices of the elements of the second
+#'   character representation that should be treated as guides.  See
+#'   \code{\link{guides}} for more details.
+#' @param trim TRUE (default), FALSE, or a function that accepts at least two
+#'   arguments and requires no more than two arguments.  Function should compute
+#'   for each line in captured output what portion of those lines should be
+#'   diffed.  By default, this is used to remove row meta data differences
+#'   (e.g. \code{[1,]}) so they alone do not show up as differences in the
+#'   diff.  See \code{\link{trim}} for more details.
+#' @param rds TRUE (default) or FALSE, if TRUE will check whether
+#'   \code{target} and/or \code{current} point to a file that can be read with
+#'   \code{\link{readRDS}} and if so, loads the R object contained in the file
+#'   and carries out the diff on the object instead of the original argument.
+#'   Currently there is no mechanism for specifying additional arguments to
+#'   \code{readRDS}
+#' @param unwrap.atomic TRUE (default) or FALSE.  Only relevant for
+#'   \code{diffPrint}, if TRUE, and \code{word.diff} is also TRUE, and both
+#'   \code{target} and \code{current} are atomic, the vectors are unwrapped and
+#'   diffed element by element, and then re-wrapped.  Since \code{diffPrint} is
+#'   fundamentally a line diff, the re-wrapped lines are lined up in a manner
+#'   that is as consistent as possible with the unwrapped diff.  Lines that
+#'   contain the location of the word differences will be paired up.  Since the
+#'   vectors may well be wrapped with different periodicities this will result
+#'   in lines that are paired up that look like they should not be paired up,
+#'   though the locations of the differences should be.
+#' @param line.limit integer(2L) or integer(1L), if length 1 how many lines of
+#'   output to show, where \code{-1} means no limit.  If length 2, the first
+#'   value indicates the threshold of screen lines to begin truncating output,
+#'   and the second the number of lines to truncate to, which should be fewer
+#'   than the threshold.  Note that this parameter is implemented on a
+#'   best-efforts basis and should not be relied on to produce the exact
+#'   number of lines requested.  If you want a specific number of lines use
+#'   \code{[} or \code{head}/\code{tail}.  One advantage of \code{line.limit}
+#'   over these other options is that you can combine it with
+#'   \code{context="auto"} and auto \code{max.level} selection (the latter for
+#'   \code{diffStr}), which allows the diff to dynamically adjust to make best
+#'   use of the available display lines.  \code{[}, \code{head}, and \code{tail}
+#'   just subset the text of the output.
+#' @param hunk.limit integer(2L) or integer (1L), how many diff hunks to show.
+#'   Behaves similarly to \code{line.limit}.  How many hunks are in a
+#'   particular diff is a function of how many differences, and also how much
+#'   \code{context} is used since context can cause two hunks to bleed into
+#'   each other and become one.
+#' @param max.diffs integer(1L), number of \emph{differences} after which we
+#'   abandon the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
+#'   \code{-1L} to always stick to the original algorithm (defaults to 10000L).
+#' @param disp.width integer(1L) number of display columns to take up; note that
+#'   in \dQuote{sidebyside} \code{mode} the effective display width is half this
+#'   number (set to 0L to use default widths which are \code{getOption("width")}
+#'   for normal styles and \code{120L} for HTML styles.
+#' @param ignore.white.space TRUE or FALSE, whether to consider differences in
 #'   horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
 #'   FALSE)
-#' @param max.level integer(1L) up to how many levels to try running \code{str};
-#'   \code{str} is run repeatedly starting with \code{max.level=1} and then
-#'   increasing \code{max.level} until we fill the context or a difference
-#'   appears or the \code{max.level} specified here is reached.  If the value is
-#'   reached then will let \code{str} run with \code{max.level} unspecified.
-#'   This is designed to produce the most compact screen output possible that
-#'   shows the differences between objects, though obviously it comes at a
-#'   performance cost; set to 0 to disable
-#' @return character, invisibly, the text representation of the diff
-
-diff_obj <- function(target, current, context=NULL, white.space=FALSE) {
-  context <- check_context(context)
-  frame <- parent.frame()
-  width <- getOption("width")
-
-  diff_obj_internal(
-    target, current, tar.exp=substitute(target), cur.exp=substitute(current),
-    context=context, frame=frame, width=width, white.space=white.space
-  )
-}
-#' @rdname diff_obj
+#' @param convert.hz.white.space TRUE or FALSE, whether modify input strings
+#'   that contain tabs and carriage returns in such a way that they display as
+#'   they would \bold{with} those characters, but without using those
+#'   characters (defaults to TRUE).  The conversion assumes that tab stops are
+#'   spaced evenly eight characters apart on the terminal.  If this is not the
+#'   case you may specify the tab stops explicitly with \code{tab.stops}.
+#' @param tab.stops integer, what tab stops to use when converting hard tabs to
+#'   spaces.  If not integer will be coerced to integer (defaults to 8L).  You
+#'   may specify more than one tab stop.  If display width exceeds that
+#'   addressable by your tab stops the last tab stop will be repeated.
+#' @param align numeric(1L) between 0 and 1, proportion of
+#'   words in a line of \code{target} that must be matched in a line of
+#'   \code{current} in the same hunk for those lines to be paired up when
+#'   displayed (defaults to 0.25), or an \code{\link{AlignThreshold}} object.
+#'   Set to \code{1} to turn off alignment which will cause all lines in a hunk
+#'   from \code{target} to show up first, followed by all lines from
+#'   \code{current}.
+#' @param style \dQuote{auto}, or a \code{\link{Style}} object.
+#'   \dQuote{auto} by default.  If a \code{Style} object, will override the
+#'   the \code{format}, \code{brightness}, and \code{color.mode} parameters.
+#'   The \code{Style} object provides full control of diff output styling.
+#'   See \code{\link{Style}} for more details.
+#' @param palette.of.styles \code{\link{PaletteOfStyles}} object; advanced usage,
+#'   contains all the \code{\link{Style}} objects that are selected by
+#'   specifying the \code{format}, \code{brightness}, and \code{color.mode}
+#'   parameters.  See \code{\link{PaletteOfStyles}} for more details.
+#' @param frame an environment to use as the evaluation frame for the
+#'   \code{print/show/str}, calls and for \code{diffObj}, the evaluation frame
+#'   for the \code{diffPrint}/\code{diffStr} calls.  Defaults to the return
+#'   value of \code{\link{par_frame}}.
+#' @param interactive TRUE or FALSE whether the function is being run in
+#'   interactive mode, defaults to the return value of
+#'   \code{\link{interactive}}.  If in interactive mode, pager will be used if
+#'   \code{pager} is \dQuote{auto}, and if ANSI styles are not supported and
+#'   \code{style} is \dQuote{auto}, output will be send to browser as HTML.
+#' @param term.colors integer(1L) how many ANSI colors are supported by the
+#'   terminal.  This variable is provided for when
+#'   \code{\link[=num_colors]{crayon::num_colors}} does not properly detect how
+#'   many ANSI colors are supported by your terminal. Defaults to return value
+#'   of \code{\link[=num_colors]{crayon::num_colors}} and should be 8 or 256 to
+#'   allow ANSI colors, or any other number to disallow them.  This only
+#'   impacts output format selection when \code{style} and \code{format} are
+#'   both set to \dQuote{auto}.
+#' @param tar.banner character(1L) or NULL, text to display ahead of the diff
+#'   section representing the target output.  If NULL will be
+#'   inferred from \code{target} and \code{current} expressions.
+#' @param cur.banner character(1L) like \code{tar.banner}, but for
+#'   \code{current}
+#' @param extra list additional arguments to pass on to the functions used to
+#'   create text representation of the objects to diff (e.g. \code{print},
+#'   \code{str}, etc.)
+#' @param ... unused, for compatibility of generics with methods
+#' @seealso \code{\link{diffObj}}, \code{\link{diffStr}},
+#'   \code{\link{diffChr}} to compare character vectors directly,
+#'   \code{\link{diffDeparse}} to compare deparsed objects
+#' @return a \code{Diff} object; this object has a \code{show}
+#'   method that will display the diff to screen or pager, as well as
+#'   \code{summary}, \code{any}, and \code{as.character} methods.
+#'   If you store the return value instead of displaying it to screen, and
+#'   display it later, it is possible for the display to be thrown off if
+#'   there are environment changes (e.g. display width changes) in between
+#'   the time you compute the diff and the time you display it.
+#' @rdname diffPrint
+#' @name diffPrint
 #' @export
+#' @examples
+#' diffPrint(letters, letters[-5])
 
-diff_print <- function(target, current, context=NULL, white.space=FALSE) {
-  context <- check_context(context)
-  width <- getOption("width")
-  frame <- parent.frame()
-  res <- as.character(
-    diff_print_internal(
-      target, current, tar.exp=substitute(target), frame=frame,
-      cur.exp=substitute(current), context=context, width=width,
-      white.space=white.space
-    ),
-    context=context,
-    width=width
-  )
-  cat(res, sep="\n")
-  invisible(res)
-}
-#' @rdname diff_obj
-#' @export
+setGeneric(
+  "diffPrint", function(target, current, ...) standardGeneric("diffPrint")
+)
+#' @rdname diffPrint
 
-diff_str <- function(
-  target, current, context=NULL, white.space=FALSE, max.level=10
-) {
-  width <- getOption("width")
-  frame <- parent.frame()
-  res <- as.character(
-    diff_str_internal(
-      target, current, tar.exp=substitute(target),
-      cur.exp=substitute(current), context=context, width=width,
-      frame=frame, max.lines=NULL, max.level=max.level,
-      white.space=white.space
-    ),
-    context=context,
-    width=width
-  )
-  cat(res, sep="\n")
-  invisible(res)
-}
-# Implements the diff_* functions
-#
-# @keywords internal
-# @inheritParams diff_obj
-# @param tar.exp the substituted target expression
-# @param cur.exp the substituted current expression
-# @param width at what width to wrap output
-# @param file whether to show to stdout or stderr
-# @param frame what frame to capture in, relevant mostly if looking for a print
-#   method
+setMethod("diffPrint", signature=c("ANY", "ANY"), make_diff_fun(capt_print))
 
-diff_print_internal <- function(
-  target, current, tar.exp, cur.exp, context, width, frame, white.space
-) {
-  # capture normal prints, along with default prints to make sure that if we
-  # do try to wrap an atomic vector print it is very likely to be in a format
-  # we are familiar with and not affected by a non-default print method
-  if(!is.TF(white.space))
-    stop("Argument `white.space` must be TRUE or FALSE")
-
-  both.at <- is.atomic(current) && is.atomic(target)
-  cur.capt <- obj_capt(current, width - 3L, frame)
-  cur.capt.def <- if(both.at) obj_capt(current, width - 3L, frame, default=TRUE)
-  tar.capt <- obj_capt(target, width - 3L, frame)
-  tar.capt.def <- if(both.at) obj_capt(target, width - 3L, frame, default=TRUE)
-
-  # Run basic diff
-
-  diffs <- char_diff(tar.capt, cur.capt, white.space=white.space)
-
-  new(
-    "diffObjDiff", tar.obj=target, cur.obj=target, tar.capt=tar.capt,
-    cur.capt=cur.capt, tar.exp=tar.exp, cur.exp=cur.exp, diffs=diffs,
-    mode="print", tar.capt.def=tar.capt.def, cur.capt.def=cur.capt.def
-  )
-}
-diff_str_internal <- function(
-  target, current, tar.exp, cur.exp, context, width, frame, max.lines,
-  max.level=10, white.space
-) {
-  context <- check_context(context)
-  if(is.null(max.lines)) {
-    max.lines <- context[[1L]] * 2L + 1L
-  } else if(!is.int.1L(max.lines) || !max.lines)
-    stop("Argument `max.lines` must be integer(1L) and not zero.")
-  if(max.lines < 0) max.lines <- Inf
-  if(!is.int.1L(max.level))
-    stop("Argument `max.level` must be integer(1L) and GTE zero.")
-  if(max.level > 100)
-    stop("Argument `max.level` cannot be greater than 100")
-  if(!is.TF(white.space))
-    stop("Argument `white.space` must be TRUE or FALSE")
-
-  obj.add.capt.str <- obj.rem.capt.str <- obj.add.capt.str.prev <-
-    obj.rem.capt.str.prev <- character()
-
-  prev.lvl <- 0L
-  lvl <- 1L
-  repeat{
-    if(lvl > 100) lvl <- NA # safety valve
-    obj.add.capt.str <-
-      obj_capt(current, width - 3L, frame, mode="str", max.level=lvl)
-    obj.rem.capt.str <-
-      obj_capt(target, width - 3L, frame, mode="str", max.level=lvl)
-    str.len.min <- min(length(obj.add.capt.str), length(obj.rem.capt.str))
-    str.len.max <- max(length(obj.add.capt.str), length(obj.rem.capt.str))
-
-    # Overshot full displayable size; check to see if previous iteration had
-    # differences
-
-    if(str.len.max > max.lines && lvl > 1L && any(diffs.str)) {
-      obj.add.capt.str <- obj.add.capt.str.prev
-      obj.rem.capt.str <- obj.rem.capt.str.prev
-      break
-    }
-    # Other break conditions
-
-    if(is.na(lvl) || lvl >= max.level) break
-    if(
-      identical(obj.add.capt.str.prev, obj.add.capt.str) &&
-      identical(obj.rem.capt.str.prev, obj.rem.capt.str)
-    ) {
-      lvl <- prev.lvl
-      break
-    }
-    # Run differences and iterate
-
-    diffs.str <- char_diff(obj.rem.capt.str, obj.add.capt.str, white.space)
-    obj.add.capt.str.prev <- obj.add.capt.str
-    obj.rem.capt.str.prev <- obj.rem.capt.str
-    prev.lvl <- lvl
-    lvl <- lvl + 1
-  }
-  diffs <- char_diff(obj.rem.capt.str, obj.add.capt.str, white.space)
-  tar.exp <- call("str", tar.exp, max.level=lvl)
-  cur.exp <- call("str", cur.exp, max.level=lvl)
-  new(
-    "diffObjDiff", tar.obj=target, cur.obj=target, tar.capt=obj.rem.capt.str,
-    cur.capt=obj.add.capt.str, tar.exp=tar.exp, cur.exp=cur.exp, diffs=diffs,
-    mode="str"
-  )
-}
-# Unlike diff_print_internal and diff_str_internal, this one prints to screen
-# and invisibly returns the result
-
-diff_obj_internal <- function(
-  target, current, tar.exp=substitute(target),
-  cur.exp=substitute(current), context=NULL, width=NULL,
-  frame=parent.frame(), max.level=10L, file=stdout(), white.space
-) {
-  context <- check_context(context)
-  width <- check_width(width)
-  if(!isTRUE(file.err <- is.open_con(file, writeable=TRUE)))
-    stop("Argument `file` is not valid because: ", file.err)
-  if(!is.environment(frame)) stop("Argument `frame` must be an environment.")
-
-  res.print <- diff_print_internal(
-    target, current, tar.exp=tar.exp, cur.exp=cur.exp, context=context,
-    width=width, frame=frame, white.space=white.space
-  )
-  len.print <- max(length(res.print@tar.capt), length(res.print@cur.capt))
-
-  res.str <- diff_str_internal(
-    target, current, tar.exp=tar.exp,
-    cur.exp=cur.exp, context=context, width=width,
-    frame=frame, max.lines=len.print, white.space=white.space
-  )
-  len.max <- context[[1L]] * 2 + 1
-  len.str <- max(length(res.str@tar.capt), length(res.str@cur.capt))
-
-  # Choose which display to use; only favor res.str if it really is substantially
-  # more compact and it does show an error and not possible to show full print
-  # diff in context
-
-  res <- if(
-    (len.print <= len.max && any(res.print)) ||
-    !any(res.str) ||
-    (len.print < len.str * 3 && len.str > len.max)
-  )
-    res.print else res.str
-
-  res.chr <- as.character(res, context, width=width)
-  cat(res.chr, file=file, sep="\n")
-  invisible(res.chr)
-}
-
-# Function to check arguments that can also be specified as options when set
-# to NULL
-
-check_context <- function(context) {
-  err.msg <- paste0(
-    "must be integer(2L), positive, non-NA, with first value greater than ",
-    "second"
-  )
-  if(is.null(context)) {
-    context <- getOption("diffobj.test.context")
-    if(!is.context.out.vec(context))
-      stop("`getOption(\"diffobj.test.context\")`", err.msg)
-  }
-  if(!is.context.out.vec(context)) stop("Argument `context` ", err.msg)
-  as.integer(context)
-}
-check_width <- function(width) {
-  err.msg <- "must be integer(1L) and strictly positive"
-  if(is.null(width)) {
-    width <- getOption("width")
-    if(!is.int.pos.1L(width))
-      stop("`getOption(\"width\")` ", err.msg)
-  }
-  if(!is.int.pos.1L(width)) stop("Argument `width` ", err.msg)
-  width
-}
-#' a \code{tools::Rdiff} Between R Objects
+#' Diff Object Structures
 #'
-#' Just a wrapper that saves the \code{print} / \code{show} representation of an
-#' object to a temp file and then runs \code{tools::Rdiff} on them.  For
-#' each of \code{from}, \code{to}, will check if they are 1 length character
-#' vectors referencing an RDS file, and will use the contents of that RDS file
-#' as the object to compare.
+#' Compares the \code{str} output of \code{target} and \code{current}.  If
+#' the \code{max.level} parameter to \code{str} is left unspecified, will
+#' attempt to find the largest \code{max.level} that fits within
+#' \code{line.limit} and shows at least one difference.
+#'
+#' Due to the seemingly inconsistent nature of \code{max.level} when used with
+#' objects with nested attributes, and also due to the relative slowness of
+#' \code{str}, this function simulates the effect of \code{max.level} by hiding
+#' nested lines instead of repeatedly calling \code{str} with varying values of
+#' \code{max.level}.
+#'
+#' @inheritParams diffPrint
+#' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
+#'   \code{\link{diffObj}}, \code{\link{diffStr}},
+#'   \code{\link{diffChr}} to compare character vectors directly,
+#'   \code{\link{diffDeparse}} to compare deparsed objects
+#' @return a \code{Diff} object; see \code{\link{diffPrint}}.
+#' @rdname diffStr
+#' @export
+
+setGeneric("diffStr", function(target, current, ...) standardGeneric("diffStr"))
+
+#' @rdname diffStr
+
+setMethod("diffStr", signature=c("ANY", "ANY"), make_diff_fun(capt_str))
+
+#' Diff Character Vectors Element By Element
+#'
+#' Will perform the diff on the actual string values of the character vectors
+#' instead of capturing the printed screen output. Each vector element is
+#' treated as a line of text.
+#'
+#' @inheritParams diffPrint
+#' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
+#'   \code{\link{diffObj}}, \code{\link{diffStr}},
+#'   \code{\link{diffDeparse}} to compare deparsed objects
+#' @return a \code{Diff} object; see \code{\link{diffPrint}}.
+#' @export
+#' @rdname diffChr
+#' @examples
+#' diffChr(LETTERS[1:5], LETTERS[2:6])
+
+setGeneric("diffChr", function(target, current, ...) standardGeneric("diffChr"))
+
+#' @rdname diffChr
+
+setMethod("diffChr", signature=c("ANY", "ANY"), make_diff_fun(capt_chr))
+
+#' Diff Deparsed Objects
+#'
+#' Perform diff on the character vectors produced by \code{\link{deparse}}ing
+#' the objects.  Each element counts as a line.  If an element contains newlines
+#' it will be split into elements new lines by the newlines.
 #'
 #' @export
-#' @seealso \code{tools::Rdiff}
-#' @param from an R object (see details)
-#' @param to another R object (see details)
-#' @param ... passed on to \code{Rdiff}
-#' @return whatever \code{Rdiff} returns
+#' @inheritParams diffPrint
+#' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
+#'   \code{\link{diffObj}}, \code{\link{diffStr}},
+#'   \code{\link{diffChr}} to compare character vectors directly
+#' @return a \code{Diff} object; see \code{\link{diffPrint}}.
+#' @export
+#' @rdname diffDeparse
+#' @examples
+#' diffDeparse(matrix(1:9, 3), 1:9)
 
-Rdiff_obj <- function(from, to, ...) {
-  dummy.env <- new.env()  # used b/c unique object
-  files <- try(
-    vapply(
-      list(from, to),
-      function(x) {
-        if(
-          is.character(x) && length(x) == 1L && !is.na(x) && file_test("-f", x)
-        ) {
-          rdstry <- tryCatch(readRDS(x), error=function(x) dummy.env)
-          if(!identical(rdstry, dummy.env)) x <- rdstry
-        }
-        f <- tempfile()
-        capture.output(if(isS4(x)) show(x) else print(x), file=f)
-        f
-      },
-      character(1L)
-  ) )
-  if(inherits(files, "try-error"))
-    stop("Unable to store text representation of objects")
-  res <- tools::Rdiff(files[[1L]], files[[2L]], ...)
-  unlink(files)
-  invisible(res)
-}
-# Capture output of print/show/str; unfortuantely doesn't have superb handling
-# of errors during print/show call, though hopefully these are rare
+setGeneric(
+  "diffDeparse", function(target, current, ...) standardGeneric("diffDeparse")
+)
+#' @rdname diffDeparse
 
-obj_capt <- function(
-  obj, width=getOption("width"), frame=parent.frame(), mode="print",
-  max.level=0L, default=FALSE
-) {
-  if(!is.numeric(width) || length(width) != 1L || is.na(width))
-    stop("Argument `width` must be a one long numeric/integer.")
-  if(
-    !is.character(mode) || length(mode) != 1L || is.na(mode) ||
-    !mode %in% c("print", "str")
+setMethod("diffDeparse", signature=c("ANY", "ANY"), make_diff_fun(capt_deparse))
+
+#' Diff Files
+#'
+#' Reads text files with \code{\link{readLines}} and performs a diff on the
+#' resulting character vectors.
+#'
+#' @export
+#' @param target character(1L) or file connection with read capability; if
+#'   character should point to a text file
+#' @param current like \code{target}
+#' @inheritParams diffPrint
+#' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
+#'   \code{\link{diffObj}}, \code{\link{diffStr}},
+#'   \code{\link{diffChr}} to compare character vectors directly
+#' @return a \code{Diff} object; see \code{\link{diffPrint}}.
+#' @export
+#' @rdname diffFile
+#' @examples
+#' url.base <- "https://raw.githubusercontent.com/wch/r-source"
+#' f1 <- file.path(url.base, "29f013d1570e1df5dc047fb7ee304ff57c99ea68/README")
+#' f2 <- file.path(url.base, "daf0b5f6c728bd3dbcd0a3c976a7be9beee731d9/README")
+#' diffFile(f1, f2)
+
+setGeneric(
+  "diffFile", function(target, current, ...) standardGeneric("diffFile")
+)
+#' @rdname diffFile
+
+setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
+
+#' Diff CSV Files
+#'
+#' Reads CSV files with \code{\link{read.csv}} and passes the resulting data
+#' frames onto \code{\link{diffPrint}}.  \code{extra} values are passed as
+#' arguments are passed to both \code{read.csv} and \code{print}.  To the
+#' extent you wish to use different \code{extra} arguments for each of those
+#' functions you will need to \code{read.csv} the files and pass them to
+#' \code{diffPrint} yourself.
+#'
+#' @export
+#' @param target character(1L) or file connection with read capability;
+#'   if character should point to a CSV file
+#' @param current like \code{target}
+#' @inheritParams diffPrint
+#' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
+#'   \code{\link{diffObj}}, \code{\link{diffStr}},
+#'   \code{\link{diffChr}} to compare character vectors directly
+#' @return a \code{Diff} object; see \code{\link{diffPrint}}.
+#' @export
+#' @rdname diffCsv
+#' @examples
+#' iris.2 <- iris
+#' iris.2$Sepal.Length[5] <- 99
+#' f1 <- tempfile()
+#' f2 <- tempfile()
+#' write.csv(iris, f1, row.names=FALSE)
+#' write.csv(iris.2, f2, row.names=FALSE)
+#' diffCsv(f1, f2)
+#' unlink(c(f1, f2))
+
+setGeneric(
+  "diffCsv", function(target, current, ...) standardGeneric("diffCsv")
+)
+#' @rdname diffCsv
+
+setMethod("diffCsv", signature=c("ANY", "ANY"), make_diff_fun(capt_csv))
+
+#' Diff Objects
+#'
+#' Compare either the \code{print}ed or \code{str} screen representation of
+#' R objects depending on which is estimated to produce the most useful
+#' diff.  The selection process tries to minimize screen lines while maximizing
+#' differences shown subject to display constraints.  The decision algorithm is
+#' likely to evolve over time, so do not rely on this function making
+#' a particular selection under specific circumstances.  Instead, use
+#' \code{\link{diffPrint}} or \code{\link{diffStr}} if you require one or the
+#' other output.
+#'
+#' @inheritParams diffPrint
+#' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
+#'   \code{\link{diffStr}},
+#'   \code{\link{diffChr}} to compare character vectors directly
+#'   \code{\link{diffDeparse}} to compare deparsed objects
+#' @return a \code{Diff} object; see \code{\link{diffPrint}}.
+#' @export
+
+setGeneric("diffObj", function(target, current, ...) standardGeneric("diffObj"))
+
+diff_obj <- make_diff_fun(identity) # we overwrite the body next
+body(diff_obj) <- quote({
+  if(length(extra))
+    stop("Argument `extra` must be empty in `diffObj`.")
+
+  frame # force frame so that `par_frame` called in this context
+  call.raw <- extract_call(sys.calls(), frame)$call
+  call.raw[["frame"]] <- frame
+  call.str <- call.print <- call.raw
+  call.str[[1L]] <- quote(diffStr)
+  call.str[["extra"]] <- list(max.level="auto")
+  call.print[[1L]] <- quote(diffPrint)
+
+  # Run both the print and str versions, and then decide which to use based
+  # on some weighting of various factors including how many lines needed to be
+  # omitted vs. how many differences were reported
+
+  res.print <- eval(call.print, frame)
+  res.str <- eval(call.str, frame)
+
+  diff.p <- count_diff_hunks(res.print@diffs)
+  diff.s <- count_diff_hunks(res.str@diffs)
+  diff.l.p <- diff_line_len(
+    res.print@diffs, res.print@etc, tar.capt=res.print@tar.dat$raw,
+    cur.capt=res.print@cur.dat$raw
   )
-    stop("Argument `mode` must be one of \"print\" or \"str\"")
-  # note this forces eval, which is needed
-  if(!is.environment(frame))
-    stop("Argument `frame` must be an environment")
-  if(
-    !is.na(max.level) && (
-      !is.numeric(max.level) || length(max.level) != 1L ||  max.level < 0
-    )
+  diff.l.s <- diff_line_len(
+    res.str@diffs, res.str@etc, tar.capt=res.str@tar.dat$raw,
+    cur.capt=res.str@cur.dat$raw
   )
-    stop("Argument `max.level` must be integer(1L) and positive")
 
-  max.level <- as.integer(max.level)
-  width.old <- getOption("width")
-  on.exit(options(width=width.old))
-  width <- max(width, 10L)
-  options(width=width)
+  # How many lines of the input are in the diffs, vs how many lines of input
 
-  res <- try({
-    extra <- NULL
-    fun <- if(identical(mode, "print")) {
-      if(isS4(obj)) quote(show) else quote(print)
-    } else if(identical(mode, "str")) {
-      extra <- list(max.level=max.level)
-      quote(str)
-    } else stop("Logic Error: unexpected mode; contact maintainer.")
-    call <- as.call(c(list(fun, obj), extra))
-  })
-  res <- try(obj.out <- capture.output(eval(call, frame)))
-  if(inherits(res, "try-error"))
-    stop("Failed attempting to get text representation of object")
+  diff.line.ratio.p <- lineCoverage(res.print)
+  diff.line.ratio.s <- lineCoverage(res.str)
 
-  options(width=width.old)
-  on.exit(NULL)
+  # Only show the one with differences
 
-  # remove trailing spaces; shouldn't have to do it but doing it since legacy
-  # tests remove them and PITA to update those
+  res <- if(!diff.s && diff.p) {
+    res.print
+  } else if(!diff.p && diff.s) {
+    res.str
 
-  obj.out <- sub("\\s*$", "", obj.out)
-  obj.out
-}
-# constructs the full diff message with additional meta information
-
-obj_screen_chr <- function(
-  obj.chr, obj.name, diffs, range, width, pad, color=NA_character_
-) {
-  stopifnot(is.chr1(pad))
-  pre <- post <- NULL
-  pad.all <- pad.pre.post <- NULL
-  obj.name.dep <- deparse(obj.name)[[1L]]
-  extra <- character()
-  len.obj <- length(obj.chr)
-
-  if(len.obj) {
-    pad.all <- character(len.obj)
-    pad.chars <- nchar(pad)
-    if(!any(diffs)) {
-      pad.all <- replicate(len.obj, paste0(rep(" ", pad.chars)), collapse="")
-    } else {
-      pad.all[diffs] <- pad
-      pad.all <- format(pad.all)
-    }
-    pad.all[diffs] <- ansi_style(
-      pad.all[diffs], style=color, use.style=getOption("diffobj.use.ansi")
-    )
-    pad.pre.post <- paste0(rep(" ", pad.chars), collapse="")
-
-    omit.first <- max(min(range[[1L]] - 1L, len.obj), 0L)
-    omit.last <- max(len.obj - tail(range, 1L), 0L)
-    diffs.last <- sum(tail(diffs, -tail(range, 1L)))
-
-    if(omit.first)
-      pre <- paste0(
-        "~~ omitted ", omit.first, " line", if(omit.first != 1L) "s",
-        " w/o diffs"
-      )
-    if(omit.last) {
-      post <- paste0(
-        "~~ omitted ", omit.last, " line", if(omit.last != 1L) "s",
-        if(diffs.last) paste0(" w/ ", diffs.last, " diff") else " w/o diff",
-        if(diffs.last != 1L) "s"
-    ) }
-    if(!is.null(post)) {
-      post <- ansi_style(
-        paste0(pad.pre.post, paste0(post, extra, " ~~")),
-        "silver", use.style=getOption("diffobj.use.ansi")
-    ) }
-    if (!is.null(pre)) {
-      pre <- ansi_style(
-        paste0(pad.pre.post, paste0(pre, if(is.null(post)) extra, " ~~")),
-        "silver", use.style=getOption("diffobj.use.ansi")
-    ) }
+  # If one fits in full and the other doesn't, show the one that fits in full
+  } else if(
+    !res.str@trim.dat$lines[[1L]] &&
+    res.print@trim.dat$lines[[1L]]
+  ) {
+    res.str
+  } else if(
+    res.str@trim.dat$lines[[1L]] &&
+    !res.print@trim.dat$lines[[1L]]
+  ) {
+    res.print
+  # Calculate the trade offs between the two options
+  } else {
+    s.score <- diff.s / diff.l.s * diff.line.ratio.s
+    p.score <- diff.p / diff.l.p * diff.line.ratio.p
+    if(p.score >= s.score) res.print else res.str
   }
-  c(
-    ansi_style(
-      paste0("@@ ", obj.name.dep, " @@"), "cyan",
-      use.style=getOption("diffobj.use.ansi")
-    ),
-    paste0(
-      c(pre, paste0(pad.all, obj.chr)[range[range <= len.obj]], post)
-    )
-  )
-}
+  res
+})
+#' @export
+setMethod("diffObj", signature=c("ANY", "ANY"), diff_obj)

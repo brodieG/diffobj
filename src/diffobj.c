@@ -5,7 +5,7 @@ Code based on libmba-0.9.1/examples/strdiff.c
 #include <stdlib.h>
 #include "diffobj.h"
 
-SEXP DIFFOBJ_diffobj(SEXP a, SEXP b) {
+SEXP DIFFOBJ_diffobj(SEXP a, SEXP b, SEXP max) {
   int n, m, d;
   int sn, i;
   /* allocate max possible size for edit script; wasteful, but this greatly
@@ -14,13 +14,20 @@ SEXP DIFFOBJ_diffobj(SEXP a, SEXP b) {
    */
   n = XLENGTH(a);
   m = XLENGTH(b);
+  if(
+    TYPEOF(max) != INTSXP || XLENGTH(max) != 1L || asInteger(max) == NA_INTEGER
+  )
+    error("Logic Error: `max` not integer(1L) and not NA");
+
+  int max_i = asInteger(max);
+  if(max < 0) max = 0;
 
   struct diff_edit *ses = (struct diff_edit *)
     R_alloc(n + m + 1, sizeof(struct diff_edit));
 
-  d = diff(a, 0, n, b, 0, m, NULL, 0, ses, &sn);
+  d = diff(a, 0, n, b, 0, m, NULL, max_i, ses, &sn);
 
-  SEXP res = PROTECT(allocVector(VECSXP, 3));
+  SEXP res = PROTECT(allocVector(VECSXP, 4));
   SEXP type = PROTECT(allocVector(INTSXP, sn));
   SEXP count = PROTECT(allocVector(INTSXP, sn));
   SEXP offs = PROTECT(allocVector(INTSXP, sn));
@@ -45,6 +52,7 @@ SEXP DIFFOBJ_diffobj(SEXP a, SEXP b) {
   SET_VECTOR_ELT(res, 0, type);
   SET_VECTOR_ELT(res, 1, count);
   SET_VECTOR_ELT(res, 2, offs);
+  SET_VECTOR_ELT(res, 3, ScalarInteger(d));
   UNPROTECT(4);
 
   return res;
