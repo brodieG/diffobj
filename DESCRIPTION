@@ -13,7 +13,7 @@ Authors@R: c(
     "Michael B.", "Allen", email="ioplex@gmail.com",
     role=c("cph"),
     comment="C implementation of Myers Diff Algorithm"))
-License: GPL-3 + file LICENSE
+License: GPL-3 | MIT + file LICENSE
 LazyData: true
 URL: https://github.com/brodieG/diffobj
 BugReports: https://github.com/brodieG/diffobj/issues
