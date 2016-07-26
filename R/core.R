@@ -340,9 +340,12 @@ line_diff <- function(
     length(cur.rh <- which_atomic_rh(cur.capt.p)) &&
     etc@unwrap.atomic && etc@word.diff
   ) {
+    if(!all(diff(tar.rh) == 1L) || !all(diff(cur.rh)) == 1L)
+      stop("Logic Error, row headers must be sequential; contact maintainer.")
+
     # Only do this for the portion of the data that actually matches up with
     # the atomic row headers (NOTE: need to check what happens with named
-    # vectors without row headers
+    # vectors without row headers)
 
     tar.dat.sub <- lapply(tar.dat, "[", tar.rh)
     cur.dat.sub <- lapply(cur.dat, "[", cur.rh)
@@ -353,8 +356,13 @@ line_diff <- function(
     )
     warn <- !diff.word$hit.diffs.max
     dat.up <- function(orig, new, ind) {
-      orig[ind] <- new
-      orig
+      if(!length(ind)) {
+        orig
+      } else {
+        start <- orig[seq_along(orig) < min(ind)]
+        end <- orig[seq_along(orig) > max(ind)]
+        c(start, new, end)
+      }
     }
     tar.dat <-
       Map(dat.up, tar.dat, diff.word$tar.dat, MoreArgs=list(ind=tar.rh))
