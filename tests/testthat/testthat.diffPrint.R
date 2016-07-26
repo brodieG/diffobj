@@ -169,16 +169,17 @@ test_that("Mixed", {
 test_that("`unitizer` corner case", {
 
   res1 <- structure(
-    c(-1717, 101, 0.938678984853783), 
+    c(-1717, 101, 0.938678984853783),
     .Names = c("intercept", "slope", "rsq"), class = "fastlm"
   )
   res2 <- structure(
-    c(-3.541306e+13, 701248600000, 0.938679), 
+    c(-3.541306e+13, 701248600000, 0.938679),
     .Names = c("intercept", "slope", "rsq"), class = "fastlm"
   )
-  diffPrint(res1, res2)
-  diffPrint(unname(res1), unname(res2))
-
+  expect_equal_to_reference(as.character(diffPrint(res1, res2)), rdsf(3000))
+  expect_equal_to_reference(
+    as.character(diffPrint(unname(res1), unname(res2))), rdsf(3100)
+  )
 })
 test_that("covr workaround", {
   # Needed so that the function definition stuff is marked as covered; really
