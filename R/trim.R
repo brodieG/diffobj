@@ -5,10 +5,21 @@
 
 which_atomic_rh <- function(x) {
   stopifnot(is.character(x), !anyNA(x))
-  w.pat <- grepl(.pat.atom, x)
+
+  # Find first attribute and drop everything after it
+
+  attr.id <- grep("^attr\\(,\"(\\\\\"|[^\"])*\")$", x)
+  if(length(attr.id) && attr.id[1L] > 1L) {
+    y <- head(x, attr.id[1L] - 1L)
+  } else {
+    y <- x
+  }
+  # Now find the row headers if any prior to the attributes
+
+  w.pat <- grepl(.pat.atom, y)
 
   # Grab first set that matches for checking, there could be more particularly
-  # if the object in question has attributes, but we won't bother with the
+  # if the object in question has attributes, but we explicitly rule out
   # attributes
 
   w.pat.rle <- rle(w.pat)
@@ -24,7 +35,7 @@ which_atomic_rh <- function(x) {
     # what we think they are: width of headers is the same, and numbers
     # increment in equal increments starting at 1
 
-    r.h.rows <- x[w.pat.ind]
+    r.h.rows <- y[w.pat.ind]
     r.h.vals <- regmatches(r.h.rows, regexpr(.pat.atom, r.h.rows))
     r.h.lens.u <- length(unique(nchar(r.h.vals)))
     r.h.nums <- sub(".*?([0-9]+).*", "\\1", r.h.vals, perl=TRUE)

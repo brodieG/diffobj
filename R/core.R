@@ -340,6 +340,7 @@ line_diff <- function(
     length(cur.rh <- which_atomic_rh(cur.capt.p)) &&
     etc@unwrap.atomic && etc@word.diff
   ) {
+    browser()
     diff.word <- diff_word2(
       tar.dat, cur.dat, tar.ind=tar.rh, cur.ind=cur.rh,
       diff.mode="wrap", warn=warn, etc=etc
