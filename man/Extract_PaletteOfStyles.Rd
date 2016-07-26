@@ -33,8 +33,9 @@ which is different than generic}
 \item{exact}{passed on to generic}
 }
 \value{
-a \code{\link{Style}} class or \code{\link{Style}} object for
-   \code{[[}, and a list of the same for \code{[}
+a \code{\link{Style}} \code{ClassRepresentation} object or
+   \code{\link{Style}} object for \code{[[}, and a list of the same for
+   \code{[}
 }
 \description{
 Extract/Replace a Style Class or Object from PaletteOfStyles

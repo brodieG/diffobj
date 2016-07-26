@@ -3,12 +3,9 @@
 \docType{package}
 \name{diffobj-package}
 \alias{diffobj-package}
-\title{Compare R Objects with a Text Diff}
+\title{Compare R Objects with a Diff}
 \description{
-Highlight differences between R objects in a familiar and intuitive way.
-This is inspired by \code{\link[=Rdiff]{tools::Rdiff}}, except the diff is
-computed directly on R objects instead of text files, the diff computation
-does not rely on the system \code{diff} utility, and the diff display is
-optimized to handle common R objects.
+Colorized diffs to quickly identify _and understand_ differences between R
+objects.  See `vignette("diffobj")` for details.
 }
 

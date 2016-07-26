@@ -1,12 +1,10 @@
 Package: diffobj
 Type: Package
-Title: Compare R Objects with a Text Diff
-Description: Compare R objects by computing a `diff` on their text
-    representations (e.g. the `print`ed console output). This is similar to
-    `tools::Rdiff` except the diff is computed directly on R objects instead of
-    text files and does not rely on the system `diff` utility.
-Version: 0.0.1
-Date: 2016-01-20
+Title: Compare R Objects with a Diff
+Description:  Colorized diffs to quickly identify _and understand_ differences
+    between R objects.  See `vignette("diffobj")` for details.
+Version: 0.1.0
+Date: 2016-07-24
 Authors@R: c(
     person(
     "Brodie", "Gaslam", email="brodie.gaslam@yahoo.com",
@@ -15,7 +13,7 @@ Authors@R: c(
     "Michael B.", "Allen", email="ioplex@gmail.com",
     role=c("cph"),
     comment="C implementation of Myers Diff Algorithm"))
-License: GPL-3 + file LICENSE
+License: GPL-3 | MIT + file LICENSE
 LazyData: true
 URL: https://github.com/brodieG/diffobj
 BugReports: https://github.com/brodieG/diffobj/issues
@@ -23,7 +21,9 @@ RoxygenNote: 5.0.1
 VignetteBuilder: knitr
 Suggests:
     knitr,
-    testthat
+    rmarkdown,
+    testthat,
+    covr
 Collate:
     'capt.R'
     'check.R'
@@ -50,7 +50,8 @@ Collate:
     'trim.R'
     'word.R'
 Imports:
-    crayon (>= 1.3.1),
+    crayon (>= 1.3.2),
     tools,
     methods,
-    utils
+    utils,
+    stats

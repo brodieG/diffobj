@@ -12,7 +12,7 @@ NULL
 
 console_lines <- function() {
   LINES <- as.integer(Sys.getenv("LINES"))
-  if(length(lines) == 1L && !is.na(LINES) && LINES > 0L) LINES else 48L
+  if(length(LINES) == 1L && !is.na(LINES) && LINES > 0L) LINES else 48L
 }
 #' Configure Automatic Context Calculation
 #'

@@ -100,8 +100,7 @@ diff on the in-hunk diferences}
 pager is used to display the diff output.  If \dQuote{on} will use the
 pager associated with the \code{\link{Style}} specified via the
 \code{\link{style}} parameters.  if \dQuote{auto} (default) will behave
-like \dQuote{on} but only if the \code{diff*} method is called from the
-top level (i.e. not nested inside another function).  If the pager is
+like \dQuote{on} but only if in interactive mode.  If the pager is
 enabled, default behavior is to pipe output to \code{\link{file.show}} if
 output is taller than the estimated terminal height and your terminal
 supports ANSI escape sequences.  If not, the default is to attempt to pipe

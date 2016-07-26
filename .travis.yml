@@ -1,0 +1,12 @@
+language: r
+sudo: false
+cache: packages
+
+branches:
+  only:
+    - master
+    - development
+    - rc
+
+after_success:
+  - Rscript -e 'covr::codecov()'
