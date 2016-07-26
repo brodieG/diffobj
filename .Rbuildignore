@@ -3,5 +3,5 @@
 ^\DEVNOTES\.md$
 ^\NOTES\.md$
 ^\.travis\.yml$
-^\scratch.R$
+^scratch\.R$
 \.Rdata
