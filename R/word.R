@@ -173,6 +173,7 @@ word_to_line_map <- function(
 
   h.cont <- vapply(hunks, "[[", logical(1L), "context")
   diff.inds <- unlist(lapply(hunks[!h.cont], "[",  c("A", "B")))
+  if(is.null(diff.inds)) diff.inds <- integer()
   tar.inds.d <- diff.inds[diff.inds > 0]
   cur.inds.d <- abs(diff.inds[diff.inds < 0])
 
