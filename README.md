@@ -7,9 +7,9 @@
 
 Colorized diffs to quickly identify _and understand_ differences between R objects.  See [vignette](http://htmlpreview.github.io/?https://raw.githubusercontent.com/brodieG/diffobj/master/inst/doc/diffobj.html) for details.
 
-## Ouput
+## Output
 
-If your terminal supports formatting through ANSI escape sequences, `diffobj` will output colored diffs to the terminal.  Here are some examples from a 256 color terminal:
+If your terminal supports formatting through ANSI escape sequences, `diffobj` will output colored diffs to the terminal.  Here are some examples of available color schemes from a 256 color terminal:
 
 ![Color Scheme Examples](vignettes/ansi256brightness.png)
 
