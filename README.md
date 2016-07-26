@@ -5,7 +5,7 @@
   <img src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=master'>
 </a>
 
-Colorized diffs to quickly identify _and understand_ differences between R objects.  See [vignette](http://htmlpreview.github.io/?https://raw.githubusercontent.com/brodieG/diffobj/rc/inst/doc/diffobj.html) for details.
+Colorized diffs to quickly identify _and understand_ differences between R objects.  See [vignette](http://htmlpreview.github.io/?https://raw.githubusercontent.com/brodieG/diffobj/master/inst/doc/diffobj.html) for details.
 
 ## Ouput
 
@@ -28,7 +28,7 @@ vignette("diffobj", package="diffobj")
 
 <table style="border: none; background-color: transparent;">
   <tr style="border: none; background-color: transparent; padding: 2px;">
-  <th style="text-align: right;">rc: 
+  <th style="text-align: right;">rc:
   <td>
   <a href='https://travis-ci.org/brodieG/diffobj'>
     <img
@@ -38,13 +38,13 @@ vignette("diffobj", package="diffobj")
   </a>
   <td>
   <a href='https://codecov.io/github/brodieG/diffobj?branch=rc'>
-    <img 
+    <img
       src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=rc'
       style="vertical-align: middle;"
     >
   </a>
   <tr style="border: none; background-color: transparent; padding: 2px;">
-  <th style="text-align: right;">development: 
+  <th style="text-align: right;">development:
   <td>
   <a href='https://travis-ci.org/brodieG/diffobj'>
     <img
@@ -54,7 +54,7 @@ vignette("diffobj", package="diffobj")
   </a>
   <td>
   <a href='https://codecov.io/github/brodieG/diffobj?branch=development'>
-    <img 
+    <img
       src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=development'
       style="vertical-align: middle;"
     >
