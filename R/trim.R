@@ -16,8 +16,9 @@ up_to_attr <- function(x) {
   }
   y
 }
-# Get atomic content; particularly for named vectors, this is on a best efforts
-# basis and will not work if there is pathological input.
+# Get atomic content on a best-efforts basis
+# Note that functionality for named vectors is turned off since they become
+# fairly pathological when wrap periodicities are not the same (Issue #43); 
 
 which_atomic_cont <- function(x.chr, x) {
   # Limit to everything before attribute
@@ -25,34 +26,35 @@ which_atomic_cont <- function(x.chr, x) {
   y <- up_to_attr(x.chr)
 
   res <- if(!is.null(nm <- names(x))) {
-    # name mode; find all lines from output that contain only names
+    integer(0L)
+    # # name mode; find all lines from output that contain only names
 
-    nm.tar <- unlist(strsplit(names(x), "\\s+"))
-    y.split <- strsplit(sub("^\\s+", "", y), "\\s+")
-    only.nm <- vapply(y.split, function(z) all(z %in% nm.tar), logical(1L))
+    # nm.tar <- unlist(strsplit(names(x), "\\s+"))
+    # y.split <- strsplit(sub("^\\s+", "", y), "\\s+")
+    # only.nm <- vapply(y.split, function(z) all(z %in% nm.tar), logical(1L))
 
-    # Look for TF pattern starting with first TRUE
+    # # Look for TF pattern starting with first TRUE
 
-    if(any(only.nm)) {
-      first.t <- min(which(only.nm))
-      only.nm.sub <- if(first.t > 1L) {
-        tail(only.nm, -(first.t - 1L))
-      } else only.nm
-      only.nm.check <-
-        only.nm.sub == rep(c(TRUE, FALSE), length.out=length(only.nm.sub))
-      last.t <- which(!only.nm.check)
-      last.t <- if(!length(last.t)) length(only.nm.check) + 1L else min(last.t)
+    # if(any(only.nm)) {
+    #   first.t <- min(which(only.nm))
+    #   only.nm.sub <- if(first.t > 1L) {
+    #     tail(only.nm, -(first.t - 1L))
+    #   } else only.nm
+    #   only.nm.check <-
+    #     only.nm.sub == rep(c(TRUE, FALSE), length.out=length(only.nm.sub))
+    #   last.t <- which(!only.nm.check)
+    #   last.t <- if(!length(last.t)) length(only.nm.check) + 1L else min(last.t)
 
-      # Modulo check makes sure we have full T,F repeats
-      if(length(last.t) && last.t %% 2L) {
-        # Ensure that all names are present in the order they are supposed to be
-        tar.seq <- first.t:(last.t + first.t - 2L)
+    #   # Modulo check makes sure we have full T,F repeats
+    #   if(length(last.t) && last.t %% 2L) {
+    #     # Ensure that all names are present in the order they are supposed to be
+    #     tar.seq <- first.t:(last.t + first.t - 2L)
 
-        if(all(unlist(y.split[tar.seq][c(TRUE, FALSE)]) == nm.tar)) {
-          tar.seq
-        } else integer(0L)
-      } else integer(0L)
-    } else integer(0L)
+    #     if(all(unlist(y.split[tar.seq][c(TRUE, FALSE)]) == nm.tar)) {
+    #       tar.seq
+    #     } else integer(0L)
+    #   } else integer(0L)
+    # } else integer(0L)
   } else which_atomic_rh(x.chr)
   res
 }
