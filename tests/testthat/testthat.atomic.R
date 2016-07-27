@@ -124,7 +124,7 @@ test_that("with names", {
   names(G3)[c(5, 25, 60)] <- c("XXXXX", rand.chrs[c(300, 350)])
   expect_equal_to_reference(as.character(diffPrint(F1, G3)), rdsf(2500))
 
-  names(G4)[c(5, 25, 60)] <- names(G5)[c(5, 25, 60)] <- 
+  names(G4)[c(5, 25, 60)] <- names(G5)[c(5, 25, 60)] <-
     c("XX", rand.chrs[c(300, 350)])
   expect_equal_to_reference(as.character(diffPrint(F1, G4)), rdsf(2520))
 
