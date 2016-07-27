@@ -2,20 +2,68 @@
 
 .pat.atom <- "^\\s*\\[[1-9][0-9]*\\]\\s"
 .pat.mat <- "^\\s*\\[[1-9]+[0-9]*,\\]\\s"
+.pat.attr <- "^attr\\(,\"(\\\\\"|[^\"])*\")$"
 
-which_atomic_rh <- function(x) {
-  stopifnot(is.character(x), !anyNA(x))
+# Find first attribute and drop everything after it
 
-  # Find first attribute and drop everything after it
+up_to_attr <- function(x) {
 
-  attr.id <- grep("^attr\\(,\"(\\\\\"|[^\"])*\")$", x)
+  attr.id <- grep(.pat.attr, x)
   if(length(attr.id) && attr.id[1L] > 1L) {
     y <- head(x, attr.id[1L] - 1L)
   } else {
     y <- x
   }
+  y
+}
+# Get atomic content; particularly for named vectors, this is on a best efforts
+# basis and will not work if there is pathological input.
+
+which_atomic_cont <- function(x.chr, x) {
+  # Limit to everything before attribute
+
+  y <- up_to_attr(x.chr)
+
+  res <- if(!is.null(nm <- names(x))) {
+    # name mode; find all lines from output that contain only names
+
+    nm.tar <- unlist(strsplit(names(x), "\\s+"))
+    y.split <- strsplit(sub("^\\s+", "", y), "\\s+")
+    only.nm <- vapply(y.split, function(z) all(z %in% nm.tar), logical(1L))
+
+    # Look for TF pattern starting with first TRUE
+
+    if(any(only.nm)) {
+      first.t <- min(which(only.nm))
+      only.nm.sub <- if(first.t > 1L) {
+        tail(only.nm, -(first.t - 1L))
+      } else only.nm
+      only.nm.check <-
+        only.nm.sub == rep(c(TRUE, FALSE), length.out=length(only.nm.sub))
+      last.t <- which(!only.nm.check)
+      last.t <- if(!length(last.t)) length(only.nm.check) + 1L else min(last.t)
+
+      # Modulo check makes sure we have full T,F repeats
+      if(length(last.t) && last.t %% 2L) {
+        # Ensure that all names are present in the order they are supposed to be
+        tar.seq <- first.t:(last.t + first.t - 2L)
+
+        if(all(unlist(y.split[tar.seq][c(TRUE, FALSE)]) == nm.tar)) {
+          tar.seq
+        } else integer(0L)
+      } else integer(0L)
+    } else integer(0L)
+  } else which_atomic_rh(x.chr)
+  res
+}
+# Identify elements that contain row headers
+
+which_atomic_rh <- function(x) {
+  stopifnot(is.character(x), !anyNA(x))
+
   # Now find the row headers if any prior to the attributes
 
+  y <- up_to_attr(x)
   w.pat <- grepl(.pat.atom, y)
 
   # Grab first set that matches for checking, there could be more particularly

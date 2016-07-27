@@ -336,8 +336,8 @@ line_diff <- function(
 
   if(
     is.atomic(target) && is.atomic(current) &&
-    length(tar.rh <- which_atomic_rh(tar.capt.p)) &&
-    length(cur.rh <- which_atomic_rh(cur.capt.p)) &&
+    length(tar.rh <- which_atomic_cont(tar.capt.p, target)) &&
+    length(cur.rh <- which_atomic_cont(cur.capt.p, current)) &&
     etc@unwrap.atomic && etc@word.diff
   ) {
     if(!all(diff(tar.rh) == 1L) || !all(diff(cur.rh)) == 1L)
