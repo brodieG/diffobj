@@ -92,7 +92,7 @@ diffPrint(state.abb, state.abb2)
 
 Due to the different wrapping frequency no line in the text display of our two vectors matches.  Despite this, `diffPrint` only highlights the lines that actually contain differences.  The side effect is that lines that only contain matching elements are shown as matching even though the actual lines may be different.  You can turn off this behavior in favor of a normal line diff with the `unwrap.atomic` argument to `diffPrint`.
 
-This method of comparing vectors is a compromise that may in some circumstances produce sub-optimal results.  You can also use `diffChr` (see below) to do a direct element by element comparison.
+Currently this only works for _unnamed_ vectors, and even for them some inputs may produce sub-optimal results.  You can also use `diffChr` (see below) to do a direct element by element comparison.
 
 ## Other Diff Functions
 

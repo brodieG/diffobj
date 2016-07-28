@@ -113,6 +113,12 @@ reassign_lines2 <- function(lines, cont, hunk.diff) {
 # Helper Function for Mapping Word Diffs to Lines
 #
 # Used when we're doing a wrapped diff for atomic vectors.
+#
+# @param tar.ends and cur.ends are the indices of the last elements in each line
+#   of the vector
+# @param tar.dat and cur.dat are the data
+# @param tar.ind and cur.ind seem to be used by augment, but don't totally
+#   remember what for.  They can have positive and negative values
 
 word_to_line_map <- function(
   hunks, tar.dat, cur.dat, tar.ends, cur.ends, tar.ind, cur.ind
@@ -173,6 +179,7 @@ word_to_line_map <- function(
 
   h.cont <- vapply(hunks, "[[", logical(1L), "context")
   diff.inds <- unlist(lapply(hunks[!h.cont], "[",  c("A", "B")))
+  if(is.null(diff.inds)) diff.inds <- integer()
   tar.inds.d <- diff.inds[diff.inds > 0]
   cur.inds.d <- abs(diff.inds[diff.inds < 0])
 
@@ -409,7 +416,7 @@ reg_apply <- function(reg, ends, mismatch) {
 #
 # Note that in "word" mode the returned values may be longer than the input ones
 # as it may be necessary to add lines to get things to match-up.  Added lines
-# are indicated by TRUE values in teh `fill` component of the `*.dat` return
+# are indicated by TRUE values in the `fill` component of the `*.dat` return
 # values
 #
 # `match.quotes` will make "words" starting and ending with quotes; it should
@@ -513,6 +520,9 @@ diff_word2 <- function(
   # the word differences.  This is inefficient and round-about, but has the
   # huge benefit of allowing us to plug in the wrapped diff into our existing
   # line diff infrastructure
+  #
+  # Note that we're only operating on a subset of the data via tar.ind and
+  # cur.ind
 
   if(diff.mode == "wrap") {
     word.line.mapped <- word_to_line_map(

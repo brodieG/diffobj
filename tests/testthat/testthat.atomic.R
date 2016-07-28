@@ -109,20 +109,30 @@ test_that("Word wrap in atomic", {
 })
 test_that("with names", {
   rand.chrs <- do.call(paste0, expand.grid(LETTERS, LETTERS))
-  F <- (2:105)[-98]
-  G <- (1:100)[-9]
+  F <- F1 <- F2 <- (2:105)[-98]
+  G <- G2 <- G3 <- G4 <- G5 <- (1:100)[-9]
   nm.1 <- rand.chrs[seq_along(F)]
   nm.2 <- rand.chrs[seq_along(G)]
-  names(F) <- nm.1
+  names(F1) <- names(F2) <- nm.1
   expect_equal_to_reference(as.character(diffPrint(F, G)), rdsf(2300))
-  names(G) <- nm.2
-  expect_equal_to_reference(as.character(diffPrint(F, G)), rdsf(2400))
+  names(G3) <- names(G2) <- names(G3) <-  names(G4) <- names(G5) <- nm.2
+  expect_equal_to_reference(as.character(diffPrint(F1, G2)), rdsf(2400))
 
   # Challenging case b/c the names wrap with values, and you have to pick one or
   # the other to match when the wrap frequencies are different
 
-  names(G)[c(5, 25, 60)] <- c("XXXXX", rand.chrs[c(300, 350)])
-  expect_equal_to_reference(as.character(diffPrint(F, G)), rdsf(2500))
+  names(G3)[c(5, 25, 60)] <- c("XXXXX", rand.chrs[c(300, 350)])
+  expect_equal_to_reference(as.character(diffPrint(F1, G3)), rdsf(2500))
+
+  names(G4)[c(5, 25, 60)] <- names(G5)[c(5, 25, 60)] <-
+    c("XX", rand.chrs[c(300, 350)])
+  expect_equal_to_reference(as.character(diffPrint(F1, G4)), rdsf(2520))
+
+  attr(F2, "blah") <- 1:5
+  attr(G5, "blah") <- 3:8
+
+  expect_equal_to_reference(as.character(diffPrint(F2, G5)), rdsf(2530))
+  expect_equal_to_reference(as.character(diffPrint(F1, G5)), rdsf(2540))
 })
 test_that("Original tests", {
   set.seed(2)
