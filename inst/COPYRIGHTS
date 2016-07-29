@@ -1,12 +1,6 @@
-Most of the code in this package was created by Brodie Gaslam and is under the GPL-3 license:
-
-Copyright (C) 2016 Brodie Gaslam
-License: GPL-3
-
--------------------------------------------------------------------------------
-
 The C implementation of the Myer's Diff Algorithm with Linear Space Refinement was originally written by Michael B. Allen with the following license and copyright:
 
+  diff - compute a shortest edit script (SES) given two sequences
   Copyright (C) 2004 Michael B. Allen <mba2000 ioplex.com>
   License: MIT
 
@@ -14,5 +8,10 @@ The original source code is available at:
 
   http://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz
 
-The modified source code is released under GPL-3 and in the src folder of this project.
+The adapted and modified code is available in src/diff.c, src/mba/diff.h.  See those files for additional details.
 
+This package is released under the GPL-3 license:
+
+  diffobj - Compare R Objects with a Diff
+  Copyright (C) 2016  Brodie Gaslam
+  License: GPL-3

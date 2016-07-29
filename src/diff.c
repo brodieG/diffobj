@@ -1,23 +1,26 @@
-
-/* This an adaptation of the Michael B. Allen implementation of the
- * Myers diff algorithm (see below for details)
+/*
+ * This file is part of a program that contains an adaptation of the Michael B.
+ * Allen implementation of the Myers diff algorithm.  See next comment blocks for
+ * original copyright and license information.
  *
- * Here is a list of changes from the original implementation:
- * - Switch memory allocation and error handling to R specific functions
- * - Removing variable arrays in favor of fixed sized buffers to simplify code;
- *   this results in potential overallocation of memory since we pre-allocate a
- *   4 * (n + m + abs(n - m)) + 1 vector which is wasteful but still linear so
- *   should be okay.
- * - Removing ability to specify custom comparison functions
- * - Adding a failover result if diffs exceed maximum allowable diffs whereby
- *   we failover into a linear time algorithm to produce a sub optimal edit
- *   script rather than simply saying the shortest edit script is longer than
- *   allowable diffs; this is all the `faux_snake` stuff.  This algorithm tries
- *   to salvage whatever the myers algo computed up to the point of max diffs
- * - Adding lots of comments as we worked through the logic
+ * diffobj - Compare R Objects with a Diff
+ * Copyright (C) 2016  Brodie Gaslam
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
  */
-
-/* diff - compute a shortest edit script (SES) given two sequences
+/* ORIGINAL COPYRIGHT NOTICE:
+ *
+ * diff - compute a shortest edit script (SES) given two sequences
  * Copyright (c) 2004 Michael B. Allen <mba2000 ioplex.com>
  *
  * The MIT License
@@ -40,7 +43,6 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-
 /* This algorithm is basically Myers' solution to SES/LCS with
  * the Hirschberg linear space refinement as described in the
  * following publication:
@@ -49,8 +51,29 @@
  *   Algorithmica 1, 2 (1986), 251-266.
  *   http://www.cs.arizona.edu/people/gene/PAPERS/diff.ps
  *
- * This is the same algorithm used by GNU diff(1).
+ * This is the same algorithm used by GNU diff(1).  The original source code
+ * is available at:
+ *
+ *   <http://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz>
  */
+/* The following is a list of the modifications made to the original Michael
+ * B Allen code:
+ *
+ * Here is a list of changes from the original implementation:
+ * - Switch memory allocation and error handling to R specific functions
+ * - Removing variable arrays in favor of fixed sized buffers to simplify code;
+ *   this results in potential overallocation of memory since we pre-allocate a
+ *   4 * (n + m + abs(n - m)) + 1 vector which is wasteful but still linear so
+ *   should be okay.
+ * - Removing ability to specify custom comparison functions
+ * - Adding a failover result if diffs exceed maximum allowable diffs whereby
+ *   we failover into a linear time algorithm to produce a sub optimal edit
+ *   script rather than simply saying the shortest edit script is longer than
+ *   allowable diffs; this is all the `faux_snake` stuff.  This algorithm tries
+ *   to salvage whatever the myers algo computed up to the point of max diffs
+ * - Adding lots of comments as we worked through the logic
+ */
+
 
 #include <stdlib.h>
 #include "diffobj.h"
