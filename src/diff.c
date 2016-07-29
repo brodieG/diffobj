@@ -1,3 +1,4 @@
+
 /* This an adaptation of the Michael B. Allen implementation of the
  * Myers diff algorithm (see below for details)
  *
@@ -197,11 +198,9 @@ _find_faux_snake(
    * below the diagonal we found above since those are the only ones we
    * can connect to
    *
-   * Watch out `k_f` and `k_r` are not in direct correspondance as they must
-   * be shifted by `delta`
    */
   int k_max_r = 0, x_max_r = n + 1;
-  int x_r, y_r, k_r;
+  int x_r, y_r;
 
   for (int k = -d; k <= k_max_f - delta; k += 2) {
     int x_r = RV(k);
@@ -229,9 +228,8 @@ _find_faux_snake(
     }
   }
   if(x_max_r >= n) {
-    x_r = n; y_r = m; k_r = 0;
+    x_r = n; y_r = m;
   } else {
-    k_r = k_max_r;
     x_r = x_max_r;
     /* not 100% sure about this one; seems like k_max_r is relative to the
      * bottom right origin, so maybe this should be x_r - k_max_r - delta?

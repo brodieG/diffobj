@@ -8,17 +8,19 @@
 extern "C" {
 #endif
 
+/*
 #ifndef LIBMBA_API
 #ifdef WIN32
 # ifdef LIBMBA_EXPORTS
 #  define LIBMBA_API  __declspec(dllexport)
-# else /* LIBMBA_EXPORTS */
+# else // LIBMBA_EXPORTS
 #  define LIBMBA_API  __declspec(dllimport)
-# endif /* LIBMBA_EXPORTS */
-#else /* WIN32 */
+# endif // LIBMBA_EXPORTS
+#else // WIN32
 # define LIBMBA_API extern
-#endif /* WIN32 */
-#endif /* LIBMBA_API */
+#endif // WIN32
+#endif // LIBMBA_API
+*/
 
 typedef enum {
         DIFF_NULL = 0,
@@ -35,11 +37,11 @@ struct diff_edit {
 
 /* consider alternate behavior for each NULL parameter
  */
-LIBMBA_API int diff(SEXP a, int aoff, int n,
-		SEXP b, int boff, int m,
-		void *context, int dmax,
-		struct diff_edit *ses, int *sn
-		);
+int diff(SEXP a, int aoff, int n,
+  SEXP b, int boff, int m,
+  void *context, int dmax,
+  struct diff_edit *ses, int *sn
+);
 
 #ifdef __cplusplus
 }
