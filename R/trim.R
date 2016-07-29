@@ -1,14 +1,90 @@
+# diffobj - Compare R Objects with a Diff
+# Copyright (C) 2016  Brodie Gaslam
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
+
 # Detect and remove atomic headers
 
 .pat.atom <- "^\\s*\\[[1-9][0-9]*\\]\\s"
 .pat.mat <- "^\\s*\\[[1-9]+[0-9]*,\\]\\s"
+.pat.attr <- "^attr\\(,\"(\\\\\"|[^\"])*\")$"
+
+# Find first attribute and drop everything after it
+
+up_to_attr <- function(x) {
+
+  attr.id <- grep(.pat.attr, x)
+  if(length(attr.id) && attr.id[1L] > 1L) {
+    y <- head(x, attr.id[1L] - 1L)
+  } else {
+    y <- x
+  }
+  y
+}
+# Get atomic content on a best-efforts basis
+# Note that functionality for named vectors is turned off since they become
+# fairly pathological when wrap periodicities are not the same (Issue #43); 
+
+which_atomic_cont <- function(x.chr, x) {
+  # Limit to everything before attribute
+
+  y <- up_to_attr(x.chr)
+
+  res <- if(!is.null(nm <- names(x))) {
+    integer(0L)
+    # # name mode; find all lines from output that contain only names
+
+    # nm.tar <- unlist(strsplit(names(x), "\\s+"))
+    # y.split <- strsplit(sub("^\\s+", "", y), "\\s+")
+    # only.nm <- vapply(y.split, function(z) all(z %in% nm.tar), logical(1L))
+
+    # # Look for TF pattern starting with first TRUE
+
+    # if(any(only.nm)) {
+    #   first.t <- min(which(only.nm))
+    #   only.nm.sub <- if(first.t > 1L) {
+    #     tail(only.nm, -(first.t - 1L))
+    #   } else only.nm
+    #   only.nm.check <-
+    #     only.nm.sub == rep(c(TRUE, FALSE), length.out=length(only.nm.sub))
+    #   last.t <- which(!only.nm.check)
+    #   last.t <- if(!length(last.t)) length(only.nm.check) + 1L else min(last.t)
+
+    #   # Modulo check makes sure we have full T,F repeats
+    #   if(length(last.t) && last.t %% 2L) {
+    #     # Ensure that all names are present in the order they are supposed to be
+    #     tar.seq <- first.t:(last.t + first.t - 2L)
+
+    #     if(all(unlist(y.split[tar.seq][c(TRUE, FALSE)]) == nm.tar)) {
+    #       tar.seq
+    #     } else integer(0L)
+    #   } else integer(0L)
+    # } else integer(0L)
+  } else which_atomic_rh(x.chr)
+  res
+}
+# Identify elements that contain row headers
 
 which_atomic_rh <- function(x) {
   stopifnot(is.character(x), !anyNA(x))
-  w.pat <- grepl(.pat.atom, x)
+
+  # Now find the row headers if any prior to the attributes
+
+  y <- up_to_attr(x)
+  w.pat <- grepl(.pat.atom, y)
 
   # Grab first set that matches for checking, there could be more particularly
-  # if the object in question has attributes, but we won't bother with the
+  # if the object in question has attributes, but we explicitly rule out
   # attributes
 
   w.pat.rle <- rle(w.pat)
@@ -24,7 +100,7 @@ which_atomic_rh <- function(x) {
     # what we think they are: width of headers is the same, and numbers
     # increment in equal increments starting at 1
 
-    r.h.rows <- x[w.pat.ind]
+    r.h.rows <- y[w.pat.ind]
     r.h.vals <- regmatches(r.h.rows, regexpr(.pat.atom, r.h.rows))
     r.h.lens.u <- length(unique(nchar(r.h.vals)))
     r.h.nums <- sub(".*?([0-9]+).*", "\\1", r.h.vals, perl=TRUE)

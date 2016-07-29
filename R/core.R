@@ -1,3 +1,18 @@
+# diffobj - Compare R Objects with a Diff
+# Copyright (C) 2016  Brodie Gaslam
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
+
 #' @include s4.R
 
 NULL
@@ -336,17 +351,38 @@ line_diff <- function(
 
   if(
     is.atomic(target) && is.atomic(current) &&
-    length(tar.rh <- which_atomic_rh(tar.capt.p)) &&
-    length(cur.rh <- which_atomic_rh(cur.capt.p)) &&
+    length(tar.rh <- which_atomic_cont(tar.capt.p, target)) &&
+    length(cur.rh <- which_atomic_cont(cur.capt.p, current)) &&
     etc@unwrap.atomic && etc@word.diff
   ) {
+    if(!all(diff(tar.rh) == 1L) || !all(diff(cur.rh)) == 1L)
+      stop("Logic Error, row headers must be sequential; contact maintainer.")
+
+    # Only do this for the portion of the data that actually matches up with
+    # the atomic row headers (NOTE: need to check what happens with named
+    # vectors without row headers)
+
+    tar.dat.sub <- lapply(tar.dat, "[", tar.rh)
+    cur.dat.sub <- lapply(cur.dat, "[", cur.rh)
+
     diff.word <- diff_word2(
-      tar.dat, cur.dat, tar.ind=tar.rh, cur.ind=cur.rh,
+      tar.dat.sub, cur.dat.sub, tar.ind=tar.rh, cur.ind=cur.rh,
       diff.mode="wrap", warn=warn, etc=etc
     )
     warn <- !diff.word$hit.diffs.max
-    tar.dat <- diff.word$tar.dat
-    cur.dat <- diff.word$cur.dat
+    dat.up <- function(orig, new, ind) {
+      if(!length(ind)) {
+        orig
+      } else {
+        start <- orig[seq_along(orig) < min(ind)]
+        end <- orig[seq_along(orig) > max(ind)]
+        c(start, new, end)
+      }
+    }
+    tar.dat <-
+      Map(dat.up, tar.dat, diff.word$tar.dat, MoreArgs=list(ind=tar.rh))
+    cur.dat <-
+      Map(dat.up, cur.dat, diff.word$cur.dat, MoreArgs=list(ind=cur.rh))
   }
   # Actual line diff
 
