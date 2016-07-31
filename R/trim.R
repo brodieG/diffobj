@@ -275,7 +275,7 @@ strip_list_rh <- function(x, obj) {
   # Split output into each list component
 
   list.h <- detect_list_guides(x)
-  dat <- split_by_guides(x, list.h)
+  dat <- split_by_guides(x, list.h, drop=FALSE)
   elements <- flatten_list(obj)
   if(length(elements) != length(dat)) {
     x
@@ -372,6 +372,7 @@ setMethod(
       strip_list_rh(obj.as.chr, obj)
     } else obj.as.chr
 
+    if(length(obj.as.chr) != length(stripped)) browser()
     trim_sub(obj.as.chr, stripped)
   }
 )
@@ -430,7 +431,7 @@ setGeneric("trimFile", function(obj, obj.as.chr) StandardGeneric("trimFile"))
 
 setMethod("trimFile", c("ANY", "character"), trim_identity)
 
-# Helper fun used by trim functions that remove font of strings and rely on
+# Helper fun used by trim functions that remove front of strings and rely on
 # string comparison to determine trim indices
 
 trim_sub <- function(obj.as.chr, obj.stripped) {
