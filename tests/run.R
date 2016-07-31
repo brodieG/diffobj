@@ -16,7 +16,7 @@ local({
         "atomic",
         "banner",
         "check",
-        # "context",
+        "context",
         "core",
         "diffChr",
         "diffDeparse",

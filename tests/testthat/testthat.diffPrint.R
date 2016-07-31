@@ -81,6 +81,25 @@ test_that("Lists", {
   expect_equal_to_reference(
     as.character(diffPrint(lst.4, lst.5, mode="context")), rdsf(1600)
   )
+  # Issue #46
+  expect_equal_to_reference(
+    as.character(
+      diffPrint(list(1, list(2, list(1:3))), list(1, list(list(1:3))))
+    ),
+    rdsf(1620)
+  )
+  expect_equal_to_reference(
+    as.character(
+      diffPrint(
+        list(1, list(matrix(1:5), list(1:3))), 
+        list(1, list(matrix(1:4), list(1:3)))
+    ) ),
+    rdsf(1630)
+  )
+  expect_equal_to_reference(
+    as.character(diffPrint(list(1, list(2, list(1:3))), list(list(list(1:3))))),
+    rdsf(1640)
+  )
   # Interesting but relatively slow example so we don't actually run it in
   # tests
 

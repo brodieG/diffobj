@@ -337,20 +337,32 @@ process_hunks <- function(x, ctx.val, etc) {
     if(length(res.l[[k]]) && res.l[[k]][[1L]]$context) {
       h <- res.l[[k]][[1L]]
       h.o <- x[[res.l[[k]][[1L]]$id]]  # retrieve original untrimmed hunk
-      tar.h <- get_guides(h, etc@guide.lines@target, "tar")
-      cur.h <- get_guides(h, etc@guide.lines@current, "cur")
+      if(!
+        identical(
+          h$tar.rng.sub,
+          h$cur.rng.sub - h$cur.rng.sub[1L] + h$tar.rng.sub[1L]
+      ) )
+        stop("Logic Error: unequal size context hunks; contact mainainer")
 
-      # since in a context hunk, these two should be exactly the same; note that
-      # we adjust for position in the hunk, so they don't ahve to start
-      # of as the same when they are in etc@guide.lines
+      # since in a context hunk, everything in tar and cur is the same, so
+      # we just need to recompute the `cur` guidelines relative to tar indices
+      # since the guidelines need not be the same (e.g., in lists that are
+      # mostly the same, but deeper in one object, guideline will be deepest
+      # index entry, which will be different.
 
-      if(!identical(tar.h, cur.h))
-        stop(
-          "Logic Error: context guides are not identical; contact maintainer"
-        )
-      if(length(tar.h)) {
-        h.h <- hunk_sub(h.o, "head", max(tar.h))
-        tail.ind <- if(length(tar.h) == 1L) 1L else diff(range(tar.h)) + 1L
+      tar.cand.guides <- intersect(
+        etc@guide.lines@target, seq(h$tar.rng[1L], h$tar.rng[2L], by=1L)
+      )
+      cur.cand.guides <- intersect(
+        etc@guide.lines@current, seq(h$cur.rng[1L], h$cur.rng[2L], by=1L)
+      ) - h$cur.rng[1L] + h$tar.rng[1L]
+      h.guides <- get_guides(
+        h, unique(c(tar.cand.guides, cur.cand.guides)), "tar"
+      )
+      if(length(h.guides)) {
+        h.h <- hunk_sub(h.o, "head", max(h.guides))
+        tail.ind <- if(length(h.guides) == 1L) 1L else
+          diff(range(h.guides)) + 1L
         h.fin <- hunk_sub(h.h, "tail", tail.ind)
         h.fin$guide <- TRUE
         res.l[[k]] <- c(list(h.fin), res.l[[k]])
