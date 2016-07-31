@@ -96,6 +96,10 @@ test_that("Lists", {
     ) ),
     rdsf(1630)
   )
+  expect_equal_to_reference(
+    as.character(diffPrint(list(1, list(2, list(1:3))), list(list(list(1:3))))),
+    rdsf(1640)
+  )
   # Interesting but relatively slow example so we don't actually run it in
   # tests
 

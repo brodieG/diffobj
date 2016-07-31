@@ -18,7 +18,7 @@ up_to_attr <- function(x) {
 }
 # Get atomic content on a best-efforts basis
 # Note that functionality for named vectors is turned off since they become
-# fairly pathological when wrap periodicities are not the same (Issue #43); 
+# fairly pathological when wrap periodicities are not the same (Issue #43);
 
 which_atomic_cont <- function(x.chr, x) {
   # Limit to everything before attribute
@@ -270,6 +270,9 @@ strip_array_rh <- function(x, dim.names.x) {
 #
 # Super inefficient currently since we keep switching back and forth between
 # index and trimmed formats so we can re-use `trimPrint`...
+#
+# Also, right now we are passing the list components with all the trailing
+# new lines, and it isn't completely clear that is the right thing to do
 
 strip_list_rh <- function(x, obj) {
   # Split output into each list component
@@ -277,15 +280,36 @@ strip_list_rh <- function(x, obj) {
   list.h <- detect_list_guides(x)
   dat <- split_by_guides(x, list.h, drop=FALSE)
   elements <- flatten_list(obj)
-  if(length(elements) != length(dat)) {
+
+  # Special case where first element in list is deeper than one value, which
+  # means there will be leading non-data elements in `dat` that we have to
+  # reconstruct
+
+  offset <- if(is.list(obj[[1L]]) && !is.object(obj[[1L]])) 1L else 0L
+
+  if(length(elements) != length(dat) - offset) {
     x
   } else {
     # Use `trimPrint` to get indices, and trim back to stuff without row header
-    dat.trim <- Map(trimPrint, elements, dat)
+
+    if(offset) {
+      hd <- dat[[1L]]
+      tl <- tail(dat, -offset)
+    } else {
+      hd <- NULL
+      tl <- dat
+    }
+    dat.trim <- Map(trimPrint, elements, tl)
     dat.w.o.rh <- Map(
-      function(chr, ind) substr(chr, ind[, 1], ind[, 2]), dat, dat.trim
+      function(chr, ind) substr(chr, ind[, 1], ind[, 2]), tl, dat.trim
     )
-    unlist(c(as.list(x[list.h]), dat.w.o.rh)[order(rep(seq_along(list.h), 2))])
+    unlist(
+      c(
+        list(hd),
+        c(
+          as.list(x[list.h]), dat.w.o.rh
+        )[order(rep(seq_along(list.h), 2))]
+    ) )
   }
 }
 #' Methods to Remove Unsemantic Text Prior to Diff
