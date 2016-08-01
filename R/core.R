@@ -408,7 +408,7 @@ line_diff <- function(
       if(h.a$context) next
       h.a.ind <- c(h.a$A, h.a$B)
       h.a.tar.ind <- setdiff(h.a.ind[h.a.ind > 0], tar.l.w.d)
-      h.a.cur.ind <- abs(setdiff(h.a.ind[h.a.ind < 0], cur.l.w.d))
+      h.a.cur.ind <- setdiff(abs(h.a.ind[h.a.ind < 0]), cur.l.w.d)
       h.a.w.d <- diff_word2(
         tar.dat, cur.dat, h.a.tar.ind, h.a.cur.ind, diff.mode="hunk", warn=warn,
         etc=etc
