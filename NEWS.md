@@ -11,7 +11,7 @@ Bugfixes:
 ## diffobj 0.1.1
 
 * Turn off unwrapping for _named_ atomic vectors (see [#43](https://github.com/brodieG/diffobj/issues/43))
-* [#44](https://github.com/brodieG/diffobj/issues/44): Proper handling of NULL objects in `diffStr` (Issue #44)
+* [#44](https://github.com/brodieG/diffobj/issues/44): Proper handling of NULL objects in `diffStr`
 * [#41](https://github.com/brodieG/diffobj/issues/41): Compilation Issues in Winbuilder
 
 ## diffobj 0.1.0
