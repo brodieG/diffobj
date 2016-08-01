@@ -73,6 +73,13 @@ test_that("auto style selection", {
       letters, LETTERS, style="auto", format="auto", interactive=TRUE,
       term.colors=1
     )@etc@style,
+    "StyleRaw"
+  )
+  expect_is(
+    diffChr(
+      letters, LETTERS, style="auto", format="auto", interactive=TRUE,
+      pager="auto", term.colors=1
+    )@etc@style,
     "StyleHtml"
   )
 })
