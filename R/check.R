@@ -295,7 +295,9 @@ check_args <- function(
       # No recognized color alternatives, try to use HTML if we can
 
       format <- if(!term.colors %in% c(8, 256)) {
-        if(interactive) "html" else "raw"
+        if(
+          interactive && (identical(pager, "on") || is(pager, "PagerBrowser"))
+        ) "html" else "raw"
       } else if (term.colors == 8) {
         "ansi8"
       } else if (term.colors == 256) {
