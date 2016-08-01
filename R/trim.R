@@ -293,7 +293,7 @@ strip_list_rh <- function(x, obj) {
   # Split output into each list component
 
   list.h <- detect_list_guides(x)
-  dat <- split_by_guides(x, list.h, drop=FALSE)
+  dat <- split_by_guides(x, list.h, drop.leading=FALSE)
   elements <- flatten_list(obj)
 
   # Special case where first element in list is deeper than one value, which
