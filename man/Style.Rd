@@ -170,14 +170,18 @@ HTML for the diff is output.
 
 Should you want to capture the HTML output for use elsewhere, you can do
 so by using \code{as.character} on the return value of the \code{diff*}
-methods.  If you want the raw HTML without any of the headers and links to
-css use \code{html.ouput="diff.only"} when you instantiate the \code{Style}
-object (see examples), or disable the \code{\link{Pager}}.  Another option
-is \code{html.output="diff.w.style"} which will add a \code{<style></style>}
-tag pair with all the CSS styles crammed therein.  This last option results
-in illegal HTML with a \code{<style>} block insite the \code{<body>} block,
-but appears to work and is useful if you want to embed HTML someplace but do
-not have access to the headers.
+methods.  If you want the raw HTML without any of the headers and
+css in \code{<style>} tags use \code{html.ouput="diff.only"} when you
+instantiate the \code{Style} object (see examples), or disable the
+\code{\link{Pager}}.  Another option is \code{html.output="diff.w.style"}
+which will add \code{<style>} tags with the CSS, but without wrapping those
+in \code{<head>} tags. This last option results in illegal HTML with a
+\code{<style>} block inside the \code{<body>} block, but appears to work and
+is useful if you want to embed HTML someplace but do not have access to the
+headers.
+
+For compatibility with RStudio server sessions the styles are always included
+directly within \code{style} tags rather than in an external style sheet.
 
 Unlike with ANSI styles, you should not modify the styling functions in the
 \code{@funs} slot of the \code{Style} object.  Instead, provide your own
@@ -191,7 +195,7 @@ To provide your own custom CSS style sheet you may:
     and pass that object as the value for the \code{style} parameter for the
     \code{diff*} methods (see example)
   \item as above, but asign the object to the active \code{PaletteOfStyles}
-  \item  set the \dQuote{diffobj.css} option
+  \item  set the \dQuote{diffobj.html.css} option
 }
 
 If you define your own custom \code{StyleHtml} object you may want to modify
