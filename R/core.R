@@ -399,22 +399,16 @@ line_diff <- function(
 
   if(etc@word.diff) {
     # Word diffs on hunks; check first which lines already have diffs and
-    # identify the diff hunks that don't contain any of those lines
+    # exclude them from the diff
 
     tar.l.w.d <- which(vapply(tar.dat$word.ind, "[", integer(1L), 1L) != -1L)
     cur.l.w.d <- which(vapply(cur.dat$word.ind, "[", integer(1L), 1L) != -1L)
-    all.l.w.d <- c(tar.l.w.d, -cur.l.w.d)
 
-    hunks.w.o.w.diff <- vapply(
-      hunks.flat,
-      function(y) !y$context && !any(unlist(y[c("A", "B")]) %in% all.l.w.d),
-      logical(1L)
-    )
-    for(i in which(hunks.w.o.w.diff)) {
-      h.a <- hunks.flat[[i]]
+    for(h.a in hunks.flat) {
+      if(h.a$context) next
       h.a.ind <- c(h.a$A, h.a$B)
-      h.a.tar.ind <- h.a.ind[h.a.ind > 0]
-      h.a.cur.ind <- abs(h.a.ind[h.a.ind < 0])
+      h.a.tar.ind <- setdiff(h.a.ind[h.a.ind > 0], tar.l.w.d)
+      h.a.cur.ind <- abs(setdiff(h.a.ind[h.a.ind < 0], cur.l.w.d))
       h.a.w.d <- diff_word2(
         tar.dat, cur.dat, h.a.tar.ind, h.a.cur.ind, diff.mode="hunk", warn=warn,
         etc=etc
