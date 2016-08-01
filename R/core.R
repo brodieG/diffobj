@@ -388,10 +388,11 @@ line_diff <- function(
       Map(dat.up, cur.dat, diff.word$cur.dat, MoreArgs=list(ind=cur.rh))
 
     # Mark the lines that were wrapped diffed; necessary b/c tar/cur.rh are
-    # defined even if other conditions to get in this loop are not
+    # defined even if other conditions to get in this loop are not, and also
+    # because the addition of the fill lines moves everything around
 
-    tar.wrap.diff <- tar.rh
-    cur.wrap.diff <- cur.rh
+    tar.wrap.diff <- seq_along(tar.dat$fill)[!tar.dat$fill][tar.rh]
+    cur.wrap.diff <- seq_along(cur.dat$fill)[!cur.dat$fill][cur.rh]
   }
   # Actual line diff
 
