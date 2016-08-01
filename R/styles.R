@@ -682,13 +682,14 @@ setMethod("initialize", "StyleHtml",
       if(html.output == "auto") {
         html.output <- if(is(pager, "PagerBrowser")) "page" else "diff.only"
       }
-      if(html.output == "diff.w.style") {
+      if(html.output %in% c("diff.w.style", "page")) {
         css.txt <- try(paste0(readLines(css), collapse="\n"))
         if(inherits(css.txt, "try-error")) stop("Cannot read css file ", css)
         css <- sprintf("<style type='text/css'>%s</style>", css.txt)
+      }
+      if(html.output == "diff.w.style") {
         tpl <- "%s%s"
       } else if (html.output == "page") {
-        css <- sprintf("<link rel='stylesheet' type='text/css' href='%s'>", css)
         tpl <- "<!DOCTYPE html><html><head>%s</head><body>%s</body><html>"
       } else if (html.output == "diff.only") {
         css <- ""
