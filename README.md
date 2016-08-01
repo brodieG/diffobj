@@ -5,7 +5,9 @@
   <img src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=master'>
 </a>
 
-Colorized diffs to quickly identify _and understand_ differences between R objects.  See [vignette](http://htmlpreview.github.io/?https://raw.githubusercontent.com/brodieG/diffobj/master/inst/doc/diffobj.html) for details.
+Colorized diffs to quickly identify _and understand_ differences between R objects.
+
+See [vignette](http://htmlpreview.github.io/?https://raw.githubusercontent.com/brodieG/diffobj/master/inst/doc/diffobj.html) for details.
 
 ## Output
 
