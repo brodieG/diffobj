@@ -181,10 +181,18 @@ test_that("`unitizer` corner case", {
     as.character(diffPrint(unname(res1), unname(res2))), rdsf(3100)
   )
 })
+test_that("factors", {
+  # Thanks Frank
+
+  expect_equal_to_reference(
+    as.character(diffPrint(factor(1:100), factor(c(1:99, 101)))), rdsf(3200)
+  )
+})
 test_that("covr workaround", {
   # Needed so that the function definition stuff is marked as covered; really
   # it shouldn't even be eligible for coverage, need to discuss further with
   # jhester
   diffobj:::make_diff_fun()
 })
+
 

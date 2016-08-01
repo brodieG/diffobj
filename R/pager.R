@@ -169,7 +169,7 @@ setMethod("initialize", "PagerSystemLess",
 #' @return \code{fun}, wrapped in a function that does the blocking
 
 make_blocking <- function(
-  fun, msg="Press any key to continue...", invisible.res=TRUE
+  fun, msg="Press ENTER to continue...", invisible.res=TRUE
 ) {
   if(!is.function(fun)) stop("Argument `fun` must be a function")
   if(!is.chr.1L(msg)) stop("Argument `msg` must be character(1L) and not NA")

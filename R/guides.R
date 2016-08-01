@@ -16,8 +16,11 @@
 # Split by guides; used by nested structures to retrieve contents within
 # guides.  Each element has an attribute indicating the indices from the
 # text element it was drawn from
+#
+# @param drop.leading keeps the section preceding guides; originally this was
+#   always dropped, but caused problems with lists of depth > 1
 
-split_by_guides <- function(txt, guides) {
+split_by_guides <- function(txt, guides, drop.leading=TRUE) {
   stopifnot(
     is.character(txt), !anyNA(txt), is.integer(guides),
     all(guides %in% seq_along(txt))
@@ -40,9 +43,13 @@ split_by_guides <- function(txt, guides) {
 
     # split and drop leading stuff if it exists (those with section == 0)
 
-    dat <- tail(unname(split(txt.net, sec.net)), max(sec.net))
-    ind <- tail(unname(split(ids.net, sec.net)), max(sec.net))
+    dat <- unname(split(txt.net, sec.net))
+    ind <- unname(split(ids.net, sec.net))
 
+    if(drop.leading) {
+      dat <- tail(dat, max(sec.net))
+      ind <- tail(ind, max(sec.net))
+    }
     # Generate indices and attach them to each element of list
 
     Map(`attr<-`, dat, "idx", ind )

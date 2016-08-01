@@ -10,6 +10,8 @@ diffobj_css()
 path to the default CSS file
 }
 \description{
-Used as the value for \code{getOption("diffobj.css")}.
+Used as the value for \code{getOption("diffobj.html.css")}.  Note that the
+contents of this file rather than the file address are used when
+constructing HTML output.
 }
 
