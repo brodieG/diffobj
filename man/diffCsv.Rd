@@ -136,14 +136,15 @@ Currently there is no mechanism for specifying additional arguments to
 
 \item{unwrap.atomic}{TRUE (default) or FALSE.  Only relevant for
 \code{diffPrint}, if TRUE, and \code{word.diff} is also TRUE, and both
-\code{target} and \code{current} are atomic, the vectors are unwrapped and
-diffed element by element, and then re-wrapped.  Since \code{diffPrint} is
-fundamentally a line diff, the re-wrapped lines are lined up in a manner
-that is as consistent as possible with the unwrapped diff.  Lines that
-contain the location of the word differences will be paired up.  Since the
-vectors may well be wrapped with different periodicities this will result
-in lines that are paired up that look like they should not be paired up,
-though the locations of the differences should be.}
+\code{target} and \code{current} are \emph{unnamed} and atomic, the vectors
+are unwrapped and diffed element by element, and then re-wrapped.  Since
+\code{diffPrint} is fundamentally a line diff, the re-wrapped lines are
+lined up in a manner that is as consistent as possible with the unwrapped
+diff.  Lines that contain the location of the word differences will be
+paired up.  Since the vectors may well be wrapped with different
+periodicities this will result in lines that are paired up that look like
+they should not be paired up, though the locations of the differences
+should be.}
 
 \item{max.diffs}{integer(1L), number of \emph{differences} after which we
 abandon the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to

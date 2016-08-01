@@ -349,6 +349,9 @@ line_diff <- function(
   # Word diffs in wrapped form is atomic; note this will potentially change
   # the length of the vectors
 
+  tar.wrap.diff <- integer(0L)
+  cur.wrap.diff <- integer(0L)
+
   if(
     is.atomic(target) && is.atomic(current) &&
     length(tar.rh <- which_atomic_cont(tar.capt.p, target)) &&
@@ -383,6 +386,13 @@ line_diff <- function(
       Map(dat.up, tar.dat, diff.word$tar.dat, MoreArgs=list(ind=tar.rh))
     cur.dat <-
       Map(dat.up, cur.dat, diff.word$cur.dat, MoreArgs=list(ind=cur.rh))
+
+    # Mark the lines that were wrapped diffed; necessary b/c tar/cur.rh are
+    # defined even if other conditions to get in this loop are not, and also
+    # because the addition of the fill lines moves everything around
+
+    tar.wrap.diff <- seq_along(tar.dat$fill)[!tar.dat$fill][tar.rh]
+    cur.wrap.diff <- seq_along(cur.dat$fill)[!cur.dat$fill][cur.rh]
   }
   # Actual line diff
 
@@ -398,23 +408,14 @@ line_diff <- function(
   # diff data for each hunk, which might be slow
 
   if(etc@word.diff) {
-    # Word diffs on hunks; check first which lines already have diffs and
-    # identify the diff hunks that don't contain any of those lines
+    # Word diffs on hunks, excluding all values that have already been wrap
+    # diffed as in tar.rh and cur.rh
 
-    tar.l.w.d <- which(vapply(tar.dat$word.ind, "[", integer(1L), 1L) != -1L)
-    cur.l.w.d <- which(vapply(cur.dat$word.ind, "[", integer(1L), 1L) != -1L)
-    all.l.w.d <- c(tar.l.w.d, -cur.l.w.d)
-
-    hunks.w.o.w.diff <- vapply(
-      hunks.flat,
-      function(y) !y$context && !any(unlist(y[c("A", "B")]) %in% all.l.w.d),
-      logical(1L)
-    )
-    for(i in which(hunks.w.o.w.diff)) {
-      h.a <- hunks.flat[[i]]
+    for(h.a in hunks.flat) {
+      if(h.a$context) next
       h.a.ind <- c(h.a$A, h.a$B)
-      h.a.tar.ind <- h.a.ind[h.a.ind > 0]
-      h.a.cur.ind <- abs(h.a.ind[h.a.ind < 0])
+      h.a.tar.ind <- setdiff(h.a.ind[h.a.ind > 0], tar.wrap.diff)
+      h.a.cur.ind <- setdiff(abs(h.a.ind[h.a.ind < 0]), cur.wrap.diff)
       h.a.w.d <- diff_word2(
         tar.dat, cur.dat, h.a.tar.ind, h.a.cur.ind, diff.mode="hunk", warn=warn,
         etc=etc

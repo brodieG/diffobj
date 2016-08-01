@@ -37,8 +37,12 @@ test_that("Basic Tests", {
   )
 })
 test_that("Word wrap in atomic", {
-  A <- B <- c(letters, LETTERS)
+  A <- A.1 <- B <- c(letters, LETTERS)
   B[15] <- "Alabama"
+  A.1[5] <- "Ee"
+  C <- A[-15]
+  D <- C
+  E <- B[-45]
 
   # Test simple changes to vectors; at 80 columns removing 1:8 corresponds to
   # row deletion
@@ -64,20 +68,14 @@ test_that("Word wrap in atomic", {
   )
   # Different wrap frequency and removed words that span lines
 
-  A.1 <- A
-  A.1[5] <- "Ee"
   expect_equal_to_reference(
     as.character(diffPrint(A, A.1[-(13:18)])), rdsf(1425)
   )
   # Removing words
 
-  C <- A[-15]
   expect_equal_to_reference(as.character(diffPrint(C, B)), rdsf(1450))
 
   # Two hunks
-
-  D <- C
-  E <- B[-45]
 
   expect_equal_to_reference(as.character(diffPrint(D, E)), rdsf(1500))
   expect_equal_to_reference(as.character(diffPrint(E, D)), rdsf(1600))

@@ -3,8 +3,8 @@ Type: Package
 Title: Compare R Objects with a Diff
 Description:  Colorized diffs to quickly identify _and understand_ differences
     between R objects.  See `vignette("diffobj")` for details.
-Version: 0.1.1
-Date: 2016-07-29
+Version: 0.1.2
+Date: 2016-07-31
 Authors@R: c(
     person(
     "Brodie", "Gaslam", email="brodie.gaslam@yahoo.com",
