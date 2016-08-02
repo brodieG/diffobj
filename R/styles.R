@@ -691,12 +691,24 @@ setMethod("initialize", "StyleHtml",
       if(html.output %in% c("diff.w.style", "page")) {
         css.txt <- try(paste0(readLines(css), collapse="\n"))
         if(inherits(css.txt, "try-error")) stop("Cannot read css file ", css)
-        css <- sprintf("<style type='text/css'>%s</style>", css.txt)
+        css <- sprintf("<style type='text/css'>\n%s\n</style>", css.txt)
       }
       if(html.output == "diff.w.style") {
         tpl <- "%s%s"
       } else if (html.output == "page") {
-        tpl <- "<!DOCTYPE html><html><head>%s</head><body>%s</body><html>"
+        tpl <- "
+        <!DOCTYPE html>
+        <html>
+          <head>
+            %s
+            <script type=\"text/javascript\">
+            window.addEventListener(
+              'resize', function(){console.log(\"resize\");}, true
+            );
+            </script>
+          </head>
+          <body>%s</body>
+        </html>"
       } else if (html.output == "diff.only") {
         css <- ""
         tpl <- "%s%s"
