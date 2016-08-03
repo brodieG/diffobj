@@ -120,3 +120,38 @@ render_rows <- function(cols, etc) {
   col.txt <- do.call(paste, c(cols, list(sep=etc@style@text@pad.col)))
   etc@style@funs@row(col.txt)
 }
+
+# Create a dummy row so we can compute display width for scaling display in
+# HTML mode
+#
+# @param x a `Diff` object
+
+make_dummy_row <- function(x) {
+  dummy.text <- paste0(rep("a", x@etc@text.width), collapse="")
+  fns <- x@etc@style@funs
+  txt <- x@etc@style@text
+
+  if(x@etc@mode == "sidebyside") {
+    fns@row(
+      sprintf(
+        "%s%s%s",
+        fns@line.delete(
+          sprintf(
+            "%s%s%s", x@etc@gutter@delete, x@etc@gutter@pad,
+            fns@text.insert(dummy.text)
+        ) ),
+        txt@pad.col,
+        fns@line.insert(
+          sprintf(
+            "%s%s%s", x@etc@gutter@insert, x@etc@gutter@pad,
+            fns@text.insert(dummy.text)
+    ) ) ) )
+  } else {
+    fns@row(
+      fns@line.delete(
+        sprintf(
+          "%s%s%s", x@etc@gutter@delete, x@etc@gutter@pad,
+          fns@text.insert(dummy.text)
+    ) ) )
+  }
+}

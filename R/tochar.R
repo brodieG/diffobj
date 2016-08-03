@@ -552,6 +552,8 @@ setMethod("as.character", "Diff",
     # represented by NAs originally and we indentify them within each aligned
     # group with `lines.na`
 
+    # NOTE: any changes here need to be reflected in `make_dummy_row`
+
     es <- x@etc@style
     funs.ts <- list(
       insert=function(x) es@funs@text(es@funs@text.insert(x)),
