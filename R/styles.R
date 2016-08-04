@@ -696,19 +696,56 @@ setMethod("initialize", "StyleHtml",
       if(html.output == "diff.w.style") {
         tpl <- "%s%s"
       } else if (html.output == "page") {
-        tpl <- "
+        tpl <- paste0("
         <!DOCTYPE html>
         <html>
           <head>
             %s
             <script type=\"text/javascript\">
-            window.addEventListener(
-              'resize', function(){console.log(\"resize\");}, true
-            );
+            function post_size() {
+                var w = window.innerWidth
+                || document.documentElement.clientWidth
+                || document.body.clientWidth;
+
+                var h = window.innerHeight
+                || document.documentElement.clientHeight
+                || document.body.clientHeight;
+
+                var t = document.getElementById(\"measure\").offsetWidth;
+
+                document.getElementById(\"xsize\").innerHTML = w;
+                document.getElementById(\"ysize\").innerHTML = h;
+                document.getElementById(\"tsize\").innerHTML = t;
+
+                if(t > w) {
+                  document.getElementById(\"ratio\").innerHTML = w / t;
+                  fs <- (w / t) + \"em\";
+                  document.getElementById(\"docont\").style.fontSize = fs;
+                  console.log(\"size updated to \", fs);
+                }
+            };
+            window.addEventListener('resize', post_size, true);
             </script>
           </head>
-          <body>%s</body>
-        </html>"
+          <body>
+          <div>
+            <span id=\"xsize\">&nbsp;</span>
+            <span id=\"ysize\">&nbsp;</span>
+            <span id=\"ratio\">&nbsp;</span>
+            <div>
+              <span
+                id=\"measure\"
+                style=\"font-family: monospace;\"
+              >",
+              paste0(rep("A", 83), collapse=""), "
+              </span>
+            </div>
+            <span id=\"tsize\">&nbsp;</span>
+          </div>
+          %s
+          </body>
+          <script type=\"text/javascript\">post_size();</script>
+        </html>")
       } else if (html.output == "diff.only") {
         css <- ""
         tpl <- "%s%s"

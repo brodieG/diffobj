@@ -440,11 +440,67 @@ line_diff <- function(
 
   # Instantiate result
 
-  hunk.grps <- group_hunks(
+  hunk.grps.raw <- group_hunks(
     hunks.flat, etc=etc, tar.capt=tar.dat$raw, cur.capt=cur.dat$raw
   )
+  # Recompute line limit accounting for banner len
+
+  gutter.dat <- etc@gutter
+  banner.len <- banner_len(etc@mode)
+  max.w <- etc@text.width
+
+  line.limit <- etc@line.limit
+  line.limit.a <- if(line.limit[[1L]] >= 0L)
+    pmax(integer(2L), line.limit - banner.len) else line.limit
+  etc@line.limit <- line.limit.a
+
+  # Trim hunks to the extented needed to make sure we fit in lines
+
+  hunk.grps <- trim_hunks(hunk.grps.raw, etc, tar.dat$raw, cur.dat$raw)
+  hunks.flat <- unlist(hunk.grps, recursive=FALSE)
+
+  # Compact to width of widest element, so retrieve all char values; also
+  # need to generate all the hunk headers b/c we need to use them in width
+  # computation as well; under no circumstances are hunk headers allowed to
+  # wrap as they are always assumed to take one line.
+  #
+  # Note: this used to be done after trimming / subbing, which is technically
+  # better since we might have trimmed away long rows, but we need to do it
+  # here so that we can can record the new text width in the outgoing object;
+  # also, logic a bit circuitous b/c this was originally done elsewhere; might
+  # be faster to use tar.dat and cur.dat directly
+
+  chr.ind <- unlist(lapply(hunks.flat, "[", c("A", "B")))
+  chr.dat <- get_dat(x, chr.ind, "raw")
+  chr.size <- integer(length(chr.dat))
+
+  ranges <- vapply(
+    hunks.flat, function(h.a) c(h.a$tar.rng.trim, h.a$cur.rng.trim),
+    integer(4L)
+  )
+  ranges.orig <- vapply(
+    hunks.flat, function(h.a) c(h.a$tar.rng.sub, h.a$cur.rng.sub), integer(4L)
+  )
+  hunk.heads <- lapply(hunk.grps, make_hh, x, ranges.orig)
+  h.h.chars <- nchar(chr_trim(unlist(hunk.heads), etc@line.width))
+
+  is.ansi <- is(etc@style, "StyleAnsi") &
+    grepl(ansi_regex, chr.dat, perl=TRUE)
+  if(any(is.ansi)) chr.size[is.ansi] <- crayon_nchar(chr.dat)
+  chr.size[!is.ansi] <- nchar(chr.dat)
+  max.col.w <- max(
+    max(0L, chr.size, .min.width) + gutter.dat@width, h.h.chars
+  )
+  max.w <- if(max.col.w < max.w) max.col.w else max.w
+
+  # future calculations should assume narrower display
+
+  etc@text.width <- max.w
+  etc@line.width <- max.w + gutter.dat@width
+
   new(
     "Diff", diffs=hunk.grps, target=target, current=current,
-    hit.diffs.max=!warn, tar.dat=tar.dat, cur.dat=cur.dat, etc=etc
+    hit.diffs.max=!warn, tar.dat=tar.dat, cur.dat=cur.dat, etc=etc,
+    hunk.heads=hunk.heads
   )
 }

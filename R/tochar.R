@@ -289,19 +289,17 @@ setMethod("as.character", "Diff",
       options(crayon.enabled=is(x@etc@style, "StyleAnsi"))
     on.exit(options(old.crayon.opt), add=TRUE)
 
-    # These checks should never fail since presumably the inputs have been
-    # checked earlier; here just in case we mess something up in devel or
-    # testing
-
     hunk.limit <- x@etc@hunk.limit
     line.limit <- x@etc@line.limit
     hunk.limit <- x@etc@hunk.limit
     disp.width <- x@etc@disp.width
+    hunk.grps <- x@diffs
     mode <- x@etc@mode
     tab.stops <- x@etc@tab.stops
     ignore.white.space <- x@etc@ignore.white.space
 
     # legacy from when we had different max diffs for different parts of diff
+
     max.diffs <- x@etc@max.diffs
     max.diffs.in.hunk <- x@etc@max.diffs
     max.diffs.wrap <- x@etc@max.diffs
@@ -309,6 +307,7 @@ setMethod("as.character", "Diff",
     s <- x@etc@style  # shorthand
 
     len.max <- max(length(x@tar.dat$raw), length(x@cur.dat$raw))
+
     no.diffs <- if(!suppressWarnings(any(x))) {
       # This needs to account for "trim" effects
 
@@ -332,27 +331,10 @@ setMethod("as.character", "Diff",
     # can figure out what's left
 
     gutter.dat <- x@etc@gutter
-    banner.len <- banner_len(mode)
-    max.w <- x@etc@text.width
-
-    line.limit.a <- if(line.limit[[1L]] >= 0L)
-      pmax(integer(2L), line.limit - banner.len) else line.limit
 
     # Trim hunks to the extented needed to make sure we fit in lines
 
-    x@etc@line.limit <- line.limit.a
-    hunk.grps <- trim_hunks(x)
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
-
-    # Compact to width of widest element, so retrieve all char values; also
-    # need to generate all the hunk headers b/c we need to use them in width
-    # computation as well; under no circumstances are hunk headers allowed to
-    # wrap as they are always assumed to take one line
-
-    chr.ind <- unlist(lapply(hunks.flat, "[", c("A", "B")))
-    chr.dat <- get_dat(x, chr.ind, "raw")
-    chr.size <- integer(length(chr.dat))
-
     ranges <- vapply(
       hunks.flat, function(h.a) c(h.a$tar.rng.trim, h.a$cur.rng.trim),
       integer(4L)
@@ -360,26 +342,9 @@ setMethod("as.character", "Diff",
     ranges.orig <- vapply(
       hunks.flat, function(h.a) c(h.a$tar.rng.sub, h.a$cur.rng.sub), integer(4L)
     )
-    hunk.heads <- lapply(hunk.grps, make_hh, x, ranges.orig)
+    hunk.heads <- x@hunk.heads
     h.h.chars <- nchar(chr_trim(unlist(hunk.heads), x@etc@line.width))
 
-    if(s@wrap) {
-      is.ansi <- is(x@etc@style, "StyleAnsi") &
-        grepl(ansi_regex, chr.dat, perl=TRUE)
-      if(any(is.ansi)) chr.size[is.ansi] <- crayon_nchar(chr.dat)
-      chr.size[!is.ansi] <- nchar(chr.dat)
-      max.col.w <- max(
-        max(0L, chr.size, .min.width) + gutter.dat@width, h.h.chars
-      )
-      max.w <- if(max.col.w < max.w) max.col.w else max.w
-
-      # future calculations should assume narrower display
-
-      x@etc@text.width <- max.w
-      x@etc@line.width <- max.w + gutter.dat@width
-      s <- x@etc@style
-      etc <- x@etc
-    }
     # Make the object banner and compute more detailed widths post trim
 
     tar.banner <- if(!is.null(x@etc@tar.banner)) x@etc@tar.banner else
@@ -404,6 +369,9 @@ setMethod("as.character", "Diff",
     # strings; careful with ranges,
 
     trim.meta <- attr(hunk.grps, "meta")
+    if(is.null(trim.meta))
+      stop("Logic error: missing trim meta data, contact maintainer")
+
     lim.line <- trim.meta$lines
     lim.hunk <- trim.meta$hunks
     ll <- !!lim.line[[1L]]
@@ -561,7 +529,7 @@ setMethod("as.character", "Diff",
       match=function(x) es@funs@text(es@funs@text.match(x)),
       guide=function(x) es@funs@text(es@funs@text.guide(x)),
       fill=function(x) es@funs@text(es@funs@text.fill(x)),
-      context.sep=function(x) 
+      context.sep=function(x)
         es@funs@text(es@funs@context.sep(es@text@context.sep)),
       header=es@funs@header
     )

@@ -290,6 +290,7 @@ setClass("Diff",
     capt.mode="character",        # whether in print or str mode
     hit.diffs.max="logical",
     diff.count.full="integer",         # only really used by diffStr when folding
+    hunk.heads="list",
     etc="Settings"
   ),
   prototype=list(
