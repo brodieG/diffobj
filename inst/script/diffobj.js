@@ -21,14 +21,22 @@ function resize_diff_out() {
   var w = document.body.clientWidth;
   var meta = document.getElementById("diffobj_size_meta");
   var content = document.getElementById("diffobj_content");
+  var lines = meta.getElementsByClassName("line");
+
+  if(lines.length != 1 && lines.length != 2)
+    throw new Error("Unexpected lines in meta block; contact maintainer.")
+
   // meta.style.display = "block";
-  var t = meta.scrollWidth;
+
+  var t = 0;
+  for(i = 0; i < lines.length; i++) t = t + lines[i].scrollWidth;
+
   // meta.style.display = "none";
   console.log(w);
   console.log(t);
   if(!w || !t) throw new Error("Unable to get dimensions for resizing.")
 
-  var pad = 0;
+  var pad = 5;
   if(t + pad > w) {
     var fs = ((w - pad) / t) + "em";
     content.style.fontSize = fs;
