@@ -513,7 +513,7 @@ line_diff <- function(
   if(any(is.ansi)) chr.size[is.ansi] <- crayon_nchar(chr.dat)
   chr.size[!is.ansi] <- nchar(chr.dat)
   max.col.w <- max(
-    max(0L, chr.size, .min.width) + gutter.dat@width, h.h.chars
+    max(0L, chr.size, .min.width + gutter.dat@width), h.h.chars
   )
   max.w <- if(max.col.w < max.w) max.col.w else max.w
 
