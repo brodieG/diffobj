@@ -166,34 +166,6 @@ fin_fun_sidebyside <- function(A, B, A.fill, B.fill, context, guide) {
           ifelse(context, "match", "insert")
   ) ) ) )
 }
-# Compute the character representation of a hunk header
-
-make_hh <- function(h.g, x, ranges.orig) {
-  stopifnot(is(x, "Diff"))
-
-  etc <- x@etc
-  mode <- etc@mode
-
-  h.ids <- vapply(h.g, "[[", integer(1L), "id")
-  h.head <- vapply(h.g, "[[", logical(1L), "guide")
-
-  # exclude header hunks from contributing to range, and adjust ranges for
-  # possible fill lines added to the data
-
-  h.ids.nh <- h.ids[!h.head]
-  tar.rng <- find_rng(h.ids.nh, ranges.orig[1:2, , drop=FALSE])
-  tar.rng.f <- cumsum(!x@tar.dat$fill)[tar.rng]
-  cur.rng <- find_rng(h.ids.nh, ranges.orig[3:4, , drop=FALSE])
-  cur.rng.f <- cumsum(!x@cur.dat$fill)[cur.rng]
-
-  hh.a <- paste0(rng_as_chr(tar.rng.f))
-  hh.b <- paste0(rng_as_chr(cur.rng.f))
-
-  if(mode == "sidebyside") sprintf("@@ %s @@", c(hh.a, hh.b)) else {
-    sprintf("@@ %s / %s @@", hh.a, hh.b)
-  }
-}
-
 # Convert a hunk group into text representation
 
 hunk_atom_as_char <- function(h.a, x) {

@@ -262,6 +262,29 @@ char_diff <- function(x, y, context=-1L, etc, diff.mode, warn) {
 
   list(hunks=hunks, hit.diffs.max=hit.diffs.max)
 }
+# Compute the character representation of a hunk header
+
+make_hh <- function(h.g, mode, tar.dat, cur.dat, ranges.orig) {
+  h.ids <- vapply(h.g, "[[", integer(1L), "id")
+  h.head <- vapply(h.g, "[[", logical(1L), "guide")
+
+  # exclude header hunks from contributing to range, and adjust ranges for
+  # possible fill lines added to the data
+
+  h.ids.nh <- h.ids[!h.head]
+  tar.rng <- find_rng(h.ids.nh, ranges.orig[1:2, , drop=FALSE])
+  tar.rng.f <- cumsum(!tar.dat$fill)[tar.rng]
+  cur.rng <- find_rng(h.ids.nh, ranges.orig[3:4, , drop=FALSE])
+  cur.rng.f <- cumsum(!cur.dat$fill)[cur.rng]
+
+  hh.a <- paste0(rng_as_chr(tar.rng.f))
+  hh.b <- paste0(rng_as_chr(cur.rng.f))
+
+  if(mode == "sidebyside") sprintf("@@ %s @@", c(hh.a, hh.b)) else {
+    sprintf("@@ %s / %s @@", hh.a, hh.b)
+  }
+}
+
 # Variation on `char_diff` used for the overall diff where we don't need
 # to worry about overhead from creating the `Diff` object
 
@@ -471,7 +494,7 @@ line_diff <- function(
   # be faster to use tar.dat and cur.dat directly
 
   chr.ind <- unlist(lapply(hunks.flat, "[", c("A", "B")))
-  chr.dat <- get_dat(x, chr.ind, "raw")
+  chr.dat <- get_dat_raw(chr.ind, tar.dat$raw, cur.dat$raw)
   chr.size <- integer(length(chr.dat))
 
   ranges <- vapply(
@@ -481,7 +504,8 @@ line_diff <- function(
   ranges.orig <- vapply(
     hunks.flat, function(h.a) c(h.a$tar.rng.sub, h.a$cur.rng.sub), integer(4L)
   )
-  hunk.heads <- lapply(hunk.grps, make_hh, x, ranges.orig)
+  hunk.heads <-
+    lapply(hunk.grps, make_hh, etc@mode, tar.dat, cur.dat, ranges.orig)
   h.h.chars <- nchar(chr_trim(unlist(hunk.heads), etc@line.width))
 
   is.ansi <- is(etc@style, "StyleAnsi") &
