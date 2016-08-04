@@ -49,6 +49,7 @@
   diffobj.guides=TRUE,
   diffobj.trim=TRUE,
   diffobj.html.escape.html.entities=TRUE,
+  diffobj.html.js=diffobj_js(),
   diffobj.html.css=diffobj_css(),
   diffobj.html.output="auto"
 )

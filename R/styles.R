@@ -589,7 +589,8 @@ StyleAnsi256DarkYb <- setClass(
 StyleHtml <- setClass(
   "StyleHtml", contains=c("Style", "Html"),
   slots=c(
-    css="character", html.output="character", escape.html.entities="logical"
+    css="character", html.output="character", escape.html.entities="logical",
+    js="character"
   ),
   prototype=list(
     funs=StyleFuns(
@@ -639,6 +640,8 @@ StyleHtml <- setClass(
   validity=function(object) {
     if(!is.chr.1L(object@css))
       return("slot `css` must be character(1L)")
+    if(!is.chr.1L(object@js))
+      return("slot `js` must be character(1L)")
     if(!is.chr.1L(object@html.output))
       return("slot `html.output` must be character(1L)")
     if(!is.TF(object@escape.html.entities))
@@ -646,17 +649,28 @@ StyleHtml <- setClass(
     TRUE
   }
 )
-#' Return Location of Default CSS File
+#' Return Location of Default HTML Support Files
 #'
-#' Used as the value for \code{getOption("diffobj.html.css")}.  Note that the
-#' contents of this file rather than the file address are used when
-#' constructing HTML output.
+#' File location for default CSS and JS files.  Note that these files are read
+#' and injected into the output HTML rather than referenced to simplify serving.
 #'
+#' @rdname webfiles
 #' @export
-#' @return path to the default CSS file
+#' @return path to the default CSS or JS file
+
+NULL
+
+#' @export
+#' @rdname webfiles
 
 diffobj_css <- function()
   file.path(system.file(package="diffobj"), "css", "diffobj.css")
+
+#' @export
+#' @rdname webfiles
+
+diffobj_js <- function()
+  file.path(system.file(package="diffobj"), "script", "diffobj.js")
 
 # construct with default values specified via options; would this work with
 # initialize?  Depends on whether this is run by package installation process
@@ -664,23 +678,28 @@ diffobj_css <- function()
 setMethod("initialize", "StyleHtml",
   function(
     .Object, css=getOption("diffobj.html.css"),
+    js=getOption("diffobj.html.js"),
     html.output=getOption("diffobj.html.output"),
     escape.html.entities=getOption("diffobj.html.escape.html.entities"),
     ...
   ) {
     if(!is.chr.1L(css))
       stop("Argument `css` must be character(1L) and not NA")
+    if(!is.chr.1L(js))
+      stop("Argument `js` must be character(1L) and not NA")
     valid.html.output <- c("auto", "page", "diff.only", "diff.w.style")
     if(!string_in(html.output, valid.html.output))
       stop("Argument `html.output` must be in `", dep(valid.html.output), "`.")
 
     # Generate finalizer function
 
-    .Object@finalizer <- function(txt, pager) {
-      stopifnot(is(pager, "Pager"))
+    .Object@finalizer <- function(txt, Diff) {
+      stopifnot(is(Diff, "Diff"))
+      pager <- Diff@etc@style@pager
 
       # Note this might conflict with threshold computations as we don't really
       # know whether we are truly going to use the pager
+
       use.pager <- !is(pager, "PagerOff")
       header <- footer <- NULL
       txt.flat <- paste0(txt, sep="")
@@ -696,63 +715,37 @@ setMethod("initialize", "StyleHtml",
       if(html.output == "diff.w.style") {
         tpl <- "%s%s"
       } else if (html.output == "page") {
-        tpl <- paste0("
-        <!DOCTYPE html>
-        <html>
-          <head>
-            %s
-            <script type=\"text/javascript\">
-            function post_size() {
-                var w = window.innerWidth
-                || document.documentElement.clientWidth
-                || document.body.clientWidth;
-
-                var h = window.innerHeight
-                || document.documentElement.clientHeight
-                || document.body.clientHeight;
-
-                var t = document.getElementById(\"measure\").offsetWidth;
-
-                document.getElementById(\"xsize\").innerHTML = w;
-                document.getElementById(\"ysize\").innerHTML = h;
-                document.getElementById(\"tsize\").innerHTML = t;
-
-                if(t > w) {
-                  document.getElementById(\"ratio\").innerHTML = w / t;
-                  fs <- (w / t) + \"em\";
-                  document.getElementById(\"docont\").style.fontSize = fs;
-                  console.log(\"size updated to \", fs);
-                }
-            };
-            window.addEventListener('resize', post_size, true);
-            </script>
-          </head>
-          <body>
-          <div>
-            <span id=\"xsize\">&nbsp;</span>
-            <span id=\"ysize\">&nbsp;</span>
-            <span id=\"ratio\">&nbsp;</span>
-            <div>
-              <span
-                id=\"measure\"
-                style=\"font-family: monospace;\"
-              >",
-              paste0(rep("A", 83), collapse=""), "
-              </span>
+        js.txt <- try(paste0(readLines(js), collapse="\n"))
+        if(inherits(js.txt, "try-error")) stop("Cannot read js file ", js)
+        tpl <- sprintf( "
+          <!DOCTYPE html>
+          <html>
+            <head>
+              %%s
+              <script type=\"text/javascript\">
+                %s
+              </script>
+            </head>
+            <body>
+            <div id='diff_content'>
+            %%s
             </div>
-            <span id=\"tsize\">&nbsp;</span>
-          </div>
-          %s
-          </body>
-          <script type=\"text/javascript\">post_size();</script>
-        </html>")
+            <div id='diff_meta' style='display: none;'>
+            %s
+            </div>
+            </body>
+            <script type=\"text/javascript\">resize();</script>
+          </html>",
+          make_dummy_row(Diff),
+          js.txt
+        )
       } else if (html.output == "diff.only") {
         css <- ""
         tpl <- "%s%s"
       } else stop("Logic Error: unexpected html.output; contact maintainer.")
       sprintf(tpl, css, txt.flat)
     }
-    callNextMethod(.Object, css=css, html.output=html.output, ...)
+    callNextMethod(.Object, css=css, html.output=html.output, js=js, ...)
 } )
 #' @export StyleHtmlLightRgb
 #' @exportClass StyleHtmlLightRgb
