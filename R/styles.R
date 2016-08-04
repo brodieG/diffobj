@@ -727,17 +727,15 @@ setMethod("initialize", "StyleHtml",
               </script>
             </head>
             <body>
-            <div id='diff_content'>
+            <div id='diffobj_content'>
             %%s
             </div>
-            <div id='diff_meta' style='display: none;'>
             %s
-            </div>
+            <script type=\"text/javascript\">resize_diff_out();</script>
             </body>
-            <script type=\"text/javascript\">resize();</script>
           </html>",
-          make_dummy_row(Diff),
-          js.txt
+          js.txt,
+          make_dummy_row(Diff)
         )
       } else if (html.output == "diff.only") {
         css <- ""

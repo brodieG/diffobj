@@ -131,27 +131,32 @@ make_dummy_row <- function(x) {
   fns <- x@etc@style@funs
   txt <- x@etc@style@text
 
-  if(x@etc@mode == "sidebyside") {
-    fns@row(
-      sprintf(
-        "%s%s%s",
+  txt <- if(x@etc@mode == "sidebyside") {
+    sprintf(
+      "%s%s%s",
+      fns@line(
         fns@line.delete(
           sprintf(
             "%s%s%s", x@etc@gutter@delete, x@etc@gutter@pad,
-            fns@text.insert(dummy.text)
-        ) ),
-        txt@pad.col,
-        fns@line.insert(
+            fns@text(fns@text.delete(dummy.text))
+      ) ) ),
+      txt@pad.col,
+      fns@line(
+      fns@line.insert(
           sprintf(
             "%s%s%s", x@etc@gutter@insert, x@etc@gutter@pad,
-            fns@text.insert(dummy.text)
+            fns@text(fns@text.insert(dummy.text))
     ) ) ) )
   } else {
-    fns@row(
+    fns@line(
       fns@line.delete(
         sprintf(
           "%s%s%s", x@etc@gutter@delete, x@etc@gutter@pad,
-          fns@text.insert(dummy.text)
+          fns@text(fns@text.insert(dummy.text))
     ) ) )
   }
+  sprintf(
+    "<div id='diffobj_size_meta'>%s</div>",
+    x@etc@style@funs@container(fns@row(txt))
+  )
 }

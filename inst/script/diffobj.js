@@ -1,34 +1,41 @@
+// diffobj - Compare R Objects with a Diff
+// Copyright (C) 2016  Brodie Gaslam
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
 
-function post_size() {
-  var iw = document.body.clientWidth;
+/*
+ * Resizes diff by changing font-size using a hidden row of sample output as
+ * a reference
+ */
+function resize_diff_out() {
   var w = document.body.clientWidth;
-  /*
-  var w = window.innerWidth
-  || document.documentElement.clientWidth
-  || document.body.clientWidth;
-
-  var h = window.innerHeight
-  || document.documentElement.clientHeight
-  || document.body.clientHeight;
-  */
-
-  var t = document.getElementById("measure").scrollWidth;
-
-  document.getElementById("iw").innerHTML = "inner width:" + iw;
-  document.getElementById("xsize").innerHTML = "width: " + w;
-  document.getElementById("tsize").innerHTML = "text size: " + t;
+  var meta = document.getElementById("diffobj_size_meta");
+  var content = document.getElementById("diffobj_content");
+  // meta.style.display = "block";
+  var t = meta.scrollWidth;
+  // meta.style.display = "none";
+  console.log(w);
+  console.log(t);
+  if(!w || !t) throw new Error("Unable to get dimensions for resizing.")
 
   var pad = 0;
   if(t + pad > w) {
     var fs = ((w - pad) / t) + "em";
-    document.getElementById("ratio").innerHTML = fs;
-    document.getElementById("docont").style.fontSize = fs;
+    content.style.fontSize = fs;
     console.log("Font size changed to " + fs);
   } else {
-    document.getElementById("ratio").innerHTML = 1;
-    document.getElementById("docont").style.fontSize = "1em";
+    content.style.fontSize = "1em";
     console.log("Is smaller");
   }
 };
-window.addEventListener('resize', post_size, true);
-post_size();
+window.addEventListener('resize', resize_diff_out, true);

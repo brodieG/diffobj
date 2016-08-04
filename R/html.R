@@ -85,43 +85,8 @@ cont_f <- function(class=character()) {
   function(x) {
     if(!is.character(x)) stop("Argument `x` must be character.")
     sprintf(
-      "<div id=\"docont\" class='diffobj_container%s'><pre>%s</pre></div>",
+      "<div class='diffobj_container%s'><pre>%s</pre></div>",
       if(length(class)) paste0(" ", class, collapse="") else "",
       paste0(x, collapse="")
     )
 } }
-
-# Create a dummy row so we can compute display width for scaling display in
-# HTML mode
-#
-# @param x a `Diff` object
-
-make_dummy_row <- function(x) {
-  dummy.text <- paste0(rep("a", x@etc@text.width), collapse="")
-  fns <- x@style@funs
-  txt <- x@style@text
-
-  if(x@mode == "sidebyside") {
-    fns@row(
-      sprintf(
-        "%s%s%s",
-        fns@line.delete(
-          sprintf(
-            "%s%s%s", x@etc@gutter@delete, x@etc@gutter@pad,
-            fns@text.insert(dummy.text)
-        ) ),
-        txt@pad.col,
-        fns@line.insert(
-          sprintf(
-            "%s%s%s", x@etc@gutter@insert, x@etc@gutter@pad,
-            fns@text.insert(dummy.text)
-    ) ) ) )
-  } else {
-    fns@row(
-      fns@line.delete(
-        sprintf(
-          "%s%s%s", x@etc@gutter@delete, x@etc@gutter@pad,
-          fns@text.insert(dummy.text)
-    ) ) )
-  }
-}
