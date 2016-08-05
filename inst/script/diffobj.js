@@ -17,7 +17,7 @@
  * Resizes diff by changing font-size using a hidden row of sample output as
  * a reference
  */
-function resize_diff_out() {
+function resize_diff_out(scale) {
   var w = document.body.clientWidth;
   var meta = document.getElementById("diffobj_size_meta");
   var content = document.getElementById("diffobj_content");
@@ -39,24 +39,28 @@ function resize_diff_out() {
   meta.style.display = "none";
 
   content.style.width = t + "px";
-  console.log("cont width set to " + t);
+  // console.log("cont width set to " + t);
 
-  var pad = 0;
-  var scale = ((w - pad) / t);
+  if(scale) {
+    var pad = 0;
+    var scale = ((w - pad) / t);
 
-  if(t + pad > w) {
-    content.style.transform = "scale(" + scale + ")";
-    content.style.transformOrigin = "top left";
-    content.style.webkitTransform = "scale(" + scale + ")";
-    content.style.webkitTransformOrigin = "top left";
-    content.style.msTransform = "scale(" + scale + ")";
-    content.style.msTransformOrigin = "top left";
-    console.log("Scaled to: " + scale);
-  } else {
-    content.style.transform = "none";
-    content.style.webkitTransform = "none";
-    content.style.msTransform = "none";
-    console.log("Unscaled");
+    if(t + pad > w) {
+      content.style.transform = "scale(" + scale + ")";
+      content.style.transformOrigin = "top left";
+      content.style.webkitTransform = "scale(" + scale + ")";
+      content.style.webkitTransformOrigin = "top left";
+      content.style.msTransform = "scale(" + scale + ")";
+      content.style.msTransformOrigin = "top left";
+      // console.log("Scaled to: " + scale);
+    } else {
+      content.style.transform = "none";
+      content.style.webkitTransform = "none";
+      content.style.msTransform = "none";
+      // console.log("Unscaled");
+    }
   }
 };
-window.addEventListener('resize', resize_diff_out, true);
+function resize_diff_out_scale() {resize_diff_out(true);}
+function resize_diff_out_no_scale() {resize_diff_out(false);}
+

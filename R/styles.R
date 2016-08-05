@@ -298,8 +298,8 @@ StyleText <- setClass(
 #' diff will be wrapped in HTML tags, styled with CSS, and output to
 #' a web browser by the pager.  The HTML output will be a full stand-alone
 #' HTML page with references to the built-in cascading style sheet.  If the
-#' pager is disabled or is not \code{\link{PagerBrowser}} then only the raw
-#' HTML for the diff is output.
+#' pager is disabled or is not \code{\link{PagerBrowser}} then the raw
+#' HTML will be output to screen.
 #'
 #' Should you want to capture the HTML output for use elsewhere, you can do
 #' so by using \code{as.character} on the return value of the \code{diff*}
@@ -590,7 +590,7 @@ StyleHtml <- setClass(
   "StyleHtml", contains=c("Style", "Html"),
   slots=c(
     css="character", html.output="character", escape.html.entities="logical",
-    js="character"
+    js="character", scale="logical"
   ),
   prototype=list(
     funs=StyleFuns(
@@ -635,7 +635,8 @@ StyleHtml <- setClass(
     escape.html.entities=TRUE,
     na.sub="&nbsp;",
     blank.sub="&nbsp;",
-    disp.width=80L
+    disp.width=80L,
+    scale=TRUE
   ),
   validity=function(object) {
     if(!is.chr.1L(object@css))
@@ -646,6 +647,8 @@ StyleHtml <- setClass(
       return("slot `html.output` must be character(1L)")
     if(!is.TF(object@escape.html.entities))
       return("slot `escape.html.entities` must be TRUE or FALSE.")
+    if(!is.TF(object@scale))
+      return("slot `scale` must be TRUE or FALSE.")
     TRUE
   }
 )
@@ -681,12 +684,15 @@ setMethod("initialize", "StyleHtml",
     js=getOption("diffobj.html.js"),
     html.output=getOption("diffobj.html.output"),
     escape.html.entities=getOption("diffobj.html.escape.html.entities"),
+    scale=getOption("diffobj.html.scale"),
     ...
   ) {
     if(!is.chr.1L(css))
       stop("Argument `css` must be character(1L) and not NA")
     if(!is.chr.1L(js))
       stop("Argument `js` must be character(1L) and not NA")
+    if(!is.TF(scale))
+      stop("Argument `scale` must be TRUE or FALSE")
     valid.html.output <- c("auto", "page", "diff.only", "diff.w.style")
     if(!string_in(html.output, valid.html.output))
       stop("Argument `html.output` must be in `", dep(valid.html.output), "`.")
@@ -716,6 +722,8 @@ setMethod("initialize", "StyleHtml",
         tpl <- "%s%s"
       } else if (html.output == "page") {
         js.txt <- try(paste0(readLines(js), collapse="\n"))
+        resize.call.text <- if(scale)
+          "resize_diff_out_scale" else "resize_diff_out_no_scale"
         if(inherits(js.txt, "try-error")) stop("Cannot read js file ", js)
         tpl <- sprintf( "
           <!DOCTYPE html>
@@ -724,6 +732,7 @@ setMethod("initialize", "StyleHtml",
               %%s
               <script type=\"text/javascript\">
                 %s
+                window.addEventListener('resize', %s, true);
               </script>
             </head>
             <body>
@@ -731,11 +740,13 @@ setMethod("initialize", "StyleHtml",
             %%s
             </div>
             %s
-            <script type=\"text/javascript\">resize_diff_out();</script>
+            <script type=\"text/javascript\">%s();</script>
             </body>
           </html>",
           js.txt,
-          make_dummy_row(Diff)
+          resize.call.text,
+          make_dummy_row(Diff),
+          resize.call.text
         )
       } else if (html.output == "diff.only") {
         css <- ""
@@ -743,7 +754,9 @@ setMethod("initialize", "StyleHtml",
       } else stop("Logic Error: unexpected html.output; contact maintainer.")
       sprintf(tpl, css, txt.flat)
     }
-    callNextMethod(.Object, css=css, html.output=html.output, js=js, ...)
+    callNextMethod(
+      .Object, css=css, html.output=html.output, js=js, scale=scale, ...
+    )
 } )
 #' @export StyleHtmlLightRgb
 #' @exportClass StyleHtmlLightRgb
