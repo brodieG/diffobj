@@ -156,7 +156,8 @@ make_dummy_row <- function(x) {
     ) ) )
   }
   sprintf(
-    "<div id='diffobj_size_meta'>%s</div>",
+    "<div id='diffobj_size_meta' style='%s'>%s</div>",
+    "display: none; position: absolute; top: 0px; z-index: -1;",
     x@etc@style@funs@container(fns@row(txt))
   )
 }
