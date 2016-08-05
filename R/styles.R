@@ -635,7 +635,7 @@ StyleHtml <- setClass(
     escape.html.entities=TRUE,
     na.sub="&nbsp;",
     blank.sub="&nbsp;",
-    disp.width=120L
+    disp.width=80L
   ),
   validity=function(object) {
     if(!is.chr.1L(object@css))

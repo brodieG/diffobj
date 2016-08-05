@@ -282,7 +282,7 @@ make_diff_fun <- function(capt_fun) {
 #' @param disp.width integer(1L) number of display columns to take up; note that
 #'   in \dQuote{sidebyside} \code{mode} the effective display width is half this
 #'   number (set to 0L to use default widths which are \code{getOption("width")}
-#'   for normal styles and \code{120L} for HTML styles.
+#'   for normal styles and \code{80L} for HTML styles.
 #' @param ignore.white.space TRUE or FALSE, whether to consider differences in
 #'   horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
 #'   FALSE)
