@@ -47,9 +47,15 @@ function resize_diff_out() {
   if(t + pad > w) {
     content.style.transform = "scale(" + scale + ")";
     content.style.transformOrigin = "top left";
+    content.style.webkitTransform = "scale(" + scale + ")";
+    content.style.webkitTransformOrigin = "top left";
+    content.style.msTransform = "scale(" + scale + ")";
+    content.style.msTransformOrigin = "top left";
     console.log("Scaled to: " + scale);
   } else {
     content.style.transform = "none";
+    content.style.webkitTransform = "none";
+    content.style.msTransform = "none";
     console.log("Unscaled");
   }
 };
