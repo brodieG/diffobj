@@ -207,6 +207,7 @@ check_args <- function(
 
   # int 1L vars
 
+  if(is.null(term.colors)) term.colors <- crayon::num_colors()
   msg.base <- "Argument `%s` must be integer(1L) and not NA."
   int.1L.vars <- c("max.diffs", "term.colors")
   for(x in int.1L.vars) {
