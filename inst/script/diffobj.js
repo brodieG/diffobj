@@ -21,6 +21,12 @@ function resize_diff_out() {
   var w = document.body.clientWidth;
   var meta = document.getElementById("diffobj_size_meta");
   var content = document.getElementById("diffobj_content");
+  var row = meta.getElementsByClassName("row");
+
+  if(row.length != 1)
+    throw new Error("Unexpected row struct in meta block; contact maintainer.")
+
+  // meta.style.display = "block";
   var lines = meta.getElementsByClassName("line");
 
   if(lines.length != 1 && lines.length != 2)
@@ -30,20 +36,19 @@ function resize_diff_out() {
 
   var t = 0;
   for(i = 0; i < lines.length; i++) t = t + lines[i].scrollWidth;
+  content.style.width = t + "px";
+  console.log("cont width set to " + t);
 
-  // meta.style.display = "none";
-  console.log(w);
-  console.log(t);
-  if(!w || !t) throw new Error("Unable to get dimensions for resizing.")
+  var pad = 0;
+  var scale = ((w - pad) / t);
 
-  var pad = 5;
   if(t + pad > w) {
-    var fs = ((w - pad) / t) + "em";
-    content.style.fontSize = fs;
-    console.log("Font size changed to " + fs);
+    content.style.transform = "scale(" + scale + ")";
+    content.style.transformOrigin = "top left";
+    console.log("Scaled to: " + scale);
   } else {
-    content.style.fontSize = "1em";
-    console.log("Is smaller");
+    content.style.transform = "none";
+    console.log("Unscaled");
   }
 };
 window.addEventListener('resize', resize_diff_out, true);
