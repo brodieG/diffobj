@@ -192,7 +192,7 @@ StyleText <- setClass(
     gutter.fill="~", gutter.fill.ctd="~",
     gutter.context.sep="~", gutter.context.sep.ctd="~",
     gutter.pad=" ", context.sep="----------",
-    pad.col=" ",
+    pad.col="  ",
     line.break="\n"
   ),
   validity=function(object){
