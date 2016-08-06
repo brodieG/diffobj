@@ -201,6 +201,27 @@ StyleText <- setClass(
     TRUE
   }
 )
+#' Styling For
+StyleSummary <- setClass("StyleSummary",
+  slots=c(container="ANY", body="ANY", map="ANY", line.break="character"),
+  prototype=list(
+    container=identity,
+    body=identity,
+    map=identity,
+    line.break="\n"
+  ),
+  validity=function(object) {
+    fun.slots <- c("container", "body", "map")
+    for(i in fun.slots) {
+      if(!is.one.arg.fun(slot(.Object, i)))
+        return(
+          "Slot ", i, " must contain a function that accepts at least one ",
+          "argument and requires no more than one argument."
+        )
+    }
+    TRUE
+  }
+)
 #' Customize Appearance of Diff
 #'
 #' S4 objects that expose the formatting controls for \code{Diff}
@@ -740,8 +761,18 @@ setMethod("initialize", "StyleHtml",
     # Generate finalizer function
 
     .Object@finalizer <- function(txt, Diff) {
-      stopifnot(is(Diff, "Diff"))
-      pager <- Diff@etc@style@pager
+
+      stopifnot(is(Diff, "Diff") || is(Diff, "Pager"))
+
+      # NOTE: Temporary handling of Diff situation vs pager for Summary; this
+      # needs to be fixed
+
+      if(is(Diff, "Diff")) {
+        pager <- Diff@etc@style@pager
+      } else {
+        pager <- Diff
+        Diff <- NULL
+      }
 
       # Note this might conflict with threshold computations as we don't really
       # know whether we are truly going to use the pager
@@ -785,7 +816,7 @@ setMethod("initialize", "StyleHtml",
           </html>",
           js.txt,
           resize.call.text,
-          make_dummy_row(Diff),
+          if(is(Diff, "Diff")) make_dummy_row(Diff) else "",
           resize.call.text
         )
       } else if (html.output == "diff.only") {
@@ -917,7 +948,7 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' values to the dimensions provided the values described above are the first
 #' ones in each of their corresponding dimensions.  For example, if you wanted
 #' to allow for styles that would render in \code{grid} graphics, you could
-#' genarate a default list with a \dQuote{"grid"} value appended to the values 
+#' genarate a default list with a \dQuote{"grid"} value appended to the values
 #' of the \code{format} dimension.
 #'
 #' @export PaletteOfStyles

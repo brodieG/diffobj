@@ -205,7 +205,7 @@ setMethod("as.character", "DiffSummary",
         if(is.null(s.o.txt) && !is.null(s.gt.o.txt)) "" else ", ",
         if(!is.null(s.gt.o.txt)) s.gt.o.txt else ""
       )
-      body <- strwrap(map.txt, width=x@width)
+      body <- if(x@style@wrap) strwrap(map.txt, width=x@width) else map.txt
 
       # Render actual map
 
@@ -225,7 +225,7 @@ setMethod("as.character", "DiffSummary",
 
       txt <- do.call(paste0, as.list(c(diffs.txt)))
       txt <- substr(txt, 1, max.chars)
-      txt.w <- unlist(wrap(txt, width))
+      txt.w <- unlist(if(x@style@wrap) wrap(txt, width) else txt)
 
       # Apply ansi styles if warranted
 
@@ -260,12 +260,18 @@ setMethod("as.character", "DiffSummary",
         )
       } else character(0L)
 
-      map <- paste0("  ", txt.w)
-      if(length(extra))
-        extra <- strwrap(extra, indent=2L, exdent=2L, width=width)
-      c(head, "", body, map, extra)
+      map <- txt.w
+      if(length(extra) && x@style@wrap) extra <- wrap(extra, width=width)
+      c(
+        x@style@summmary@body(
+          c(head, x@style@summmary@line.break, body)
+        ),
+        x@style@summmary@map(c(map, extra))
+      )
     }
-    fin <- paste0(c("", res, ""), collapse=x@style@text@line.break)
+    fin <- x@style@summary@container(
+      paste0(c("", res, ""), collapse=x@style@summary@line.break)
+    )
     finalize(fin, x@style, length(res) + 2L)
   }
 )
