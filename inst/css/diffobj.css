@@ -48,6 +48,9 @@ DIV.diffobj_container DIV.text>DIV.fill {
   background-color: transparent;
 }
 DIV.diffobj_container DIV.text>DIV {
+  padding-right: 3px;
+}
+DIV.diffobj_container DIV.text>DIV {
   border-left: 1px solid #888888;
 }
 DIV.diffobj_container DIV.line {
