@@ -29,7 +29,7 @@ diffPrint(target, current, ...)
 
 \item{current}{the object being compared to \code{target}}
 
-\item{...}{unused, for compatibility of generics with methods}
+\item{...}{unused, for compatibility of methods with generics}
 
 \item{mode}{character(1L), one of:
 \itemize{
@@ -66,7 +66,7 @@ calculation.}
     of ANSI formatting options
   \item \dQuote{html}: color and format using HTML markup
 }
-Defaults to \dQuote{auto}.  See \code{\link{PaletteOfStyles}} for details
+Defaults to \dQuote{auto}.  See \code{palette.of.styles} for details
 on customization, \code{\link{style}} for full control of output format.}
 
 \item{brightness}{character, one of \dQuote{light}, \dQuote{dark},
@@ -94,18 +94,18 @@ details and limitations.  Also offers the same advanced usage as the
 \item{word.diff}{TRUE (default) or FALSE, whether to run a secondary word
 diff on the in-hunk diferences}
 
-\item{pager}{character(1L), one of \dQuote{auto}, \dQuote{on},
+\item{pager}{one of \dQuote{auto} (default), \dQuote{on},
 \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
 pager is used to display the diff output.  If \dQuote{on} will use the
 pager associated with the \code{\link{Style}} specified via the
-\code{\link{style}} parameters.  if \dQuote{auto} (default) will behave
+\code{\link{style}} parameters.  if \dQuote{auto} will behave
 like \dQuote{on} but only if in interactive mode.  If the pager is
 enabled, default behavior is to pipe output to \code{\link{file.show}} if
 output is taller than the estimated terminal height and your terminal
-supports ANSI escape sequences.  If not, the default is to attempt to pipe
-output to a web browser with \code{\link{browseURL}}.  See
-\code{\link{Pager}}, \code{\link{Style}}, and \code{\link{PaletteOfStyles}}
-for more details.}
+supports ANSI escape sequences.  If the terminal does not support ANSI
+escape sequences, the default is to attempt to pipe to the IDE viewer or
+web browser.  See \code{\link{Pager}}, \code{\link{view_or_browse}},
+\code{\link{Style}}, and \code{\link{PaletteOfStyles}} for more details.}
 
 \item{guides}{TRUE (default), FALSE, or a function that accepts at least two
 arguments and requires no more than two arguments.  Guides
@@ -209,9 +209,11 @@ style object.  See \code{\link{Style}} for more details, in particular the
 examples.}
 
 \item{palette.of.styles}{\code{\link{PaletteOfStyles}} object; advanced usage,
-contains all the \code{\link{Style}} objects that are selected by
-specifying the \code{format}, \code{brightness}, and \code{color.mode}
-parameters.  See \code{\link{PaletteOfStyles}} for more details.}
+contains all the \code{\link{Style}} objects or
+\dQuote{classRepresentation} objects extending \code{\link{Style}} that are
+selected by specifying the \code{format}, \code{brightness}, and
+\code{color.mode} parameters.  See \code{\link{PaletteOfStyles}} for more
+details.}
 
 \item{frame}{an environment to use as the evaluation frame for the
 \code{print/show/str}, calls and for \code{diffObj}, the evaluation frame
@@ -222,7 +224,8 @@ value of \code{\link{par_frame}}.}
 interactive mode, defaults to the return value of
 \code{\link{interactive}}.  If in interactive mode, pager will be used if
 \code{pager} is \dQuote{auto}, and if ANSI styles are not supported and
-\code{style} is \dQuote{auto}, output will be send to browser as HTML.}
+\code{style} is \dQuote{auto}, output will be send to viewer/browser as 
+HTML.}
 
 \item{term.colors}{integer(1L) how many ANSI colors are supported by the
 terminal.  This variable is provided for when

@@ -181,15 +181,16 @@ make_blocking <- function(
     if(invisible.res) invisible(res) else res
   }
 }
-#' Invoke IDE Viewer if Available
+#' Invoke IDE Viewer if Available, browseURL if Not
 #'
 #' Use \code{getOption("viewer")} to view HTML output if it is available as 
 #' per \link{RStudio}{https://support.rstudio.com/hc/en-us/articles/202133558-Extending-RStudio-with-the-Viewer-Pane}. Fallback to \code{\link{browseURL}} 
 #' if not available.
 #'
+#' @export
 #' @param url character(1L) a location containing a file to display
 #' @return the return vaue of \code{getOption("viewer")} if it is a function, or
-#'   of \code{\link{browseURL}}
+#'   of \code{\link{browseURL}} if the viewer is not available
 
 view_or_browse <- function(url) {
   viewer <- getOption("viewer")

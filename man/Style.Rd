@@ -54,12 +54,12 @@ collapsing}
 \item{finalizer}{function that accepts at least two parameters and requires
 no more than two parameters, will receive as the first parameter the
 full text of the diff as a character vector, and the active
-\code{\link{Pager}} as the second argument.  This allows final
+\code{Diff} object as the second argument.  This allows final
 modifications to the character output so that it is displayed correctly
 by the pager.  For example, \code{StyleHtml} objects use it to generate
 HTML headers if the \code{Diff} is destined to be displayed in a browser.
-The \code{Pager} object is passed along to provide information about the
-paging device to the function.}
+The \code{Diff} object is passed along to provide information about the
+paging device and other contextual data to the function.}
 
 \item{escape.html.entities}{(\code{StyleHtml} objects only) TRUE (default)
 or FALSE, whether to escape HTML entities in the input}
@@ -106,7 +106,10 @@ Each of these classes has an associated constructor function with the
 same name (see examples).  Objects instantiated from these classes
 may also be used directly as the value for the \code{style} parameter to the
 \code{diff*} methods. This will override the automatic selection process
-that uses \code{\link{PaletteOfStyles}}.
+that uses \code{\link{PaletteOfStyles}}.  If you wish to tweak an
+auto-selected style rather than explicitly specify one, pass a parameter
+list instead of a \code{Style} objects as the \code{style} parameter to the
+\code{diff*} methods (see examples).
 
 There are predefined classes for most combinations of
 \code{format/color.mode/brightness}, but not all.  For example, there are
@@ -196,7 +199,7 @@ JS use \code{html.ouput="diff.only"} when you instantiate the
 Another option is \code{html.output="diff.w.style"} which will add
 \code{<style>} tags with the CSS, but without wrapping those in \code{<head>}
 tags. This last option results in illegal HTML with a \code{<style>} block
-outside of the \code{<body>} block, but appears to work and is useful if you
+outside of the \code{<head>} block, but appears to work and is useful if you
 want to embed HTML someplace but do not have access to the headers.
 
 If you wish to modify the CSS styles you should do so cautiously.  The
@@ -216,7 +219,7 @@ the javascript untouched.  You can provide the location of a modified
 javascript file via the \code{js} argument.
 
 Both the CSS and JS files can be specified via options,
-\dQuote{"diffobj.html.css"}, and \dQuote{"diffobj.html.js"} respectively.
+\dQuote{diffobj.html.css}, and \dQuote{diffobj.html.js} respectively.
 
 If you define your own custom \code{StyleHtml} object you may want to modify
 the slot \code{@funs@container}.  This slot contains a function that is

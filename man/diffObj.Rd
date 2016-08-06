@@ -11,7 +11,7 @@ diffObj(target, current, ...)
 
 \item{current}{the object being compared to \code{target}}
 
-\item{...}{unused, for compatibility of generics with methods}
+\item{...}{unused, for compatibility of methods with generics}
 }
 \value{
 a \code{Diff} object; see \code{\link{diffPrint}}.

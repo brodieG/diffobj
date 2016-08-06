@@ -231,7 +231,10 @@ StyleText <- setClass(
 #' same name (see examples).  Objects instantiated from these classes
 #' may also be used directly as the value for the \code{style} parameter to the
 #' \code{diff*} methods. This will override the automatic selection process
-#' that uses \code{\link{PaletteOfStyles}}.
+#' that uses \code{\link{PaletteOfStyles}}.  If you wish to tweak an
+#' auto-selected style rather than explicitly specify one, pass a parameter
+#' list instead of a \code{Style} objects as the \code{style} parameter to the
+#' \code{diff*} methods (see examples).
 #'
 #' There are predefined classes for most combinations of
 #' \code{format/color.mode/brightness}, but not all.  For example, there are
@@ -317,7 +320,7 @@ StyleText <- setClass(
 #' Another option is \code{html.output="diff.w.style"} which will add
 #' \code{<style>} tags with the CSS, but without wrapping those in \code{<head>}
 #' tags. This last option results in illegal HTML with a \code{<style>} block
-#' outside of the \code{<body>} block, but appears to work and is useful if you
+#' outside of the \code{<head>} block, but appears to work and is useful if you
 #' want to embed HTML someplace but do not have access to the headers.
 #'
 #' If you wish to modify the CSS styles you should do so cautiously.  The
@@ -337,7 +340,7 @@ StyleText <- setClass(
 #' javascript file via the \code{js} argument.
 #'
 #' Both the CSS and JS files can be specified via options,
-#' \dQuote{"diffobj.html.css"}, and \dQuote{"diffobj.html.js"} respectively.
+#' \dQuote{diffobj.html.css}, and \dQuote{diffobj.html.js} respectively.
 #'
 #' If you define your own custom \code{StyleHtml} object you may want to modify
 #' the slot \code{@funs@container}.  This slot contains a function that is
@@ -378,12 +381,12 @@ StyleText <- setClass(
 #' @param finalizer function that accepts at least two parameters and requires
 #'   no more than two parameters, will receive as the first parameter the
 #'   full text of the diff as a character vector, and the active
-#'   \code{\link{Pager}} as the second argument.  This allows final
+#'   \code{Diff} object as the second argument.  This allows final
 #'   modifications to the character output so that it is displayed correctly
 #'   by the pager.  For example, \code{StyleHtml} objects use it to generate
 #'   HTML headers if the \code{Diff} is destined to be displayed in a browser.
-#'   The \code{Pager} object is passed along to provide information about the
-#'   paging device to the function.
+#'   The \code{Diff} object is passed along to provide information about the
+#'   paging device and other contextual data to the function.
 #' @param escape.html.entities (\code{StyleHtml} objects only) TRUE (default)
 #'   or FALSE, whether to escape HTML entities in the input
 #' @param scale (\code{StyleHtml} objects only) TRUE (default) or FALSE,
@@ -845,15 +848,15 @@ setMethod("initialize", "StyleHtmlLightYb",
 #'
 #' A \code{PaletteOfStyles} object is an \dQuote{array} containing either
 #' \dQuote{classRepresentation} objects that extend \code{StyleHtml} or are
-#' instances of objects that contain \code{StyleHtml}.  The \code{diff*}
+#' instances of objects that inherit from \code{StyleHtml}.  The \code{diff*}
 #' methods then pick an object/class from this array based on the values of
 #' the \code{format}, \code{brightness}, and \code{color.mode} parameters.
 #'
 #' For the most part the distinction between actual \code{Style} objects vs
 #' \dQuote{classRepresentation} ones is academic, except that with the latter
 #' you can control the instatiation by providing a parameter list as the
-#' \code{style} argument to the \code{diff*}. This is not an option with already
-#' instantiated objects.  See examples.
+#' \code{style} argument to the \code{diff*} methods. This is not an option with
+#' already instantiated objects.  See examples.
 #'
 #' @section Dimensions:
 #'
@@ -866,11 +869,11 @@ setMethod("initialize", "StyleHtmlLightYb",
 #'
 #' The array/list dimensions are:
 #' \itemize{
-#'   \item \code{format}: the format type, typically \dQuote{raw},
+#'   \item \code{format}: the format type, one of \dQuote{raw},
 #'     \dQuote{ansi8}, \dQuote{ansi256}, or \dQuote{html}
 #'   \item \code{brightness}: whether the colors are bright or not, which
 #'     allows user to chose a scheme that is compatible with their console,
-#'     typically: \dQuote{light}, \dQuote{dark}, \dQuote{normal}
+#'     one of: \dQuote{light}, \dQuote{dark}, \dQuote{normal}
 #'   \item \code{color.mode}: \dQuote{rgb} for full color or \dQuote{yb} for
 #'     dichromats (yb stands for Yellow Blue).
 #' }
@@ -896,24 +899,26 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' The array/list must be fully populated with objects that are or inherit
 #' \code{Style}, or are \dQuote{classRepresentation} objects (i.e. those of
 #' the type returned by \code{\link{getClassDef}}) that extend \code{Style}.
+#' By default the array is populated only with \dQuote{classRepresentation}
+#' objects as that allows the list form of the \code{style} parameter to the
+#' \code{diff*} methods.  If there is a particular combination of coordinates
+#' that does not have a corresponding defined style a reasonable substitution
+#' must be provided.  For example, this package only defines \dQuote{light}
+#' HTML styles, so it simply uses that style for all the possible
+#' \code{brightness} values.
+#'
 #' There is no explicit check that the objects in the list comply with the
 #' descriptions implied by their coordinates, although the default object
 #' provided by the package does comply for the most part.  One check that is
 #' carried out is that any element that has a \dQuote{html} value in the
 #' \code{format} dimension extends \code{StyleHtml}.
 #'
-#' Every cell in the list must be populated.  If there is a particular
-#' combination of coordinates that does not have a corresponding defined style
-#' a reasonable substitution must be provided.  For example, this package
-#' only defines \dQuote{light} HTML styles, so it simply uses that style for
-#' all the possible \code{brightness} values.
-#'
 #' While the list may only have the three dimensions described, you can add
 #' values to the dimensions provided the values described above are the first
 #' ones in each of their corresponding dimensions.  For example, if you wanted
 #' to allow for styles that would render in \code{grid} graphics, you could
-#' genarate a default list with \dQuote{"grid"} value appended to the values of
-#' the \code{format} dimension.
+#' genarate a default list with a \dQuote{"grid"} value appended to the values 
+#' of the \code{format} dimension.
 #'
 #' @export PaletteOfStyles
 #' @exportClass PaletteOfStyles
