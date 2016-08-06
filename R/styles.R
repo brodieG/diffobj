@@ -236,10 +236,9 @@ StyleText <- setClass(
 #' There are predefined classes for most combinations of
 #' \code{format/color.mode/brightness}, but not all.  For example, there are
 #' only \dQuote{light} \code{brightness} defined for the \dQuote{html}
-#' \code{format}, and that class is re-used for all possible
-#' \code{brightness} values.  \code{\link{PaletteOfStyles}} substitutes an
-#' appropriate class when necessary (e.g. \code{StyleAnsi8NeutralYb} for the
-#' neutral yellow-blue Ansi256 entry).
+#' \code{format}, and those classes are re-used for all possible
+#' \code{brightness} values, and the 8 color ANSI neutral classes are used
+#' for the 256 color neutral selections as well.
 #'
 #' To get a preview of what a style looks like just instantiate
 #' an object; the \code{show} method will output a trivial diff to screen with
@@ -296,40 +295,49 @@ StyleText <- setClass(
 #'
 #' If you use a \code{Style} that inherits from \code{StyleHtml} the
 #' diff will be wrapped in HTML tags, styled with CSS, and output to
-#' a web browser by the pager.  The HTML output will be a full stand-alone
-#' HTML page with references to the built-in cascading style sheet.  If the
-#' pager is disabled or is not \code{\link{PagerBrowser}} then the raw
-#' HTML will be output to screen.
+#' \code{getOption("viewer")} if your IDE supports it (e.g. Rstudio), or
+#' directly to the browser otherwise, assuming that the default
+#' \code{\link{Pager}} or a correctly configured pager that inherits from
+#' \code{\link{PagerBrowser}} is in effect.  Otherwise, the raw HTML will be
+#' output to your terminal.
+#'
+#' By default HTML output sent to the viewer/browser is a full stand-alone
+#' webpage with CSS styles to format and color the diff, and JS code to
+#' handle scaling.  The CSS and JS is read from the
+#' \link[=webfiles]{default files} and injected into the HTML to simplify
+#' packaging of the output.  You can customize the CSS and JS by using the
+#' \code{css} and \code{js} arguments respectively, but read the rest of this
+#' documentation section if you plan on doing so.
 #'
 #' Should you want to capture the HTML output for use elsewhere, you can do
 #' so by using \code{as.character} on the return value of the \code{diff*}
-#' methods.  If you want the raw HTML without any of the headers and
-#' css in \code{<style>} tags use \code{html.ouput="diff.only"} when you
-#' instantiate the \code{Style} object (see examples), or disable the
-#' \code{\link{Pager}}.  Another option is \code{html.output="diff.w.style"}
-#' which will add \code{<style>} tags with the CSS, but without wrapping those
-#' in \code{<head>} tags. This last option results in illegal HTML with a
-#' \code{<style>} block inside the \code{<body>} block, but appears to work and
-#' is useful if you want to embed HTML someplace but do not have access to the
-#' headers.
+#' methods.  If you want the raw HTML without any of the headers, CSS, and
+#' JS use \code{html.ouput="diff.only"} when you instantiate the
+#' \code{StyleHtml} object (see examples), or disable the \code{\link{Pager}}.
+#' Another option is \code{html.output="diff.w.style"} which will add
+#' \code{<style>} tags with the CSS, but without wrapping those in \code{<head>}
+#' tags. This last option results in illegal HTML with a \code{<style>} block
+#' outside of the \code{<body>} block, but appears to work and is useful if you
+#' want to embed HTML someplace but do not have access to the headers.
 #'
-#' For compatibility with RStudio server sessions the styles are always included
-#' directly within \code{style} tags rather than in an external style sheet.
+#' If you wish to modify the CSS styles you should do so cautiously.  The
+#' HTML and CSS work well together out of the box, but may not take to kindly
+#' to modifications.  The safest changes you can make are to the colors of the
+#' scheme.  You also probably should not modify the functions in the
+#' \code{@funs} slot of the \code{StyleHtml} object.  If you want to provide
+#' your own custom styles make a copy of the file at the location returned by
+#' \code{diffobj_css()}, modify it to your liking, and pass the location of your
+#' modified sheet back via the \code{css} argument (see examples).
 #'
-#' Unlike with ANSI styles, you should not modify the styling functions in the
-#' \code{@funs} slot of the \code{Style} object.  Instead, provide your own
-#' styles.  See \code{diffobj_css()} for the predefined styles.  The styles are
-#' structured so that they are applied to any element within a container of a
-#' particular class.
+#' The javascript controls the scaling of the output such that its width fits
+#' in the viewport.  If you wish to turn of this behavior you can do so via the
+#' \code{scale} argument.  You may need to modify the javascript if you modify
+#' the \code{@funs} functions, but otherwise you are probably best off leaving
+#' the javascript untouched.  You can provide the location of a modified
+#' javascript file via the \code{js} argument.
 #'
-#' To provide your own custom CSS style sheet you may:
-#' \itemize{
-#'   \item specify it through the \code{css} slot of a \code{StyleHtml} object,
-#'     and pass that object as the value for the \code{style} parameter for the
-#'     \code{diff*} methods (see example)
-#'   \item as above, but asign the object to the active \code{PaletteOfStyles}
-#'   \item  set the \dQuote{diffobj.html.css} option
-#' }
+#' Both the CSS and JS files can be specified via options,
+#' \dQuote{"diffobj.html.css"}, and \dQuote{"diffobj.html.js"} respectively.
 #'
 #' If you define your own custom \code{StyleHtml} object you may want to modify
 #' the slot \code{@funs@container}.  This slot contains a function that is
@@ -339,6 +347,14 @@ StyleText <- setClass(
 #' that value wrapped in a \code{DIV} block with class
 #' \dQuote{"diffobj_container light rgb"}.  This allows the CSS style sheet to
 #' target the \code{Diff} elements with the correct styles.
+#'
+#' @section Modifying Style Parameters Directly:
+#'
+#' Often you will want to specify some of the style parameters (e.g.
+#' \code{scale}) while still relying on the default style selection to
+#' pick the specific style.  You can do so by passing a list to the
+#' \code{style} parameter of the \code{\link[=diffPrint]{diff*}} methods.
+#' See examples.
 #'
 #' @rdname Style
 #' @export Style
@@ -368,6 +384,14 @@ StyleText <- setClass(
 #'   HTML headers if the \code{Diff} is destined to be displayed in a browser.
 #'   The \code{Pager} object is passed along to provide information about the
 #'   paging device to the function.
+#' @param escape.html.entities (\code{StyleHtml} objects only) TRUE (default)
+#'   or FALSE, whether to escape HTML entities in the input
+#' @param scale (\code{StyleHtml} objects only) TRUE (default) or FALSE,
+#'   whether to scale HTML output to fit to the viewport
+#' @param css (\code{StyleHtml} objects only) path to file containing CSS styles
+#'   to style HTML output with
+#' @param js (\code{StyleHtml} objects only) path to file containing Javascript
+#'   used for scaling output to viewports.
 #' @return Style S4 object
 #' @examples
 #' ## Create a new style based on existing style by changing
@@ -386,9 +410,17 @@ StyleText <- setClass(
 #' my.css <- file.path(path.expand("~"), "web", "mycss.css")
 #' diffPrint(1:5, 2:6, style=StyleHtmlLightYb(css=my.css))
 #' }
+#'
+#' ## Turn of scaling; notice how we pass a list to `style`
+#' ## and we do not need to specify a specific style
+#' diffPrint(letters, letters[-5], format="html", style=list(scale=FALSE))
+#' ## Alternatively we can do the same by specifying a style
+#' my.style <- StyleHtmlLightYb(scale=FALSE)
+#' diffPrint(letters, letters[-5], style=my.style)
+#'
 #' ## Return only the raw HTML without any of the headers
 #' as.character(
-#'   diffPrint(1:5, 2:6, style=StyleHtmlLightYb(html.output="diff.only"))
+#'   diffPrint(1:5, 2:6, style=list(html.output="diff.only"))
 #' )
 
 Style <- setClass("Style", contains="VIRTUAL",
@@ -582,6 +614,31 @@ StyleAnsi256DarkYb <- setClass(
       gutter.context.sep=darkGray, gutter.context.sep.ctd=darkGray,
       context.sep=darkGray, meta=darkGray, trim=darkGray
 ) ) )
+#' Return Location of Default HTML Support Files
+#'
+#' File location for default CSS and JS files.  Note that these files are read
+#' and injected into the output HTML rather than referenced to simplify serving.
+#'
+#' @name diffobj_css
+#' @aliases diffobj_js
+#' @rdname webfiles
+#' @export
+#' @return path to the default CSS or JS file
+
+NULL
+
+#' @export
+#' @rdname webfiles
+
+diffobj_css <- function()
+  file.path(system.file(package="diffobj"), "css", "diffobj.css")
+
+#' @export
+#' @rdname webfiles
+
+diffobj_js <- function()
+  file.path(system.file(package="diffobj"), "script", "diffobj.js")
+
 #' @export StyleHtml
 #' @exportClass StyleHtml
 #' @rdname Style
@@ -636,6 +693,9 @@ StyleHtml <- setClass(
     na.sub="&nbsp;",
     blank.sub="&nbsp;",
     disp.width=80L,
+    html.output="auto",
+    css=diffobj_css(),
+    js=diffobj_js(),
     scale=TRUE
   ),
   validity=function(object) {
@@ -652,29 +712,6 @@ StyleHtml <- setClass(
     TRUE
   }
 )
-#' Return Location of Default HTML Support Files
-#'
-#' File location for default CSS and JS files.  Note that these files are read
-#' and injected into the output HTML rather than referenced to simplify serving.
-#'
-#' @rdname webfiles
-#' @export
-#' @return path to the default CSS or JS file
-
-NULL
-
-#' @export
-#' @rdname webfiles
-
-diffobj_css <- function()
-  file.path(system.file(package="diffobj"), "css", "diffobj.css")
-
-#' @export
-#' @rdname webfiles
-
-diffobj_js <- function()
-  file.path(system.file(package="diffobj"), "script", "diffobj.js")
-
 # construct with default values specified via options; would this work with
 # initialize?  Depends on whether this is run by package installation process
 
@@ -804,6 +841,20 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' scheme in \dQuote{ansi256} format), without having to provide a specific
 #' \code{\link{Style}} object.
 #'
+#' @section An Array of Styles:
+#'
+#' A \code{PaletteOfStyles} object is an \dQuote{array} containing either
+#' \dQuote{classRepresentation} objects that extend \code{StyleHtml} or are
+#' instances of objects that contain \code{StyleHtml}.  The \code{diff*}
+#' methods then pick an object/class from this array based on the values of
+#' the \code{format}, \code{brightness}, and \code{color.mode} parameters.
+#'
+#' For the most part the distinction between actual \code{Style} objects vs
+#' \dQuote{classRepresentation} ones is academic, except that with the latter
+#' you can control the instatiation by providing a parameter list as the
+#' \code{style} argument to the \code{diff*}. This is not an option with already
+#' instantiated objects.  See examples.
+#'
 #' @section Dimensions:
 #'
 #' There are three general orthogonal dimensions of styles that can be used when
@@ -815,17 +866,21 @@ setMethod("initialize", "StyleHtmlLightYb",
 #'
 #' The array/list dimensions are:
 #' \itemize{
-#'   \item format: the format type, typically \dQuote{raw}, \dQuote{ansi8},
-#'     \dQuote{ansi256}, or \dQuote{html}
-#'   \item brightness: whether the colors are bright or not, which allows user to
-#'     chose a scheme that is compatible with their console, typically:
-#'     \dQuote{light}, \dQuote{dark}, \dQuote{normal}
-#'   \item color.mode: \dQuote{rgb} for full color or \dQuote{yb} for
+#'   \item \code{format}: the format type, typically \dQuote{raw},
+#'     \dQuote{ansi8}, \dQuote{ansi256}, or \dQuote{html}
+#'   \item \code{brightness}: whether the colors are bright or not, which
+#'     allows user to chose a scheme that is compatible with their console,
+#'     typically: \dQuote{light}, \dQuote{dark}, \dQuote{normal}
+#'   \item \code{color.mode}: \dQuote{rgb} for full color or \dQuote{yb} for
 #'     dichromats (yb stands for Yellow Blue).
 #' }
+#'
+#' Each of these dimensions can be specified directly via the corresponding
+#' parameters to the \code{diff*} methods.
+#'
 #' @section Methods:
 #'
-#' The following methods are implemented:
+#' \code{PaletteOfStyles} objects have The following methods implemented:
 #' \itemize{
 #'   \item \code{[}, \code{[<-}, \code{[[}
 #'   \item show

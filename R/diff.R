@@ -303,11 +303,15 @@ make_diff_fun <- function(capt_fun) {
 #'   Set to \code{1} to turn off alignment which will cause all lines in a hunk
 #'   from \code{target} to show up first, followed by all lines from
 #'   \code{current}.
-#' @param style \dQuote{auto}, or a \code{\link{Style}} object.
+#' @param style \dQuote{auto}, a \code{\link{Style}} object, or a list.
 #'   \dQuote{auto} by default.  If a \code{Style} object, will override the
 #'   the \code{format}, \code{brightness}, and \code{color.mode} parameters.
 #'   The \code{Style} object provides full control of diff output styling.
-#'   See \code{\link{Style}} for more details.
+#'   If a list, then the same as \dQuote{auto}, except that if the auto-selected
+#'   \code{Style} requires instantiation (see \code{\link{PaletteOfStyles}}),
+#'   then the list contents will be used as arguments when instantiating the
+#'   style object.  See \code{\link{Style}} for more details, in particular the
+#'   examples.
 #' @param palette.of.styles \code{\link{PaletteOfStyles}} object; advanced usage,
 #'   contains all the \code{\link{Style}} objects that are selected by
 #'   specifying the \code{format}, \code{brightness}, and \code{color.mode}
@@ -353,7 +357,6 @@ make_diff_fun <- function(capt_fun) {
 #' @export
 #' @examples
 #' diffPrint(letters, letters[-5])
-
 setGeneric(
   "diffPrint", function(target, current, ...) standardGeneric("diffPrint")
 )
@@ -513,7 +516,7 @@ setMethod("diffCsv", signature=c("ANY", "ANY"), make_diff_fun(capt_csv))
 #' other output.
 #'
 #' @inheritParams diffPrint
-#' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
+#' @seealso \code{\link{diffPrint}} for details on the \code{diff*} methods,
 #'   \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly
 #'   \code{\link{diffDeparse}} to compare deparsed objects

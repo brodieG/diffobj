@@ -12,6 +12,22 @@ request a style that meets a certain description (e.g. a \dQuote{light}
 scheme in \dQuote{ansi256} format), without having to provide a specific
 \code{\link{Style}} object.
 }
+\section{An Array of Styles}{
+
+
+A \code{PaletteOfStyles} object is an \dQuote{array} containing either
+\dQuote{classRepresentation} objects that extend \code{StyleHtml} or are
+instances of objects that contain \code{StyleHtml}.  The \code{diff*}
+methods then pick an object/class from this array based on the values of
+the \code{format}, \code{brightness}, and \code{color.mode} parameters.
+
+For the most part the distinction between actual \code{Style} objects vs
+\dQuote{classRepresentation} ones is academic, except that with the latter
+you can control the instatiation by providing a parameter list as the
+\code{style} argument to the \code{diff*}. This is not an option with already
+instantiated objects.  See examples.
+}
+
 \section{Dimensions}{
 
 
@@ -24,20 +40,23 @@ atomic vector of type \dQuote{list} with a length 3 \code{dim} attribute.
 
 The array/list dimensions are:
 \itemize{
-  \item format: the format type, typically \dQuote{raw}, \dQuote{ansi8},
-    \dQuote{ansi256}, or \dQuote{html}
-  \item brightness: whether the colors are bright or not, which allows user to
-    chose a scheme that is compatible with their console, typically:
-    \dQuote{light}, \dQuote{dark}, \dQuote{normal}
-  \item color.mode: \dQuote{rgb} for full color or \dQuote{yb} for
+  \item \code{format}: the format type, typically \dQuote{raw},
+    \dQuote{ansi8}, \dQuote{ansi256}, or \dQuote{html}
+  \item \code{brightness}: whether the colors are bright or not, which
+    allows user to chose a scheme that is compatible with their console,
+    typically: \dQuote{light}, \dQuote{dark}, \dQuote{normal}
+  \item \code{color.mode}: \dQuote{rgb} for full color or \dQuote{yb} for
     dichromats (yb stands for Yellow Blue).
 }
+
+Each of these dimensions can be specified directly via the corresponding
+parameters to the \code{diff*} methods.
 }
 
 \section{Methods}{
 
 
-The following methods are implemented:
+\code{PaletteOfStyles} objects have The following methods implemented:
 \itemize{
   \item \code{[}, \code{[<-}, \code{[[}
   \item show

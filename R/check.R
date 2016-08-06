@@ -125,6 +125,7 @@ check_args <- function(
   extra, interactive, term.colors
 ) {
   err <- make_err_fun(call)
+  warn <- make_warn_fun(call)
 
   # Check extra
 
@@ -240,8 +241,11 @@ check_args <- function(
   }
   # style
 
-  if(!is(style, "Style") && !string_in(style, "auto"))
-    err("Argument `style` must be \"auto\" or a `Style` object.")
+  if(
+    !is(style, "Style") && !string_in(style, "auto") &&
+    !(is.list(style) && !is.object(style))
+  )
+    err("Argument `style` must be \"auto\",  a `Style` object, or a list.")
 
   # pager
 
@@ -281,7 +285,17 @@ check_args <- function(
   }
   # format; decide what format to use
 
-  if(!is(style, "Style") && string_in(style, "auto")) {
+  if(
+    !is(style, "Style") &&
+    (
+      string_in(style, "auto") || (is.list(style) && !is.object(style))
+    )
+  ) {
+    if(is.list(style)) {
+      style.args <- style
+      style <- "auto"
+    } else style.args <- list()
+
     if(!is.chr.1L(format))
       err("Argument `format` must be character(1L) and not NA")
     valid.formats <- c("auto", dimnames(palette.of.styles@data)$format)
@@ -308,7 +322,19 @@ check_args <- function(
     style <- palette.of.styles[[
       format, get_pal_par(format, brightness), get_pal_par(format, color.mode)
     ]]
-    if(is(style, "classRepresentation")) style <- new(style)
+    if(is(style, "classRepresentation")) {
+      style <- try(do.call("new", c(list(style), style.args)))
+      if(inherits(style, "try-error"))
+        err("Unable to instantiate `Style` object; see prior errors.")
+    } else {
+      if(length(style.args))
+        warn(
+          "Extra `style` arguments cannot be applied because selected object ",
+          "`palette.of.styles` is a `Style` instance rather than a `Style` ",
+          "\"classRepresentation\".  See documentation for the `style` ",
+          "parameter for details."
+        )
+    }
   } else if(!is(style, "Style"))
     stop("Logic Error: unexpected style state; contact maintainer.")
 

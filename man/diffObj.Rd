@@ -27,7 +27,7 @@ a particular selection under specific circumstances.  Instead, use
 other output.
 }
 \seealso{
-\code{\link{diffPrint}} for details on the \code{diff*} functions,
+\code{\link{diffPrint}} for details on the \code{diff*} methods,
   \code{\link{diffStr}},
   \code{\link{diffChr}} to compare character vectors directly
   \code{\link{diffDeparse}} to compare deparsed objects

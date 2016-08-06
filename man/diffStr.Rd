@@ -152,7 +152,7 @@ abandon the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
 \item{disp.width}{integer(1L) number of display columns to take up; note that
 in \dQuote{sidebyside} \code{mode} the effective display width is half this
 number (set to 0L to use default widths which are \code{getOption("width")}
-for normal styles and \code{120L} for HTML styles.}
+for normal styles and \code{80L} for HTML styles.}
 
 \item{ignore.white.space}{TRUE or FALSE, whether to consider differences in
 horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
@@ -198,11 +198,15 @@ Set to \code{1} to turn off alignment which will cause all lines in a hunk
 from \code{target} to show up first, followed by all lines from
 \code{current}.}
 
-\item{style}{\dQuote{auto}, or a \code{\link{Style}} object.
+\item{style}{\dQuote{auto}, a \code{\link{Style}} object, or a list.
 \dQuote{auto} by default.  If a \code{Style} object, will override the
 the \code{format}, \code{brightness}, and \code{color.mode} parameters.
 The \code{Style} object provides full control of diff output styling.
-See \code{\link{Style}} for more details.}
+If a list, then the same as \dQuote{auto}, except that if the auto-selected
+\code{Style} requires instantiation (see \code{\link{PaletteOfStyles}}),
+then the list contents will be used as arguments when instantiating the
+style object.  See \code{\link{Style}} for more details, in particular the
+examples.}
 
 \item{palette.of.styles}{\code{\link{PaletteOfStyles}} object; advanced usage,
 contains all the \code{\link{Style}} objects that are selected by
