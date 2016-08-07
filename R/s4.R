@@ -331,7 +331,7 @@ setMethod("finalizer", c("Diff"),
         "page" else "diff.only"
     }
     if(html.output == "page") {
-      rez.fun <- if(scale)
+      rez.fun <- if(style@scale)
         "resize_diff_out_scale" else "resize_diff_out_no_scale"
       x.chr <- c(x.chr, "
         <script type=\"text/javascript\">

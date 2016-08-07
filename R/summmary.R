@@ -89,6 +89,7 @@ setMethod("summary", "Diff",
 )
 setMethod("finalizer", c("DiffSummary"),
   function(x, x.chr, ...) {
+    browser()
     js <- ""
     callNextMethod(x, x.chr, style=x@style, js=js, ...)
 } )

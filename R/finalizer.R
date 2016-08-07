@@ -22,11 +22,12 @@ NULL
 #' Use as the \code{finalizer} slot to \code{\link{Style}} objects to wrap
 #' character output prior to output to device.  Used primarily by styles that
 #' output to HTML to properly configure HTML page structure.
+#'
+#' @export
 
 setGeneric("finalizer", function(x, ...) standardGeneric("finalizer"))
 setMethod("finalizer", c("ANY"),
   function(x, x.chr, style, js, ...) {
-    browser()
     if(!is.character(x.chr)) stop("Argument `x.chr` must be character")
     if(!is.character(js)) stop("Argument `js` must be character")
 
@@ -44,19 +45,16 @@ setMethod("finalizer", c("ANY"),
     if(html.output == "diff.w.style") {
       tpl <- "%s%s"
     } else if (html.output == "page") {
-      resize.call.text <- if(scale)
-        "resize_diff_out_scale" else "resize_diff_out_no_scale"
-      if(inherits(js.txt, "try-error")) stop("Cannot read js file ", js)
       tpl <- sprintf("
         <!DOCTYPE html>
         <html>
           <head>
-            %s%s\n
+            %%s\n
             <script type='text/javascript'>\n%s\n</script>
           </head>
-          <body>\n%s%s\n</body>
+          <body>\n%%s\n</body>
         </html>",
-        js, x.chr
+        js
       )
     } else if (html.output == "diff.only") {
       css <- ""
