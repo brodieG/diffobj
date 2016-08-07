@@ -202,14 +202,20 @@ StyleText <- setClass(
     TRUE
   }
 )
-#' Styling For
+#' Styling Information for Summaries
+#'
+#' @export
+#' @param container function applied to entire summary
+#' @param body function applied to everything except the actual map portion of
+#'   the summary
+#' @param map function applied to the map portion of the summary
+
 StyleSummary <- setClass("StyleSummary",
-  slots=c(container="ANY", body="ANY", map="ANY", line.break="character"),
+  slots=c(container="ANY", body="ANY", map="ANY"),
   prototype=list(
     container=identity,
     body=identity,
-    map=identity,
-    line.break="\n"
+    map=identity
   ),
   validity=function(object) {
     fun.slots <- c("container", "body", "map")
@@ -223,6 +229,14 @@ StyleSummary <- setClass("StyleSummary",
     TRUE
   }
 )
+#' @export
+
+StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
+  prototype=list(
+    container=cont_f("summary"),
+    body=div_f("body"),
+    map=div_f("map")
+) )
 #' Customize Appearance of Diff
 #'
 #' S4 objects that expose the formatting controls for \code{Diff}
@@ -388,6 +402,8 @@ StyleSummary <- setClass("StyleSummary",
 #'   represented above
 #' @param text a \code{\link{StyleText}} object that contains the non-content
 #'   text used by the diff (e.g. \code{gutter.insert.txt})
+#' @param summary a \code{\link{StyleSummary}} object that contains formatting
+#'   functions and other meta data for rendering summaries
 #' @param wrap TRUE or FALSE, whether the text should be hard wrapped to fit in
 #'   the console
 #' @param pad TRUE or FALSE, whether text should be right padded
@@ -453,6 +469,7 @@ Style <- setClass("Style", contains="VIRTUAL",
   slots=c(
     funs="StyleFuns",
     text="StyleText",
+    summary="StyleSummary",
     wrap="logical",
     pad="logical",
     finalizer="function",
@@ -712,6 +729,7 @@ StyleHtml <- setClass(
       gutter.match="&nbsp;",
       line.break="<br />"
     ),
+    summary=StyleSummaryHtml(),
     pager=PagerBrowser(),
     wrap=FALSE,
     pad=FALSE,
