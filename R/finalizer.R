@@ -13,6 +13,10 @@
 #
 # Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
 
+#' @include s4.R
+
+NULL
+
 #' Finalizing Methods
 #'
 #' Use as the \code{finalizer} slot to \code{\link{Style}} objects to wrap
@@ -20,36 +24,6 @@
 #' output to HTML to properly configure HTML page structure.
 
 setGeneric("finalizer", function(x, ...) standardGeneric("finalizer"))
-setMethod("finalizer", c("Diff"),
-  function(x, x.chr, ...) {
-    style <- x@etc@style
-    html.output <- style@html.output
-    if(html.output == "auto") {
-      html.output <- if(is(style@pager, "PagerBrowser"))
-        "page" else "diff.only"
-    }
-    if(html.output == "page") {
-      rez.fun <- if(scale)
-        "resize_diff_out_scale" else "resize_diff_out_no_scale"
-      x.chr <- c(x.chr, "
-        <script type=\"text/javascript\">
-          window.addEventListener('resize', %s, true);
-          %s();
-        </script>"
-      )
-      js <- try(paste0(readLines(style@js), collapse="\n"))
-      if(inherits(js, "try-error")) {
-        warning("Unable to read provided js file.")
-        js <- ""
-      }
-    } else js <- ""
-    callNextMethod(x, x.chr, style=style, js=js, ...)
-} )
-setMethod("finalizer", c("DiffSummary"),
-  function(x, x.chr, ...) {
-    js <- ""
-    callNextMethod(x, x.chr, style=x@style, js=js, ...)
-} )
 setMethod("finalizer", c("ANY"),
   function(x, x.chr, style, js, ...) {
     if(!is.character(x.chr)) stop("Argument `x.chr` must be character")

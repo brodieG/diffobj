@@ -87,6 +87,11 @@ setMethod("summary", "Diff",
     )
   }
 )
+setMethod("finalizer", c("DiffSummary"),
+  function(x, x.chr, ...) {
+    js <- ""
+    callNextMethod(x, x.chr, style=x@style, js=js, ...)
+} )
 #' Generate Character Representation of DiffSummary Object
 #'
 #' @param x a \code{DiffSummary} object

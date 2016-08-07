@@ -53,13 +53,14 @@ collapsing}
 
 \item{finalizer}{function that accepts at least two parameters and requires
 no more than two parameters, will receive as the first parameter the
-full text of the diff as a character vector, and the active
-\code{Diff} object as the second argument.  This allows final
-modifications to the character output so that it is displayed correctly
-by the pager.  For example, \code{StyleHtml} objects use it to generate
-HTML headers if the \code{Diff} is destined to be displayed in a browser.
-The \code{Diff} object is passed along to provide information about the
-paging device and other contextual data to the function.}
+the object to render (either a \code{Diff} or a \code{DiffSummary}
+object), and the text representation of that object as the second
+argument.  This allows final modifications to the character output so that
+it is displayed correctly by the pager.  For example, \code{StyleHtml}
+objects use it to generate HTML headers if the \code{Diff} is destined to
+be displayed in a browser.  The object themselves are passed along to
+provide information about the paging device and other contextual data to
+the function.}
 
 \item{escape.html.entities}{(\code{StyleHtml} objects only) TRUE (default)
 or FALSE, whether to escape HTML entities in the input}

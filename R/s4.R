@@ -214,75 +214,6 @@ setMethod("sideBySide", "Settings",
   "orig", "raw", "trim", "trim.ind.start", "trim.ind.end", "comp", "eq", "fin",
   "fill", "word.ind", "tok.rat"
 )
-#' Finalizing Methods
-#'
-#' Use as the \code{finalizer} slot to \code{\link{Style}} objects to wrap
-#' character output prior to output to device.  Used primarily by styles that
-#' output to HTML to properly configure HTML page structure.
-
-setGeneric("finalizer", function(x, ...) standardGeneric("finalizer"))
-setMethod("finalizer", c("Diff"),
-  function(x, x.chr, ...) {
-    style <- x@etc@style
-    html.output <- style@html.output
-    if(html.output == "auto") {
-      html.output <- if(is(style@pager, "PagerBrowser"))
-        "page" else "diff.only"
-    }
-    if(html.output == "page") {
-      rez.fun <- if(scale)
-        "resize_diff_out_scale" else "resize_diff_out_no_scale"
-      x.chr <- c(x.chr, "
-        <script type=\"text/javascript\">
-          window.addEventListener('resize', %s, true);
-          %s();
-        </script>"
-      )
-    }
-    callNextMethod(x, x.chr, style, css, ...)
-
-
-} )
-setMethod("finalizer", c("ANY"),
-  function(x, x.chr, style, css, js, ...) {
-    if(!is.character(x.chr)) stop("Argument `x.chr` must be character")
-    if(!is.character(js)) stop("Argument `js` must be character")
-
-    html.output <- style@html.output
-    pager <- style@pager
-
-    if(html.output == "auto") {
-      html.output <- if(is(pager, "PagerBrowser")) "page" else "diff.only"
-    }
-    if(html.output == "diff.w.style") {
-      tpl <- "%s%s"
-    } else if (html.output == "page") {
-      resize.call.text <- if(scale)
-        "resize_diff_out_scale" else "resize_diff_out_no_scale"
-      if(inherits(js.txt, "try-error")) stop("Cannot read js file ", js)
-      tpl <- sprintf("
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <style type='text/css'>\n%s%s\n</style>
-            <script type='text/javascript'>\n%s\n</script>
-          </head>
-          <body>\n%s%s\n</body>
-        </html>",
-        js, x.chr
-      )
-    } else if (html.output == "diff.only") {
-      css <- ""
-      tpl <- "%s%s"
-    } else stop("Logic Error: unexpected html.output; contact maintainer.")
-    sprintf(tpl, css, paste0(x.chr, collapse=""))
-  }
-)
-setMethod("finalizer", "Diff",
-  function(x, x.chr, ...) {
-
-
-} )
 
 # Validate the *.dat slots of the Diff objects
 
@@ -390,6 +321,31 @@ setClass("Diff",
       return("slot `hit.diffs.max` must be TRUE or FALSE")
 
     TRUE
+} )
+setMethod("finalizer", c("Diff"),
+  function(x, x.chr, ...) {
+    style <- x@etc@style
+    html.output <- style@html.output
+    if(html.output == "auto") {
+      html.output <- if(is(style@pager, "PagerBrowser"))
+        "page" else "diff.only"
+    }
+    if(html.output == "page") {
+      rez.fun <- if(scale)
+        "resize_diff_out_scale" else "resize_diff_out_no_scale"
+      x.chr <- c(x.chr, "
+        <script type=\"text/javascript\">
+          window.addEventListener('resize', %s, true);
+          %s();
+        </script>"
+      )
+      js <- try(paste0(readLines(style@js), collapse="\n"))
+      if(inherits(js, "try-error")) {
+        warning("Unable to read provided js file.")
+        js <- ""
+      }
+    } else js <- ""
+    callNextMethod(x, x.chr, style=style, js=js, ...)
 } )
 # Helper fun used by `show` for Diff and DiffSummary objects
 

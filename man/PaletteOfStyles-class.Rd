@@ -93,7 +93,7 @@ While the list may only have the three dimensions described, you can add
 values to the dimensions provided the values described above are the first
 ones in each of their corresponding dimensions.  For example, if you wanted
 to allow for styles that would render in \code{grid} graphics, you could
-genarate a default list with a \dQuote{"grid"} value appended to the values 
+genarate a default list with a \dQuote{"grid"} value appended to the values
 of the \code{format} dimension.
 }
 \examples{

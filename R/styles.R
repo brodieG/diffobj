@@ -14,6 +14,7 @@
 # Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
 
 #' @include html.R
+#' @include finalizer.R
 
 NULL
 
@@ -401,13 +402,14 @@ StyleSummary <- setClass("StyleSummary",
 #'   collapsing
 #' @param finalizer function that accepts at least two parameters and requires
 #'   no more than two parameters, will receive as the first parameter the
-#'   full text of the diff as a character vector, and the active
-#'   \code{Diff} object as the second argument.  This allows final
-#'   modifications to the character output so that it is displayed correctly
-#'   by the pager.  For example, \code{StyleHtml} objects use it to generate
-#'   HTML headers if the \code{Diff} is destined to be displayed in a browser.
-#'   The \code{Diff} object is passed along to provide information about the
-#'   paging device and other contextual data to the function.
+#'   the object to render (either a \code{Diff} or a \code{DiffSummary}
+#'   object), and the text representation of that object as the second
+#'   argument.  This allows final modifications to the character output so that
+#'   it is displayed correctly by the pager.  For example, \code{StyleHtml}
+#'   objects use it to generate HTML headers if the \code{Diff} is destined to
+#'   be displayed in a browser.  The object themselves are passed along to
+#'   provide information about the paging device and other contextual data to
+#'   the function.
 #' @param escape.html.entities (\code{StyleHtml} objects only) TRUE (default)
 #'   or FALSE, whether to escape HTML entities in the input
 #' @param scale (\code{StyleHtml} objects only) TRUE (default) or FALSE,
@@ -720,6 +722,7 @@ StyleHtml <- setClass(
     html.output="auto",
     css=diffobj_css(),
     js=diffobj_js(),
+    finalizer=finalizer,
     scale=TRUE
   ),
   validity=function(object) {
@@ -758,73 +761,6 @@ setMethod("initialize", "StyleHtml",
     if(!string_in(html.output, valid.html.output))
       stop("Argument `html.output` must be in `", dep(valid.html.output), "`.")
 
-    # Generate finalizer function
-
-    .Object@finalizer <- function(txt, Diff) {
-
-      stopifnot(is(Diff, "Diff") || is(Diff, "Pager"))
-
-      # NOTE: Temporary handling of Diff situation vs pager for Summary; this
-      # needs to be fixed
-
-      if(is(Diff, "Diff")) {
-        pager <- Diff@etc@style@pager
-      } else {
-        pager <- Diff
-        Diff <- NULL
-      }
-
-      # Note this might conflict with threshold computations as we don't really
-      # know whether we are truly going to use the pager
-
-      use.pager <- !is(pager, "PagerOff")
-      header <- footer <- NULL
-      txt.flat <- paste0(txt, sep="")
-
-      if(html.output == "auto") {
-        html.output <- if(is(pager, "PagerBrowser")) "page" else "diff.only"
-      }
-      if(html.output %in% c("diff.w.style", "page")) {
-        css.txt <- try(paste0(readLines(css), collapse="\n"))
-        if(inherits(css.txt, "try-error")) stop("Cannot read css file ", css)
-        css <- sprintf("<style type='text/css'>\n%s\n</style>", css.txt)
-      }
-      if(html.output == "diff.w.style") {
-        tpl <- "%s%s"
-      } else if (html.output == "page") {
-        js.txt <- try(paste0(readLines(js), collapse="\n"))
-        resize.call.text <- if(scale)
-          "resize_diff_out_scale" else "resize_diff_out_no_scale"
-        if(inherits(js.txt, "try-error")) stop("Cannot read js file ", js)
-        tpl <- sprintf( "
-          <!DOCTYPE html>
-          <html>
-            <head>
-              %%s
-              <script type=\"text/javascript\">
-                %s
-                window.addEventListener('resize', %s, true);
-              </script>
-            </head>
-            <body>
-            <div id='diffobj_content'>
-            %%s
-            </div>
-            %s
-            <script type=\"text/javascript\">%s();</script>
-            </body>
-          </html>",
-          js.txt,
-          resize.call.text,
-          if(is(Diff, "Diff")) make_dummy_row(Diff) else "",
-          resize.call.text
-        )
-      } else if (html.output == "diff.only") {
-        css <- ""
-        tpl <- "%s%s"
-      } else stop("Logic Error: unexpected html.output; contact maintainer.")
-      sprintf(tpl, css, txt.flat)
-    }
     callNextMethod(
       .Object, css=css, html.output=html.output, js=js, scale=scale, ...
     )
