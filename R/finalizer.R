@@ -52,9 +52,13 @@ setMethod("finalizer", c("ANY"),
             %%s\n
             <script type='text/javascript'>\n%s\n</script>
           </head>
-          <body>\n%%s\n</body>
+          <body>
+            %s
+            <div id='diffobj_content'>\n%%s\n</div>
+          </body>
         </html>",
-        js
+        js,
+        make_dummy_row(x)
       )
     } else if (html.output == "diff.only") {
       css <- ""

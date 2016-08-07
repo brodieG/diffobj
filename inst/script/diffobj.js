@@ -21,15 +21,17 @@ function resize_diff_out(scale) {
   var w = document.body.clientWidth;
   var meta = document.getElementById("diffobj_size_meta");
   var content = document.getElementById("diffobj_content");
+  if(meta == null || content == null)
+    throw new Error("Unable to find meta and content; contact maintainer.");
   var row = meta.getElementsByClassName("row");
 
   if(row.length != 1)
-    throw new Error("Unexpected row struct in meta block; contact maintainer.")
+    throw new Error("Unexpected row struct in meta block; contact maintainer.");
 
   var lines = meta.getElementsByClassName("line");
 
   if(lines.length != 1 && lines.length != 2)
-    throw new Error("Unexpected lines in meta block; contact maintainer.")
+    throw new Error("Unexpected lines in meta block; contact maintainer.");
 
   meta.style.display = "block";
 

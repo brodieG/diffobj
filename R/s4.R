@@ -333,11 +333,14 @@ setMethod("finalizer", c("Diff"),
     if(html.output == "page") {
       rez.fun <- if(style@scale)
         "resize_diff_out_scale" else "resize_diff_out_no_scale"
-      x.chr <- c(x.chr, "
-        <script type=\"text/javascript\">
-          window.addEventListener('resize', %s, true);
-          %s();
-        </script>"
+      x.chr <- c(x.chr,
+        sprintf( "
+          <script type=\"text/javascript\">
+            window.addEventListener('resize', %s, true);
+            %s();
+          </script>",
+          rez.fun, rez.fun
+        )
       )
       js <- try(paste0(readLines(style@js), collapse="\n"))
       if(inherits(js, "try-error")) {
