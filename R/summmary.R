@@ -105,7 +105,8 @@ setMethod("as.character", "DiffSummary",
     hunks <- sum(!x@diffs["match", ])
     res <- c(apply(x@diffs, 1L, sum))
     scale.threshold <- x@scale.threshold
-    res <- if(!hunks || !sum(x@diffs["match", ])) {
+    # something seems wrong with next condition
+    res <- if(!hunks || !sum(x@diffs[c("delete", "add"), ])) {
       style@summary@body(
         if(length(x@all.eq)) {
           eq.txt <- paste0("- ", x@all.eq)
@@ -276,12 +277,12 @@ setMethod("as.character", "DiffSummary",
       map <- txt.w
       if(length(extra) && style@wrap) extra <- wrap(extra, width=width)
       c(
-        style@summmary@body(
+        style@summary@body(
           paste0(
             c(head, style@text@line.break, body), collapse=style@text@line.break
           )
         ),
-        style@summmary@map(
+        style@summary@map(
           paste0(c(map, extra), collapse=style@text@line.break)
         )
       )
