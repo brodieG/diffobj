@@ -571,27 +571,17 @@ setMethod("as.character", "Diff",
     pre.fin <- pre.fin[ind]
     res.len <- length(pre.fin)
 
-    finalize(pre.fin, x, res.len)
+    finalize(x@style@funs@container(pre.fin), x, res.len)
 } )
 
 # Finalizing fun used by both Diff and DiffSummary as.character methods
 
-finalize <- function(txt, Diff, len) {
-  # convoluted if(Diff) logic is temporary just to test some stuff
-  if(is(Diff, "Diff")) {
-    style <- Diff@etc@style
-    pager <- Diff@etc@style@pager
-  } else {
-    style <- Diff
-    pager <- Diff@pager
-    Diff <- pager
-  }
-  pager <- if(use_pager(pager, len)) pager else PagerOff()
-  if(is(Diff, "Diff")) {
-    Diff@etc@style@pager <- pager
-  }
-  in.cont <- style@funs@container(txt)
-  fin <- style@finalizer(in.cont, Diff)
+finalize <- function(txt, obj, len) {
+  style <- obj@etc@style
+  pager <- style@pager
+  obj@etc@style@pager <- if(use_pager(pager, len)) pager else PagerOff()
+
+  fin <- style@finalizer(obj, in.cont)
 
   attr(fin, "len") <- len
   fin

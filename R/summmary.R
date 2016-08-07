@@ -19,7 +19,7 @@ NULL
 
 setClass("DiffSummary",
   slots=c(
-    max.lines="integer", width="integer", style="Style",
+    max.lines="integer", width="integer", etc="Settings",
     diffs="matrix", all.eq="character",
     scale.threshold="numeric"
   ),
@@ -81,7 +81,7 @@ setMethod("summary", "Diff",
     diffs <- diffs.c[, match.keep, drop=FALSE]
     all.eq <- all.equal(object@target, object@current)
     new(
-      "DiffSummary", max.lines=max.lines, width=width, style=object@etc@style,
+      "DiffSummary", max.lines=max.lines, width=width, etc=object@etc,
       diffs=diffs, all.eq=if(isTRUE(all.eq)) character(0L) else all.eq,
       scale.threshold=scale.threshold
     )

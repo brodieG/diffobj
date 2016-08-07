@@ -26,6 +26,7 @@ NULL
 setGeneric("finalizer", function(x, ...) standardGeneric("finalizer"))
 setMethod("finalizer", c("ANY"),
   function(x, x.chr, style, js, ...) {
+    browser()
     if(!is.character(x.chr)) stop("Argument `x.chr` must be character")
     if(!is.character(js)) stop("Argument `js` must be character")
 
