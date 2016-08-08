@@ -46,7 +46,7 @@ gutter_dat <- function(etc) {
     )
 
   names(gutt.dat.format) <- sub("^gutter\\.", "", names(gutt.dat.format))
-  nc_fun <- if(is(etc@style, "StyleAnsi")) crayon_nchar else nchar
+  nc_fun <- etc@style@nchar.fun
   gutt.max.w <- max(nc_fun(gutt.pad) + nc_fun(gutt.dat.format))
   gutt.args <- c(
     list("Gutter"), as.list(gutt.dat.format),

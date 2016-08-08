@@ -472,6 +472,7 @@ Style <- setClass("Style", contains="VIRTUAL",
     funs="StyleFuns",
     text="StyleText",
     summary="StyleSummary",
+    nchar.fun="ANY",
     wrap="logical",
     pad="logical",
     finalizer="function",
@@ -489,9 +490,16 @@ Style <- setClass("Style", contains="VIRTUAL",
     finalizer=function(x, y) y,
     na.sub="",
     blank.sub="",
-    disp.width=0L
+    disp.width=0L,
+    nc.fun=nchar
   ),
   validity=function(object){
+    if(!is.one.arg.fun(object@nchar.fun)) {
+      return(paste0(
+        "Slot `nchar.fun` should be a function with at least one argument that ",
+        "doesn't require more than one argument"
+      ) )
+    }
     if(!is.TF(object@wrap))
       return("Slot `wrap` must be TRUE or FALSE")
     if(!is.TF(object@pad))
@@ -538,7 +546,7 @@ StyleRaw <- setClass("StyleRaw", contains=c("Style", "Raw"))
 
 StyleAnsi <- setClass(
   "StyleAnsi", contains=c("StyleRaw", "Ansi"),
-  prototype=list(funs=StyleFunsAnsi()),
+  prototype=list(funs=StyleFunsAnsi(), nchar.fun=crayon::col_nchar),
 )
 setMethod(
   "initialize", "StyleAnsi",
@@ -735,6 +743,7 @@ StyleHtml <- setClass(
     pager=PagerBrowser(),
     wrap=FALSE,
     pad=FALSE,
+    nchar.fun=nchar_html,
     escape.html.entities=TRUE,
     na.sub="&nbsp;",
     blank.sub="&nbsp;",
