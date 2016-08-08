@@ -24,6 +24,9 @@ DIV.diffobj_container DIV.gutter {
   display: table-cell;
   padding: 0 0.2em;
 }
+#diffobj_size_meta DIV.diffobj_container DIV.row {
+  width: auto;
+}
 /* Summary -------------------------------------------------------------------*/ 
 
 DIV.diffobj_container DIV.summary DIV.map {
