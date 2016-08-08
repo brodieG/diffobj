@@ -29,7 +29,7 @@ setGeneric("finalizer", function(x, ...) standardGeneric("finalizer"))
 setMethod("finalizer", c("ANY"),
   function(x, x.chr, style, js, ...) {
     if(!is.character(x.chr)) stop("Argument `x.chr` must be character")
-    if(!is.character(js)) stop("Argument `js` must be character")
+    if(!is.chr.1L(js)) stop("Argument `js` must be character(1L) and not NA.")
 
     html.output <- style@html.output
     pager <- style@pager
@@ -53,12 +53,10 @@ setMethod("finalizer", c("ANY"),
             <script type='text/javascript'>\n%s\n</script>
           </head>
           <body>
-            %s
             <div id='diffobj_content'>\n%%s\n</div>
           </body>
         </html>",
-        js,
-        make_dummy_row(x)
+        js
       )
     } else if (html.output == "diff.only") {
       css <- ""

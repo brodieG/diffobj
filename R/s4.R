@@ -333,7 +333,9 @@ setMethod("finalizer", c("Diff"),
     if(html.output == "page") {
       rez.fun <- if(style@scale)
         "resize_diff_out_scale" else "resize_diff_out_no_scale"
-      x.chr <- c(x.chr,
+      x.chr <- c(
+        make_dummy_row(x),
+        x.chr,
         sprintf( "
           <script type=\"text/javascript\">
             window.addEventListener('resize', %s, true);
