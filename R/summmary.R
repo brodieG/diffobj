@@ -121,14 +121,17 @@ setMethod("as.character", "DiffSummary",
           "Objects are `all.equal`"
       } )
     } else {
-      head <- c(
+      head <- paste0(
         sprintf(
           "Found differences in %d hunk%s:", hunks, if(hunks != 1L) "s" else ""
         ),
-        sprintf(
-          "  %d insertions, %d deletions, %d matches (lines)",
-          res[["add"]], res[["delete"]], res[["match"]]
-      ) )
+        style@summary@detail(
+          sprintf(
+            "%d insertions, %d deletions, %d matches (lines)",
+            res[["add"]], res[["delete"]], res[["match"]]
+        ) ),
+        collapse=""
+      )
       # Compute character screen display
 
       pad <- 2L
@@ -280,12 +283,12 @@ setMethod("as.character", "DiffSummary",
       if(length(extra) && style@wrap) extra <- wrap(extra, width=width)
       c(
         style@summary@body(
-          paste0(c(head, "", body), collapse=style@text@line.break)
+          paste0(c(head, body), collapse=style@text@line.break)
         ),
         style@summary@map(c(map, extra))
       )
     }
-    fin <- style@summary@container(paste0(res, collapse=""))
+    fin <- style@funs@container(style@summary@container(res))
     finalize(fin, x, length(res) + 2L)
   }
 )

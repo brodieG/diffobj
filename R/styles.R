@@ -213,8 +213,9 @@ StyleText <- setClass(
 StyleSummary <- setClass("StyleSummary",
   slots=c(container="ANY", body="ANY", map="ANY"),
   prototype=list(
-    container=function(x) sprintf("\n%s\n", x),
+    container=function(x) sprintf("\n%s\n", paste0(x, collapse="")),
     body=identity,
+    detail=function(x) sprintf("\n%s\n", paste0(x, collapse="")),
     map=function(x) sprintf("\n%s", paste0("  ", x, collapse="\n"))
   ),
   validity=function(object) {
@@ -233,8 +234,9 @@ StyleSummary <- setClass("StyleSummary",
 
 StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
   prototype=list(
-    container=cont_f("summary"),
+    container=function(x) div_f("summary")(paste0(x, collapse="")),
     body=div_f("body"),
+    detail=div_f("detail"),
     map=div_f("map")
 ) )
 #' Customize Appearance of Diff

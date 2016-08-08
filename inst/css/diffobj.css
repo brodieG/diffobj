@@ -24,6 +24,16 @@ DIV.diffobj_container DIV.gutter {
   display: table-cell;
   padding: 0 0.2em;
 }
+/* Summary -------------------------------------------------------------------*/ 
+
+DIV.diffobj_container DIV.summary DIV.map {
+  word-wrap: break-word;
+  padding-left: 1em;
+}
+DIV.diffobj_container DIV.summary DIV.detail {
+  padding-left: 1em;
+}
+
 /* Common elements -----------------------------------------------------------*/
 
 DIV.diffobj_container DIV.line.banner {
