@@ -36,17 +36,17 @@ function resize_diff_out(scale) {
   meta.style.display = "block";
 
   var t = 0;
-  for(i = 0; i < lines.length; i++) t = t + lines[i].scrollWidth;
+  var pad = 1;  // looks like scrollWidth returns floats truncated to ints
+
+  for(i = 0; i < lines.length; i++) t = t + lines[i].scrollWidth + pad;
 
   meta.style.display = "none";
-
-  // console.log("cont width set to " + t);
+  content.style.width = t + "px";  // prevent wrapping outside of native width
 
   if(scale) {
-    var pad = 0;
-    var scale = ((w - pad) / t);
+    var scale = w / t;
 
-    if(t + pad > w) {
+    if(scale < 1) {
       content.style.width = t + "px";
       content.style.transform = "scale(" + scale + ")";
       content.style.transformOrigin = "top left";
