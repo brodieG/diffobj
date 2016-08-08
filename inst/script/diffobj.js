@@ -40,7 +40,6 @@ function resize_diff_out(scale) {
 
   meta.style.display = "none";
 
-  content.style.width = t + "px";
   // console.log("cont width set to " + t);
 
   if(scale) {
@@ -48,6 +47,7 @@ function resize_diff_out(scale) {
     var scale = ((w - pad) / t);
 
     if(t + pad > w) {
+      content.style.width = t + "px";
       content.style.transform = "scale(" + scale + ")";
       content.style.transformOrigin = "top left";
       content.style.webkitTransform = "scale(" + scale + ")";
@@ -56,6 +56,7 @@ function resize_diff_out(scale) {
       content.style.msTransformOrigin = "top left";
       // console.log("Scaled to: " + scale);
     } else {
+      content.style.width = "auto";
       content.style.transform = "none";
       content.style.webkitTransform = "none";
       content.style.msTransform = "none";
