@@ -213,9 +213,9 @@ StyleText <- setClass(
 StyleSummary <- setClass("StyleSummary",
   slots=c(container="ANY", body="ANY", map="ANY"),
   prototype=list(
-    container=identity,
+    container=function(x) sprintf("\n%s\n", x),
     body=identity,
-    map=identity
+    map=function(x) sprintf("\n%s", paste0("  ", x, collapse="\n"))
   ),
   validity=function(object) {
     fun.slots <- c("container", "body", "map")

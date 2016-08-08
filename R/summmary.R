@@ -122,7 +122,9 @@ setMethod("as.character", "DiffSummary",
       } )
     } else {
       head <- c(
-        sprintf("Found differences in %d hunks:", hunks),
+        sprintf(
+          "Found differences in %d hunk%s:", hunks, if(hunks != 1L) "s" else ""
+        ),
         sprintf(
           "  %d insertions, %d deletions, %d matches (lines)",
           res[["add"]], res[["delete"]], res[["match"]]
@@ -278,18 +280,12 @@ setMethod("as.character", "DiffSummary",
       if(length(extra) && style@wrap) extra <- wrap(extra, width=width)
       c(
         style@summary@body(
-          paste0(
-            c(head, style@text@line.break, body), collapse=style@text@line.break
-          )
+          paste0(c(head, "", body), collapse=style@text@line.break)
         ),
-        style@summary@map(
-          paste0(c(map, extra), collapse=style@text@line.break)
-        )
+        style@summary@map(c(map, extra))
       )
     }
-    fin <- style@summary@container(
-      paste0(c("", res, ""), collapse=style@text@line.break)
-    )
+    fin <- style@summary@container(paste0(res, collapse=""))
     finalize(fin, x, length(res) + 2L)
   }
 )

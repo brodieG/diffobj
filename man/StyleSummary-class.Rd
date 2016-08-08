@@ -4,8 +4,16 @@
 \name{StyleSummary-class}
 \alias{StyleSummary}
 \alias{StyleSummary-class}
-\title{Styling For}
+\title{Styling Information for Summaries}
+\arguments{
+\item{container}{function applied to entire summary}
+
+\item{body}{function applied to everything except the actual map portion of
+the summary}
+
+\item{map}{function applied to the map portion of the summary}
+}
 \description{
-Styling For
+Styling Information for Summaries
 }
 

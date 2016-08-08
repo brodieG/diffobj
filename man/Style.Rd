@@ -34,6 +34,9 @@ represented above}
 \item{text}{a \code{\link{StyleText}} object that contains the non-content
 text used by the diff (e.g. \code{gutter.insert.txt})}
 
+\item{summary}{a \code{\link{StyleSummary}} object that contains formatting
+functions and other meta data for rendering summaries}
+
 \item{wrap}{TRUE or FALSE, whether the text should be hard wrapped to fit in
 the console}
 
