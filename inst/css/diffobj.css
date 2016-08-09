@@ -14,10 +14,16 @@ DIV.diffobj_container DIV.row {
   table-layout: fixed;
 }
 DIV.diffobj_container DIV.line {
-  display: table-cell;
+  width: 100%;
+  display: table;
+  table-layout: auto;
 }
 DIV.diffobj_container DIV.line>DIV {
   width: 100%;
+}
+DIV.diffobj_container DIV.line.banner>DIV {
+  display: table;
+  table-layout: fixed;
 }
 DIV.diffobj_container DIV.text {
   display: table-cell;

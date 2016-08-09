@@ -125,35 +125,50 @@ render_rows <- function(cols, etc) {
 #
 # @param x a `Diff` object
 
-make_dummy_row <- function(x) {
-  dummy.text <- paste0(rep("a", x@etc@text.width), collapse="")
+make_dummy_line <- function(x, dummy.text, type) {
+  stopifnot(is.chr.1L(type) && type %in% c("line", "banner"))
+
   fns <- x@etc@style@funs
   txt <- x@etc@style@text
 
-  txt <- if(x@etc@mode == "sidebyside") {
+  line_fun <- slot(fns, type)
+  line_ins_fun <- slot(fns, sprintf("%s.insert", type))
+  line_del_fun <- slot(fns, sprintf("%s.delete", type))
+
+  if(x@etc@mode == "sidebyside") {
     sprintf(
       "%s%s%s",
-      fns@line(
-        fns@line.delete(
+      line_fun(
+        line_del_fun(
           sprintf(
             "%s%s", x@etc@gutter@delete, fns@text(fns@text.delete(dummy.text))
       ) ) ),
       txt@pad.col,
-      fns@line(
-        fns@line.insert(
+      line_fun(
+        line_ins_fun(
           sprintf(
             "%s%s", x@etc@gutter@insert, fns@text(fns@text.insert(dummy.text))
     ) ) ) )
   } else {
-    fns@line(
-      fns@line.delete(
+    line_fun(
+      line_del_fun(
         sprintf(
           "%s%s", x@etc@gutter@delete, fns@text(fns@text.insert(dummy.text))
     ) ) )
   }
+}
+make_dummy_row <- function(x) {
+  cont.meta <-
+    make_dummy_line(x, paste0(rep("a", x@etc@text.width), collapse=""), "line")
+  banner.meta <- make_dummy_line(x, x@etc@style@blank.sub, "banner")
+  fns <- x@etc@style@funs
   sprintf(
-    "<div id='diffobj_size_meta' style='%s'>%s</div>",
+    "<div id='diffobj_size_meta' style='%s'>
+      <div id='diffobj_banner_meta'>%s</div>
+      <div id='diffobj_content_meta'>%s</div>
+     </div>",
     "display: none; position: absolute; top: 0px; z-index: -1;",
-    x@etc@style@funs@container(fns@row(txt))
+    fns@container(fns@row(banner.meta)),
+    fns@container(fns@row(cont.meta))
   )
 }
