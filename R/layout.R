@@ -34,10 +34,11 @@ gutter_dat <- function(etc) {
   gutt.format.try <- try({
     gutt.dat.format <- vapply(
       slots,
-      function(x) funs@gutter(slot(funs, sprintf("%s", x))(gutt.dat[x])),
+      function(x) slot(funs, sprintf("%s", x))(gutt.dat[x]),
       character(1L)
     )
-    gutt.pad <- funs@gutter(funs@gutter.pad(text@gutter.pad))
+    gutt.dat.format.pad <-
+      funs@gutter(paste0(gutt.dat.format, funs@gutter.pad(text@gutter.pad)))
   })
   if(inherits(gutt.format.try, "try-error"))
     stop(
@@ -45,12 +46,12 @@ gutter_dat <- function(etc) {
       "customize them, contact maintainer.  See `?StyleFuns`."
     )
 
-  names(gutt.dat.format) <- sub("^gutter\\.", "", names(gutt.dat.format))
+  names(gutt.dat.format.pad) <- sub("^gutter\\.", "", names(gutt.dat.format))
   nc_fun <- etc@style@nchar.fun
-  gutt.max.w <- max(nc_fun(gutt.pad) + nc_fun(gutt.dat.format))
+  gutt.max.w <- max(nc_fun(gutt.dat.format.pad))
   gutt.args <- c(
-    list("Gutter"), as.list(gutt.dat.format),
-    list(pad=gutt.pad, width=gutt.max.w)
+    list("Gutter"), as.list(gutt.dat.format.pad),
+    list(width=gutt.max.w)
   )
   do.call("new", gutt.args)
 }
@@ -83,12 +84,10 @@ render_gutters <- function(types, lens, lens.max, etc) {
   )
 }
 
-render_col <- function(gutter, pad, col, type, etc) {
+render_col <- function(gutter, col, type, etc) {
   lens <- vapply(col, length, integer(1L))
   gutt.ul <- unlist(gutter)
-  col.txt <- paste0(
-    gutt.ul, ifelse(nchar(gutt.ul), unlist(pad), ""), unlist(col)
-  )
+  col.txt <- paste0(gutt.ul, unlist(col))
   type.ul <- unlist(type)
   es <- etc@style@funs
 
@@ -113,8 +112,8 @@ render_col <- function(gutter, pad, col, type, etc) {
   col.txt[type.ul == "header"] <- es@line(col.txt[type.ul == "header"])
   col.txt
 }
-render_cols <- function(cols, gutters, pads, types, etc) {
-  Map(render_col, gutters, pads, cols, types, MoreArgs=list(etc=etc))
+render_cols <- function(cols, gutters, types, etc) {
+  Map(render_col, gutters, cols, types, MoreArgs=list(etc=etc))
 }
 render_rows <- function(cols, etc) {
   col.txt <- do.call(paste, c(cols, list(sep=etc@style@text@pad.col)))
@@ -137,22 +136,19 @@ make_dummy_row <- function(x) {
       fns@line(
         fns@line.delete(
           sprintf(
-            "%s%s%s", x@etc@gutter@delete, x@etc@gutter@pad,
-            fns@text(fns@text.delete(dummy.text))
+            "%s%s", x@etc@gutter@delete, fns@text(fns@text.delete(dummy.text))
       ) ) ),
       txt@pad.col,
       fns@line(
-      fns@line.insert(
+        fns@line.insert(
           sprintf(
-            "%s%s%s", x@etc@gutter@insert, x@etc@gutter@pad,
-            fns@text(fns@text.insert(dummy.text))
+            "%s%s", x@etc@gutter@insert, fns@text(fns@text.insert(dummy.text))
     ) ) ) )
   } else {
     fns@line(
       fns@line.delete(
         sprintf(
-          "%s%s%s", x@etc@gutter@delete, x@etc@gutter@pad,
-          fns@text(fns@text.insert(dummy.text))
+          "%s%s", x@etc@gutter@delete, fns@text(fns@text.insert(dummy.text))
     ) ) )
   }
   sprintf(

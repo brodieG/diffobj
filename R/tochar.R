@@ -467,9 +467,6 @@ setMethod("as.character", "Diff",
 
     # Compute gutter, padding, and continuations
 
-    pads <- lapply(
-      line.lens, function(y) lapply(y, rep, x=gutter.dat@pad)
-    )
     gutters <- render_gutters(
       types=types, lens=line.lens, lens.max=line.lens.max, etc=x@etc
     )
@@ -542,8 +539,7 @@ setMethod("as.character", "Diff",
     # Render columns; note here we use 'types.raw' to distinguish banner lines
 
     cols <- render_cols(
-      cols=pre.render.s, gutters=gutters, pads=pads, types=types.raw.x,
-      etc=x@etc
+      cols=pre.render.s, gutters=gutters, types=types.raw.x, etc=x@etc
     )
     # Render rows
 

@@ -14,6 +14,31 @@
 // Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
 
 /*
+ * Compute the desired text width based on the line width and the width of
+ * all the non-text elements.  This is pretty fragile and would benfit from
+ * a better underlying HTML structure
+ */
+function get_text_width(cont) {
+  var banner = cont.getElementsByClassName("line.banner");
+  if(banner.length != 1 && banner.length != 2) {
+    throw new Error("Should only be one or two banner lines");
+  }
+  var bannerDel = banner.getElementsByClassName("delete");
+  if(bannerDel != 1) {
+    throw new Error("Should only be one delete banner.");
+  }
+  var gutt = bannerDel.getElementsByClassName("gutter");
+  if(gutt != 2) {
+    throw new Error("Should be two gutter elements");
+  }
+  var extra = 0;  // cumulative width of all the non-text stuff
+
+  for(i = 0; i < 2; i++) {
+    extra += gutt.style. tJKU
+  }
+  
+}
+/*
  * Resizes diff by changing font-size using a hidden row of sample output as
  * a reference
  */
@@ -43,25 +68,23 @@ function resize_diff_out(scale) {
   meta.style.display = "none";
   content.style.width = t + "px";  // prevent wrapping outside of native width
 
-  if(scale) {
-    var scale = w / t;
+  var scale_size = w / t;
 
-    if(scale < 1) {
-      content.style.width = t + "px";
-      content.style.transform = "scale(" + scale + ")";
+  if(scale_size < 1) {
+    content.style.width = t + "px";
+    if(scale) {
+      content.style.transform = "scale(" + scale_size + ")";
       content.style.transformOrigin = "top left";
-      content.style.webkitTransform = "scale(" + scale + ")";
+      content.style.webkitTransform = "scale(" + scale_size + ")";
       content.style.webkitTransformOrigin = "top left";
-      content.style.msTransform = "scale(" + scale + ")";
+      content.style.msTransform = "scale(" + scale_size + ")";
       content.style.msTransformOrigin = "top left";
-      // console.log("Scaled to: " + scale);
-    } else {
-      content.style.width = "auto";
-      content.style.transform = "none";
-      content.style.webkitTransform = "none";
-      content.style.msTransform = "none";
-      // console.log("Unscaled");
     }
+  } else {
+    content.style.width = "auto";
+    content.style.transform = "none";
+    content.style.webkitTransform = "none";
+    content.style.msTransform = "none";
   }
 };
 function resize_diff_out_scale() {resize_diff_out(true);}

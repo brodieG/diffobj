@@ -726,6 +726,7 @@ StyleHtml <- setClass(
       gutter.match=div_f("match"),
       gutter.guide=div_f("guide"),
       gutter.fill=div_f("fill"),
+      gutter.pad=div_f("pad"),
       gutter=div_f("gutter"),
       context.sep=div_f("context_sep"),
       word.insert=span_f(c("word", "insert")),
