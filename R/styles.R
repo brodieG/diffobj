@@ -738,7 +738,8 @@ StyleHtml <- setClass(
       gutter.insert="&gt;",
       gutter.delete="&lt;",
       gutter.match="&nbsp;",
-      line.break="<br />"
+      line.break="<br />",
+      pad.col=""
     ),
     summary=StyleSummaryHtml(),
     pager=PagerBrowser(),

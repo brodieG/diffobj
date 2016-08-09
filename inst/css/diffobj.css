@@ -15,11 +15,12 @@ DIV.diffobj_container DIV.row {
 }
 DIV.diffobj_container DIV.line {
   width: 100%;
-  display: table;
-  table-layout: auto;
+  display: table-cell;
 }
 DIV.diffobj_container DIV.line>DIV {
   width: 100%;
+  display: table;
+  table-layout: auto;
 }
 DIV.diffobj_container DIV.line.banner>DIV {
   display: table;
