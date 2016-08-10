@@ -16,6 +16,7 @@ DIV.diffobj_container DIV.row {
 DIV.diffobj_container DIV.line {
   width: auto;
   display: table-cell;
+  overflow: hidden;
 }
 DIV.diffobj_container DIV.line>DIV {
   width: 100%;
@@ -64,7 +65,7 @@ DIV.diffobj_container DIV.line.banner {
 DIV.diffobj_container DIV.line.banner DIV.text DIV{
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis; /* doesn't work with table-fixed */
+  text-overflow: ellipsis;
   width: 100%;             /* need to compute and set in JS */
 }
 DIV.diffobj_container DIV.gutter,

@@ -153,7 +153,7 @@ make_dummy_line <- function(x, dummy.text, type) {
     line_fun(
       line_del_fun(
         sprintf(
-          "%s%s", x@etc@gutter@delete, fns@text(fns@text.insert(dummy.text))
+          "%s%s", x@etc@gutter@delete, fns@text(fns@text.delete(dummy.text))
     ) ) )
   }
 }
