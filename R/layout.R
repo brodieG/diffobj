@@ -163,7 +163,7 @@ make_dummy_row <- function(x) {
   banner.meta <- make_dummy_line(x, x@etc@style@blank.sub, "banner")
   fns <- x@etc@style@funs
   sprintf(
-    "<div id='diffobj_size_meta' style='%s'>
+    "<div id='diffobj_meta' style='%s'>
       <div id='diffobj_banner_meta'>%s</div>
       <div id='diffobj_content_meta'>%s</div>
      </div>",

@@ -53,7 +53,7 @@ setMethod("finalizer", c("ANY"),
             <script type='text/javascript'>\n%s\n</script>
           </head>
           <body>
-            <div id='diffobj_content'>\n%%s\n</div>
+            <div id='diffobj_outer'>\n%%s\n</div>
           </body>
         </html>",
         js

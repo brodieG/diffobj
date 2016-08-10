@@ -335,7 +335,7 @@ setMethod("finalizer", c("Diff"),
         "resize_diff_out_scale" else "resize_diff_out_no_scale"
       x.chr <- c(
         make_dummy_row(x),
-        x.chr,
+        sprintf("<div id='diffobj_content'>%s</div>", x.chr),
         sprintf( "
           <script type=\"text/javascript\">
             window.addEventListener('resize', %s, true);

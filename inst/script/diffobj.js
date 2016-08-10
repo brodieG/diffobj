@@ -35,15 +35,21 @@ function get_text_width(cont) {
 
   for(i = 0; i < 2; i++) {
   }
-  
+
+}
+function px_to_num(x) {
+  Number(x.replace(/px$/, ''));
 }
 /*
  * Resizes diff by changing font-size using a hidden row of sample output as
  * a reference
  */
 function resize_diff_out(scale) {
+
+  // - Get object refs ---------------------------------------------------------
+
   var w = document.body.clientWidth;
-  var meta = document.getElementById("diffobj_size_meta");
+  var meta = document.getElementById("diffobj_meta");
   var meta_cont = document.getElementById("diffobj_content_meta");
   var meta_banner = document.getElementById("diffobj_banner_meta");
   var content = document.getElementById("diffobj_content");
@@ -61,16 +67,56 @@ function resize_diff_out(scale) {
   if(lines.length != 1 && lines.length != 2)
     throw new Error("Unexpected lines in meta block; contact maintainer.");
 
+  var meta_bnr_gutter =
+    document.querySelector("#diffobj_banner_meta .line .gutter");
+  var meta_bnr_delete =
+    document.querySelector("#diffobj_banner_meta .line .text>.delete");
+  var meta_bnr_text =
+    document.querySelector("#diffobj_banner_meta .line .text");
+
+  var bnr_gutters =
+    document.querySelectorAll("#diffobj_content .line.banner .gutter");
+  var bnr_text_div =
+    document.querySelectorAll("#diffobj_content .line.banner .text>DIV");
+
+  if(
+      meta_bnr_gutter == null || meta_bnr_delete == null ||
+      bnr_gutters.length != 2 || bnr_text_div.length != 2
+    )
+    throw new Error("Unable to get meta banner objects")
+
+  // - Get Sizes ---------------------------------------------------------------
+
   meta.style.display = "block";
+
+  // Get target content widths
 
   var t = 0;
   var pad = 1;  // looks like scrollWidth returns floats truncated to ints
 
   for(i = 0; i < lines.length; i++) t = t + lines[i].scrollWidth + pad;
 
+  // The getComputedStyle business won't work on IE9 or lower; need to detect
+  // and implement work-around
+
+  var b_t, b_d_w, b_d_o, b_g;
+  b_g = parseFloat(window.getComputedStyle(meta_bnr_gutter).width);
+  b_d_o = meta_bnr_delete.offsetWidth;
+  b_d_w = parseFloat(window.getComputedStyle(meta_bnr_delete).width);
+  b_t = parseFloat(window.getComputedStyle(meta_bnr_text).width);
+
   meta.style.display = "none";
+
+  // - Set Sizes ---------------------------------------------------------------
+
   content.style.width = t + "px";  // prevent wrapping outside of native width
 
+  for(i = 0; i < 2; i++) {
+    bnr_gutters[i].style.width = b_g + "px";
+    // for some reason table fixed width computation doesn't properly account
+    // for padding and lines
+    bnr_text_div[i].style.width = b_t - b_d_o + b_d_w + "px";
+  }
   var scale_size = w / t;
 
   if(scale_size < 1) {

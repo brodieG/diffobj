@@ -14,7 +14,7 @@ DIV.diffobj_container DIV.row {
   table-layout: fixed;
 }
 DIV.diffobj_container DIV.line {
-  width: 100%;
+  width: auto;
   display: table-cell;
 }
 DIV.diffobj_container DIV.line>DIV {
@@ -37,8 +37,11 @@ DIV.diffobj_container DIV.gutter {
 DIV.diffobj_container DIV.gutter DIV {
   display: table-cell;
 }
-#diffobj_size_meta DIV.diffobj_container DIV.row {
+#diffobj_content_meta DIV.diffobj_container DIV.row {
   width: auto;
+}
+#diffobj_banner_meta DIV.diffobj_container DIV.line.banner>DIV {
+  table-layout: auto;
 }
 /* Summary -------------------------------------------------------------------*/ 
 
