@@ -331,24 +331,31 @@ setMethod("finalizer", c("Diff"),
         "page" else "diff.only"
     }
     if(html.output == "page") {
-      rez.fun <- if(style@scale)
-        "resize_diff_out_scale" else "resize_diff_out_no_scale"
       x.chr <- c(
         make_dummy_row(x),
         sprintf("<div id='diffobj_content'>%s</div>", x.chr),
         sprintf( "
           <script type=\"text/javascript\">
-            window.addEventListener('resize', %s, true);
-            %s();
-          </script>",
-          rez.fun, rez.fun
+            var scale=%s;
+          </script>", if(style@scale) "true" else "false"
         )
       )
-      js <- try(paste0(readLines(style@js), collapse="\n"))
+      rez.fun <- if(style@scale)
+        "resize_diff_out_scale" else "resize_diff_out_no_scale"
+      js <- try(readLines(style@js))
       if(inherits(js, "try-error")) {
         warning("Unable to read provided js file.")
         js <- ""
-      }
+      } else {
+        js <- paste0(
+          c(
+            js,
+            sprintf(
+              "window.addEventListener('resize', %s, true);\n %s();",
+              rez.fun, rez.fun
+          ) ),
+          collapse="\n"
+      ) }
     } else js <- ""
     callNextMethod(x, x.chr, style=style, js=js, ...)
 } )

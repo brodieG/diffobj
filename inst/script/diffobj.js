@@ -14,77 +14,53 @@
 // Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
 
 /*
- * Compute the desired text width based on the line width and the width of
- * all the non-text elements.  This is pretty fragile and would benfit from
- * a better underlying HTML structure
- */
-function get_text_width(cont) {
-  var banner = cont.getElementsByClassName("line.banner");
-  if(banner.length != 1 && banner.length != 2) {
-    throw new Error("Should only be one or two banner lines");
-  }
-  var bannerDel = banner.getElementsByClassName("delete");
-  if(bannerDel != 1) {
-    throw new Error("Should only be one delete banner.");
-  }
-  var gutt = bannerDel.getElementsByClassName("gutter");
-  if(gutt != 2) {
-    throw new Error("Should be two gutter elements");
-  }
-  var extra = 0;  // cumulative width of all the non-text stuff
-
-  for(i = 0; i < 2; i++) {
-  }
-
-}
-function px_to_num(x) {
-  Number(x.replace(/px$/, ''));
-}
-/*
  * Resizes diff by changing font-size using a hidden row of sample output as
  * a reference
+ * 
+ * NOTE: this code is intended to be loaded after the HTML has been rendered
  */
+
+var meta = document.getElementById("diffobj_meta");
+var meta_cont = document.getElementById("diffobj_content_meta");
+var meta_banner = document.getElementById("diffobj_banner_meta");
+var content = document.getElementById("diffobj_content");
+
+if(meta == null || content == null)
+  throw new Error("Unable to find meta and content; contact maintainer.");
+
+var row = meta_cont.getElementsByClassName("row");
+
+if(row.length != 1)
+  throw new Error("Unexpected row struct in meta block; contact maintainer.");
+
+var lines = meta_cont.getElementsByClassName("line");
+
+if(lines.length != 1 && lines.length != 2)
+  throw new Error("Unexpected lines in meta block; contact maintainer.");
+
+var meta_bnr_gutter =
+  document.querySelector("#diffobj_banner_meta .line .gutter");
+var meta_bnr_delete =
+  document.querySelector("#diffobj_banner_meta .line .text>.delete");
+var meta_bnr_text =
+  document.querySelector("#diffobj_banner_meta .line .text");
+
+var bnr_gutters =
+  document.querySelectorAll("#diffobj_content .line.banner .gutter");
+var bnr_text_div =
+  document.querySelectorAll("#diffobj_content .line.banner .text>DIV");
+
+if(
+    meta_bnr_gutter == null || meta_bnr_delete == null ||
+    bnr_gutters.length != 2 || bnr_text_div.length != 2
+  )
+  throw new Error("Unable to get meta banner objects")
+
 function resize_diff_out(scale) {
 
   // - Get object refs ---------------------------------------------------------
 
   var w = document.body.clientWidth;
-  var meta = document.getElementById("diffobj_meta");
-  var meta_cont = document.getElementById("diffobj_content_meta");
-  var meta_banner = document.getElementById("diffobj_banner_meta");
-  var content = document.getElementById("diffobj_content");
-
-  if(meta == null || content == null)
-    throw new Error("Unable to find meta and content; contact maintainer.");
-
-  var row = meta_cont.getElementsByClassName("row");
-
-  if(row.length != 1)
-    throw new Error("Unexpected row struct in meta block; contact maintainer.");
-
-  var lines = meta_cont.getElementsByClassName("line");
-
-  if(lines.length != 1 && lines.length != 2)
-    throw new Error("Unexpected lines in meta block; contact maintainer.");
-
-  var meta_bnr_gutter =
-    document.querySelector("#diffobj_banner_meta .line .gutter");
-  var meta_bnr_delete =
-    document.querySelector("#diffobj_banner_meta .line .text>.delete");
-  var meta_bnr_text =
-    document.querySelector("#diffobj_banner_meta .line .text");
-
-  var bnr_gutters =
-    document.querySelectorAll("#diffobj_content .line.banner .gutter");
-  var bnr_text_div =
-    document.querySelectorAll("#diffobj_content .line.banner .text>DIV");
-
-  if(
-      meta_bnr_gutter == null || meta_bnr_delete == null ||
-      bnr_gutters.length != 2 || bnr_text_div.length != 2
-    )
-    throw new Error("Unable to get meta banner objects")
-
   // - Get Sizes ---------------------------------------------------------------
 
   meta.style.display = "block";
@@ -136,6 +112,23 @@ function resize_diff_out(scale) {
     content.style.msTransform = "none";
   }
 };
-function resize_diff_out_scale() {resize_diff_out(true);}
-function resize_diff_out_no_scale() {resize_diff_out(false);}
+/*
+ * Manage resize timeout based on how large the object is
+ */
 
+var out_rows = content.getElementsByClassName("row").length;
+var timeout_time;
+if(out_rows < 100) {
+  timeout_time = 50;
+} else if(out_rows < 500) {
+  timeout_time = 250;
+} else timeout_time = out_rows / 2;
+
+var timeout;
+function resize_window(f, scale) {
+  clearTimeout(timeout);
+  timeout = setTimeout(f, timeout_time, scale);
+}
+
+function resize_diff_out_scale() {resize_window(resize_diff_out, true);}
+function resize_diff_out_no_scale() {resize_window(resize_diff_out, false);}
