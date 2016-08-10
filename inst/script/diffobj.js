@@ -16,8 +16,11 @@
 /*
  * Resizes diff by changing font-size using a hidden row of sample output as
  * a reference
- * 
+ *
  * NOTE: this code is intended to be loaded after the HTML has been rendered
+ * and is assumed to be the only JS on the page.  It should only be included
+ * as part of output when in "page" mode and should not be embedded in other
+ * content.  For that, use the HTML/CSS only outputs.
  */
 
 var meta = document.getElementById("diffobj_meta");
@@ -56,21 +59,27 @@ if(
   )
   throw new Error("Unable to get meta banner objects")
 
+// - Set Min Width -------------------------------------------------------------
+
+// Makes sure that we don't wrap under "native" width
+// Note we need to pad because scrollWidth appears to truncate floats to int
+
+meta.style.display = "block";
+var min_width = 0;
+for(i = 0; i < lines.length; i++) min_width += lines[i].scrollWidth + 1;
+meta.style.display = "none";
+
+content.style.minWidth = min_width + "px";
+
 function resize_diff_out(scale) {
 
   // - Get object refs ---------------------------------------------------------
 
   var w = document.body.clientWidth;
+
   // - Get Sizes ---------------------------------------------------------------
 
   meta.style.display = "block";
-
-  // Get target content widths
-
-  var t = 0;
-  var pad = 1;  // looks like scrollWidth returns floats truncated to ints
-
-  for(i = 0; i < lines.length; i++) t = t + lines[i].scrollWidth + pad;
 
   // The getComputedStyle business won't work on IE9 or lower; need to detect
   // and implement work-around
@@ -85,18 +94,15 @@ function resize_diff_out(scale) {
 
   // - Set Sizes ---------------------------------------------------------------
 
-  content.style.width = t + "px";  // prevent wrapping outside of native width
-
   for(i = 0; i < 2; i++) {
     bnr_gutters[i].style.width = b_g + "px";
     // for some reason table fixed width computation doesn't properly account
     // for padding and lines
     bnr_text_div[i].style.width = b_t - b_d_o + b_d_w + "px";
   }
-  var scale_size = w / t;
+  var scale_size = w / min_width;
 
   if(scale_size < 1) {
-    content.style.width = t + "px";
     if(scale) {
       content.style.transform = "scale(" + scale_size + ")";
       content.style.transformOrigin = "top left";
@@ -106,7 +112,6 @@ function resize_diff_out(scale) {
       content.style.msTransformOrigin = "top left";
     }
   } else {
-    content.style.width = "auto";
     content.style.transform = "none";
     content.style.webkitTransform = "none";
     content.style.msTransform = "none";
