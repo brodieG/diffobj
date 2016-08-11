@@ -6,6 +6,7 @@
 
 DIV.diffobj_container PRE {
   white-space: pre-wrap;
+  margin: 0;
 }
 DIV.diffobj_container DIV.row {
   width: 100%;
@@ -43,6 +44,9 @@ DIV.diffobj_container DIV.gutter DIV {
 }
 #diffobj_banner_meta DIV.diffobj_container DIV.line.banner>DIV {
   table-layout: auto;
+}
+#diffobj_outer {
+  overflow: hidden;
 }
 /* Summary -------------------------------------------------------------------*/ 
 

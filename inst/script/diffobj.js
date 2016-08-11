@@ -27,8 +27,12 @@ var meta = document.getElementById("diffobj_meta");
 var meta_cont = document.getElementById("diffobj_content_meta");
 var meta_banner = document.getElementById("diffobj_banner_meta");
 var content = document.getElementById("diffobj_content");
+var outer = document.getElementById("diffobj_outer");
 
-if(meta == null || content == null)
+if(
+  meta == null || content == null || outer == null ||
+  meta_cont == null || meta_banner == null
+)
   throw new Error("Unable to find meta and content; contact maintainer.");
 
 var row = meta_cont.getElementsByClassName("row");
@@ -110,11 +114,24 @@ function resize_diff_out(scale) {
       content.style.webkitTransformOrigin = "top left";
       content.style.msTransform = "scale(" + scale_size + ")";
       content.style.msTransformOrigin = "top left";
+      content.style.MozTransform = "scale(" + scale_size + ")";
+      content.style.MozTransformOrigin = "top left";
+      content.style.oTransform = "scale(" + scale_size + ")";
+      content.style.oTransformOrigin = "top left";
+      var scaled_height = content.getBoundingClientRect().height;
+      // var scaled_height =
+      //    content.clientHeight * Math.ceil(scale_size * 100) / 100;
+      if(scaled_height) {
+        outer.style.height = scaled_height + "px";
+      }
     }
   } else {
     content.style.transform = "none";
+    content.style.MozTransform = "none";
     content.style.webkitTransform = "none";
     content.style.msTransform = "none";
+    content.style.oTransform = "none";
+    outer.style.height = "auto";
   }
 };
 /*
@@ -124,10 +141,10 @@ function resize_diff_out(scale) {
 var out_rows = content.getElementsByClassName("row").length;
 var timeout_time;
 if(out_rows < 100) {
-  timeout_time = 50;
-} else if(out_rows < 500) {
-  timeout_time = 250;
-} else timeout_time = out_rows / 2;
+  timeout_time = 25;
+} else {
+  timeout_time = Math.min(25 + (out_rows - 100) / 4, 500)
+}
 
 var timeout;
 function resize_window(f, scale) {
