@@ -79,7 +79,6 @@ function resize_diff_out(scale) {
 
   // - Get object refs ---------------------------------------------------------
 
-  var w = document.body.clientWidth;
 
   // - Get Sizes ---------------------------------------------------------------
 
@@ -104,15 +103,11 @@ function resize_diff_out(scale) {
     // for padding and lines
     bnr_text_div[i].style.width = b_t - b_d_o + b_d_w + "px";
   }
+  var w = document.body.clientWidth;
   var scale_size = w / min_width;
-
-  // Make sure we don't clip width
-
 
   if(scale_size < 1) {
 
-    var content_rect = content.getBoundingClientRect();
-    outer.style.width = content_rect.width + "px";
     if(scale) {
       content.style.transform = "scale(" + scale_size + ")";
       content.style.transformOrigin = "top left";
@@ -124,10 +119,16 @@ function resize_diff_out(scale) {
       content.style.MozTransformOrigin = "top left";
       content.style.oTransform = "scale(" + scale_size + ")";
       content.style.oTransformOrigin = "top left";
-      var scaled_height = content_rect.height;
-      if(content_rect.height) {
-        outer.style.height = scaled_height + "px";
+
+      var cont_rec_h = content.getBoundingClientRect().height;
+
+      if(cont_rec_h) {
+        outer.style.height = cont_rec_h + "px";
       }
+    }
+    var cont_rec_w = content.getBoundingClientRect().width;
+    if(cont_rec_w) {
+      outer.style.width = cont_rec_w + "px";
     }
   } else {
     content.style.transform = "none";
