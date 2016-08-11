@@ -106,7 +106,13 @@ function resize_diff_out(scale) {
   }
   var scale_size = w / min_width;
 
+  // Make sure we don't clip width
+
+
   if(scale_size < 1) {
+
+    var content_rect = content.getBoundingClientRect();
+    outer.style.width = content_rect.width + "px";
     if(scale) {
       content.style.transform = "scale(" + scale_size + ")";
       content.style.transformOrigin = "top left";
@@ -118,10 +124,8 @@ function resize_diff_out(scale) {
       content.style.MozTransformOrigin = "top left";
       content.style.oTransform = "scale(" + scale_size + ")";
       content.style.oTransformOrigin = "top left";
-      var scaled_height = content.getBoundingClientRect().height;
-      // var scaled_height =
-      //    content.clientHeight * Math.ceil(scale_size * 100) / 100;
-      if(scaled_height) {
+      var scaled_height = content_rect.height;
+      if(content_rect.height) {
         outer.style.height = scaled_height + "px";
       }
     }
@@ -132,6 +136,7 @@ function resize_diff_out(scale) {
     content.style.msTransform = "none";
     content.style.oTransform = "none";
     outer.style.height = "auto";
+    outer.style.width = "auto";
   }
 };
 /*
