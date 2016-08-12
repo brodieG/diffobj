@@ -508,10 +508,7 @@ line_diff <- function(
     lapply(hunk.grps, make_hh, etc@mode, tar.dat, cur.dat, ranges.orig)
   h.h.chars <- nchar(chr_trim(unlist(hunk.heads), etc@line.width))
 
-  is.ansi <- is(etc@style, "StyleAnsi") &
-    grepl(ansi_regex, chr.dat, perl=TRUE)
-  if(any(is.ansi)) chr.size[is.ansi] <- crayon_nchar(chr.dat)
-  chr.size[!is.ansi] <- nchar(chr.dat)
+  chr.size <- etc@style@nchar.fun(chr.dat)
   max.col.w <- max(
     max(0L, chr.size, .min.width + gutter.dat@width), h.h.chars
   )

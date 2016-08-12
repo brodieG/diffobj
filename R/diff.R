@@ -101,7 +101,7 @@ make_diff_fun <- function(capt_fun) {
     # etc. If not a base text type style, assume gutter and column padding are
     # zero even though that may not always be correct
 
-    nc_fun <- if(is(etc.proc@style, "StyleAnsi")) crayon_nchar else nchar
+    nc_fun <- etc.proc@style@nchar.fun
     etc.proc@gutter <- gutter_dat(etc.proc)
 
     col.pad.width <- gutt.width <- 0L

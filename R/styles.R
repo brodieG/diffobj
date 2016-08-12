@@ -215,7 +215,7 @@ StyleSummary <- setClass("StyleSummary",
   prototype=list(
     container=function(x) sprintf("\n%s\n", paste0(x, collapse="")),
     body=identity,
-    detail=function(x) sprintf("\n%s\n", paste0(x, collapse="")),
+    detail=function(x) sprintf("\n%s\n", paste0("  ", x, collapse="")),
     map=function(x) sprintf("\n%s", paste0("  ", x, collapse="\n"))
   ),
   validity=function(object) {
@@ -1139,7 +1139,7 @@ setMethod("show", "Style",
       old.crayon.opt <-
         options(crayon.enabled=TRUE)
       on.exit(options(old.crayon.opt), add=TRUE)
-      pad.width <- max(crayon_nchar(d.txt))
+      pad.width <- max(object@nchar.fun(d.txt))
       d.txt <- rpad(d.txt, width=pad.width)
       bgWhite <- crayon::make_style(rgb(1, 1, 1), bg=TRUE)
       white <- crayon::make_style(rgb(1, 1, 1))
