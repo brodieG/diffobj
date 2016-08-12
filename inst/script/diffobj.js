@@ -63,6 +63,10 @@ if(
   )
   throw new Error("Unable to get meta banner objects")
 
+// Set the banners to 'fixed'; need to be in auto by default
+
+for(i = 0; i < 2; i++) bnr_text_div[i].style.tableLayout = "fixed";
+
 // - Set Min Width -------------------------------------------------------------
 
 // Makes sure that we don't wrap under "native" width
