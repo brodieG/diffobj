@@ -289,7 +289,11 @@ setMethod("as.character", "DiffSummary",
       )
     }
     fin <- style@funs@container(style@summary@container(res))
-    finalize(fin, x, length(res) + 2L)
+    finalize(
+      fin, x, 
+      length(unlist(gregexpr(style@text@line.break, fin, fixed=TRUE))) +
+      length(fin)
+    )
   }
 )
 #' Display DiffSummary Objects
