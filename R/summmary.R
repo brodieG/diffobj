@@ -127,8 +127,10 @@ setMethod("as.character", "DiffSummary",
         ),
         style@summary@detail(
           sprintf(
-            "%d insertions, %d deletions, %d matches (lines)",
-            res[["add"]], res[["delete"]], res[["match"]]
+            "%d insertion%s, %d deletion%s, %d match%s (lines)",
+            res[["add"]], if(res[["add"]] == 1L) "" else "s",
+            res[["delete"]], if(res[["delete"]] == 1L) "" else "s",
+            res[["match"]], if(res[["match"]] == 1L) "" else "es"
         ) ),
         collapse=""
       )
@@ -280,7 +282,7 @@ setMethod("as.character", "DiffSummary",
       } else character(0L)
 
       map <- txt.w
-      if(length(extra) && style@wrap) extra <- wrap(extra, width=width)
+      if(length(extra) && style@wrap) extra <- strwrap(extra, width=width)
       c(
         style@summary@body(
           paste0(c(head, body), collapse=style@text@line.break)
@@ -290,7 +292,7 @@ setMethod("as.character", "DiffSummary",
     }
     fin <- style@funs@container(style@summary@container(res))
     finalize(
-      fin, x, 
+      fin, x,
       length(unlist(gregexpr(style@text@line.break, fin, fixed=TRUE))) +
       length(fin)
     )
