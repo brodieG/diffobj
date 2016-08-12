@@ -491,7 +491,7 @@ Style <- setClass("Style", contains="VIRTUAL",
     na.sub="",
     blank.sub="",
     disp.width=0L,
-    nc.fun=nchar
+    nchar.fun=nchar
   ),
   validity=function(object){
     if(!is.one.arg.fun(object@nchar.fun)) {
