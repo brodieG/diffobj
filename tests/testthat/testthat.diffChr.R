@@ -36,6 +36,10 @@ test_that("Larger strings", {
 
   # Too slow to run; useful for benchmarking though
 
+  # X1 <- X[1:2e4]
+  # X2 <- X1[-sample(seq_along(X1), 2e3)]
+  # X2[sample(seq_along(X2), 4e3)] <- "XXXXXX"
+  # res <- diffChr(X1, X2)
   # res <- diffChr(X[1:10000], X[7500:17500])
   # res <- ses(X[1:10000], X[7500:17500])
   # res <- diffChr(X[1:25000], X[10001:50000], max.diffs=65000)

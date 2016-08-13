@@ -22,7 +22,7 @@ test_that("HTML Output Modes", {
   expect_equal_to_reference(
     as.character(
       diffPrint(
-        letters[1:3], LETTERS[1:3],
+        letters[1:6], LETTERS[1:6],
         style=StyleHtmlLightYb(html.output="diff.w.style")
     ) ),
     rdsf(200)
@@ -30,7 +30,7 @@ test_that("HTML Output Modes", {
   expect_equal_to_reference(
     as.character(
       diffPrint(
-        letters[1:3], LETTERS[1:3],
+        letters[1:6], LETTERS[1:6],
         style=StyleHtmlLightYb(html.output="page")
     ) ),
     rdsf(300)

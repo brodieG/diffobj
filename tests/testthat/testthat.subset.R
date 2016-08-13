@@ -9,7 +9,8 @@ test_that("subset", {
   B[6] <- "F"
   expect_equal(
     c(as.character(diffChr(A, B)[1:3])),
-    c("< A         > B        ", "@@ 1,5 @@   @@ 1,6 @@  ", "  a           a        ")
+    c("< A          > B        ", "@@ 1,5 @@    @@ 1,6 @@  ", "  a            a        ")
+
   )
   expect_equal(
     c(as.character(diffChr(A, B)[1])), c(as.character(head(diffChr(A, B), 1)))
