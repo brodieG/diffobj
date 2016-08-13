@@ -183,8 +183,8 @@ make_blocking <- function(
 }
 #' Invoke IDE Viewer if Available, browseURL if Not
 #'
-#' Use \code{getOption("viewer")} to view HTML output if it is available as 
-#' per \link{RStudio}{https://support.rstudio.com/hc/en-us/articles/202133558-Extending-RStudio-with-the-Viewer-Pane}. Fallback to \code{\link{browseURL}} 
+#' Use \code{getOption("viewer")} to view HTML output if it is available as
+#' per \link{RStudio}{https://support.rstudio.com/hc/en-us/articles/202133558-Extending-RStudio-with-the-Viewer-Pane}. Fallback to \code{\link{browseURL}}
 #' if not available.
 #'
 #' @export
@@ -196,9 +196,13 @@ view_or_browse <- function(url) {
   viewer <- getOption("viewer")
   view.success <- FALSE
   if(is.function(viewer)) {
-    view.try <- try(res <- viewer(url))
+    view.try <- try(res <- viewer(url), silent=TRUE)
     if(inherits(view.try, "try-error")) {
-      warning("IDE viewer failed, falling back to `browseURL`")
+      warning(
+        "IDE viewer failed with error ",
+        conditionMessage(attr(view.try, "condition")),
+        "; falling back to `browseURL`"
+      )
     } else view.success <- TRUE
   }
   if(!view.success) {
