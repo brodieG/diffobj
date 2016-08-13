@@ -349,7 +349,7 @@ capt_csv <- function(target, current, etc, err, extra){
 
 set_mode <- function(etc, tar.capt, cur.capt) {
   stopifnot(is(etc, "Settings"), is.character(tar.capt), is.character(cur.capt))
-  nc_fun <- if(is(etc@style, "StyleAnsi")) crayon_nchar else nchar
+  nc_fun <- etc@style@nchar.fun
   if(etc@mode == "auto") {
     if(
       any(nc_fun(cur.capt) > etc@text.width.half) ||

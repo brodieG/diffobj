@@ -11,7 +11,7 @@ diffObj(target, current, ...)
 
 \item{current}{the object being compared to \code{target}}
 
-\item{...}{unused, for compatibility of generics with methods}
+\item{...}{unused, for compatibility of methods with generics}
 }
 \value{
 a \code{Diff} object; see \code{\link{diffPrint}}.
@@ -27,7 +27,7 @@ a particular selection under specific circumstances.  Instead, use
 other output.
 }
 \seealso{
-\code{\link{diffPrint}} for details on the \code{diff*} functions,
+\code{\link{diffPrint}} for details on the \code{diff*} methods,
   \code{\link{diffStr}},
   \code{\link{diffChr}} to compare character vectors directly
   \code{\link{diffDeparse}} to compare deparsed objects

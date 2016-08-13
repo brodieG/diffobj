@@ -90,3 +90,23 @@ cont_f <- function(class=character()) {
       paste0(x, collapse="")
     )
 } }
+#' Count Text Characters in HTML
+#'
+#' Very simple implementation that does not properly count white space width,
+#' will fail if there are any \dQuote{>} in the HTML that are not closing
+#' tags, and assumes that HTML entites are all one character wide.
+#'
+#' @export
+#' @param x character
+#' @return integer(length(x)) with number of characters of each element
+
+nchar_html <- function(x) {
+  stopifnot(is.character(x) && !anyNA(x))
+  tag.less <- gsub("<[^>]*>", "", gsub("\\s+", " ", x))
+  # Thanks ridgerunner for html entity removal regex
+  # http://stackoverflow.com/users/433790/ridgerunner
+  # http://stackoverflow.com/a/8806462/2725969
+  ent.less <-
+    gsub("&(?:[a-z\\d]+|#\\d+|#x[a-f\\d]+);", "X", tag.less, perl=TRUE)
+  nchar(ent.less)
+}

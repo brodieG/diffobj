@@ -59,3 +59,21 @@ test_that("Setting LESS var", {
     expect_warning(diffobj:::set_less_var("V"), "Unable to set")
   )
 })
+
+test_that("viewer vs browser", {
+  viewer <- function(x) "viewer"
+  old.viewer <- options(viewer=viewer)
+  on.exit(options(old.viewer))
+  with_mock(
+    "utils::browseURL"=function(url) "browser",
+    "diffobj::make_blocking"=identity, {
+      pager <- PagerBrowser()
+      expect_equal(pager@pager("blah"), "viewer")
+      options(viewer=NULL)
+      expect_equal(pager@pager("blah"), "browser")
+      options(viewer=function(x) stop("viewer error"))
+      expect_warning(res <- pager@pager("blah"), "IDE viewer")
+      expect_equal(res, "browser")
+    }
+  )
+})

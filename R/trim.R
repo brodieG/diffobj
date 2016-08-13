@@ -411,7 +411,6 @@ setMethod(
       strip_list_rh(obj.as.chr, obj)
     } else obj.as.chr
 
-    if(length(obj.as.chr) != length(stripped)) browser()
     trim_sub(obj.as.chr, stripped)
   }
 )

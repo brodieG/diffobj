@@ -13,6 +13,12 @@
 #
 # Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
 
+# borrowed from crayon, will lobby to get it exported
+
+ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
+                     "(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])",
+                     "|\\x{001b}[A-M]")
+
 # Remap crayon funs so they show up in profiling
 
 crayon_nchar <- crayon::col_nchar
@@ -39,11 +45,6 @@ html_ent_sub <- function(x, style) {
   }
   x
 }
-# borrowed from crayon, will lobby to get it exported
-ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
-                     "(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])",
-                     "|\\x{001b}[A-M]")
-
 # Helper function for align_eq; splits up a vector into matched elements and
 # interstitial elements, including possibly empty interstitial elements when
 # two matches are abutting

@@ -101,7 +101,7 @@ make_diff_fun <- function(capt_fun) {
     # etc. If not a base text type style, assume gutter and column padding are
     # zero even though that may not always be correct
 
-    nc_fun <- if(is(etc.proc@style, "StyleAnsi")) crayon_nchar else nchar
+    nc_fun <- etc.proc@style@nchar.fun
     etc.proc@gutter <- gutter_dat(etc.proc)
 
     col.pad.width <- gutt.width <- 0L
@@ -188,7 +188,7 @@ make_diff_fun <- function(capt_fun) {
 #'       of ANSI formatting options
 #'     \item \dQuote{html}: color and format using HTML markup
 #'   }
-#'   Defaults to \dQuote{auto}.  See \code{\link{PaletteOfStyles}} for details
+#'   Defaults to \dQuote{auto}.  See \code{palette.of.styles} for details
 #'   on customization, \code{\link{style}} for full control of output format.
 #' @param brightness character, one of \dQuote{light}, \dQuote{dark},
 #'   \dQuote{neutral}, useful for adjusting color scheme to light or dark
@@ -212,18 +212,18 @@ make_diff_fun <- function(capt_fun) {
 #'   \code{brightness} paramter.
 #' @param word.diff TRUE (default) or FALSE, whether to run a secondary word
 #'   diff on the in-hunk diferences
-#' @param pager character(1L), one of \dQuote{auto}, \dQuote{on},
+#' @param pager one of \dQuote{auto} (default), \dQuote{on},
 #'   \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
 #'   pager is used to display the diff output.  If \dQuote{on} will use the
 #'   pager associated with the \code{\link{Style}} specified via the
-#'   \code{\link{style}} parameters.  if \dQuote{auto} (default) will behave
+#'   \code{\link{style}} parameters.  if \dQuote{auto} will behave
 #'   like \dQuote{on} but only if in interactive mode.  If the pager is
 #'   enabled, default behavior is to pipe output to \code{\link{file.show}} if
 #'   output is taller than the estimated terminal height and your terminal
-#'   supports ANSI escape sequences.  If not, the default is to attempt to pipe
-#'   output to a web browser with \code{\link{browseURL}}.  See
-#'   \code{\link{Pager}}, \code{\link{Style}}, and \code{\link{PaletteOfStyles}}
-#'   for more details.
+#'   supports ANSI escape sequences.  If the terminal does not support ANSI
+#'   escape sequences, the default is to attempt to pipe to the IDE viewer or
+#'   web browser.  See \code{\link{Pager}}, \code{\link{view_or_browse}},
+#'   \code{\link{Style}}, and \code{\link{PaletteOfStyles}} for more details.
 #' @param guides TRUE (default), FALSE, or a function that accepts at least two
 #'   arguments and requires no more than two arguments.  Guides
 #'   are additional context lines that are not strictly part of a hunk, but
@@ -282,7 +282,7 @@ make_diff_fun <- function(capt_fun) {
 #' @param disp.width integer(1L) number of display columns to take up; note that
 #'   in \dQuote{sidebyside} \code{mode} the effective display width is half this
 #'   number (set to 0L to use default widths which are \code{getOption("width")}
-#'   for normal styles and \code{120L} for HTML styles.
+#'   for normal styles and \code{80L} for HTML styles.
 #' @param ignore.white.space TRUE or FALSE, whether to consider differences in
 #'   horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
 #'   FALSE)
@@ -303,15 +303,21 @@ make_diff_fun <- function(capt_fun) {
 #'   Set to \code{1} to turn off alignment which will cause all lines in a hunk
 #'   from \code{target} to show up first, followed by all lines from
 #'   \code{current}.
-#' @param style \dQuote{auto}, or a \code{\link{Style}} object.
+#' @param style \dQuote{auto}, a \code{\link{Style}} object, or a list.
 #'   \dQuote{auto} by default.  If a \code{Style} object, will override the
 #'   the \code{format}, \code{brightness}, and \code{color.mode} parameters.
 #'   The \code{Style} object provides full control of diff output styling.
-#'   See \code{\link{Style}} for more details.
+#'   If a list, then the same as \dQuote{auto}, except that if the auto-selected
+#'   \code{Style} requires instantiation (see \code{\link{PaletteOfStyles}}),
+#'   then the list contents will be used as arguments when instantiating the
+#'   style object.  See \code{\link{Style}} for more details, in particular the
+#'   examples.
 #' @param palette.of.styles \code{\link{PaletteOfStyles}} object; advanced usage,
-#'   contains all the \code{\link{Style}} objects that are selected by
-#'   specifying the \code{format}, \code{brightness}, and \code{color.mode}
-#'   parameters.  See \code{\link{PaletteOfStyles}} for more details.
+#'   contains all the \code{\link{Style}} objects or
+#'   \dQuote{classRepresentation} objects extending \code{\link{Style}} that are
+#'   selected by specifying the \code{format}, \code{brightness}, and
+#'   \code{color.mode} parameters.  See \code{\link{PaletteOfStyles}} for more
+#'   details.
 #' @param frame an environment to use as the evaluation frame for the
 #'   \code{print/show/str}, calls and for \code{diffObj}, the evaluation frame
 #'   for the \code{diffPrint}/\code{diffStr} calls.  Defaults to the return
@@ -320,7 +326,8 @@ make_diff_fun <- function(capt_fun) {
 #'   interactive mode, defaults to the return value of
 #'   \code{\link{interactive}}.  If in interactive mode, pager will be used if
 #'   \code{pager} is \dQuote{auto}, and if ANSI styles are not supported and
-#'   \code{style} is \dQuote{auto}, output will be send to browser as HTML.
+#'   \code{style} is \dQuote{auto}, output will be send to viewer/browser as 
+#'   HTML.
 #' @param term.colors integer(1L) how many ANSI colors are supported by the
 #'   terminal.  This variable is provided for when
 #'   \code{\link[=num_colors]{crayon::num_colors}} does not properly detect how
@@ -337,7 +344,7 @@ make_diff_fun <- function(capt_fun) {
 #' @param extra list additional arguments to pass on to the functions used to
 #'   create text representation of the objects to diff (e.g. \code{print},
 #'   \code{str}, etc.)
-#' @param ... unused, for compatibility of generics with methods
+#' @param ... unused, for compatibility of methods with generics
 #' @seealso \code{\link{diffObj}}, \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly,
 #'   \code{\link{diffDeparse}} to compare deparsed objects
@@ -353,7 +360,6 @@ make_diff_fun <- function(capt_fun) {
 #' @export
 #' @examples
 #' diffPrint(letters, letters[-5])
-
 setGeneric(
   "diffPrint", function(target, current, ...) standardGeneric("diffPrint")
 )
@@ -513,7 +519,7 @@ setMethod("diffCsv", signature=c("ANY", "ANY"), make_diff_fun(capt_csv))
 #' other output.
 #'
 #' @inheritParams diffPrint
-#' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
+#' @seealso \code{\link{diffPrint}} for details on the \code{diff*} methods,
 #'   \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly
 #'   \code{\link{diffDeparse}} to compare deparsed objects

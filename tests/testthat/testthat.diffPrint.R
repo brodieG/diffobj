@@ -188,6 +188,12 @@ test_that("factors", {
     as.character(diffPrint(factor(1:100), factor(c(1:99, 101)))), rdsf(3200)
   )
 })
+test_that("Raw output", {
+  expect_equal_to_reference(
+    as.character(diffPrint(letters, LETTERS, format="raw", pager="off")),
+    rdsf(3300)
+  )
+})
 test_that("covr workaround", {
   # Needed so that the function definition stuff is marked as covered; really
   # it shouldn't even be eligible for coverage, need to discuss further with

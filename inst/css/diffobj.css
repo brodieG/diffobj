@@ -6,6 +6,7 @@
 
 DIV.diffobj_container PRE {
   white-space: pre-wrap;
+  margin: 0;
 }
 DIV.diffobj_container DIV.row {
   width: 100%;
@@ -14,7 +15,18 @@ DIV.diffobj_container DIV.row {
   table-layout: fixed;
 }
 DIV.diffobj_container DIV.line {
+  width: auto;
   display: table-cell;
+  overflow: hidden;
+}
+DIV.diffobj_container DIV.line>DIV {
+  width: 100%;
+  display: table;
+  table-layout: auto;
+}
+DIV.diffobj_container DIV.line.banner>DIV {
+  display: table;
+  table-layout: auto; /* set to fixed in JS */
 }
 DIV.diffobj_container DIV.text {
   display: table-cell;
@@ -24,11 +36,41 @@ DIV.diffobj_container DIV.gutter {
   display: table-cell;
   padding: 0 0.2em;
 }
+DIV.diffobj_container DIV.gutter DIV {
+  display: table-cell;
+}
+#diffobj_content_meta DIV.diffobj_container DIV.row {
+  width: auto;
+}
+#diffobj_banner_meta DIV.diffobj_container DIV.line.banner>DIV {
+  table-layout: auto;
+}
+#diffobj_outer {
+  overflow: hidden;
+}
+/* Summary -------------------------------------------------------------------*/ 
+
+DIV.diffobj_container DIV.summary DIV.map {
+  word-wrap: break-word;
+  padding-left: 1em;
+}
+DIV.diffobj_container DIV.summary DIV.detail {
+  padding-left: 1em;
+}
+
 /* Common elements -----------------------------------------------------------*/
 
 DIV.diffobj_container DIV.line.banner {
   font-size: 1.2em;
   font-weight: bold;
+  overflow: hidden;
+}
+/* truncate banners */
+DIV.diffobj_container DIV.line.banner DIV.text DIV{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;             /* need to compute and set in JS */
 }
 DIV.diffobj_container DIV.gutter,
 DIV.diffobj_container DIV.guide,
@@ -46,6 +88,9 @@ DIV.diffobj_container DIV.text>DIV.guide {
 }
 DIV.diffobj_container DIV.text>DIV.fill {
   background-color: transparent;
+}
+DIV.diffobj_container DIV.text>DIV {
+  padding-right: 3px;
 }
 DIV.diffobj_container DIV.text>DIV {
   border-left: 1px solid #888888;

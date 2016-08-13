@@ -214,6 +214,7 @@ setMethod("sideBySide", "Settings",
   "orig", "raw", "trim", "trim.ind.start", "trim.ind.end", "comp", "eq", "fin",
   "fill", "word.ind", "tok.rat"
 )
+
 # Validate the *.dat slots of the Diff objects
 
 valid_dat <- function(x) {
@@ -290,6 +291,7 @@ setClass("Diff",
     capt.mode="character",        # whether in print or str mode
     hit.diffs.max="logical",
     diff.count.full="integer",         # only really used by diffStr when folding
+    hunk.heads="list",
     etc="Settings"
   ),
   prototype=list(
@@ -300,7 +302,7 @@ setClass("Diff",
   validity=function(object) {
     # Most of the validation is done by `check_args`
     if(
-      !is.chr.1L(object@capt.mode) || 
+      !is.chr.1L(object@capt.mode) ||
       ! object@capt.mode %in% c("print", "str", "chr", "deparse", "file")
     )
       return("slot `capt.mode` must be either \"print\" or \"str\"")
@@ -319,6 +321,43 @@ setClass("Diff",
       return("slot `hit.diffs.max` must be TRUE or FALSE")
 
     TRUE
+} )
+setMethod("finalizer", c("Diff"),
+  function(x, x.chr, ...) {
+    style <- x@etc@style
+    html.output <- style@html.output
+    if(html.output == "auto") {
+      html.output <- if(is(style@pager, "PagerBrowser"))
+        "page" else "diff.only"
+    }
+    if(html.output == "page") {
+      x.chr <- c(
+        make_dummy_row(x),
+        sprintf("<div id='diffobj_content'>%s</div>", x.chr),
+        sprintf( "
+          <script type=\"text/javascript\">
+            var scale=%s;
+          </script>", if(style@scale) "true" else "false"
+        )
+      )
+      rez.fun <- if(style@scale)
+        "resize_diff_out_scale" else "resize_diff_out_no_scale"
+      js <- try(readLines(style@js))
+      if(inherits(js, "try-error")) {
+        warning("Unable to read provided js file.")
+        js <- ""
+      } else {
+        js <- paste0(
+          c(
+            js,
+            sprintf(
+              "window.addEventListener('resize', %s, true);\n %s();",
+              rez.fun, rez.fun
+          ) ),
+          collapse="\n"
+      ) }
+    } else js <- ""
+    callNextMethod(x, x.chr, style=style, js=js, ...)
 } )
 # Helper fun used by `show` for Diff and DiffSummary objects
 

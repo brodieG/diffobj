@@ -15,6 +15,10 @@
 
 #' @include styles.R
 
+# Default options; beware of defining default options that may have different
+# values during package install, which is when this list is contructed, and
+# function runtime
+
 .default.opts <- list(
   diffobj.context=2L,
   diffobj.context.auto.min=1L,
@@ -41,7 +45,7 @@
   diffobj.format="auto",
   diffobj.interactive=NULL,     # NULL == interactive()
   diffobj.color.mode="yb",
-  diffobj.term.colors=crayon::num_colors(),
+  diffobj.term.colors=NULL,
   diffobj.brightness="neutral",
   diffobj.tab.stops=8L,
   diffobj.disp.width=0L,        # 0L == use style width, see param docs
@@ -49,7 +53,9 @@
   diffobj.guides=TRUE,
   diffobj.trim=TRUE,
   diffobj.html.escape.html.entities=TRUE,
+  diffobj.html.js=diffobj_js(),
   diffobj.html.css=diffobj_css(),
+  diffobj.html.scale=TRUE,
   diffobj.html.output="auto"
 )
 

@@ -129,6 +129,9 @@ par_frame <- function() {
 make_err_fun <- function(call)
   function(...) stop(simpleError(do.call(paste0, list(...)), call=call))
 
+make_warn_fun <- function(call)
+  function(...) warning(simpleWarning(do.call(paste0, list(...)), call=call))
+
 # Function used to match against `str` calls since the existing function
 # does not actually define `max.level`; note it never is actually called
 # nocov start

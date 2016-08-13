@@ -34,6 +34,9 @@ represented above}
 \item{text}{a \code{\link{StyleText}} object that contains the non-content
 text used by the diff (e.g. \code{gutter.insert.txt})}
 
+\item{summary}{a \code{\link{StyleSummary}} object that contains formatting
+functions and other meta data for rendering summaries}
+
 \item{wrap}{TRUE or FALSE, whether the text should be hard wrapped to fit in
 the console}
 
@@ -53,13 +56,26 @@ collapsing}
 
 \item{finalizer}{function that accepts at least two parameters and requires
 no more than two parameters, will receive as the first parameter the
-full text of the diff as a character vector, and the active
-\code{\link{Pager}} as the second argument.  This allows final
-modifications to the character output so that it is displayed correctly
-by the pager.  For example, \code{StyleHtml} objects use it to generate
-HTML headers if the \code{Diff} is destined to be displayed in a browser.
-The \code{Pager} object is passed along to provide information about the
-paging device to the function.}
+the object to render (either a \code{Diff} or a \code{DiffSummary}
+object), and the text representation of that object as the second
+argument.  This allows final modifications to the character output so that
+it is displayed correctly by the pager.  For example, \code{StyleHtml}
+objects use it to generate HTML headers if the \code{Diff} is destined to
+be displayed in a browser.  The object themselves are passed along to
+provide information about the paging device and other contextual data to
+the function.}
+
+\item{escape.html.entities}{(\code{StyleHtml} objects only) TRUE (default)
+or FALSE, whether to escape HTML entities in the input}
+
+\item{scale}{(\code{StyleHtml} objects only) TRUE (default) or FALSE,
+whether to scale HTML output to fit to the viewport}
+
+\item{css}{(\code{StyleHtml} objects only) path to file containing CSS styles
+to style HTML output with}
+
+\item{js}{(\code{StyleHtml} objects only) path to file containing Javascript
+used for scaling output to viewports.}
 }
 \value{
 Style S4 object
@@ -94,15 +110,17 @@ Each of these classes has an associated constructor function with the
 same name (see examples).  Objects instantiated from these classes
 may also be used directly as the value for the \code{style} parameter to the
 \code{diff*} methods. This will override the automatic selection process
-that uses \code{\link{PaletteOfStyles}}.
+that uses \code{\link{PaletteOfStyles}}.  If you wish to tweak an
+auto-selected style rather than explicitly specify one, pass a parameter
+list instead of a \code{Style} objects as the \code{style} parameter to the
+\code{diff*} methods (see examples).
 
 There are predefined classes for most combinations of
 \code{format/color.mode/brightness}, but not all.  For example, there are
 only \dQuote{light} \code{brightness} defined for the \dQuote{html}
-\code{format}, and that class is re-used for all possible
-\code{brightness} values.  \code{\link{PaletteOfStyles}} substitutes an
-appropriate class when necessary (e.g. \code{StyleAnsi8NeutralYb} for the
-neutral yellow-blue Ansi256 entry).
+\code{format}, and those classes are re-used for all possible
+\code{brightness} values, and the 8 color ANSI neutral classes are used
+for the 256 color neutral selections as well.
 
 To get a preview of what a style looks like just instantiate
 an object; the \code{show} method will output a trivial diff to screen with
@@ -163,40 +181,49 @@ The structure described here may change in the future.
 
 If you use a \code{Style} that inherits from \code{StyleHtml} the
 diff will be wrapped in HTML tags, styled with CSS, and output to
-a web browser by the pager.  The HTML output will be a full stand-alone
-HTML page with references to the built-in cascading style sheet.  If the
-pager is disabled or is not \code{\link{PagerBrowser}} then only the raw
-HTML for the diff is output.
+\code{getOption("viewer")} if your IDE supports it (e.g. Rstudio), or
+directly to the browser otherwise, assuming that the default
+\code{\link{Pager}} or a correctly configured pager that inherits from
+\code{\link{PagerBrowser}} is in effect.  Otherwise, the raw HTML will be
+output to your terminal.
+
+By default HTML output sent to the viewer/browser is a full stand-alone
+webpage with CSS styles to format and color the diff, and JS code to
+handle scaling.  The CSS and JS is read from the
+\link[=webfiles]{default files} and injected into the HTML to simplify
+packaging of the output.  You can customize the CSS and JS by using the
+\code{css} and \code{js} arguments respectively, but read the rest of this
+documentation section if you plan on doing so.
 
 Should you want to capture the HTML output for use elsewhere, you can do
 so by using \code{as.character} on the return value of the \code{diff*}
-methods.  If you want the raw HTML without any of the headers and
-css in \code{<style>} tags use \code{html.ouput="diff.only"} when you
-instantiate the \code{Style} object (see examples), or disable the
-\code{\link{Pager}}.  Another option is \code{html.output="diff.w.style"}
-which will add \code{<style>} tags with the CSS, but without wrapping those
-in \code{<head>} tags. This last option results in illegal HTML with a
-\code{<style>} block inside the \code{<body>} block, but appears to work and
-is useful if you want to embed HTML someplace but do not have access to the
-headers.
+methods.  If you want the raw HTML without any of the headers, CSS, and
+JS use \code{html.ouput="diff.only"} when you instantiate the
+\code{StyleHtml} object (see examples), or disable the \code{\link{Pager}}.
+Another option is \code{html.output="diff.w.style"} which will add
+\code{<style>} tags with the CSS, but without wrapping those in \code{<head>}
+tags. This last option results in illegal HTML with a \code{<style>} block
+outside of the \code{<head>} block, but appears to work and is useful if you
+want to embed HTML someplace but do not have access to the headers.
 
-For compatibility with RStudio server sessions the styles are always included
-directly within \code{style} tags rather than in an external style sheet.
+If you wish to modify the CSS styles you should do so cautiously.  The
+HTML and CSS work well together out of the box, but may not take to kindly
+to modifications.  The safest changes you can make are to the colors of the
+scheme.  You also probably should not modify the functions in the
+\code{@funs} slot of the \code{StyleHtml} object.  If you want to provide
+your own custom styles make a copy of the file at the location returned by
+\code{diffobj_css()}, modify it to your liking, and pass the location of your
+modified sheet back via the \code{css} argument (see examples).
 
-Unlike with ANSI styles, you should not modify the styling functions in the
-\code{@funs} slot of the \code{Style} object.  Instead, provide your own
-styles.  See \code{diffobj_css()} for the predefined styles.  The styles are
-structured so that they are applied to any element within a container of a
-particular class.
+The javascript controls the scaling of the output such that its width fits
+in the viewport.  If you wish to turn of this behavior you can do so via the
+\code{scale} argument.  You may need to modify the javascript if you modify
+the \code{@funs} functions, but otherwise you are probably best off leaving
+the javascript untouched.  You can provide the location of a modified
+javascript file via the \code{js} argument.
 
-To provide your own custom CSS style sheet you may:
-\itemize{
-  \item specify it through the \code{css} slot of a \code{StyleHtml} object,
-    and pass that object as the value for the \code{style} parameter for the
-    \code{diff*} methods (see example)
-  \item as above, but asign the object to the active \code{PaletteOfStyles}
-  \item  set the \dQuote{diffobj.html.css} option
-}
+Both the CSS and JS files can be specified via options,
+\dQuote{diffobj.html.css}, and \dQuote{diffobj.html.js} respectively.
 
 If you define your own custom \code{StyleHtml} object you may want to modify
 the slot \code{@funs@container}.  This slot contains a function that is
@@ -206,6 +233,16 @@ a function that accepts a character vector as an argument and returns
 that value wrapped in a \code{DIV} block with class
 \dQuote{"diffobj_container light rgb"}.  This allows the CSS style sheet to
 target the \code{Diff} elements with the correct styles.
+}
+
+\section{Modifying Style Parameters Directly}{
+
+
+Often you will want to specify some of the style parameters (e.g.
+\code{scale}) while still relying on the default style selection to
+pick the specific style.  You can do so by passing a list to the
+\code{style} parameter of the \code{\link[=diffPrint]{diff*}} methods.
+See examples.
 }
 \examples{
 ## Create a new style based on existing style by changing
@@ -224,9 +261,17 @@ my.style   ## Notice gutters and guide color
 my.css <- file.path(path.expand("~"), "web", "mycss.css")
 diffPrint(1:5, 2:6, style=StyleHtmlLightYb(css=my.css))
 }
+
+## Turn of scaling; notice how we pass a list to `style`
+## and we do not need to specify a specific style
+diffPrint(letters, letters[-5], format="html", style=list(scale=FALSE))
+## Alternatively we can do the same by specifying a style
+my.style <- StyleHtmlLightYb(scale=FALSE)
+diffPrint(letters, letters[-5], style=my.style)
+
 ## Return only the raw HTML without any of the headers
 as.character(
-  diffPrint(1:5, 2:6, style=StyleHtmlLightYb(html.output="diff.only"))
+  diffPrint(1:5, 2:6, style=list(html.output="diff.only"))
 )
 }
 

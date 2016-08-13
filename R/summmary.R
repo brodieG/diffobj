@@ -19,7 +19,7 @@ NULL
 
 setClass("DiffSummary",
   slots=c(
-    max.lines="integer", width="integer", style="Style",
+    max.lines="integer", width="integer", etc="Settings",
     diffs="matrix", all.eq="character",
     scale.threshold="numeric"
   ),
@@ -81,12 +81,17 @@ setMethod("summary", "Diff",
     diffs <- diffs.c[, match.keep, drop=FALSE]
     all.eq <- all.equal(object@target, object@current)
     new(
-      "DiffSummary", max.lines=max.lines, width=width, style=object@etc@style,
+      "DiffSummary", max.lines=max.lines, width=width, etc=object@etc,
       diffs=diffs, all.eq=if(isTRUE(all.eq)) character(0L) else all.eq,
       scale.threshold=scale.threshold
     )
   }
 )
+setMethod("finalizer", c("DiffSummary"),
+  function(x, x.chr, ...) {
+    js <- ""
+    callNextMethod(x, x.chr, style=x@etc@style, js=js, ...)
+} )
 #' Generate Character Representation of DiffSummary Object
 #'
 #' @param x a \code{DiffSummary} object
@@ -96,23 +101,39 @@ setMethod("summary", "Diff",
 
 setMethod("as.character", "DiffSummary",
   function(x, ...) {
+    style <- x@etc@style
     hunks <- sum(!x@diffs["match", ])
     res <- c(apply(x@diffs, 1L, sum))
     scale.threshold <- x@scale.threshold
-    res <- if(!hunks || !sum(x@diffs["match", ])) {
-      if(length(x@all.eq)) {
-        eq.txt <- paste0("- ", x@all.eq)
-        c("No visible differences, but objects are not `all.equal`:", eq.txt)
-      } else {
-        "Objects are `all.equal`"
-      }
+    # something seems wrong with next condition
+    res <- if(!hunks || !sum(x@diffs[c("delete", "add"), ])) {
+      style@summary@body(
+        if(length(x@all.eq)) {
+          eq.txt <- paste0("- ", x@all.eq)
+          paste0(
+            c(
+              "No visible differences, but objects are not `all.equal`:",
+              eq.txt
+            ),
+            collapse=style@text@line.break
+          )
+        } else {
+          "Objects are `all.equal`"
+      } )
     } else {
-      head <- c(
-        sprintf("Found differences in %d hunks:", hunks),
+      head <- paste0(
         sprintf(
-          "  %d insertions, %d deletions, %d matches (lines)",
-          res[["add"]], res[["delete"]], res[["match"]]
-      ) )
+          "Found differences in %d hunk%s:", hunks, if(hunks != 1L) "s" else ""
+        ),
+        style@summary@detail(
+          sprintf(
+            "%d insertion%s, %d deletion%s, %d match%s (lines)",
+            res[["add"]], if(res[["add"]] == 1L) "" else "s",
+            res[["delete"]], if(res[["delete"]] == 1L) "" else "s",
+            res[["match"]], if(res[["match"]] == 1L) "" else "es"
+        ) ),
+        collapse=""
+      )
       # Compute character screen display
 
       pad <- 2L
@@ -205,7 +226,7 @@ setMethod("as.character", "DiffSummary",
         if(is.null(s.o.txt) && !is.null(s.gt.o.txt)) "" else ", ",
         if(!is.null(s.gt.o.txt)) s.gt.o.txt else ""
       )
-      body <- strwrap(map.txt, width=x@width)
+      body <- if(style@wrap) strwrap(map.txt, width=x@width) else map.txt
 
       # Render actual map
 
@@ -225,16 +246,16 @@ setMethod("as.character", "DiffSummary",
 
       txt <- do.call(paste0, as.list(c(diffs.txt)))
       txt <- substr(txt, 1, max.chars)
-      txt.w <- unlist(wrap(txt, width))
+      txt.w <- unlist(if(style@wrap) wrap(txt, width) else txt)
 
       # Apply ansi styles if warranted
 
-      if(is(x@style, "StyleAnsi")) {
+      if(is(style, "StyleAnsi")) {
         old.crayon.opt <-
-          options(crayon.enabled=is(x@style, "StyleAnsi"))
+          options(crayon.enabled=is(style, "StyleAnsi"))
         on.exit(options(old.crayon.opt), add=TRUE)
       }
-      s.f <- x@style@funs
+      s.f <- style@funs
       txt.w <- gsub(
         symb[["add"]], s.f@word.insert(symb[["add"]]),
         gsub(
@@ -260,13 +281,21 @@ setMethod("as.character", "DiffSummary",
         )
       } else character(0L)
 
-      map <- paste0("  ", txt.w)
-      if(length(extra))
-        extra <- strwrap(extra, indent=2L, exdent=2L, width=width)
-      c(head, "", body, map, extra)
+      map <- txt.w
+      if(length(extra) && style@wrap) extra <- strwrap(extra, width=width)
+      c(
+        style@summary@body(
+          paste0(c(head, body), collapse=style@text@line.break)
+        ),
+        style@summary@map(c(map, extra))
+      )
     }
-    fin <- paste0(c("", res, ""), collapse=x@style@text@line.break)
-    finalize(fin, x@style, length(res) + 2L)
+    fin <- style@funs@container(style@summary@container(res))
+    finalize(
+      fin, x,
+      length(unlist(gregexpr(style@text@line.break, fin, fixed=TRUE))) +
+      length(fin)
+    )
   }
 )
 #' Display DiffSummary Objects
@@ -276,7 +305,7 @@ setMethod("as.character", "DiffSummary",
 
 setMethod("show", "DiffSummary",
   function(object) {
-    show_w_pager(as.character(object), object@style@pager)
+    show_w_pager(as.character(object), object@etc@style@pager)
     invisible(NULL)
   }
 )
