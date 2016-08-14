@@ -1,6 +1,7 @@
 # Run tests
 
 library(testthat)
+library(covr)
 library(diffobj)
 
 local({                                         # so we can use `on.exit`
@@ -8,6 +9,9 @@ local({                                         # so we can use `on.exit`
   options(diffobj.style=StyleAnsi8NeutralYb())  # force ANSI colors
   options(diffobj.pager="off")                  # run tests without pager
   options(width=80L)
+  options(covr.exclude_end="(?://|#)[[:space:]]*nocov[[:space:]]*end")
+  options(covr.exclude_start="(?://|#)[[:space:]]*nocov[[:space:]]*start")
+  options(covr.exclude_pattern="(?://|#)[[:space:]]*nocov")
   on.exit(options(old.opts))
   test_dir(
     "testthat",
