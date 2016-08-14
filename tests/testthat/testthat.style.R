@@ -106,3 +106,15 @@ test_that("style fun validation", {
   s.f@word.insert <- function(x, y) NULL
   expect_error(validObject(s.f), "word.insert")
 })
+test_that("palette with objects", {
+  pal <- PaletteOfStyles()
+  pal["raw", "neutral", "rgb"] <- list(new(pal[["raw", "neutral", "rgb"]]))
+
+  expect_warning(
+    diffChr(
+      letters, LETTERS, format="raw", brightness="neutral", color.mode="rgb",
+      palette.of.styles=pal, style=list(na.sub="NA")
+    ),
+    "arguments cannot be applied"
+  )
+})

@@ -194,6 +194,13 @@ test_that("Raw output", {
     rdsf(3300)
   )
 })
+test_that("Varying Widths", {
+  expect_equal_to_reference(
+    as.character(diffPrint(letters, LETTERS, format="raw", disp.width=40)),
+    rdsf(3400)
+  )
+  expect_error(diffPrint(letters, LETTERS, disp.width=5))
+})
 test_that("covr workaround", {
   # Needed so that the function definition stuff is marked as covered; really
   # it shouldn't even be eligible for coverage, need to discuss further with

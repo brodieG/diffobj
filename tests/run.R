@@ -9,9 +9,14 @@ local({                                         # so we can use `on.exit`
   options(diffobj.style=StyleAnsi8NeutralYb())  # force ANSI colors
   options(diffobj.pager="off")                  # run tests without pager
   options(width=80L)
-  options(covr.exclude_end="(?://|#)[[:space:]]*nocov[[:space:]]*end")
-  options(covr.exclude_start="(?://|#)[[:space:]]*nocov[[:space:]]*start")
-  options(covr.exclude_pattern="(?://|#)[[:space:]]*nocov")
+
+  # # covr options have no effect here; just recorded so we can use them ahead
+  # # of calling package_coverage()
+
+  # options(covr.exclude_start="(?://|#)[[:space:]]*nocov[[:space:]]*start")
+  # options(covr.exclude_end="(?://|#)[[:space:]]*nocov[[:space:]]*end")
+  # options(covr.exclude_pattern="(?://|#)[[:space:]]*nocov")
+
   on.exit(options(old.opts))
   test_dir(
     "testthat",
@@ -34,6 +39,7 @@ local({                                         # so we can use `on.exit`
         "misc",
         "pager",
         "rdiff",
+        "s4",
         "style",
         "subset",
         "summary",
