@@ -87,10 +87,12 @@ setMethod("summary", "Diff",
     )
   }
 )
-setMethod("finalizer", c("DiffSummary"),
+#' @rdname finalizeHtml
+
+setMethod("finalizeHtml", c("DiffSummary"),
   function(x, x.chr, ...) {
     js <- ""
-    callNextMethod(x, x.chr, style=x@etc@style, js=js, ...)
+    callNextMethod(x, x.chr, js=js, ...)
 } )
 #' Generate Character Representation of DiffSummary Object
 #'

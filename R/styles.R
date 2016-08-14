@@ -205,10 +205,13 @@ StyleText <- setClass(
 #' Styling Information for Summaries
 #'
 #' @export
-#' @param container function applied to entire summary
-#' @param body function applied to everything except the actual map portion of
+#' @rdname StyleSummary
+#' @slot container function applied to entire summary
+#' @slot body function applied to everything except the actual map portion of
 #'   the summary
-#' @param map function applied to the map portion of the summary
+#' @slot detail function applied to section showing how many deletions /
+#'   insertions, etc. occurred
+#' @slot map function applied to the map portion of the summary
 
 StyleSummary <- setClass("StyleSummary",
   slots=c(container="ANY", body="ANY", map="ANY"),
@@ -230,6 +233,7 @@ StyleSummary <- setClass("StyleSummary",
     TRUE
   }
 )
+#' @rdname StyleSummary
 #' @export
 
 StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
@@ -760,7 +764,7 @@ StyleHtml <- setClass(
     html.output="auto",
     css=diffobj_css(),
     js=diffobj_js(),
-    finalizer=finalizer,
+    finalizer=finalizeHtml,
     scale=TRUE
   ),
   validity=function(object) {

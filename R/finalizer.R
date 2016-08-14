@@ -17,19 +17,30 @@
 
 NULL
 
-#' Finalizing Methods
+#' Finalizing Methods for HTML Output
 #'
-#' Use as the \code{finalizer} slot to \code{\link{Style}} objects to wrap
+#' Use as the \code{finalizer} slot to \code{\link{StyleHtml}} objects to wrap
 #' character output prior to output to device.  Used primarily by styles that
-#' output to HTML to properly configure HTML page structure.
+#' output to HTML to properly configure HTML page structure, including injecting
+#' JS, CSS, etc..
 #'
+#' @param x object to finalize
+#' @param x.chr character text representation of \code{x}, typically generated
+#'   with the \code{as.character} method for \code{x}
+#' @param js character javascript code to append to HTML representation
+#' @param ... arguments to pass on to methods
 #' @export
 
-setGeneric("finalizer", function(x, ...) standardGeneric("finalizer"))
-setMethod("finalizer", c("ANY"),
-  function(x, x.chr, style, js, ...) {
+setGeneric("finalizeHtml", function(x, ...) standardGeneric("finalizeHtml"))
+
+#' @rdname finalizeHtml
+
+setMethod("finalizeHtml", c("ANY"),
+  function(x, x.chr, js, ...) {
     if(!is.character(x.chr)) stop("Argument `x.chr` must be character")
     if(!is.chr.1L(js)) stop("Argument `js` must be character(1L) and not NA.")
+
+    style <- x@etc@style
 
     html.output <- style@html.output
     pager <- style@pager

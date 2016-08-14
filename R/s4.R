@@ -322,7 +322,9 @@ setClass("Diff",
 
     TRUE
 } )
-setMethod("finalizer", c("Diff"),
+#' @rdname finalizeHtml
+
+setMethod("finalizeHtml", c("Diff"),
   function(x, x.chr, ...) {
     style <- x@etc@style
     html.output <- style@html.output
@@ -357,7 +359,7 @@ setMethod("finalizer", c("Diff"),
           collapse="\n"
       ) }
     } else js <- ""
-    callNextMethod(x, x.chr, style=style, js=js, ...)
+    callNextMethod(x, x.chr, js=js, ...)
 } )
 # Helper fun used by `show` for Diff and DiffSummary objects
 
