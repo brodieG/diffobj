@@ -35,6 +35,14 @@ test_that("HTML Output Modes", {
     ) ),
     rdsf(300)
   )
+  expect_equal_to_reference(
+    as.character(
+      diffPrint(
+        letters[1:6], LETTERS[1:6], mode="unified",
+        style=StyleHtmlLightYb(html.output="page")
+    ) ),
+    rdsf(350)
+  )
 })
 test_that("Sub CSS", {
   # Mess up the CSS to test that we can change CSS file
@@ -63,4 +71,9 @@ test_that("Tag funs", {
   )
   span_a <- span_f()
   expect_equal(span_a(c("a", "b")), c("<span>a</span>", "<span>b</span>"))
+})
+
+test_that("nchar", {
+  expect_equal(nchar("<a href='blahblah'>25</a>"), 2)
+  expect_equal(nchar("<a href='blahblah'>25&nbsp;</a>"), 3)
 })
