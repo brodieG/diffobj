@@ -13,6 +13,11 @@
 #
 # Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
 
+# Used so that `with_mock` will work since these are primitives, for testing
+
+interactive <- function() base::interactive()
+readline <- function(...) if(interactive()) base::readline(...)
+
 # Returns the indices of the original rle object that correspond to the
 # ind rle values
 
