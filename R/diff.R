@@ -104,11 +104,9 @@ make_diff_fun <- function(capt_fun) {
     nc_fun <- etc.proc@style@nchar.fun
     etc.proc@gutter <- gutter_dat(etc.proc)
 
-    col.pad.width <- gutt.width <- 0L
-    if(is(etc.proc@style, "StyleRaw")) {
-      col.pad.width <- nc_fun(etc.proc@style@text@pad.col)
-      gutt.width <- etc.proc@gutter@width
-    }
+    col.pad.width <- nc_fun(etc.proc@style@text@pad.col)
+    gutt.width <- etc.proc@gutter@width
+
     half.width <- as.integer((etc.proc@disp.width - col.pad.width) / 2)
     etc.proc@line.width <-
       max(etc.proc@disp.width, .min.width + gutt.width)

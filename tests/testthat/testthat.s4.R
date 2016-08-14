@@ -1,6 +1,8 @@
 library(testthat)
 library(diffobj)
 
+context("S4")
+
 test_that("diff data validation works", {
   expect_error(diffobj:::valid_dat("hello", "should be a list"))
   D0 <- D1 <- D2 <- D3 <- D4 <- D5 <- D6 <- D7 <-
