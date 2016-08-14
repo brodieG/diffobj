@@ -344,9 +344,13 @@ setMethod("finalizeHtml", c("Diff"),
       )
       rez.fun <- if(style@scale)
         "resize_diff_out_scale" else "resize_diff_out_no_scale"
-      js <- try(readLines(style@js))
+      js <- try(readLines(style@js), silent=TRUE)
       if(inherits(js, "try-error")) {
-        warning("Unable to read provided js file.")
+        cond <- attr(js, "condition")
+        warning(
+          "Unable to read provided js file ", style@js, " (error: ",
+          paste0(conditionMessage(cond), collapse=""), ")."
+        )
         js <- ""
       } else {
         js <- paste0(
