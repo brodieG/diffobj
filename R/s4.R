@@ -159,7 +159,9 @@ setClass("Settings",
     disp.width=0L, text.width=0L, line.width=0L,
     text.width.half=0L, line.width.half=0L,
     guides=function(obj, obj.as.chr) integer(0L),
-    trim=function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr))
+    trim=function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr)),
+    ignore.white.space=TRUE, convert.hz.white.space=TRUE,
+    word.diff=TRUE, unwrap.atomic=TRUE
   ),
   validity=function(object){
     int.1L.and.pos <- c(
@@ -255,7 +257,7 @@ valid_dat <- function(x) {
         not.list <- which(!vapply(x[list.cols], is.list, logical(1L)))
       )
     ) {
-      sprintf("element `%s` should be list", char.cols[not.char][[1L]])
+      sprintf("element `%s` should be list", list.cols[not.list][[1L]])
     } else if (
       !all(
         vapply(
@@ -268,7 +270,7 @@ valid_dat <- function(x) {
     ) {
       "element `word.ind` is not in expected format"
     } else if (
-      !is.numeric(x$tok.rat) || anyNA(x$tok.rat) || !all(x$to.rat %bw% c(0, 1))
+      !is.numeric(x$tok.rat) || anyNA(x$tok.rat) || !all(x$tok.rat %bw% c(0, 1))
     ) {
       "element `tok.rat` should be numeric with all values between 0 and 1"
     } else if (!is.logical(x$fill) || anyNA(x$fill)) {
