@@ -74,6 +74,6 @@ test_that("Tag funs", {
 })
 
 test_that("nchar", {
-  expect_equal(nchar("<a href='blahblah'>25</a>"), 2)
-  expect_equal(nchar("<a href='blahblah'>25&nbsp;</a>"), 3)
+  expect_equal(nchar_html("<a href='blahblah'>25</a>"), 2)
+  expect_equal(nchar_html("<a href='blahblah'>25&nbsp;</a>"), 3)
 })

@@ -71,7 +71,7 @@ test_that("auto style selection", {
   expect_is(
     diffChr(
       letters, LETTERS, style="auto", format="auto", interactive=TRUE,
-      term.colors=1
+      term.colors=1  # note pager off by default in tests
     )@etc@style,
     "StyleRaw"
   )
@@ -81,6 +81,20 @@ test_that("auto style selection", {
       pager="auto", term.colors=1
     )@etc@style,
     "StyleHtml"
+  )
+  expect_is(
+    diffChr(
+      letters, LETTERS, style="auto", format="html", interactive=TRUE
+      pager="auto", color.mode=c("rgb", ansi8="yb")
+    )@etc@style,
+    "StyleHtmlLightRgb"
+  )
+  expect_is(
+    diffChr(
+      letters, LETTERS, style="auto", format="html", interactive=TRUE
+      pager="auto", color.mode=c("rgb", html="yb")
+    )@etc@style,
+    "StyleHtmlLightYb"
   )
 })
 test_that("palette param selection", {
@@ -117,4 +131,8 @@ test_that("palette with objects", {
     ),
     "arguments cannot be applied"
   )
+})
+test_that("external files", {
+  expect_true(test_file("-f", diffobj_css()))
+  expect_true(test_file("-f", diffobj_js()))
 })

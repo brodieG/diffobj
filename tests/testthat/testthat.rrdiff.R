@@ -43,6 +43,17 @@ if(identical(.Platform$OS.type, "unix") && has_Rdiff()) {
     ref.res3 <- c("1c1")
     expect_identical(Rdiff_obj(A2, B2, silent=TRUE), ref.res2)
     expect_identical(Rdiff_obj(A2, B2, minimal=TRUE, silent=TRUE), ref.res3)
+
+    # with rds
+    f1 <- tempfile()
+    f2 <- tempfile()
+    saveRDS(A2, f1)
+    saveRDS(B2, f2)
+    on.exit(unlink(c(f1, f2)))
+
+    expect_identical(Rdiff_obj(f1, B2, silent=TRUE), ref.res2)
+    expect_identical(Rdiff_obj(A2, f2, silent=TRUE), ref.res2)
+    expect_identical(Rdiff_obj(f1, f2, silent=TRUE), ref.res2)
   })
 } else {
   context("w/o diff")

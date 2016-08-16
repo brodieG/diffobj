@@ -60,3 +60,13 @@ test_that("Show", {
     as.character(summary(diffChr(chr.7, chr.8)))
   )
 })
+test_that("HTML summary", {
+  expect_equal_to_reference(
+    as.character(
+      summary(
+        diffPrint(
+          iris.s, iris.4, format="html", style=list(html.output="page")
+    ) ) ),
+    rdsf(900)
+  )
+})

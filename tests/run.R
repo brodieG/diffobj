@@ -24,6 +24,7 @@ local({                                         # so we can use `on.exit`
       c(
         "atomic",
         "banner",
+        "capture",
         "check",
         "context",
         "core",
