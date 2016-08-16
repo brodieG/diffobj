@@ -84,14 +84,14 @@ test_that("auto style selection", {
   )
   expect_is(
     diffChr(
-      letters, LETTERS, style="auto", format="html", interactive=TRUE
+      letters, LETTERS, style="auto", format="html", interactive=TRUE,
       pager="auto", color.mode=c("rgb", ansi8="yb")
     )@etc@style,
     "StyleHtmlLightRgb"
   )
   expect_is(
     diffChr(
-      letters, LETTERS, style="auto", format="html", interactive=TRUE
+      letters, LETTERS, style="auto", format="html", interactive=TRUE,
       pager="auto", color.mode=c("rgb", html="yb")
     )@etc@style,
     "StyleHtmlLightYb"
@@ -133,6 +133,6 @@ test_that("palette with objects", {
   )
 })
 test_that("external files", {
-  expect_true(test_file("-f", diffobj_css()))
-  expect_true(test_file("-f", diffobj_js()))
+  expect_true(file_test("-f", diffobj_css()))
+  expect_true(file_test("-f", diffobj_js()))
 })
