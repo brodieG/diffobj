@@ -129,16 +129,17 @@ align_eq <- function(A, B, x, context) {
 
     if(length(A.valid) & length(B.valid)) {
       B.max <- length(B.valid)
-      B.eq.val <- B.eq[B.valid]
+      B.eq.val <- B.eq.trim[B.valid]
 
       for(i in A.valid) {
         if(min.match >= B.max) break
         B.match <- which(
-          A.eq[[i]] == if(min.match) tail(B.eq.val, -min.match) else B.eq.val
+          A.eq.trim[[i]] == if(min.match)
+            tail(B.eq.val, -min.match) else B.eq.val
         )
         if(length(B.match)) {
           align[[i]] <- B.valid[B.match[[1L]] + min.match]
-          min.match <- B.match
+          min.match <- B.match[[1L]] + min.match
         }
       }
     }
