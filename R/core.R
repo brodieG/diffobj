@@ -381,8 +381,11 @@ line_diff <- function(
     length(cur.rh <- which_atomic_cont(cur.capt.p, current)) &&
     etc@unwrap.atomic && etc@word.diff
   ) {
-    if(!all(diff(tar.rh) == 1L) || !all(diff(cur.rh)) == 1L)
+    if(!all(diff(tar.rh) == 1L) || !all(diff(cur.rh)) == 1L){
+      # nocov start
       stop("Logic Error, row headers must be sequential; contact maintainer.")
+      # nocov end
+    }
 
     # Only do this for the portion of the data that actually matches up with
     # the atomic row headers (NOTE: need to check what happens with named

@@ -16,7 +16,7 @@
 # Used so that `with_mock` will work since these are primitives, for testing
 
 interactive <- function() base::interactive()
-readline <- function(...) if(interactive()) base::readline(...)
+readline <- function(...) if(interactive()) base::readline(...) # nocov
 
 # Returns the indices of the original rle object that correspond to the
 # ind rle values

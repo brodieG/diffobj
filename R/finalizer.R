@@ -31,7 +31,9 @@ NULL
 #' @param ... arguments to pass on to methods
 #' @export
 
-setGeneric("finalizeHtml", function(x, ...) standardGeneric("finalizeHtml"))
+setGeneric(
+  "finalizeHtml", function(x, ...) standardGeneric("finalizeHtml")  # nocov
+)
 
 #' @rdname finalizeHtml
 
