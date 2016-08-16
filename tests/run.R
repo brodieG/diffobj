@@ -18,7 +18,7 @@ local({                                         # so we can use `on.exit`
   # options(covr.exclude_pattern="(?://|#)[[:space:]]*nocov")
 
   on.exit(options(old.opts))
-  test_dir(
+  test.res <- test_dir(
     "testthat",
     filter=paste0(                              # so we can run subset of files
       c(
@@ -49,5 +49,10 @@ local({                                         # so we can use `on.exit`
         "warning"
       ), collapse="|"
     )
+  )
+  with(
+    as.data.frame(test.res),
+    if((fail <- sum(failed)) != 0 || (err <- any(error)))
+      stop("Errors: ", err, "Failures: ", fail)
   )
 })
