@@ -6,6 +6,7 @@ library(diffobj)
 
 local({                                         # so we can use `on.exit`
   old.opts <- diffobj_set_def_opts()
+  options(useFancyQuotes=FALSE)   # all.equals uses fancy quotes
   options(diffobj.style=StyleAnsi8NeutralYb())  # force ANSI colors
   options(diffobj.pager="off")                  # run tests without pager
   options(width=80L)
@@ -51,8 +52,9 @@ local({                                         # so we can use `on.exit`
     )
   )
   with(
-    as.data.frame(test.res),
-    if((fail <- sum(failed)) != 0 || (err <- any(error)))
-      stop("Errors: ", err, "Failures: ", fail)
-  )
+    as.data.frame(test.res), {
+      fail <- sum(failed)
+      err <- sum(error)
+      if(fail != 0 || err) stop("Errors: ", err, " Failures: ", fail)
+  })
 })

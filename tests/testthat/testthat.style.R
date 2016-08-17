@@ -27,7 +27,7 @@ test_that("palette of styles", {
   expect_identical(pos <- PaletteOfStyles(), gdo("palette"))
   expect_identical(
     pos[["ansi256", "light", "rgb"]],
-    getClassDef("StyleAnsi256LightRgb", where="package:diffobj", inherits=FALSE)
+    getClassDef("StyleAnsi256LightRgb", package="diffobj", inherits=FALSE)
   )
   expect_equal_to_reference(
     capture.output(show(pos)), rdsf(300)

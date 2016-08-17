@@ -1,5 +1,5 @@
 library(diffobj)
-context("limit")
+context("misc")
 
 test_that("trim_str", {
   a <- structure("hello", class="A", xx="B")
@@ -52,8 +52,9 @@ test_that("call funs", {
 
 test_that("lines", {
   old.val <- Sys.getenv("LINES", unset=NA)
-  on.exit(if(is.na(old.val)) Sys.unsetenv("LINES") else Sys.setenv(old.val))
-
+  on.exit(
+    if(is.na(old.val)) Sys.unsetenv("LINES") else Sys.setenv(LINES=old.val)
+  )
   Sys.setenv(LINES="25")
   expect_equal(console_lines(), 25L)
   Sys.setenv(LINES="-25")
