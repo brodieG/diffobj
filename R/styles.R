@@ -624,9 +624,11 @@ StyleAnsi256LightRgb <- setClass(
       )
 ) ) )
 
-darkGray <- crayon::make_style(rgb(13, 13, 13, maxColorValue=23), grey=TRUE)
+darkGray <- crayon::make_style(
+  rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+)
 darkGrayBg <- crayon::make_style(
-  rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE
+  rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE, colors=256
 )
 #' @export StyleAnsi256LightYb
 #' @exportClass StyleAnsi256LightYb
