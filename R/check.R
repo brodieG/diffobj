@@ -92,7 +92,8 @@ is.one.arg.fun <- function(x) {
     nm.forms <- vapply(formals(x), is.name, logical(1L))
     forms.chr <- character(length(nm.forms))
     forms.chr[nm.forms] <- as.character(formals(x)[nm.forms])
-    if(any(tail(!nzchar(forms.chr) & nm.forms, -1L)))
+    forms.names <- names(formals(x))
+    if(any(tail(!nzchar(forms.chr) & nm.forms & forms.names != "...", -1L)))
       "cannot have any non-optional arguments other than first one" else TRUE
   }
 }
@@ -241,6 +242,7 @@ check_args <- function(
   }
   # style
 
+  valid_object(style, "style", err)
   if(
     !is(style, "Style") && !string_in(style, "auto") &&
     !(is.list(style) && !is.object(style))
@@ -249,6 +251,7 @@ check_args <- function(
 
   # pager
 
+  valid_object(pager, "pager", err)
   valid.pagers <- c("auto", "off", "on")
   if(!is(pager, "Pager") && !string_in(pager, valid.pagers))
     err(
@@ -327,14 +330,19 @@ check_args <- function(
       if(inherits(style, "try-error"))
         err("Unable to instantiate `Style` object; see prior errors.")
     } else {
-      if(length(style.args))
+      if(length(style.args)) {
         warn(
           "Extra `style` arguments cannot be applied because selected object ",
           "`palette.of.styles` is a `Style` instance rather than a `Style` ",
           "\"classRepresentation\".  See documentation for the `style` ",
           "parameter for details."
-        )
-    }
+      ) }
+      valid_object(
+        style, "palette.of.styles", err,
+        paste0(
+          "Argument `%s` is an invalid `%s` because it contains and invalid ",
+          "`Style` object:"
+    ) ) }
   } else if(!is(style, "Style"))
     stop("Logic Error: unexpected style state; contact maintainer.")
 

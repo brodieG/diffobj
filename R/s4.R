@@ -465,3 +465,27 @@ setClass(
     TRUE
   }
 )
+
+# Run validity on S4 objects
+#
+# Intended for use within check_args; unfortunately can't use complete=TRUE
+# because we are using ANY slots with S3 objects there-in, which causes
+# the complete check to freak out with "trying to get slot 'package' from..."
+#
+# @param x object to test
+# @param err.tpl a string used with sprintf, must contain two \dQuote{%s} for
+#   respectively \code{arg.name} and the class name
+# @param arg.name argument the object is supposed to come from
+# @param err error reporting function
+
+valid_object <- function(
+  x, arg.name, err, err.tpl="Argument `%s` is an invalid `%s` object because:"
+) {
+  if(isS4(x)) {
+    if(!isTRUE(test <- validObject(x, test=TRUE))) {
+      err(
+        paste(
+          sprintf(err.tpl, arg.name, class(x)[[1L]]),
+          strwrap(test, initial="- ", prefix="  "),
+          collapse="\n"
+) ) } } }

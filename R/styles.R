@@ -224,7 +224,7 @@ StyleSummary <- setClass("StyleSummary",
   validity=function(object) {
     fun.slots <- c("container", "body", "map")
     for(i in fun.slots) {
-      if(!is.one.arg.fun(slot(.Object, i)))
+      if(!isTRUE(is.one.arg.fun(slot(object, i))))
         return(
           "Slot ", i, " must contain a function that accepts at least one ",
           "argument and requires no more than one argument."
@@ -501,7 +501,7 @@ Style <- setClass("Style", contains="VIRTUAL",
     nchar.fun=nchar
   ),
   validity=function(object){
-    if(!is.one.arg.fun(object@nchar.fun)) {
+    if(!isTRUE(is.one.arg.fun(object@nchar.fun))) {
       return(paste0(
         "Slot `nchar.fun` should be a function with at least one argument that ",
         "doesn't require more than one argument"
@@ -852,11 +852,12 @@ StyleHtml <- setClass(
       return("slot `escape.html.entities` must be TRUE or FALSE.")
     if(!is.TF(object@scale))
       return("slot `scale` must be TRUE or FALSE.")
+    if(!identical(object@wrap, FALSE))
+      return("slot `wrap` must be FALSE for `styleHtml` objects.")
     TRUE
   }
 )
-# construct with default values specified via options; would this work with
-# initialize?  Depends on whether this is run by package installation process
+# construct with default values specified via options
 
 setMethod("initialize", "StyleHtml",
   function(
