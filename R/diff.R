@@ -1,4 +1,4 @@
-# diffobj - Compare R Objects with a Diff
+# diffobj - Visualize Differences Between R Objects
 # Copyright (C) 2016  Brodie Gaslam
 #
 # This program is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@
 #
 # Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
 
-#' Compare R Objects with a Diff
+#' Visualize Differences Between R Objects
 #'
 #' Colorized diffs to quickly identify _and understand_ differences between R
 #' objects.  See `vignette("diffobj")` for details.
