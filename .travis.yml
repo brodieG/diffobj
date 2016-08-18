@@ -7,7 +7,6 @@ branches:
     - master
     - development
     - rc
-    - misc
 
 after_success:
   - Rscript covr.R

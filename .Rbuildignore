@@ -2,6 +2,7 @@
 ^\.Rproj\.user$
 ^\DEVNOTES\.md$
 ^\NOTES\.md$
+^\ISSUES\.md$
 ^\.travis\.yml$
 ^scratch\.R$
 \.Rdata
