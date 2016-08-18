@@ -112,22 +112,23 @@ test_that("with names", {
   nm.1 <- rand.chrs[seq_along(F)]
   nm.2 <- rand.chrs[seq_along(G)]
   names(F1) <- names(F2) <- nm.1
-  expect_equal_to_reference(as.character(diffPrint(F, G)), rdsf(2300))
   names(G3) <- names(G2) <- names(G3) <-  names(G4) <- names(G5) <- nm.2
+  names(G3)[c(5, 25, 60)] <- c("XXXXX", rand.chrs[c(300, 350)])
+  names(G4)[c(5, 25, 60)] <- names(G5)[c(5, 25, 60)] <-
+    c("XX", rand.chrs[c(300, 350)])
+  attr(F2, "blah") <- 1:5
+  attr(G5, "blah") <- 3:8
+
+  expect_equal_to_reference(as.character(diffPrint(F, G)), rdsf(2300))
   expect_equal_to_reference(as.character(diffPrint(F1, G2)), rdsf(2400))
 
   # Challenging case b/c the names wrap with values, and you have to pick one or
   # the other to match when the wrap frequencies are different
 
-  names(G3)[c(5, 25, 60)] <- c("XXXXX", rand.chrs[c(300, 350)])
   expect_equal_to_reference(as.character(diffPrint(F1, G3)), rdsf(2500))
-
-  names(G4)[c(5, 25, 60)] <- names(G5)[c(5, 25, 60)] <-
-    c("XX", rand.chrs[c(300, 350)])
   expect_equal_to_reference(as.character(diffPrint(F1, G4)), rdsf(2520))
 
-  attr(F2, "blah") <- 1:5
-  attr(G5, "blah") <- 3:8
+  # Attributes
 
   expect_equal_to_reference(as.character(diffPrint(F2, G5)), rdsf(2530))
   expect_equal_to_reference(as.character(diffPrint(F1, G5)), rdsf(2540))

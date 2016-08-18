@@ -2,7 +2,7 @@
 % Please edit documentation in R/pager.R
 \name{view_or_browse}
 \alias{view_or_browse}
-\title{Invoke IDE Viewer if Available, browseURL if Not}
+\title{Invoke IDE Viewer If Available, browseURL If Not}
 \usage{
 view_or_browse(url)
 }
@@ -14,8 +14,8 @@ the return vaue of \code{getOption("viewer")} if it is a function, or
   of \code{\link{browseURL}} if the viewer is not available
 }
 \description{
-Use \code{getOption("viewer")} to view HTML output if it is available as 
-per \link{RStudio}{https://support.rstudio.com/hc/en-us/articles/202133558-Extending-RStudio-with-the-Viewer-Pane}. Fallback to \code{\link{browseURL}} 
+Use \code{getOption("viewer")} to view HTML output if it is available as
+per \href{https://support.rstudio.com/hc/en-us/articles/202133558-Extending-RStudio-with-the-Viewer-Pane}{RStudio}. Fallback to \code{\link{browseURL}}
 if not available.
 }
 

@@ -80,3 +80,24 @@ test_that("Whitespace", {
     as.character(diffChr("woo\nhoo\nfoo", c("woo", "foo"))), rdsf(1000)
   )
 })
+test_that("Alignment", {
+  chr.7 <- c("a b c d e", "F G h i j k", "xxx", "yyy", "k l m n o")
+  chr.8 <- c("f g h i j k", "hello", "goodbye", "yo", "k l m n o")
+
+  expect_equal_to_reference(as.character(diffChr(chr.7, chr.8)), rdsf(1100))
+  expect_equal_to_reference(
+    as.character(diffChr(chr.7, chr.8, align=4/6)), rdsf(1100) # same as above
+  )
+  # No longer aligns
+  expect_equal_to_reference(
+    as.character(diffChr(chr.7, chr.8, align=4.01/6)), rdsf(1200)
+  )
+  expect_equal_to_reference(
+    as.character(diffChr(chr.7, chr.8, align=AlignThreshold(min.chars=5))),
+    rdsf(1200)  # same as above
+  )
+  expect_equal_to_reference(
+    as.character(diffChr(chr.7, chr.8, align=AlignThreshold(min.chars=4))),
+    rdsf(1100)  # same as earlier
+  )
+})

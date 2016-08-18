@@ -265,13 +265,16 @@ diffPrint(1:5, 2:6, style=StyleHtmlLightYb(css=my.css))
 ## Turn of scaling; notice how we pass a list to `style`
 ## and we do not need to specify a specific style
 diffPrint(letters, letters[-5], format="html", style=list(scale=FALSE))
-## Alternatively we can do the same by specifying a style
+
+## Alternatively we can do the same by specifying a style, but we must
+## give an exact html style instead of relying on preferences to pick
+## one for us
 my.style <- StyleHtmlLightYb(scale=FALSE)
 diffPrint(letters, letters[-5], style=my.style)
 
 ## Return only the raw HTML without any of the headers
 as.character(
-  diffPrint(1:5, 2:6, style=list(html.output="diff.only"))
+  diffPrint(1:5, 2:6, format="html", style=list(html.output="diff.only"))
 )
 }
 

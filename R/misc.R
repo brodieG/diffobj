@@ -13,6 +13,11 @@
 #
 # Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
 
+# Used so that `with_mock` will work since these are primitives, for testing
+
+interactive <- function() base::interactive()
+readline <- function(...) if(interactive()) base::readline(...) # nocov
+
 # Returns the indices of the original rle object that correspond to the
 # ind rle values
 
@@ -79,16 +84,18 @@ which_top <- function(s.c) {
 extract_call <- function(s.c, par.env) {
   idx <- which_top(s.c)
   found.call <- s.c[[idx]]
-  found.call.m <- try(
-    match.call(
-      definition=get(as.character(found.call[[1L]]), envir=par.env),
-      call=found.call
-    )
+  no.match <- list(call=NULL, tar=NULL, cur=NULL)
+  get.fun.t <- try(
+    get.fun <- get(as.character(found.call[[1L]]), envir=par.env), silent=TRUE
   )
-  if(inherits(found.call, "try-error")) {
-    warning("Unable to match call that issued diff; see previous error.")
-    list(call=NULL, tar=NULL, cur=NULL)
+  if(inherits(get.fun.t, "try-error")) {
+    warning(
+      "Unable to find function `", as.character(found.call[[1L]]), "` to ",
+      "match call with."
+    )
+    no.match
   } else {
+    found.call.m <- match.call(definition=get.fun, call=found.call)
     if(length(found.call.m) < 3L) length(found.call.m) <- 3L
     list(call=found.call.m, tar=found.call.m[[2L]], cur=found.call.m[[3L]])
   }

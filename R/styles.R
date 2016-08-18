@@ -205,10 +205,13 @@ StyleText <- setClass(
 #' Styling Information for Summaries
 #'
 #' @export
-#' @param container function applied to entire summary
-#' @param body function applied to everything except the actual map portion of
+#' @rdname StyleSummary
+#' @slot container function applied to entire summary
+#' @slot body function applied to everything except the actual map portion of
 #'   the summary
-#' @param map function applied to the map portion of the summary
+#' @slot detail function applied to section showing how many deletions /
+#'   insertions, etc. occurred
+#' @slot map function applied to the map portion of the summary
 
 StyleSummary <- setClass("StyleSummary",
   slots=c(container="ANY", body="ANY", map="ANY"),
@@ -221,7 +224,7 @@ StyleSummary <- setClass("StyleSummary",
   validity=function(object) {
     fun.slots <- c("container", "body", "map")
     for(i in fun.slots) {
-      if(!is.one.arg.fun(slot(.Object, i)))
+      if(!isTRUE(is.one.arg.fun(slot(object, i))))
         return(
           "Slot ", i, " must contain a function that accepts at least one ",
           "argument and requires no more than one argument."
@@ -230,6 +233,7 @@ StyleSummary <- setClass("StyleSummary",
     TRUE
   }
 )
+#' @rdname StyleSummary
 #' @export
 
 StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
@@ -458,13 +462,16 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' ## Turn of scaling; notice how we pass a list to `style`
 #' ## and we do not need to specify a specific style
 #' diffPrint(letters, letters[-5], format="html", style=list(scale=FALSE))
-#' ## Alternatively we can do the same by specifying a style
+#'
+#' ## Alternatively we can do the same by specifying a style, but we must
+#' ## give an exact html style instead of relying on preferences to pick
+#' ## one for us
 #' my.style <- StyleHtmlLightYb(scale=FALSE)
 #' diffPrint(letters, letters[-5], style=my.style)
 #'
 #' ## Return only the raw HTML without any of the headers
 #' as.character(
-#'   diffPrint(1:5, 2:6, style=list(html.output="diff.only"))
+#'   diffPrint(1:5, 2:6, format="html", style=list(html.output="diff.only"))
 #' )
 
 Style <- setClass("Style", contains="VIRTUAL",
@@ -494,7 +501,7 @@ Style <- setClass("Style", contains="VIRTUAL",
     nchar.fun=nchar
   ),
   validity=function(object){
-    if(!is.one.arg.fun(object@nchar.fun)) {
+    if(!isTRUE(is.one.arg.fun(object@nchar.fun))) {
       return(paste0(
         "Slot `nchar.fun` should be a function with at least one argument that ",
         "doesn't require more than one argument"
@@ -585,23 +592,43 @@ StyleAnsi256LightRgb <- setClass(
   "StyleAnsi256LightRgb", contains=c("StyleAnsi", "Light", "Rgb"),
   prototype=list(
     funs=StyleFunsAnsi(
-      text.insert=crayon::make_style(rgb(4, 5, 4, maxColorValue=5), bg=TRUE),
-      text.delete=crayon::make_style(rgb(5, 4, 4, maxColorValue=5), bg=TRUE),
-      text.fill=crayon::make_style(
-        rgb(20, 20, 20, maxColorValue=23), bg=TRUE, grey=TRUE
+      text.insert=crayon::make_style(
+        rgb(4, 5, 4, maxColorValue=5), bg=TRUE, colors=256
       ),
-      word.insert=crayon::make_style(rgb(2, 4, 2, maxColorValue=5), bg=TRUE),
-      word.delete=crayon::make_style(rgb(4, 2, 2, maxColorValue=5), bg=TRUE),
-      gutter.insert=crayon::make_style(rgb(0, 3, 0, maxColorValue=5)),
-      gutter.insert.ctd=crayon::make_style(rgb(0, 3, 0, maxColorValue=5)),
-      gutter.delete=crayon::make_style(rgb(3, 0, 0, maxColorValue=5)),
-      gutter.delete.ctd=crayon::make_style(rgb(3, 0, 0, maxColorValue=5)),
-      header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5))
+      text.delete=crayon::make_style(
+        rgb(5, 4, 4, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      text.fill=crayon::make_style(
+        rgb(20, 20, 20, maxColorValue=23), bg=TRUE, grey=TRUE, colors=256
+      ),
+      word.insert=crayon::make_style(
+        rgb(2, 4, 2, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      word.delete=crayon::make_style(
+        rgb(4, 2, 2, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      gutter.insert=crayon::make_style(
+        rgb(0, 3, 0, maxColorValue=5), colors=256
+      ),
+      gutter.insert.ctd=crayon::make_style(
+        rgb(0, 3, 0, maxColorValue=5), colors=256
+      ),
+      gutter.delete=crayon::make_style(
+        rgb(3, 0, 0, maxColorValue=5), colors=256
+      ),
+      gutter.delete.ctd=crayon::make_style(
+        rgb(3, 0, 0, maxColorValue=5), colors=256
+      ),
+      header=crayon::make_style(
+        rgb(0, 3, 3, maxColorValue=5), colors=256
+      )
 ) ) )
 
-darkGray <- crayon::make_style(rgb(13, 13, 13, maxColorValue=23), grey=TRUE)
+darkGray <- crayon::make_style(
+  rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+)
 darkGrayBg <- crayon::make_style(
-  rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE
+  rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE, colors=256
 )
 #' @export StyleAnsi256LightYb
 #' @exportClass StyleAnsi256LightYb
@@ -611,18 +638,36 @@ StyleAnsi256LightYb <- setClass(
   "StyleAnsi256LightYb", contains=c("StyleAnsi", "Light", "Yb"),
   prototype=list(
     funs=StyleFunsAnsi(
-      text.insert=crayon::make_style(rgb(3, 3, 5, maxColorValue=5), bg=TRUE),
-      text.delete=crayon::make_style(rgb(4, 4, 2, maxColorValue=5), bg=TRUE),
-      text.fill=crayon::make_style(
-        rgb(20, 20, 20, maxColorValue=23), bg=TRUE, grey=TRUE
+      text.insert=crayon::make_style(
+        rgb(3, 3, 5, maxColorValue=5), bg=TRUE, colors=256
       ),
-      word.insert=crayon::make_style(rgb(2, 2, 4, maxColorValue=5), bg=TRUE),
-      word.delete=crayon::make_style(rgb(3, 3, 1, maxColorValue=5), bg=TRUE),
-      gutter.insert=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),
-      gutter.insert.ctd=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),
-      gutter.delete=crayon::make_style(rgb(2, 1, 0, maxColorValue=5)),
-      gutter.delete.ctd=crayon::make_style(rgb(2, 1, 0, maxColorValue=5)),
-      header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5))
+      text.delete=crayon::make_style(
+        rgb(4, 4, 2, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      text.fill=crayon::make_style(
+        rgb(20, 20, 20, maxColorValue=23), bg=TRUE, grey=TRUE, colors=256
+      ),
+      word.insert=crayon::make_style(
+        rgb(2, 2, 4, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      word.delete=crayon::make_style(
+        rgb(3, 3, 1, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      gutter.insert=crayon::make_style(
+        rgb(0, 0, 3, maxColorValue=5), colors=256
+      ),
+      gutter.insert.ctd=crayon::make_style(
+        rgb(0, 0, 3, maxColorValue=5), colors=256
+      ),
+      gutter.delete=crayon::make_style(
+        rgb(2, 1, 0, maxColorValue=5), colors=256
+      ),
+      gutter.delete.ctd=crayon::make_style(
+        rgb(2, 1, 0, maxColorValue=5), colors=256
+      ),
+      header=crayon::make_style(
+        rgb(0, 3, 3, maxColorValue=5), colors=256
+      )
 ) ) )
 #' @export StyleAnsi256DarkRgb
 #' @exportClass StyleAnsi256DarkRgb
@@ -632,14 +677,30 @@ StyleAnsi256DarkRgb <- setClass(
   "StyleAnsi256DarkRgb", contains=c("StyleAnsi", "Dark", "Rgb"),
   prototype=list(
     funs=StyleFunsAnsi(
-      text.insert=crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE),
-      text.delete=crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE),
-      word.insert=crayon::make_style(rgb(0, 3, 0, maxColorValue=5), bg=TRUE),
-      word.delete=crayon::make_style(rgb(3, 0, 0, maxColorValue=5), bg=TRUE),
-      gutter.insert=crayon::make_style(rgb(0, 2, 0, maxColorValue=5)),
-      gutter.insert.ctd=crayon::make_style(rgb(0, 2, 0, maxColorValue=5)),
-      gutter.delete=crayon::make_style(rgb(2, 0, 0, maxColorValue=5)),
-      gutter.delete.ctd=crayon::make_style(rgb(2, 0, 0, maxColorValue=5)),
+      text.insert=crayon::make_style(
+        rgb(0, 1, 0, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      text.delete=crayon::make_style(
+        rgb(1, 0, 0, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      word.insert=crayon::make_style(
+        rgb(0, 3, 0, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      word.delete=crayon::make_style(
+        rgb(3, 0, 0, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      gutter.insert=crayon::make_style(
+        rgb(0, 2, 0, maxColorValue=5), colors=256
+      ),
+      gutter.insert.ctd=crayon::make_style(
+        rgb(0, 2, 0, maxColorValue=5), colors=256
+      ),
+      gutter.delete=crayon::make_style(
+        rgb(2, 0, 0, maxColorValue=5), colors=256
+      ),
+      gutter.delete.ctd=crayon::make_style(
+        rgb(2, 0, 0, maxColorValue=5), colors=256
+      ),
       gutter.guide=darkGray, gutter.guide.ctd=darkGray, line.guide=darkGray,
       gutter.fill=darkGray, gutter.fill.ctd=darkGray, text.fill=darkGrayBg,
       gutter.context.sep=darkGray, gutter.context.sep.ctd=darkGray,
@@ -653,15 +714,33 @@ StyleAnsi256DarkYb <- setClass(
   "StyleAnsi256DarkYb", contains=c("StyleAnsi", "Dark", "Yb"),
   prototype=list(
     funs=StyleFunsAnsi(
-      text.insert=crayon::make_style(rgb(0, 0, 2, maxColorValue=5), bg=TRUE),
-      text.delete=crayon::make_style(rgb(1, 1, 0, maxColorValue=5), bg=TRUE),
-      word.insert=crayon::make_style(rgb(0, 0, 5, maxColorValue=5), bg=TRUE),
-      word.delete=crayon::make_style(rgb(3, 2, 0, maxColorValue=5), bg=TRUE),
-      gutter.insert=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),
-      gutter.insert.ctd=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),
-      gutter.delete=crayon::make_style(rgb(1, 1, 0, maxColorValue=5)),
-      gutter.delete.ctd=crayon::make_style(rgb(1, 1, 0, maxColorValue=5)),
-      header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5)),
+      text.insert=crayon::make_style(
+        rgb(0, 0, 2, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      text.delete=crayon::make_style(
+        rgb(1, 1, 0, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      word.insert=crayon::make_style(
+        rgb(0, 0, 5, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      word.delete=crayon::make_style(
+        rgb(3, 2, 0, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      gutter.insert=crayon::make_style(
+        rgb(0, 0, 3, maxColorValue=5), colors=256
+      ),
+      gutter.insert.ctd=crayon::make_style(
+        rgb(0, 0, 3, maxColorValue=5), colors=256
+      ),
+      gutter.delete=crayon::make_style(
+        rgb(1, 1, 0, maxColorValue=5), colors=256
+      ),
+      gutter.delete.ctd=crayon::make_style(
+        rgb(1, 1, 0, maxColorValue=5), colors=256
+      ),
+      header=crayon::make_style(
+        rgb(0, 3, 3, maxColorValue=5), colors=256
+      ),
       gutter.guide=darkGray, gutter.guide.ctd=darkGray, line.guide=darkGray,
       gutter.fill=darkGray, gutter.fill.ctd=darkGray, text.fill=darkGrayBg,
       gutter.context.sep=darkGray, gutter.context.sep.ctd=darkGray,
@@ -672,10 +751,9 @@ StyleAnsi256DarkYb <- setClass(
 #' File location for default CSS and JS files.  Note that these files are read
 #' and injected into the output HTML rather than referenced to simplify serving.
 #'
-#' @name diffobj_css
 #' @aliases diffobj_js
+#' @name webfiles
 #' @rdname webfiles
-#' @export
 #' @return path to the default CSS or JS file
 
 NULL
@@ -760,7 +838,7 @@ StyleHtml <- setClass(
     html.output="auto",
     css=diffobj_css(),
     js=diffobj_js(),
-    finalizer=finalizer,
+    finalizer=finalizeHtml,
     scale=TRUE
   ),
   validity=function(object) {
@@ -774,11 +852,12 @@ StyleHtml <- setClass(
       return("slot `escape.html.entities` must be TRUE or FALSE.")
     if(!is.TF(object@scale))
       return("slot `scale` must be TRUE or FALSE.")
+    if(!identical(object@wrap, FALSE))
+      return("slot `wrap` must be FALSE for `styleHtml` objects.")
     TRUE
   }
 )
-# construct with default values specified via options; would this work with
-# initialize?  Depends on whether this is run by package installation process
+# construct with default values specified via options
 
 setMethod("initialize", "StyleHtml",
   function(
@@ -1141,8 +1220,8 @@ setMethod("show", "Style",
       on.exit(options(old.crayon.opt), add=TRUE)
       pad.width <- max(object@nchar.fun(d.txt))
       d.txt <- rpad(d.txt, width=pad.width)
-      bgWhite <- crayon::make_style(rgb(1, 1, 1), bg=TRUE)
-      white <- crayon::make_style(rgb(1, 1, 1))
+      bgWhite <- crayon::make_style(rgb(1, 1, 1), bg=TRUE, colors=256)
+      white <- crayon::make_style(rgb(1, 1, 1), colors=256)
       if(is(object, "Light")) {
         d.txt <- bgWhite(crayon::black(d.txt))
       } else if (is(object, "Dark")) {

@@ -21,11 +21,12 @@
 capture <- function(x, etc, err) {
   capt.width <- etc@text.width
   if(capt.width) {
-    opt.set <- try(width.old <- options(width=capt.width))
+    opt.set <- try(width.old <- options(width=capt.width), silent=TRUE)
     if(inherits(opt.set, "try-error")) {
       warning(
-        "Unable to set desired width ", capt.width, ", proceeding with ",
-        "existing setting."
+        "Unable to set desired width ", capt.width, ", (",
+        conditionMessage(attr(opt.set, "condition")), ");",
+        "proceeding with existing setting."
       )
     } else on.exit(options(width.old))
   }

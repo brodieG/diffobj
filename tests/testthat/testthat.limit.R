@@ -1,4 +1,4 @@
-context("limit")
+context("mis")
 
 if(!identical(basename(getwd()), "testthat"))
   stop("Working dir does not appear to be /testthat, is ", getwd())

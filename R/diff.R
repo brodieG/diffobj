@@ -104,11 +104,9 @@ make_diff_fun <- function(capt_fun) {
     nc_fun <- etc.proc@style@nchar.fun
     etc.proc@gutter <- gutter_dat(etc.proc)
 
-    col.pad.width <- gutt.width <- 0L
-    if(is(etc.proc@style, "StyleRaw")) {
-      col.pad.width <- nc_fun(etc.proc@style@text@pad.col)
-      gutt.width <- etc.proc@gutter@width
-    }
+    col.pad.width <- nc_fun(etc.proc@style@text@pad.col)
+    gutt.width <- etc.proc@gutter@width
+
     half.width <- as.integer((etc.proc@disp.width - col.pad.width) / 2)
     etc.proc@line.width <-
       max(etc.proc@disp.width, .min.width + gutt.width)
@@ -302,7 +300,9 @@ make_diff_fun <- function(capt_fun) {
 #'   displayed (defaults to 0.25), or an \code{\link{AlignThreshold}} object.
 #'   Set to \code{1} to turn off alignment which will cause all lines in a hunk
 #'   from \code{target} to show up first, followed by all lines from
-#'   \code{current}.
+#'   \code{current}.  Note that in order to be aligned lines must meet the
+#'   threshold and have at least 3 matching alphanumeric characters (see
+#'   \code{\link{AlignThreshold}} for details).
 #' @param style \dQuote{auto}, a \code{\link{Style}} object, or a list.
 #'   \dQuote{auto} by default.  If a \code{Style} object, will override the
 #'   the \code{format}, \code{brightness}, and \code{color.mode} parameters.

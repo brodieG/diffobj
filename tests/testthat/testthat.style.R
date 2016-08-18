@@ -27,7 +27,7 @@ test_that("palette of styles", {
   expect_identical(pos <- PaletteOfStyles(), gdo("palette"))
   expect_identical(
     pos[["ansi256", "light", "rgb"]],
-    getClassDef("StyleAnsi256LightRgb", where="package:diffobj", inherits=FALSE)
+    getClassDef("StyleAnsi256LightRgb", package="diffobj", inherits=FALSE)
   )
   expect_equal_to_reference(
     capture.output(show(pos)), rdsf(300)
@@ -71,7 +71,7 @@ test_that("auto style selection", {
   expect_is(
     diffChr(
       letters, LETTERS, style="auto", format="auto", interactive=TRUE,
-      term.colors=1
+      term.colors=1  # note pager off by default in tests
     )@etc@style,
     "StyleRaw"
   )
@@ -81,6 +81,20 @@ test_that("auto style selection", {
       pager="auto", term.colors=1
     )@etc@style,
     "StyleHtml"
+  )
+  expect_is(
+    diffChr(
+      letters, LETTERS, style="auto", format="html", interactive=TRUE,
+      pager="auto", color.mode=c("rgb", ansi8="yb")
+    )@etc@style,
+    "StyleHtmlLightRgb"
+  )
+  expect_is(
+    diffChr(
+      letters, LETTERS, style="auto", format="html", interactive=TRUE,
+      pager="auto", color.mode=c("rgb", html="yb")
+    )@etc@style,
+    "StyleHtmlLightYb"
   )
 })
 test_that("palette param selection", {
@@ -105,4 +119,20 @@ test_that("style fun validation", {
   expect_true(validObject(s.f))
   s.f@word.insert <- function(x, y) NULL
   expect_error(validObject(s.f), "word.insert")
+})
+test_that("palette with objects", {
+  pal <- PaletteOfStyles()
+  pal["raw", "neutral", "rgb"] <- list(new(pal[["raw", "neutral", "rgb"]]))
+
+  expect_warning(
+    diffChr(
+      letters, LETTERS, format="raw", brightness="neutral", color.mode="rgb",
+      palette.of.styles=pal, style=list(na.sub="NA")
+    ),
+    "arguments cannot be applied"
+  )
+})
+test_that("external files", {
+  expect_true(file_test("-f", diffobj_css()))
+  expect_true(file_test("-f", diffobj_js()))
 })

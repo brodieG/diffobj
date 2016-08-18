@@ -159,7 +159,9 @@ setClass("Settings",
     disp.width=0L, text.width=0L, line.width=0L,
     text.width.half=0L, line.width.half=0L,
     guides=function(obj, obj.as.chr) integer(0L),
-    trim=function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr))
+    trim=function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr)),
+    ignore.white.space=TRUE, convert.hz.white.space=TRUE,
+    word.diff=TRUE, unwrap.atomic=TRUE
   ),
   validity=function(object){
     int.1L.and.pos <- c(
@@ -255,7 +257,7 @@ valid_dat <- function(x) {
         not.list <- which(!vapply(x[list.cols], is.list, logical(1L)))
       )
     ) {
-      sprintf("element `%s` should be list", char.cols[not.char][[1L]])
+      sprintf("element `%s` should be list", list.cols[not.list][[1L]])
     } else if (
       !all(
         vapply(
@@ -268,7 +270,7 @@ valid_dat <- function(x) {
     ) {
       "element `word.ind` is not in expected format"
     } else if (
-      !is.numeric(x$tok.rat) || anyNA(x$tok.rat) || !all(x$to.rat %bw% c(0, 1))
+      !is.numeric(x$tok.rat) || anyNA(x$tok.rat) || !all(x$tok.rat %bw% c(0, 1))
     ) {
       "element `tok.rat` should be numeric with all values between 0 and 1"
     } else if (!is.logical(x$fill) || anyNA(x$fill)) {
@@ -322,7 +324,9 @@ setClass("Diff",
 
     TRUE
 } )
-setMethod("finalizer", c("Diff"),
+#' @rdname finalizeHtml
+
+setMethod("finalizeHtml", c("Diff"),
   function(x, x.chr, ...) {
     style <- x@etc@style
     html.output <- style@html.output
@@ -342,9 +346,13 @@ setMethod("finalizer", c("Diff"),
       )
       rez.fun <- if(style@scale)
         "resize_diff_out_scale" else "resize_diff_out_no_scale"
-      js <- try(readLines(style@js))
+      js <- try(readLines(style@js), silent=TRUE)
       if(inherits(js, "try-error")) {
-        warning("Unable to read provided js file.")
+        cond <- attr(js, "condition")
+        warning(
+          "Unable to read provided js file ", style@js, " (error: ",
+          paste0(conditionMessage(cond), collapse=""), ")."
+        )
         js <- ""
       } else {
         js <- paste0(
@@ -357,7 +365,7 @@ setMethod("finalizer", c("Diff"),
           collapse="\n"
       ) }
     } else js <- ""
-    callNextMethod(x, x.chr, style=style, js=js, ...)
+    callNextMethod(x, x.chr, js=js, ...)
 } )
 # Helper fun used by `show` for Diff and DiffSummary objects
 
@@ -457,3 +465,27 @@ setClass(
     TRUE
   }
 )
+
+# Run validity on S4 objects
+#
+# Intended for use within check_args; unfortunately can't use complete=TRUE
+# because we are using ANY slots with S3 objects there-in, which causes
+# the complete check to freak out with "trying to get slot 'package' from..."
+#
+# @param x object to test
+# @param err.tpl a string used with sprintf, must contain two \dQuote{%s} for
+#   respectively \code{arg.name} and the class name
+# @param arg.name argument the object is supposed to come from
+# @param err error reporting function
+
+valid_object <- function(
+  x, arg.name, err, err.tpl="Argument `%s` is an invalid `%s` object because:"
+) {
+  if(isS4(x)) {
+    if(!isTRUE(test <- validObject(x, test=TRUE))) {
+      err(
+        paste(
+          sprintf(err.tpl, arg.name, class(x)[[1L]]),
+          strwrap(test, initial="- ", prefix="  "),
+          collapse="\n"
+) ) } } }

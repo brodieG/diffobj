@@ -59,6 +59,7 @@
   diffobj.html.output="auto"
 )
 
+# nocov start
 .onLoad <- function(libname, pkgname) {
   # Scheme defaults are fairly complex...
 
@@ -70,6 +71,7 @@
 .onUnload <- function(libpath) {
   library.dynam.unload("diffobj", libpath)
 }
+# nocov end
 
 #' Shorthand Function for Accessing diffobj Options
 #'

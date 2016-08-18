@@ -37,4 +37,19 @@ test_that("arg.funs", {
     diffobj:::is.two.arg.fun(function(x, y, z) NULL), "cannot have any"
   )
 })
-
+test_that("valid_object", {
+  s.h <- StyleHtml()
+  s.h@wrap <- TRUE
+  expect_error(
+    diffobj:::valid_object(s.h, "style", stop), "an invalid `StyleHtml` object"
+  )
+  pal <- PaletteOfStyles()
+  pal["html", "light", "yb"] <- list(s.h)
+  expect_error(
+    diffChr(
+      "A", "B", palette.of.styles=pal, style="auto", format="html",
+      brightness="light", color.mode="yb"
+    ),
+    "`palette.of.styles` is an invalid"
+  )
+})
