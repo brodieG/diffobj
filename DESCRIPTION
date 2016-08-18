@@ -1,9 +1,9 @@
 Package: diffobj
 Type: Package
 Title: Compare R Objects with a Diff
-Description:  Colorized diffs to quickly identify _and understand_ differences
+Description: Colorized diffs to quickly identify _and understand_ differences
     between R objects.  See `vignette("diffobj")` for details.
-Version: 0.1.2
+Version: 0.1.3
 Date: 2016-07-31
 Authors@R: c(
     person(
@@ -28,6 +28,7 @@ Collate:
     'capt.R'
     'check.R'
     'pager.R'
+    'finalizer.R'
     'misc.R'
     'html.R'
     'styles.R'

@@ -181,13 +181,42 @@ make_blocking <- function(
     if(invisible.res) invisible(res) else res
   }
 }
+#' Invoke IDE Viewer If Available, browseURL If Not
+#'
+#' Use \code{getOption("viewer")} to view HTML output if it is available as
+#' per \href{https://support.rstudio.com/hc/en-us/articles/202133558-Extending-RStudio-with-the-Viewer-Pane}{RStudio}. Fallback to \code{\link{browseURL}}
+#' if not available.
+#'
+#' @export
+#' @param url character(1L) a location containing a file to display
+#' @return the return vaue of \code{getOption("viewer")} if it is a function, or
+#'   of \code{\link{browseURL}} if the viewer is not available
+
+view_or_browse <- function(url) {
+  viewer <- getOption("viewer")
+  view.success <- FALSE
+  if(is.function(viewer)) {
+    view.try <- try(res <- viewer(url), silent=TRUE)
+    if(inherits(view.try, "try-error")) {
+      warning(
+        "IDE viewer failed with error ",
+        conditionMessage(attr(view.try, "condition")),
+        "; falling back to `browseURL`"
+      )
+    } else view.success <- TRUE
+  }
+  if(!view.success) {
+    res <- utils::browseURL(url)
+  }
+  res
+}
 setClass("PagerBrowser", contains="Pager")
 
 #' @export
 #' @rdname Pager
 
 PagerBrowser <- function(
-  pager=make_blocking(browseURL), threshold=0L, file.ext="html", ...
+  pager=make_blocking(view_or_browse), threshold=0L, file.ext="html", ...
 )
   new("PagerBrowser", pager=pager, threshold=threshold, file.ext=file.ext, ...)
 

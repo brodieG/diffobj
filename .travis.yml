@@ -7,6 +7,7 @@ branches:
     - master
     - development
     - rc
+    - misc
 
 after_success:
-  - Rscript -e 'covr::codecov()'
+  - Rscript covr.R

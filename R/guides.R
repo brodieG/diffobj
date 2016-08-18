@@ -302,7 +302,7 @@ NULL
 
 setGeneric(
   "guidesPrint",
-  function(obj, obj.as.chr) StandardGeneric("guidesPrint")
+  function(obj, obj.as.chr) StandardGeneric("guidesPrint") # nocov
 )
 #' @rdname guides
 
@@ -330,7 +330,7 @@ setMethod(
 
 setGeneric(
   "guidesStr",
-  function(obj, obj.as.chr) StandardGeneric("guidesStr")
+  function(obj, obj.as.chr) StandardGeneric("guidesStr")  # nocov
 )
 #' @rdname guides
 
@@ -347,7 +347,7 @@ setMethod("guidesStr", c("ANY", "character"),
 
 setGeneric(
   "guidesChr",
-  function(obj, obj.as.chr) StandardGeneric("guidesChr")
+  function(obj, obj.as.chr) StandardGeneric("guidesChr") # nocov
 )
 #' @rdname guides
 
@@ -359,7 +359,7 @@ setMethod("guidesChr", c("ANY", "character"),
 
 setGeneric(
   "guidesDeparse",
-  function(obj, obj.as.chr) StandardGeneric("guidesDeparse")
+  function(obj, obj.as.chr) StandardGeneric("guidesDeparse") # nocov
 )
 #' @rdname guides
 
@@ -371,7 +371,7 @@ setMethod("guidesDeparse", c("ANY", "character"),
 
 setGeneric(
   "guidesFile",
-  function(obj, obj.as.chr) StandardGeneric("guidesFile")
+  function(obj, obj.as.chr) StandardGeneric("guidesFile") # nocov
 )
 #' @rdname guides
 

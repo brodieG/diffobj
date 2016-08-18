@@ -81,6 +81,11 @@ test_that("Lists", {
   expect_equal_to_reference(
     as.character(diffPrint(lst.4, lst.5, mode="context")), rdsf(1600)
   )
+  # Nested first element (https://github.com/brodieG/diffobj/issues/46)
+  expect_equal_to_reference(
+    as.character(diffPrint(list(1, list(2, list(1:3))), list(list(list(1:3))))),
+    rdsf(1650)
+  )
   # Interesting but relatively slow example so we don't actually run it in
   # tests
 
@@ -187,6 +192,19 @@ test_that("factors", {
   expect_equal_to_reference(
     as.character(diffPrint(factor(1:100), factor(c(1:99, 101)))), rdsf(3200)
   )
+})
+test_that("Raw output", {
+  expect_equal_to_reference(
+    as.character(diffPrint(letters, LETTERS, format="raw", pager="off")),
+    rdsf(3300)
+  )
+})
+test_that("Varying Widths", {
+  expect_equal_to_reference(
+    as.character(diffPrint(letters, LETTERS, format="raw", disp.width=40)),
+    rdsf(3400)
+  )
+  expect_error(diffPrint(letters, LETTERS, disp.width=5))
 })
 test_that("covr workaround", {
   # Needed so that the function definition stuff is marked as covered; really

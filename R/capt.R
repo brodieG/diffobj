@@ -21,11 +21,12 @@
 capture <- function(x, etc, err) {
   capt.width <- etc@text.width
   if(capt.width) {
-    opt.set <- try(width.old <- options(width=capt.width))
+    opt.set <- try(width.old <- options(width=capt.width), silent=TRUE)
     if(inherits(opt.set, "try-error")) {
       warning(
-        "Unable to set desired width ", capt.width, ", proceeding with ",
-        "existing setting."
+        "Unable to set desired width ", capt.width, ", (",
+        conditionMessage(attr(opt.set, "condition")), ");",
+        "proceeding with existing setting."
       )
     } else on.exit(options(width.old))
   }
@@ -349,7 +350,7 @@ capt_csv <- function(target, current, etc, err, extra){
 
 set_mode <- function(etc, tar.capt, cur.capt) {
   stopifnot(is(etc, "Settings"), is.character(tar.capt), is.character(cur.capt))
-  nc_fun <- if(is(etc@style, "StyleAnsi")) crayon_nchar else nchar
+  nc_fun <- etc@style@nchar.fun
   if(etc@mode == "auto") {
     if(
       any(nc_fun(cur.capt) > etc@text.width.half) ||

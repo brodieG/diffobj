@@ -1,6 +1,6 @@
 # diffobj - Compare R Objects with a Diff
 
-<a href='https://travis-ci.org/brodieG/diffobj'><img src='https://travis-ci.org/brodieG/diffobj.png?branch=master'></a>
+<a href='https://travis-ci.org/brodieG/diffobj'><img src='https://travis-ci.org/brodieG/diffobj.svg?branch=master'></a>
 <a href='https://codecov.io/github/brodieG/diffobj?branch=master'>
   <img src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=master'>
 </a>
@@ -35,7 +35,7 @@ vignette("diffobj", package="diffobj")
   <a href='https://travis-ci.org/brodieG/diffobj'>
     <img
       style="vertical-align: middle;"
-      src='https://travis-ci.org/brodieG/diffobj.png?branch=rc'
+      src='https://travis-ci.org/brodieG/diffobj.svg?branch=rc'
     >
   </a>
   <td>
@@ -51,7 +51,7 @@ vignette("diffobj", package="diffobj")
   <a href='https://travis-ci.org/brodieG/diffobj'>
     <img
       style="vertical-align: middle;"
-      src='https://travis-ci.org/brodieG/diffobj.png?branch=development'
+      src='https://travis-ci.org/brodieG/diffobj.svg?branch=development'
     >
   </a>
   <td>

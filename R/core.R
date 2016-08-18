@@ -262,6 +262,29 @@ char_diff <- function(x, y, context=-1L, etc, diff.mode, warn) {
 
   list(hunks=hunks, hit.diffs.max=hit.diffs.max)
 }
+# Compute the character representation of a hunk header
+
+make_hh <- function(h.g, mode, tar.dat, cur.dat, ranges.orig) {
+  h.ids <- vapply(h.g, "[[", integer(1L), "id")
+  h.head <- vapply(h.g, "[[", logical(1L), "guide")
+
+  # exclude header hunks from contributing to range, and adjust ranges for
+  # possible fill lines added to the data
+
+  h.ids.nh <- h.ids[!h.head]
+  tar.rng <- find_rng(h.ids.nh, ranges.orig[1:2, , drop=FALSE])
+  tar.rng.f <- cumsum(!tar.dat$fill)[tar.rng]
+  cur.rng <- find_rng(h.ids.nh, ranges.orig[3:4, , drop=FALSE])
+  cur.rng.f <- cumsum(!cur.dat$fill)[cur.rng]
+
+  hh.a <- paste0(rng_as_chr(tar.rng.f))
+  hh.b <- paste0(rng_as_chr(cur.rng.f))
+
+  if(mode == "sidebyside") sprintf("@@ %s @@", c(hh.a, hh.b)) else {
+    sprintf("@@ %s / %s @@", hh.a, hh.b)
+  }
+}
+
 # Variation on `char_diff` used for the overall diff where we don't need
 # to worry about overhead from creating the `Diff` object
 
@@ -358,8 +381,11 @@ line_diff <- function(
     length(cur.rh <- which_atomic_cont(cur.capt.p, current)) &&
     etc@unwrap.atomic && etc@word.diff
   ) {
-    if(!all(diff(tar.rh) == 1L) || !all(diff(cur.rh)) == 1L)
+    if(!all(diff(tar.rh) == 1L) || !all(diff(cur.rh)) == 1L){
+      # nocov start
       stop("Logic Error, row headers must be sequential; contact maintainer.")
+      # nocov end
+    }
 
     # Only do this for the portion of the data that actually matches up with
     # the atomic row headers (NOTE: need to check what happens with named
@@ -440,11 +466,65 @@ line_diff <- function(
 
   # Instantiate result
 
-  hunk.grps <- group_hunks(
+  hunk.grps.raw <- group_hunks(
     hunks.flat, etc=etc, tar.capt=tar.dat$raw, cur.capt=cur.dat$raw
   )
+  # Recompute line limit accounting for banner len
+
+  gutter.dat <- etc@gutter
+  banner.len <- banner_len(etc@mode)
+  max.w <- etc@text.width
+
+  line.limit <- etc@line.limit
+  line.limit.a <- if(line.limit[[1L]] >= 0L)
+    pmax(integer(2L), line.limit - banner.len) else line.limit
+  etc@line.limit <- line.limit.a
+
+  # Trim hunks to the extented needed to make sure we fit in lines
+
+  hunk.grps <- trim_hunks(hunk.grps.raw, etc, tar.dat$raw, cur.dat$raw)
+  hunks.flat <- unlist(hunk.grps, recursive=FALSE)
+
+  # Compact to width of widest element, so retrieve all char values; also
+  # need to generate all the hunk headers b/c we need to use them in width
+  # computation as well; under no circumstances are hunk headers allowed to
+  # wrap as they are always assumed to take one line.
+  #
+  # Note: this used to be done after trimming / subbing, which is technically
+  # better since we might have trimmed away long rows, but we need to do it
+  # here so that we can can record the new text width in the outgoing object;
+  # also, logic a bit circuitous b/c this was originally done elsewhere; might
+  # be faster to use tar.dat and cur.dat directly
+
+  chr.ind <- unlist(lapply(hunks.flat, "[", c("A", "B")))
+  chr.dat <- get_dat_raw(chr.ind, tar.dat$raw, cur.dat$raw)
+  chr.size <- integer(length(chr.dat))
+
+  ranges <- vapply(
+    hunks.flat, function(h.a) c(h.a$tar.rng.trim, h.a$cur.rng.trim),
+    integer(4L)
+  )
+  ranges.orig <- vapply(
+    hunks.flat, function(h.a) c(h.a$tar.rng.sub, h.a$cur.rng.sub), integer(4L)
+  )
+  hunk.heads <-
+    lapply(hunk.grps, make_hh, etc@mode, tar.dat, cur.dat, ranges.orig)
+  h.h.chars <- nchar(chr_trim(unlist(hunk.heads), etc@line.width))
+
+  chr.size <- etc@style@nchar.fun(chr.dat)
+  max.col.w <- max(
+    max(0L, chr.size, .min.width + gutter.dat@width), h.h.chars
+  )
+  max.w <- if(max.col.w < max.w) max.col.w else max.w
+
+  # future calculations should assume narrower display
+
+  etc@text.width <- max.w
+  etc@line.width <- max.w + gutter.dat@width
+
   new(
     "Diff", diffs=hunk.grps, target=target, current=current,
-    hit.diffs.max=!warn, tar.dat=tar.dat, cur.dat=cur.dat, etc=etc
+    hit.diffs.max=!warn, tar.dat=tar.dat, cur.dat=cur.dat, etc=etc,
+    hunk.heads=hunk.heads
   )
 }

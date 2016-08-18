@@ -22,7 +22,7 @@ PagerSystem(pager = file.show, threshold = -1L, file.ext = "", ...)
 PagerSystemLess(pager = file.show, threshold = -1L, file.ext = "",
   flags = "R", ...)
 
-PagerBrowser(pager = make_blocking(browseURL), threshold = 0L,
+PagerBrowser(pager = make_blocking(view_or_browse), threshold = 0L,
   file.ext = "html", ...)
 }
 \arguments{

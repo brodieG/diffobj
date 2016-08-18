@@ -13,6 +13,12 @@
 #
 # Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
 
+# borrowed from crayon, will lobby to get it exported
+
+ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
+                     "(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])",
+                     "|\\x{001b}[A-M]")
+
 # Remap crayon funs so they show up in profiling
 
 crayon_nchar <- crayon::col_nchar
@@ -39,11 +45,6 @@ html_ent_sub <- function(x, style) {
   }
   x
 }
-# borrowed from crayon, will lobby to get it exported
-ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
-                     "(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])",
-                     "|\\x{001b}[A-M]")
-
 # Helper function for align_eq; splits up a vector into matched elements and
 # interstitial elements, including possibly empty interstitial elements when
 # two matches are abutting
@@ -92,39 +93,56 @@ align_eq <- function(A, B, x, context) {
     etc <- x@etc
     A.eq <- get_dat(x, A, "eq")
     B.eq <- get_dat(x, B, "eq")
+
+    # Cleanup so only relevant stuff is allowed to match
+
     A.tok.ratio <- get_dat(x, A, "tok.rat")
     B.tok.ratio <- get_dat(x, B, "tok.rat")
 
-    # Need to match each element in A.eq to B.eq, though each match consumes the
-    # match so we can't use `match`; unfortunately this is slow; for context
-    # hunks the match is one to one for each line
-
-    min.match <- 0L
-    align <- integer(length(A.eq))
-    B.len <- length(B.eq)
-    for(i in seq_along(A.eq)) {
-      if(min.match >= B.len) break
-      B.match <-
-        which(A.eq[[i]] == if(min.match) tail(B.eq, -min.match) else B.eq)
-      if(length(B.match)) {
-        align[[i]] <- min.match <- B.match[[1L]] + min.match
-      }
+    if(etc@align@count.alnum.only) {
+      A.eq.trim <- gsub("[^[:alnum:]]", "", A.eq, perl=TRUE)
+      B.eq.trim <- gsub("[^[:alnum:]]", "", B.eq, perl=TRUE)
+    } else {
+      A.eq.trim <- A.eq
+      B.eq.trim <- B.eq
     }
-    # Disallow empty matches or matches that account for a very small portion of
-    # the possible tokens and could be spurious; we should probably do this
-    # ahead of the for loop since we could probably save some iterations
-
     # TBD whether nchar here should be ansi-aware; probably if in alnum only
     # mode...
 
-    B.tr <- B.tok.ratio[match(align, seq_along(B.tok.ratio))]
-    A.eq.trim <- if(etc@align@count.alnum.only)
-      gsub("[^[:alnum:]]", "", A.eq, perl=TRUE) else A.eq
-    is.na(B.tr) <- 1
-    disallow.match <- nchar(A.eq.trim) < etc@align@min.chars |
-    A.tok.ratio <= etc@align@threshold | B.tr <= etc@align@threshold
-    align[disallow.match] <- 0L
+    A.valid <- which(
+      nchar(A.eq.trim) >= etc@align@min.chars &
+      A.tok.ratio >= etc@align@threshold
+    )
+    B.valid <- which(
+      nchar(B.eq.trim) >= etc@align@min.chars &
+      B.tok.ratio >= etc@align@threshold
+    )
+    B.eq.seq <- seq_along(B.eq.trim)
 
+    align <- integer(length(A.eq))
+    min.match <- 0L
+
+    # Need to match each element in A.eq to B.eq, though each match consumes the
+    # match so we can't use `match`; unfortunately this is slow; for context
+    # hunks the match is one to one for each line; also, this whole matching
+    # needs to be improved (see issue #37)
+
+    if(length(A.valid) & length(B.valid)) {
+      B.max <- length(B.valid)
+      B.eq.val <- B.eq.trim[B.valid]
+
+      for(i in A.valid) {
+        if(min.match >= B.max) break
+        B.match <- which(
+          A.eq.trim[[i]] == if(min.match)
+            tail(B.eq.val, -min.match) else B.eq.val
+        )
+        if(length(B.match)) {
+          align[[i]] <- B.valid[B.match[[1L]] + min.match]
+          min.match <- B.match[[1L]] + min.match
+        }
+      }
+    }
     # Group elements together.  We number the interstitial buckest as the
     # negative of the next match.  There are always matches together, split
     # by possibly empty interstitial elements
@@ -327,11 +345,6 @@ rpad <- function(text, width, pad.chr=" ") {
   )
   paste0(text, pad.chrs)
 }
-# trim and right pad
-
-rpadt <- function(text, width, pad.chr=" ")
-  rpad(chr_trim(text, width), width, pad.chr)
-
 # Breaks long character vectors into vectors of length width
 #
 # Right pads them to full length if requested.  Only attempt to wrap if
