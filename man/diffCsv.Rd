@@ -197,7 +197,9 @@ words in a line of \code{target} that must be matched in a line of
 displayed (defaults to 0.25), or an \code{\link{AlignThreshold}} object.
 Set to \code{1} to turn off alignment which will cause all lines in a hunk
 from \code{target} to show up first, followed by all lines from
-\code{current}.}
+\code{current}.  Note that in order to be aligned lines must meet the
+threshold and have at least 3 matching alphanumeric characters (see
+\code{\link{AlignThreshold}} for details).}
 
 \item{style}{\dQuote{auto}, a \code{\link{Style}} object, or a list.
 \dQuote{auto} by default.  If a \code{Style} object, will override the
@@ -225,7 +227,7 @@ value of \code{\link{par_frame}}.}
 interactive mode, defaults to the return value of
 \code{\link{interactive}}.  If in interactive mode, pager will be used if
 \code{pager} is \dQuote{auto}, and if ANSI styles are not supported and
-\code{style} is \dQuote{auto}, output will be send to viewer/browser as 
+\code{style} is \dQuote{auto}, output will be send to viewer/browser as
 HTML.}
 
 \item{term.colors}{integer(1L) how many ANSI colors are supported by the

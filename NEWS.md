@@ -7,6 +7,7 @@
 * [#53](https://github.com/brodieG/diffobj/issues/53), default term colors computed on run instead of on package load
 * [#56](https://github.com/brodieG/diffobj/issues/56), disable wrap for HTML output
 * HTML output now captured with default width 80 since there is no explicit relationship between HTML viewport width and `getOption("width")`
+* The `style` parameter now accepts lists to use as instantiation arguments for `Style` objects (see `?Style`)
 * Fix subtle rendering and formatting application flaws
 * Switch Travis shields to SVG per [Gábor Csárdi](https://github.com/gaborcsardi/diffobj/commit/710251f2cd663bfdadcab9aea6a37f9eb4a87599)
 * Improve in-hunk alignment of partially matching lines

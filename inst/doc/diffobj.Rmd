@@ -1,5 +1,5 @@
 ---
-title: "diffobj - Diffs for R Objects"
+title: "diffobj - Visualize Differences Between R Objects"
 author: "Brodie Gaslam"
 output:
     function(...) rmarkdown::html_vignette(..., md_extensions="-markdown_in_html_blocks", css=c(file.path(system.file(package="diffobj"), "css", "diffobj.css"), "styles.css")):
@@ -92,7 +92,7 @@ diffPrint(state.abb, state.abb2)
 
 Due to the different wrapping frequency no line in the text display of our two vectors matches.  Despite this, `diffPrint` only highlights the lines that actually contain differences.  The side effect is that lines that only contain matching elements are shown as matching even though the actual lines may be different.  You can turn off this behavior in favor of a normal line diff with the `unwrap.atomic` argument to `diffPrint`.
 
-This method of comparing vectors is a compromise that may in some circumstances produce sub-optimal results.  You can also use `diffChr` (see below) to do a direct element by element comparison.
+Currently this only works for _unnamed_ vectors, and even for them some inputs may produce sub-optimal results.  You can also use `diffChr` (see below) to do a direct element by element comparison.
 
 ## Other Diff Functions
 
@@ -162,7 +162,7 @@ summary(diffStr(mdl1, mdl2))
 
 The `diff*` family of methods has an extensive set of parameters that allow you to fine tune how the diff is applied and displayed.  We will review some of the major ones in this section.  For a full description see `?diffPrint`.
 
-While the parameter list is extensive, only the objects being compared are required and all other parameters have default values, and most of them are for advanced used only.  The defaults all reference `diffobj.*` options so that you can change them if you prefer different ones.
+While the parameter list is extensive, only the objects being compared are required.  All the other parameters have default values, and most of them are for advanced use only.  The defaults can all be adjusted via the `diffobj.*` options.
 
 ### Display Mode
 
@@ -211,18 +211,20 @@ diffChr(x, y, color.mode="rgb")
 
 ### Output Formats
 
-If your terminal supports it `diffobj` will format the output with ANSI escape sequences.  `diffobj` uses Gábor Csárdi's [`crayon`](https://github.com/gaborcsardi/crayon) package to detect ANSI support and to apply ANSI based formatting.  If your terminal does not support colors, `diffobj` will attempt to output an HTML/CSS formatted diff to your browser using `browseURL`.
+If your terminal supports it `diffobj` will format the output with ANSI escape sequences.  `diffobj` uses Gábor Csárdi's [`crayon`](https://github.com/gaborcsardi/crayon) package to detect ANSI support and to apply ANSI based formatting.  If you are using Rstudio or another IDE that supports `getOption("viewer")`, `diffobj` will output an HTML/CSS formatted diff to the viewport.  In other terminals that do not support ANSI colors, `diffobj` will attempt to output to an HTML/CSS formatted diff to your browser using `browseURL`.
 
-You can specify the output format with the `format` parameter set to:
+You can explicitly specify the output format with the `format` parameter:
 
-* "raw" for unformatted diffs
-* "ansi8" for standard ANSI 8 color formatting
-* "ansi256" for ANSI 256 color formatting
-* "html" for HTML/CSS output and styling
+* `format="raw"` for unformatted diffs
+* `format="ansi8"` for standard ANSI 8 color formatting
+* `format="ansi256"` for ANSI 256 color formatting
+* `format="html"` for HTML/CSS output and styling
+
+See [Pagers](#pagers) for more details.
 
 ### Brightness
 
-By default, this parameter is really only meaningful for the "ansi256" format, but could be useful under other formats if you build custom styles.  It allows you to pick a color scheme compatible with the background color of your terminal.  The options are:
+The `brightness` parameter allows you to pick a color scheme compatible with the background color of your terminal.  The options are:
 
 * "light": for use with light tone terminals
 * "dark": for use with dark tone terminals
@@ -238,7 +240,7 @@ At this time the only `format` that is affected by this parameter is "ansi256". 
 
 ### Pagers
 
-In interactive mode, if the diff output is very long `diff*` methods will pipe output to a pager. The default action is to create a temporary file with the diff output, and feed that to `file.show`.  If your terminal does not support ANSI escape sequences, the default action is to use your web browser as a pager / terminal irrespective of how big the actual output is.
+In interactive mode, if the diff output is very long or if your terminal does not support ANSI colors, `diff*` methods will pipe output to a pager. This is done by writing the output to a temporary file and passing the file reference to the pager.  The default action is to invoke the pager with `file.show` if your terminal supports ANSI colors, or if not to use `getOption("viewer")` if available (this outputs to the viewport in RStudio), or if not to use `browseURL`.
 
 You can fine tune when, how, and if a pager is used with the `pager` parameter.  See `?diffPrint` and `?Pager` for more details.
 
@@ -247,6 +249,8 @@ You can fine tune when, how, and if a pager is used with the `pager` parameter. 
 You can control almost all aspects of the diff output formatting via the `style` parameter.  To do so, pass an appropriately configured `Style` object.  See `?Style` for more details on how to do this.
 
 The default is to auto pick a style based on the values of the `format`, `color.mode`, and `brightness` parameters.  This is done by using the computed values for each of those parameters to subset the `PaletteOfStyles` object passed as the `palette.of.styles` parameter.  This `PaletteOfStyles` object contains a `Style` object for all the possible permutations of the `style`, `format`, and `color.mode` parameters.  See `?PaletteOfStyles`.
+
+If you specify the `style` parameter the values of the `format`, `brightness`, and `color.mode` parameters will be ignored.
 
 ## Algorithm
 

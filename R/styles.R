@@ -401,6 +401,14 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' \code{style} parameter of the \code{\link[=diffPrint]{diff*}} methods.
 #' See examples.
 #'
+#' @section New Classes:
+#'
+#' You can in theory create entirely new classes that extent \code{Style}.  For
+#' example you could generate a class that renders the diff in \code{grid}
+#' graphics.  Note however that we have not tested such extensions and it is
+#' possible there is some embedded code that will misbehave with such a new
+#' class.
+#'
 #' @rdname Style
 #' @export Style
 #' @exportClass Style
@@ -1183,10 +1191,6 @@ setMethod("dimnames", "PaletteOfStyles", function(x) dimnames(x@data))
 
 # Matrices used for show methods for styles
 
-#' Unexported Matrix Used for Sample Display
-#'
-#' @aliases .mx2
-
 .mx1 <- .mx2 <- matrix(1:50, ncol=2)
 .mx2[c(6L, 40L)] <- 99L
 .mx2 <- .mx2[-7L,]
@@ -1215,8 +1219,7 @@ setMethod("show", "Style",
     )
     d.txt <- capture.output(show(d.p))
     if(is(object, "Ansi")) {
-      old.crayon.opt <-
-        options(crayon.enabled=TRUE)
+      old.crayon.opt <- options(crayon.enabled=TRUE)
       on.exit(options(old.crayon.opt), add=TRUE)
       pad.width <- max(object@nchar.fun(d.txt))
       d.txt <- rpad(d.txt, width=pad.width)

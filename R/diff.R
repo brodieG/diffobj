@@ -13,10 +13,11 @@
 #
 # Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
 
+
 #' Visualize Differences Between R Objects
 #'
-#' Colorized diffs to quickly identify _and understand_ differences between R
-#' objects.  See `vignette("diffobj")` for details.
+#' Generate a colorized diff of two R objects for an intuitve visualization of
+#' their differences.  See `vignette(package="diffobj", "diffobj")` for details.
 #'
 #' @import crayon
 #' @import methods
@@ -326,7 +327,7 @@ make_diff_fun <- function(capt_fun) {
 #'   interactive mode, defaults to the return value of
 #'   \code{\link{interactive}}.  If in interactive mode, pager will be used if
 #'   \code{pager} is \dQuote{auto}, and if ANSI styles are not supported and
-#'   \code{style} is \dQuote{auto}, output will be send to viewer/browser as 
+#'   \code{style} is \dQuote{auto}, output will be send to viewer/browser as
 #'   HTML.
 #' @param term.colors integer(1L) how many ANSI colors are supported by the
 #'   terminal.  This variable is provided for when

@@ -3,9 +3,9 @@
 \docType{package}
 \name{diffobj-package}
 \alias{diffobj-package}
-\title{Compare R Objects with a Diff}
+\title{Visualize Differences Between R Objects}
 \description{
-Colorized diffs to quickly identify _and understand_ differences between R
-objects.  See `vignette("diffobj")` for details.
+Generate a colorized diff of two R objects for an intuitve visualization of
+their differences.  See `vignette(package="diffobj", "diffobj")` for details.
 }
 
