@@ -3,6 +3,7 @@
 ^\DEVNOTES\.md$
 ^\NOTES\.md$
 ^\ISSUES\.md$
+^\CRAN\.md$
 ^\.travis\.yml$
 ^scratch\.R$
 \.Rdata
