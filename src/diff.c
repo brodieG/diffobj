@@ -3,7 +3,7 @@
  * Allen implementation of the Myers diff algorithm.  See next comment blocks for
  * original copyright and license information.
  *
- * diffobj - Visualize Differences Between R Objects
+ * diffobj - Diffs for R Objects
  * Copyright (C) 2016  Brodie Gaslam
  *
  * This program is free software: you can redistribute it and/or modify
