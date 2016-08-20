@@ -410,7 +410,9 @@ setMethod("diffStr", signature=c("ANY", "ANY"), make_diff_fun(capt_str))
 #' @export
 #' @rdname diffChr
 #' @examples
+#' \dontrun{
 #' diffChr(LETTERS[1:5], LETTERS[2:6])
+#' }
 
 setGeneric("diffChr", function(target, current, ...) standardGeneric("diffChr"))
 
@@ -433,7 +435,9 @@ setMethod("diffChr", signature=c("ANY", "ANY"), make_diff_fun(capt_chr))
 #' @export
 #' @rdname diffDeparse
 #' @examples
+#' \dontrun{
 #' diffDeparse(matrix(1:9, 3), 1:9)
+#' }
 
 setGeneric(
   "diffDeparse", function(target, current, ...) standardGeneric("diffDeparse")
@@ -459,10 +463,12 @@ setMethod("diffDeparse", signature=c("ANY", "ANY"), make_diff_fun(capt_deparse))
 #' @export
 #' @rdname diffFile
 #' @examples
+#' \dontrun{
 #' url.base <- "https://raw.githubusercontent.com/wch/r-source"
 #' f1 <- file.path(url.base, "29f013d1570e1df5dc047fb7ee304ff57c99ea68/README")
 #' f2 <- file.path(url.base, "daf0b5f6c728bd3dbcd0a3c976a7be9beee731d9/README")
 #' diffFile(f1, f2)
+#' }
 
 setGeneric(
   "diffFile", function(target, current, ...) standardGeneric("diffFile")
@@ -492,6 +498,7 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 #' @export
 #' @rdname diffCsv
 #' @examples
+#' \dontrun{
 #' iris.2 <- iris
 #' iris.2$Sepal.Length[5] <- 99
 #' f1 <- tempfile()
@@ -500,6 +507,7 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 #' write.csv(iris.2, f2, row.names=FALSE)
 #' diffCsv(f1, f2)
 #' unlink(c(f1, f2))
+#' }
 
 setGeneric(
   "diffCsv", function(target, current, ...) standardGeneric("diffCsv")

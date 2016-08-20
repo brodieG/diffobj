@@ -255,6 +255,7 @@ possible there is some embedded code that will misbehave with such a new
 class.
 }
 \examples{
+\dontrun{
 ## Create a new style based on existing style by changing
 ## gutter symbols and guide color; see `?StyleFuns` and
 ## `?StyleText` for a full list of adjustable elements
@@ -286,5 +287,6 @@ diffPrint(letters, letters[-5], style=my.style)
 as.character(
   diffPrint(1:5, 2:6, format="html", style=list(html.output="diff.only"))
 )
+}
 }
 

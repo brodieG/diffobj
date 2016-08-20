@@ -258,7 +258,9 @@ the objects.  Each element counts as a line.  If an element contains newlines
 it will be split into elements new lines by the newlines.
 }
 \examples{
+\dontrun{
 diffDeparse(matrix(1:9, 3), 1:9)
+}
 }
 \seealso{
 \code{\link{diffPrint}} for details on the \code{diff*} functions,

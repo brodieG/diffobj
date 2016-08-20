@@ -450,6 +450,7 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #'   used for scaling output to viewports.
 #' @return Style S4 object
 #' @examples
+#' \dontrun{
 #' ## Create a new style based on existing style by changing
 #' ## gutter symbols and guide color; see `?StyleFuns` and
 #' ## `?StyleText` for a full list of adjustable elements
@@ -481,6 +482,7 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' as.character(
 #'   diffPrint(1:5, 2:6, format="html", style=list(html.output="diff.only"))
 #' )
+#' }
 
 Style <- setClass("Style", contains="VIRTUAL",
   slots=c(
@@ -1015,6 +1017,7 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' @export PaletteOfStyles
 #' @exportClass PaletteOfStyles
 #' @examples
+#' \dontrun{
 #' ## Look at all "ansi256" styles (assumes compatible terminal)
 #' PaletteOfStyles()["ansi256",,]
 #' ## Generate the default style object palette, and replace
@@ -1032,7 +1035,6 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' )
 #' ## If so desired, set our new style palette as the default
 #' ## one; could also pass directly as argument to `diff*` funs
-#' \dontrun{
 #' options(diffobj.palette=defs)
 #' }
 
@@ -1207,7 +1209,9 @@ setMethod("dimnames", "PaletteOfStyles", function(x) dimnames(x@data))
 #' @param object a \code{Style} S4 object
 #' @return NULL, invisibly
 #' @examples
+#' \dontrun{
 #' show(StyleAnsi256LightYb())  # assumes ANSI colors supported
+#' }
 
 setMethod("show", "Style",
   function(object) {

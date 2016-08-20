@@ -262,6 +262,7 @@ functions you will need to \code{read.csv} the files and pass them to
 \code{diffPrint} yourself.
 }
 \examples{
+\dontrun{
 iris.2 <- iris
 iris.2$Sepal.Length[5] <- 99
 f1 <- tempfile()
@@ -270,6 +271,7 @@ write.csv(iris, f1, row.names=FALSE)
 write.csv(iris.2, f2, row.names=FALSE)
 diffCsv(f1, f2)
 unlink(c(f1, f2))
+}
 }
 \seealso{
 \code{\link{diffPrint}} for details on the \code{diff*} functions,

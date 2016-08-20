@@ -97,6 +97,7 @@ genarate a default list with a \dQuote{"grid"} value appended to the values
 of the \code{format} dimension.
 }
 \examples{
+\dontrun{
 ## Look at all "ansi256" styles (assumes compatible terminal)
 PaletteOfStyles()["ansi256",,]
 ## Generate the default style object palette, and replace
@@ -114,7 +115,6 @@ diffPrint(
 )
 ## If so desired, set our new style palette as the default
 ## one; could also pass directly as argument to `diff*` funs
-\dontrun{
 options(diffobj.palette=defs)
 }
 }

@@ -258,10 +258,12 @@ Reads text files with \code{\link{readLines}} and performs a diff on the
 resulting character vectors.
 }
 \examples{
+\dontrun{
 url.base <- "https://raw.githubusercontent.com/wch/r-source"
 f1 <- file.path(url.base, "29f013d1570e1df5dc047fb7ee304ff57c99ea68/README")
 f2 <- file.path(url.base, "daf0b5f6c728bd3dbcd0a3c976a7be9beee731d9/README")
 diffFile(f1, f2)
+}
 }
 \seealso{
 \code{\link{diffPrint}} for details on the \code{diff*} functions,
