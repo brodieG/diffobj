@@ -3,7 +3,7 @@
 \docType{package}
 \name{diffobj-package}
 \alias{diffobj-package}
-\title{Visualize Differences Between R Objects}
+\title{Diffs for R Objects}
 \description{
 Generate a colorized diff of two R objects for an intuitve visualization of
 their differences.  See `vignette(package="diffobj", "diffobj")` for details.
