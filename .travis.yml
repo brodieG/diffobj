@@ -1,5 +1,9 @@
 language: r
-sudo: false
+r:
+  - oldrel
+  - release
+  - develsudo: false
+
 cache: packages
 
 branches:
