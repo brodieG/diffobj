@@ -2,7 +2,9 @@ language: r
 r:
   - oldrel
   - release
-  - develsudo: false
+  - devel
+
+sudo: false
 
 cache: packages
 
