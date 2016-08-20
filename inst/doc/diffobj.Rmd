@@ -1,5 +1,5 @@
 ---
-title: "diffobj - Visualize Differences Between R Objects"
+title: "diffobj - Diffs for R Objects"
 author: "Brodie Gaslam"
 output:
     function(...) rmarkdown::html_vignette(..., md_extensions="-markdown_in_html_blocks", css=c(file.path(system.file(package="diffobj"), "css", "diffobj.css"), "styles.css")):
@@ -32,7 +32,7 @@ diffPrint(target=a, current=b)
 
 `diffobj` comparisons work best when objects have some similarities, or when they are relatively small.  The package was originally developed to help diagnose failed unit tests by comparing test results to reference objects in a human-friendly manner.
 
-If your terminal supports formatting through ANSI escape sequences, `diffobj` will output colored diffs to the terminal.  If not, it will output colored diffs to your browser.
+If your terminal supports formatting through ANSI escape sequences, `diffobj` will output colored diffs to the terminal.  If not, it will output colored diffs to your IDE viewport if it is supported, or to your browser otherwise.
 
 ## Interpreting Diffs
 

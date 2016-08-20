@@ -1,6 +1,6 @@
 Package: diffobj
 Type: Package
-Title: Visualize Differences Between R Objects
+Title: Diffs for R Objects
 Description: Generate a colorized diff of two R objects for an intuitve
     visualization of their differences.
 Version: 0.1.3
