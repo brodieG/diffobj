@@ -5,7 +5,7 @@
 # RStudio, and consist of running the code and resizing the windows to see
 # what happens
 
-function() { # prevent running
+if(FALSE) { # prevent running
   setwd("tests")
   source("testthat/helper.commonobjects.R")
 

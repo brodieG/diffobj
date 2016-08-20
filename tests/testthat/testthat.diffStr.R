@@ -10,6 +10,7 @@ library(diffobj)
 
 test_that("lm models", {
 
+  # formula display changed
   if(R.Version()$major >= 3 && R.Version()$minor >= "3.1")
     expect_equal_to_reference(as.character(diffStr(mdl1, mdl2)), rdsf(100))
   # Too strict a line limit, can't get under
