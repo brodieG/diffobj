@@ -21,12 +21,12 @@ function() { # prevent running
   diffPrint(letters[1:6], LETTERS[1:6], format="html")
   diffPrint(letters[1:6], LETTERS[1:6], format="html", style=list(scale=FALSE))
 
-  # Revealed problems with gutter width computations
+  # Revealed problems with gutter width computations; and scaling
 
-  mx.2 <- matrix(1:100, ncol=2)
+  mx.2 <- matrix(1:100, ncol=4)
   mx.4 <- mx.3 <- mx.2
-  mx.3[31, 2] <- 111L
-  mx.3a <- mx.3[-31, ]
+  mx.3[15, 2] <- 111L
+  mx.3a <- mx.3[-5, ]
   diffPrint(mx.2, mx.3a, format="html")
 
   # summary stuff
