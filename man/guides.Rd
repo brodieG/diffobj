@@ -94,7 +94,6 @@ methods for them (see examples), though if your objects are S3 you will need
 to use \code{\link{setOldClass}} as the \code{guides*} generics are S4.
 }
 \examples{
-\dontrun{
 ## Roundabout way of suppressing guides for matrices
 \dontrun{
 setMethod("guidesPrint", c("matrix", "character"),
@@ -108,7 +107,6 @@ setMethod("guidesPrint", c("zulu", "character"),
     if(length(obj) > 20) grep("^zulu[0-9]*", obj.as.chr)
     else integer(0L)
 } )
-}
 }
 }
 
