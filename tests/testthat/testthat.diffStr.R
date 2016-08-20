@@ -9,7 +9,6 @@ rdsf <- function(x)
 library(diffobj)
 
 test_that("lm models", {
-
   # formula display changed
   if(R.Version()$major >= 3 && R.Version()$minor >= "3.1")
     expect_equal_to_reference(as.character(diffStr(mdl1, mdl2)), rdsf(100))
@@ -28,6 +27,7 @@ test_that("Simple structure", {
   expect_equal_to_reference(as.character(diffStr(iris.c, iris.s)), rdsf(400))
 })
 test_that("Strict width", {
+  # formula display changed
   if(R.Version()$major >= 3 && R.Version()$minor >= "3.1") {
     expect_equal_to_reference(
       as.character(
