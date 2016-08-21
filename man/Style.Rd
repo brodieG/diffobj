@@ -82,7 +82,7 @@ Style S4 object
 }
 \description{
 S4 objects that expose the formatting controls for \code{Diff}
-objects.  Many predifined formats are defined as classes that extend the
+objects.  Many predefined formats are defined as classes that extend the
 base \code{Style} class.  You may fine tune styles by either extending
 the pre-defined classes, or modifying an instance thereof.
 }

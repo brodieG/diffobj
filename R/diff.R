@@ -16,7 +16,7 @@
 
 #' Diffs for R Objects
 #'
-#' Generate a colorized diff of two R objects for an intuitve visualization of
+#' Generate a colorized diff of two R objects for an intuitive visualization of
 #' their differences.  See `vignette(package="diffobj", "diffobj")` for details.
 #'
 #' @import crayon
@@ -30,7 +30,7 @@
 NULL
 
 # Because all these functions are so similar, we have constructed them with a
-# function factory.  This allows us to easily maintain consisten formals during
+# function factory.  This allows us to easily maintain consistent formals during
 # initial development process when they have not been set in stone yet.
 
 make_diff_fun <- function(capt_fun) {
@@ -147,7 +147,7 @@ make_diff_fun <- function(capt_fun) {
 #' \code{target} and \code{current} parameters.  Methods with signature
 #' \code{c("ANY", "ANY")} are defined and act as the default methods.  You can
 #' use this to set up methods to pre-process or set specific parameters for
-#' selected clases that can then \code{callNextMethod} for the actual diff.
+#' selected classes that can then \code{callNextMethod} for the actual diff.
 #' Note that while the generics include \code{...} as an argument, none of the
 #' methods do.
 #'
@@ -208,14 +208,14 @@ make_diff_fun <- function(capt_fun) {
 #'   Those colors can be easily distinguished by individuals with
 #'   limited red-green color sensitivity.  See \code{\link{PaletteOfStyles}} for
 #'   details and limitations.  Also offers the same advanced usage as the
-#'   \code{brightness} paramter.
+#'   \code{brightness} parameter.
 #' @param word.diff TRUE (default) or FALSE, whether to run a secondary word
 #'   diff on the in-hunk diferences
 #' @param pager one of \dQuote{auto} (default), \dQuote{on},
 #'   \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
 #'   pager is used to display the diff output.  If \dQuote{on} will use the
 #'   pager associated with the \code{\link{Style}} specified via the
-#'   \code{\link{style}} parameters.  if \dQuote{auto} will behave
+#'   \code{\link{style}} parameters.  If \dQuote{auto} will behave
 #'   like \dQuote{on} but only if in interactive mode.  If the pager is
 #'   enabled, default behavior is to pipe output to \code{\link{file.show}} if
 #'   output is taller than the estimated terminal height and your terminal
@@ -228,7 +228,7 @@ make_diff_fun <- function(capt_fun) {
 #'   are additional context lines that are not strictly part of a hunk, but
 #'   provide important contextual data (e.g. column headers).  If TRUE, the
 #'   context lines are shown in addition to the normal diff output, typically
-#'   in a different color to inidicate they are not part of the hunk.  If a
+#'   in a different color to indicate they are not part of the hunk.  If a
 #'   function, the function should accept as the first argument the object
 #'   being diffed, and the second the character representation of the object.
 #'   The function should return the indices of the elements of the second

@@ -120,7 +120,7 @@ b[<span class="kw">c</span>(<span class="dv">18</span>, <span class="dv">44</spa
 <h2>Interpreting Diffs</h2>
 <div id="shortest-edit-script" class="section level3">
 <h3>Shortest Edit Script</h3>
-<p>The output from <code>diffobj</code> is a visual representation of the Shotest Edit Script (SES). An SES is the shortest set of deletion and insertion instructions for converting one sequence of elements into another. In our case, the elements are lines of text. We encode the instructions to convert <code>a</code> to <code>b</code> by deleting lines from <code>a</code> (in yellow) and inserting new ones from <code>b</code> (in blue).</p>
+<p>The output from <code>diffobj</code> is a visual representation of the Shortest Edit Script (SES). An SES is the shortest set of deletion and insertion instructions for converting one sequence of elements into another. In our case, the elements are lines of text. We encode the instructions to convert <code>a</code> to <code>b</code> by deleting lines from <code>a</code> (in yellow) and inserting new ones from <code>b</code> (in blue).</p>
 </div>
 <div id="diff-structure" class="section level3">
 <h3>Diff Structure</h3>
@@ -147,7 +147,7 @@ b[<span class="kw">c</span>(<span class="dv">18</span>, <span class="dv">44</spa
 <pre><div class="row"><div class="line"><div class="fill"><div class="gutter"><div class="fill">~</div><div class="pad"> </div></div><div class="text"><div class="fill"></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim">[20,] </span>  <span class="word insert">20</span>   <span class="word insert">70</span><span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[20,] </span>  21   71<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[21,] </span>  21   71<span class="trim"></span></div></div></div></div></div></pre>
 </div>
 <p>Here <code>b</code> has an extra line so <code>diffobj</code> adds an empty line to <code>a</code> to maintain the alignment for subsequent matching lines. This additional line is marked with a tilde in the gutter and is shown in a different color to indicate it is not part of the original text.</p>
-<p>If you look closely at the next matching line you will notice that the <code>a</code> and <code>b</code> values are not exactly the same. The row indeces are different, but <code>diffobj</code> excludes row indices from the diff so that rows that are identical otherwise are shown as matching. <code>diffobj</code> indicates this is happening by showing the portions of a line that are ignored in the diff in grey.</p>
+<p>If you look closely at the next matching line you will notice that the <code>a</code> and <code>b</code> values are not exactly the same. The row indices are different, but <code>diffobj</code> excludes row indices from the diff so that rows that are identical otherwise are shown as matching. <code>diffobj</code> indicates this is happening by showing the portions of a line that are ignored in the diff in grey.</p>
 </div>
 <div id="atomic-vectors" class="section level3">
 <h3>Atomic Vectors</h3>
@@ -208,7 +208,7 @@ mdl2 &lt;-<span class="st"> </span><span class="kw">lm</span>(Sepal.Length ~<spa
 <p>All the <code>diff*</code> methods return a <code>Diff</code> S4 object. It has a <code>show</code> method which is responsible for rendering the <code>Diff</code> and displaying it to the screen. Because of this you can compute and render diffs in two steps:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">diffPrint</span>(letters, LETTERS)
 x   <span class="co"># or equivalently: `show(x)`</span></code></pre></div>
-<p>which may cause the diff to render funny if you change screen widths, etc., between the two steps.</p>
+<p>This may cause the diff to render funny if you change screen widths, etc., between the two steps.</p>
 <p>There are also <code>summary</code>, <code>any</code>, and <code>as.character</code> methods. The <code>summary</code> method provides a high level overview of where the differences are, which can be helpful for large diffs:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(<span class="kw">diffStr</span>(mdl1, mdl2))</code></pre></div>
 <div class="diffobj_container light yb">
@@ -253,7 +253,7 @@ y[<span class="dv">2</span>] &lt;-<span class="st"> &quot;GREMLINS&quot;</span>
 </div>
 <div id="output-formats" class="section level3">
 <h3>Output Formats</h3>
-<p>If your terminal supports it <code>diffobj</code> will format the output with ANSI escape sequences. <code>diffobj</code> uses Gábor Csárdi’s <a href="https://github.com/gaborcsardi/crayon"><code>crayon</code></a> package to detect ANSI support and to apply ANSI based formatting. If you are using Rstudio or another IDE that supports <code>getOption(&quot;viewer&quot;)</code>, <code>diffobj</code> will output an HTML/CSS formatted diff to the viewport. In other terminals that do not support ANSI colors, <code>diffobj</code> will attempt to output to an HTML/CSS formatted diff to your browser using <code>browseURL</code>.</p>
+<p>If your terminal supports it <code>diffobj</code> will format the output with ANSI escape sequences. <code>diffobj</code> uses Gábor Csárdi’s <a href="https://github.com/gaborcsardi/crayon"><code>crayon</code></a> package to detect ANSI support and to apply ANSI based formatting. If you are using RStudio or another IDE that supports <code>getOption(&quot;viewer&quot;)</code>, <code>diffobj</code> will output an HTML/CSS formatted diff to the viewport. In other terminals that do not support ANSI colors, <code>diffobj</code> will attempt to output to an HTML/CSS formatted diff to your browser using <code>browseURL</code>.</p>
 <p>You can explicitly specify the output format with the <code>format</code> parameter:</p>
 <ul>
 <li><code>format=&quot;raw&quot;</code> for unformatted diffs</li>

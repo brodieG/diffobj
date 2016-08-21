@@ -38,7 +38,7 @@ If your terminal supports formatting through ANSI escape sequences, `diffobj` wi
 
 ### Shortest Edit Script
 
-The output from `diffobj` is a visual representation of the Shotest Edit Script (SES).  An SES is the shortest set of deletion and insertion instructions for converting one sequence of elements into another.  In our case, the elements are lines of text.  We encode the instructions to convert `a` to `b` by deleting lines from `a` (in yellow) and inserting new ones from `b` (in blue).
+The output from `diffobj` is a visual representation of the Shortest Edit Script (SES).  An SES is the shortest set of deletion and insertion instructions for converting one sequence of elements into another.  In our case, the elements are lines of text.  We encode the instructions to convert `a` to `b` by deleting lines from `a` (in yellow) and inserting new ones from `b` (in blue).
 
 ### Diff Structure
 
@@ -78,7 +78,7 @@ diffPrint(target=a, current=b)[8:9]
 
 Here `b` has an extra line so `diffobj` adds an empty line to `a` to maintain the alignment for subsequent matching lines.  This additional line is marked with a tilde in the gutter and is shown in a different color to indicate it is not part of the original text.
 
-If you look closely at the next matching line you will notice that the `a` and `b` values are not exactly the same.  The row indeces are different, but `diffobj` excludes row indices from the diff so that rows that are identical otherwise are shown as matching.  `diffobj` indicates this is happening by showing the portions of a line that are ignored in the diff in grey.
+If you look closely at the next matching line you will notice that the `a` and `b` values are not exactly the same.  The row indices are different, but `diffobj` excludes row indices from the diff so that rows that are identical otherwise are shown as matching.  `diffobj` indicates this is happening by showing the portions of a line that are ignored in the diff in grey.
 
 ### Atomic Vectors
 
@@ -146,7 +146,7 @@ x <- diffPrint(letters, LETTERS)
 x   # or equivalently: `show(x)`
 ```
 
-which may cause the diff to render funny if you change screen widths, etc., between the two steps.
+This may cause the diff to render funny if you change screen widths, etc., between the two steps.
 
 There are also `summary`, `any`, and `as.character` methods.  The `summary` method provides a high level overview of where the differences are, which can be helpful for large diffs:
 
@@ -211,7 +211,7 @@ diffChr(x, y, color.mode="rgb")
 
 ### Output Formats
 
-If your terminal supports it `diffobj` will format the output with ANSI escape sequences.  `diffobj` uses Gábor Csárdi's [`crayon`](https://github.com/gaborcsardi/crayon) package to detect ANSI support and to apply ANSI based formatting.  If you are using Rstudio or another IDE that supports `getOption("viewer")`, `diffobj` will output an HTML/CSS formatted diff to the viewport.  In other terminals that do not support ANSI colors, `diffobj` will attempt to output to an HTML/CSS formatted diff to your browser using `browseURL`.
+If your terminal supports it `diffobj` will format the output with ANSI escape sequences.  `diffobj` uses Gábor Csárdi's [`crayon`](https://github.com/gaborcsardi/crayon) package to detect ANSI support and to apply ANSI based formatting.  If you are using RStudio or another IDE that supports `getOption("viewer")`, `diffobj` will output an HTML/CSS formatted diff to the viewport.  In other terminals that do not support ANSI colors, `diffobj` will attempt to output to an HTML/CSS formatted diff to your browser using `browseURL`.
 
 You can explicitly specify the output format with the `format` parameter:
 

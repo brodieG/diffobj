@@ -5,7 +5,7 @@
   <img src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=master'>
 </a>
 
-Generate a colorized diff of two R objects for an intuitve visualization of their differences.
+Generate a colorized diff of two R objects for an intuitive visualization of their differences.
 
 See [vignette](http://htmlpreview.github.io/?https://raw.githubusercontent.com/brodieG/diffobj/master/inst/doc/diffobj.html) for details.
 

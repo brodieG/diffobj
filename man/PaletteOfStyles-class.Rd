@@ -23,7 +23,7 @@ the \code{format}, \code{brightness}, and \code{color.mode} parameters.
 
 For the most part the distinction between actual \code{Style} objects vs
 \dQuote{classRepresentation} ones is academic, except that with the latter
-you can control the instatiation by providing a parameter list as the
+you can control the instantiation by providing a parameter list as the
 \code{style} argument to the \code{diff*} methods. This is not an option with
 already instantiated objects.  See examples.
 }
@@ -93,7 +93,7 @@ While the list may only have the three dimensions described, you can add
 values to the dimensions provided the values described above are the first
 ones in each of their corresponding dimensions.  For example, if you wanted
 to allow for styles that would render in \code{grid} graphics, you could
-genarate a default list with a \dQuote{"grid"} value appended to the values
+generate a default list with a \dQuote{"grid"} value appended to the values
 of the \code{format} dimension.
 }
 \examples{

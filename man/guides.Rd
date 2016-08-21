@@ -70,13 +70,13 @@ corresponding \code{guides*} method (e.g.
 \code{\link{guidesPrint}}), with the exception of \code{\link{diffCsv}}
 since that method uses \code{diffPrint} internally.  The \code{guides*}
 methods expect an R object as the first parameter and the captured display
-representation of the object in a charater vector as the second.  The
+representation of the object in a character vector as the second.  The
 function should then identify which elements in the character representation
 should be treated as guides, and should return the numeric indices for them.
 
 The original object is passed as the first argument so that the generic can
 dispatch on it, and so the methods may adjust their guide finding behavior
-to data that is easily retrivable from the object, but less so from the
+to data that is easily retrievable from the object, but less so from the
 character representation thereof.
 
 The default method for \code{guidesPrint} has special handling for 2D
