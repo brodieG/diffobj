@@ -121,7 +121,7 @@ mdl2 <- lm(Sepal.Length ~ Sepal.Width + Species, iris)
 diffStr(mdl1$qr, mdl2$qr, line.limit=15)
 ```
 
-If you specify a `line.limit` with `diffStr` it will fold nested levels in order to fit under `line.limit`, so long as there remain visible differences.  If you prefer to see all the differences you can leave `line.limit` unspecified.
+If you specify a `line.limit` with `diffStr` it will fold nested levels in order to fit under `line.limit` so long as there remain visible differences.  If you prefer to see all the differences you can leave `line.limit` unspecified.
 
 ### Compare Vectors Elements with `diffChr`
 
