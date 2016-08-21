@@ -1,4 +1,4 @@
-# diffobj - Compare R Objects with a Diff
+# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
 #
 # This program is free software: you can redistribute it and/or modify
@@ -166,34 +166,6 @@ fin_fun_sidebyside <- function(A, B, A.fill, B.fill, context, guide) {
           ifelse(context, "match", "insert")
   ) ) ) )
 }
-# Compute the character representation of a hunk header
-
-make_hh <- function(h.g, x, ranges.orig) {
-  stopifnot(is(x, "Diff"))
-
-  etc <- x@etc
-  mode <- etc@mode
-
-  h.ids <- vapply(h.g, "[[", integer(1L), "id")
-  h.head <- vapply(h.g, "[[", logical(1L), "guide")
-
-  # exclude header hunks from contributing to range, and adjust ranges for
-  # possible fill lines added to the data
-
-  h.ids.nh <- h.ids[!h.head]
-  tar.rng <- find_rng(h.ids.nh, ranges.orig[1:2, , drop=FALSE])
-  tar.rng.f <- cumsum(!x@tar.dat$fill)[tar.rng]
-  cur.rng <- find_rng(h.ids.nh, ranges.orig[3:4, , drop=FALSE])
-  cur.rng.f <- cumsum(!x@cur.dat$fill)[cur.rng]
-
-  hh.a <- paste0(rng_as_chr(tar.rng.f))
-  hh.b <- paste0(rng_as_chr(cur.rng.f))
-
-  if(mode == "sidebyside") sprintf("@@ %s @@", c(hh.a, hh.b)) else {
-    sprintf("@@ %s / %s @@", hh.a, hh.b)
-  }
-}
-
 # Convert a hunk group into text representation
 
 hunk_atom_as_char <- function(h.a, x) {
@@ -289,19 +261,17 @@ setMethod("as.character", "Diff",
       options(crayon.enabled=is(x@etc@style, "StyleAnsi"))
     on.exit(options(old.crayon.opt), add=TRUE)
 
-    # These checks should never fail since presumably the inputs have been
-    # checked earlier; here just in case we mess something up in devel or
-    # testing
-
     hunk.limit <- x@etc@hunk.limit
     line.limit <- x@etc@line.limit
     hunk.limit <- x@etc@hunk.limit
     disp.width <- x@etc@disp.width
+    hunk.grps <- x@diffs
     mode <- x@etc@mode
     tab.stops <- x@etc@tab.stops
     ignore.white.space <- x@etc@ignore.white.space
 
     # legacy from when we had different max diffs for different parts of diff
+
     max.diffs <- x@etc@max.diffs
     max.diffs.in.hunk <- x@etc@max.diffs
     max.diffs.wrap <- x@etc@max.diffs
@@ -309,6 +279,7 @@ setMethod("as.character", "Diff",
     s <- x@etc@style  # shorthand
 
     len.max <- max(length(x@tar.dat$raw), length(x@cur.dat$raw))
+
     no.diffs <- if(!suppressWarnings(any(x))) {
       # This needs to account for "trim" effects
 
@@ -332,27 +303,10 @@ setMethod("as.character", "Diff",
     # can figure out what's left
 
     gutter.dat <- x@etc@gutter
-    banner.len <- banner_len(mode)
-    max.w <- x@etc@text.width
-
-    line.limit.a <- if(line.limit[[1L]] >= 0L)
-      pmax(integer(2L), line.limit - banner.len) else line.limit
 
     # Trim hunks to the extented needed to make sure we fit in lines
 
-    x@etc@line.limit <- line.limit.a
-    hunk.grps <- trim_hunks(x)
     hunks.flat <- unlist(hunk.grps, recursive=FALSE)
-
-    # Compact to width of widest element, so retrieve all char values; also
-    # need to generate all the hunk headers b/c we need to use them in width
-    # computation as well; under no circumstances are hunk headers allowed to
-    # wrap as they are always assumed to take one line
-
-    chr.ind <- unlist(lapply(hunks.flat, "[", c("A", "B")))
-    chr.dat <- get_dat(x, chr.ind, "raw")
-    chr.size <- integer(length(chr.dat))
-
     ranges <- vapply(
       hunks.flat, function(h.a) c(h.a$tar.rng.trim, h.a$cur.rng.trim),
       integer(4L)
@@ -360,26 +314,9 @@ setMethod("as.character", "Diff",
     ranges.orig <- vapply(
       hunks.flat, function(h.a) c(h.a$tar.rng.sub, h.a$cur.rng.sub), integer(4L)
     )
-    hunk.heads <- lapply(hunk.grps, make_hh, x, ranges.orig)
+    hunk.heads <- x@hunk.heads
     h.h.chars <- nchar(chr_trim(unlist(hunk.heads), x@etc@line.width))
 
-    if(s@wrap) {
-      is.ansi <- is(x@etc@style, "StyleAnsi") &
-        grepl(ansi_regex, chr.dat, perl=TRUE)
-      if(any(is.ansi)) chr.size[is.ansi] <- crayon_nchar(chr.dat)
-      chr.size[!is.ansi] <- nchar(chr.dat)
-      max.col.w <- max(
-        max(0L, chr.size, .min.width) + gutter.dat@width, h.h.chars
-      )
-      max.w <- if(max.col.w < max.w) max.col.w else max.w
-
-      # future calculations should assume narrower display
-
-      x@etc@text.width <- max.w
-      x@etc@line.width <- max.w + gutter.dat@width
-      s <- x@etc@style
-      etc <- x@etc
-    }
     # Make the object banner and compute more detailed widths post trim
 
     tar.banner <- if(!is.null(x@etc@tar.banner)) x@etc@tar.banner else
@@ -404,6 +341,9 @@ setMethod("as.character", "Diff",
     # strings; careful with ranges,
 
     trim.meta <- attr(hunk.grps, "meta")
+    if(is.null(trim.meta))
+      stop("Logic error: missing trim meta data, contact maintainer")
+
     lim.line <- trim.meta$lines
     lim.hunk <- trim.meta$hunks
     ll <- !!lim.line[[1L]]
@@ -527,9 +467,6 @@ setMethod("as.character", "Diff",
 
     # Compute gutter, padding, and continuations
 
-    pads <- lapply(
-      line.lens, function(y) lapply(y, rep, x=gutter.dat@pad)
-    )
     gutters <- render_gutters(
       types=types, lens=line.lens, lens.max=line.lens.max, etc=x@etc
     )
@@ -552,6 +489,8 @@ setMethod("as.character", "Diff",
     # represented by NAs originally and we indentify them within each aligned
     # group with `lines.na`
 
+    # NOTE: any changes here need to be reflected in `make_dummy_row`
+
     es <- x@etc@style
     funs.ts <- list(
       insert=function(x) es@funs@text(es@funs@text.insert(x)),
@@ -559,7 +498,7 @@ setMethod("as.character", "Diff",
       match=function(x) es@funs@text(es@funs@text.match(x)),
       guide=function(x) es@funs@text(es@funs@text.guide(x)),
       fill=function(x) es@funs@text(es@funs@text.fill(x)),
-      context.sep=function(x) 
+      context.sep=function(x)
         es@funs@text(es@funs@context.sep(es@text@context.sep)),
       header=es@funs@header
     )
@@ -600,8 +539,7 @@ setMethod("as.character", "Diff",
     # Render columns; note here we use 'types.raw' to distinguish banner lines
 
     cols <- render_cols(
-      cols=pre.render.s, gutters=gutters, pads=pads, types=types.raw.x,
-      etc=x@etc
+      cols=pre.render.s, gutters=gutters, types=types.raw.x, etc=x@etc
     )
     # Render rows
 
@@ -629,17 +567,17 @@ setMethod("as.character", "Diff",
     pre.fin <- pre.fin[ind]
     res.len <- length(pre.fin)
 
-    finalize(pre.fin, x@etc@style, res.len)
+    finalize(es@funs@container(pre.fin), x, res.len)
 } )
 
 # Finalizing fun used by both Diff and DiffSummary as.character methods
 
-finalize <- function(txt, style, len) {
-  pager <- if(use_pager(style@pager, len))
-    style@pager else PagerOff()
+finalize <- function(txt, obj, len) {
+  style <- obj@etc@style
+  pager <- style@pager
+  obj@etc@style@pager <- if(use_pager(pager, len)) pager else PagerOff()
 
-  in.cont <- style@funs@container(txt)
-  fin <- style@finalizer(in.cont, pager)
+  fin <- style@finalizer(obj, txt)
 
   attr(fin, "len") <- len
   fin

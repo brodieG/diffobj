@@ -30,7 +30,7 @@ character should point to a text file}
 
 \item{current}{like \code{target}}
 
-\item{...}{unused, for compatibility of generics with methods}
+\item{...}{unused, for compatibility of methods with generics}
 
 \item{mode}{character(1L), one of:
 \itemize{
@@ -67,7 +67,7 @@ calculation.}
     of ANSI formatting options
   \item \dQuote{html}: color and format using HTML markup
 }
-Defaults to \dQuote{auto}.  See \code{\link{PaletteOfStyles}} for details
+Defaults to \dQuote{auto}.  See \code{palette.of.styles} for details
 on customization, \code{\link{style}} for full control of output format.}
 
 \item{brightness}{character, one of \dQuote{light}, \dQuote{dark},
@@ -90,30 +90,30 @@ color schemes that rely primarily on those colors to style diffs.
 Those colors can be easily distinguished by individuals with
 limited red-green color sensitivity.  See \code{\link{PaletteOfStyles}} for
 details and limitations.  Also offers the same advanced usage as the
-\code{brightness} paramter.}
+\code{brightness} parameter.}
 
 \item{word.diff}{TRUE (default) or FALSE, whether to run a secondary word
 diff on the in-hunk diferences}
 
-\item{pager}{character(1L), one of \dQuote{auto}, \dQuote{on},
+\item{pager}{one of \dQuote{auto} (default), \dQuote{on},
 \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
 pager is used to display the diff output.  If \dQuote{on} will use the
 pager associated with the \code{\link{Style}} specified via the
-\code{\link{style}} parameters.  if \dQuote{auto} (default) will behave
+\code{\link{style}} parameters.  If \dQuote{auto} will behave
 like \dQuote{on} but only if in interactive mode.  If the pager is
 enabled, default behavior is to pipe output to \code{\link{file.show}} if
 output is taller than the estimated terminal height and your terminal
-supports ANSI escape sequences.  If not, the default is to attempt to pipe
-output to a web browser with \code{\link{browseURL}}.  See
-\code{\link{Pager}}, \code{\link{Style}}, and \code{\link{PaletteOfStyles}}
-for more details.}
+supports ANSI escape sequences.  If the terminal does not support ANSI
+escape sequences, the default is to attempt to pipe to the IDE viewer or
+web browser.  See \code{\link{Pager}}, \code{\link{view_or_browse}},
+\code{\link{Style}}, and \code{\link{PaletteOfStyles}} for more details.}
 
 \item{guides}{TRUE (default), FALSE, or a function that accepts at least two
 arguments and requires no more than two arguments.  Guides
 are additional context lines that are not strictly part of a hunk, but
 provide important contextual data (e.g. column headers).  If TRUE, the
 context lines are shown in addition to the normal diff output, typically
-in a different color to inidicate they are not part of the hunk.  If a
+in a different color to indicate they are not part of the hunk.  If a
 function, the function should accept as the first argument the object
 being diffed, and the second the character representation of the object.
 The function should return the indices of the elements of the second
@@ -153,7 +153,7 @@ abandon the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
 \item{disp.width}{integer(1L) number of display columns to take up; note that
 in \dQuote{sidebyside} \code{mode} the effective display width is half this
 number (set to 0L to use default widths which are \code{getOption("width")}
-for normal styles and \code{120L} for HTML styles.}
+for normal styles and \code{80L} for HTML styles.}
 
 \item{ignore.white.space}{TRUE or FALSE, whether to consider differences in
 horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
@@ -197,18 +197,26 @@ words in a line of \code{target} that must be matched in a line of
 displayed (defaults to 0.25), or an \code{\link{AlignThreshold}} object.
 Set to \code{1} to turn off alignment which will cause all lines in a hunk
 from \code{target} to show up first, followed by all lines from
-\code{current}.}
+\code{current}.  Note that in order to be aligned lines must meet the
+threshold and have at least 3 matching alphanumeric characters (see
+\code{\link{AlignThreshold}} for details).}
 
-\item{style}{\dQuote{auto}, or a \code{\link{Style}} object.
+\item{style}{\dQuote{auto}, a \code{\link{Style}} object, or a list.
 \dQuote{auto} by default.  If a \code{Style} object, will override the
 the \code{format}, \code{brightness}, and \code{color.mode} parameters.
 The \code{Style} object provides full control of diff output styling.
-See \code{\link{Style}} for more details.}
+If a list, then the same as \dQuote{auto}, except that if the auto-selected
+\code{Style} requires instantiation (see \code{\link{PaletteOfStyles}}),
+then the list contents will be used as arguments when instantiating the
+style object.  See \code{\link{Style}} for more details, in particular the
+examples.}
 
 \item{palette.of.styles}{\code{\link{PaletteOfStyles}} object; advanced usage,
-contains all the \code{\link{Style}} objects that are selected by
-specifying the \code{format}, \code{brightness}, and \code{color.mode}
-parameters.  See \code{\link{PaletteOfStyles}} for more details.}
+contains all the \code{\link{Style}} objects or
+\dQuote{classRepresentation} objects extending \code{\link{Style}} that are
+selected by specifying the \code{format}, \code{brightness}, and
+\code{color.mode} parameters.  See \code{\link{PaletteOfStyles}} for more
+details.}
 
 \item{frame}{an environment to use as the evaluation frame for the
 \code{print/show/str}, calls and for \code{diffObj}, the evaluation frame
@@ -219,7 +227,8 @@ value of \code{\link{par_frame}}.}
 interactive mode, defaults to the return value of
 \code{\link{interactive}}.  If in interactive mode, pager will be used if
 \code{pager} is \dQuote{auto}, and if ANSI styles are not supported and
-\code{style} is \dQuote{auto}, output will be send to browser as HTML.}
+\code{style} is \dQuote{auto}, output will be send to viewer/browser as
+HTML.}
 
 \item{term.colors}{integer(1L) how many ANSI colors are supported by the
 terminal.  This variable is provided for when
@@ -249,10 +258,12 @@ Reads text files with \code{\link{readLines}} and performs a diff on the
 resulting character vectors.
 }
 \examples{
+\dontrun{
 url.base <- "https://raw.githubusercontent.com/wch/r-source"
 f1 <- file.path(url.base, "29f013d1570e1df5dc047fb7ee304ff57c99ea68/README")
 f2 <- file.path(url.base, "daf0b5f6c728bd3dbcd0a3c976a7be9beee731d9/README")
 diffFile(f1, f2)
+}
 }
 \seealso{
 \code{\link{diffPrint}} for details on the \code{diff*} functions,

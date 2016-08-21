@@ -1,4 +1,4 @@
-# diffobj - Compare R Objects with a Diff
+# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
 #
 # This program is free software: you can redistribute it and/or modify
@@ -34,10 +34,11 @@ gutter_dat <- function(etc) {
   gutt.format.try <- try({
     gutt.dat.format <- vapply(
       slots,
-      function(x) funs@gutter(slot(funs, sprintf("%s", x))(gutt.dat[x])),
+      function(x) slot(funs, sprintf("%s", x))(gutt.dat[x]),
       character(1L)
     )
-    gutt.pad <- funs@gutter(funs@gutter.pad(text@gutter.pad))
+    gutt.dat.format.pad <-
+      funs@gutter(paste0(gutt.dat.format, funs@gutter.pad(text@gutter.pad)))
   })
   if(inherits(gutt.format.try, "try-error"))
     stop(
@@ -45,12 +46,12 @@ gutter_dat <- function(etc) {
       "customize them, contact maintainer.  See `?StyleFuns`."
     )
 
-  names(gutt.dat.format) <- sub("^gutter\\.", "", names(gutt.dat.format))
-  nc_fun <- if(is(etc@style, "StyleAnsi")) crayon_nchar else nchar
-  gutt.max.w <- max(nc_fun(gutt.pad) + nc_fun(gutt.dat.format))
+  names(gutt.dat.format.pad) <- sub("^gutter\\.", "", names(gutt.dat.format))
+  nc_fun <- etc@style@nchar.fun
+  gutt.max.w <- max(nc_fun(gutt.dat.format.pad))
   gutt.args <- c(
-    list("Gutter"), as.list(gutt.dat.format),
-    list(pad=gutt.pad, width=gutt.max.w)
+    list("Gutter"), as.list(gutt.dat.format.pad),
+    list(width=gutt.max.w)
   )
   do.call("new", gutt.args)
 }
@@ -83,12 +84,10 @@ render_gutters <- function(types, lens, lens.max, etc) {
   )
 }
 
-render_col <- function(gutter, pad, col, type, etc) {
+render_col <- function(gutter, col, type, etc) {
   lens <- vapply(col, length, integer(1L))
   gutt.ul <- unlist(gutter)
-  col.txt <- paste0(
-    gutt.ul, ifelse(nchar(gutt.ul), unlist(pad), ""), unlist(col)
-  )
+  col.txt <- paste0(gutt.ul, unlist(col))
   type.ul <- unlist(type)
   es <- etc@style@funs
 
@@ -113,10 +112,63 @@ render_col <- function(gutter, pad, col, type, etc) {
   col.txt[type.ul == "header"] <- es@line(col.txt[type.ul == "header"])
   col.txt
 }
-render_cols <- function(cols, gutters, pads, types, etc) {
-  Map(render_col, gutters, pads, cols, types, MoreArgs=list(etc=etc))
+render_cols <- function(cols, gutters, types, etc) {
+  Map(render_col, gutters, cols, types, MoreArgs=list(etc=etc))
 }
 render_rows <- function(cols, etc) {
   col.txt <- do.call(paste, c(cols, list(sep=etc@style@text@pad.col)))
   etc@style@funs@row(col.txt)
+}
+
+# Create a dummy row so we can compute display width for scaling display in
+# HTML mode
+#
+# @param x a `Diff` object
+
+make_dummy_line <- function(x, dummy.text, type) {
+  stopifnot(is.chr.1L(type) && type %in% c("line", "banner"))
+
+  fns <- x@etc@style@funs
+  txt <- x@etc@style@text
+
+  line_fun <- slot(fns, type)
+  line_ins_fun <- slot(fns, sprintf("%s.insert", type))
+  line_del_fun <- slot(fns, sprintf("%s.delete", type))
+
+  if(x@etc@mode == "sidebyside") {
+    sprintf(
+      "%s%s%s",
+      line_fun(
+        line_del_fun(
+          sprintf(
+            "%s%s", x@etc@gutter@delete, fns@text(fns@text.delete(dummy.text))
+      ) ) ),
+      txt@pad.col,
+      line_fun(
+        line_ins_fun(
+          sprintf(
+            "%s%s", x@etc@gutter@insert, fns@text(fns@text.insert(dummy.text))
+    ) ) ) )
+  } else {
+    line_fun(
+      line_del_fun(
+        sprintf(
+          "%s%s", x@etc@gutter@delete, fns@text(fns@text.delete(dummy.text))
+    ) ) )
+  }
+}
+make_dummy_row <- function(x) {
+  cont.meta <-
+    make_dummy_line(x, paste0(rep("a", x@etc@text.width), collapse=""), "line")
+  banner.meta <- make_dummy_line(x, x@etc@style@blank.sub, "banner")
+  fns <- x@etc@style@funs
+  sprintf(
+    "<div id='diffobj_meta' style='%s'>
+      <div id='diffobj_banner_meta'>%s</div>
+      <div id='diffobj_content_meta'>%s</div>
+     </div>",
+    "display: none; position: absolute; top: 0px; z-index: -1;",
+    fns@container(fns@row(banner.meta)),
+    fns@container(fns@row(cont.meta))
+  )
 }

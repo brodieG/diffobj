@@ -1,4 +1,4 @@
-# diffobj - Compare R Objects with a Diff
+# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
 #
 # This program is free software: you can redistribute it and/or modify
@@ -387,7 +387,7 @@ NULL
 #' @rdname trim
 
 setGeneric("trimPrint",
-  function(obj, obj.as.chr) StandardGeneric("trimPrint")
+  function(obj, obj.as.chr) StandardGeneric("trimPrint") # nocov
 )
 #' @rdname trim
 
@@ -411,7 +411,6 @@ setMethod(
       strip_list_rh(obj.as.chr, obj)
     } else obj.as.chr
 
-    if(length(obj.as.chr) != length(stripped)) browser()
     trim_sub(obj.as.chr, stripped)
   }
 )
@@ -419,7 +418,7 @@ setMethod(
 #' @rdname trim
 
 setGeneric("trimStr",
-  function(obj, obj.as.chr) StandardGeneric("trimStr")
+  function(obj, obj.as.chr) StandardGeneric("trimStr") # nocov
 )
 #' @rdname trim
 
@@ -445,7 +444,9 @@ trim_identity <- function(obj, obj.as.chr)
 #' @export
 #' @rdname trim
 
-setGeneric("trimChr", function(obj, obj.as.chr) StandardGeneric("trimChr"))
+setGeneric(
+  "trimChr", function(obj, obj.as.chr) StandardGeneric("trimChr")  # nocov
+)
 
 #' @rdname trim
 
@@ -455,7 +456,8 @@ setMethod("trimChr", c("ANY", "character"), trim_identity)
 #' @rdname trim
 
 setGeneric(
-  "trimDeparse", function(obj, obj.as.chr) StandardGeneric("trimDeparse")
+  "trimDeparse",
+  function(obj, obj.as.chr) StandardGeneric("trimDeparse")  # nocov
 )
 #' @rdname trim
 
@@ -464,7 +466,9 @@ setMethod("trimDeparse", c("ANY", "character"), trim_identity)
 #' @export
 #' @rdname trim
 
-setGeneric("trimFile", function(obj, obj.as.chr) StandardGeneric("trimFile"))
+setGeneric(
+  "trimFile", function(obj, obj.as.chr) StandardGeneric("trimFile")  # nocov
+)
 
 #' @rdname trim
 

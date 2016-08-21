@@ -1,4 +1,4 @@
-# diffobj - Compare R Objects with a Diff
+# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
 #
 # This program is free software: you can redistribute it and/or modify
@@ -90,3 +90,24 @@ cont_f <- function(class=character()) {
       paste0(x, collapse="")
     )
 } }
+#' Count Text Characters in HTML
+#'
+#' Very simple implementation that will fail if there are any \dQuote{>} in the
+#' HTML that are not closing tags, and assumes that HTML entities are all one
+#' character wide.  Also, spaces are counted as one width each because the
+#' HTML output is intended to be displayed inside \code{<PRE>} tags.
+#'
+#' @export
+#' @param x character
+#' @return integer(length(x)) with number of characters of each element
+
+nchar_html <- function(x) {
+  stopifnot(is.character(x) && !anyNA(x))
+  tag.less <- gsub("<[^>]*>", "", x) 
+  # Thanks ridgerunner for html entity removal regex
+  # http://stackoverflow.com/users/433790/ridgerunner
+  # http://stackoverflow.com/a/8806462/2725969
+  ent.less <-
+    gsub("&(?:[a-z\\d]+|#\\d+|#x[a-f\\d]+);", "X", tag.less, perl=TRUE)
+  nchar(ent.less)
+}

@@ -19,3 +19,12 @@ test_that("simple diffobj", {
   )
   expect_equal_to_reference(as.character(diffObj(mdl1, mdl2)), rdsf(400))
 })
+test_that("fits or doesn't", {
+  expect_equal(
+    diffObj(matrix(1:20, ncol=2), matrix(2:21, ncol=2), line.limit=5)@capt.mode,
+    "str"
+  )
+  # test kinda slow, would be better to have one with smaller objects with print
+  # methods
+  expect_equal(diffObj(mdl1, mdl2, line.limit=5)@capt.mode, "print")
+})

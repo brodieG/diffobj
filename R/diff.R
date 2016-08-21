@@ -1,4 +1,4 @@
-# diffobj - Compare R Objects with a Diff
+# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
 #
 # This program is free software: you can redistribute it and/or modify
@@ -13,10 +13,11 @@
 #
 # Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
 
-#' Compare R Objects with a Diff
+
+#' Diffs for R Objects
 #'
-#' Colorized diffs to quickly identify _and understand_ differences between R
-#' objects.  See `vignette("diffobj")` for details.
+#' Generate a colorized diff of two R objects for an intuitive visualization of
+#' their differences.  See `vignette(package="diffobj", "diffobj")` for details.
 #'
 #' @import crayon
 #' @import methods
@@ -29,7 +30,7 @@
 NULL
 
 # Because all these functions are so similar, we have constructed them with a
-# function factory.  This allows us to easily maintain consisten formals during
+# function factory.  This allows us to easily maintain consistent formals during
 # initial development process when they have not been set in stone yet.
 
 make_diff_fun <- function(capt_fun) {
@@ -101,14 +102,12 @@ make_diff_fun <- function(capt_fun) {
     # etc. If not a base text type style, assume gutter and column padding are
     # zero even though that may not always be correct
 
-    nc_fun <- if(is(etc.proc@style, "StyleAnsi")) crayon_nchar else nchar
+    nc_fun <- etc.proc@style@nchar.fun
     etc.proc@gutter <- gutter_dat(etc.proc)
 
-    col.pad.width <- gutt.width <- 0L
-    if(is(etc.proc@style, "StyleRaw")) {
-      col.pad.width <- nc_fun(etc.proc@style@text@pad.col)
-      gutt.width <- etc.proc@gutter@width
-    }
+    col.pad.width <- nc_fun(etc.proc@style@text@pad.col)
+    gutt.width <- etc.proc@gutter@width
+
     half.width <- as.integer((etc.proc@disp.width - col.pad.width) / 2)
     etc.proc@line.width <-
       max(etc.proc@disp.width, .min.width + gutt.width)
@@ -139,7 +138,7 @@ make_diff_fun <- function(capt_fun) {
 #' \code{vignette("diffobj")} and the examples.  Almost all aspects of how the
 #' diffs are computed and displayed are controllable through the \code{diff*}
 #' methods parameters.  This results in a lengthy parameter list, but in
-#' practice, you should rarely need to adjust anything past the
+#' practice you should rarely need to adjust anything past the
 #' \code{color.mode} parameter.  Default values are specified
 #' as options so that users may configure diffs in a persistent manner.
 #' \code{\link{gdo}} is a shorthand function to access \code{diffobj} options.
@@ -148,7 +147,7 @@ make_diff_fun <- function(capt_fun) {
 #' \code{target} and \code{current} parameters.  Methods with signature
 #' \code{c("ANY", "ANY")} are defined and act as the default methods.  You can
 #' use this to set up methods to pre-process or set specific parameters for
-#' selected clases that can then \code{callNextMethod} for the actual diff.
+#' selected classes that can then \code{callNextMethod} for the actual diff.
 #' Note that while the generics include \code{...} as an argument, none of the
 #' methods do.
 #'
@@ -188,7 +187,7 @@ make_diff_fun <- function(capt_fun) {
 #'       of ANSI formatting options
 #'     \item \dQuote{html}: color and format using HTML markup
 #'   }
-#'   Defaults to \dQuote{auto}.  See \code{\link{PaletteOfStyles}} for details
+#'   Defaults to \dQuote{auto}.  See \code{palette.of.styles} for details
 #'   on customization, \code{\link{style}} for full control of output format.
 #' @param brightness character, one of \dQuote{light}, \dQuote{dark},
 #'   \dQuote{neutral}, useful for adjusting color scheme to light or dark
@@ -209,27 +208,27 @@ make_diff_fun <- function(capt_fun) {
 #'   Those colors can be easily distinguished by individuals with
 #'   limited red-green color sensitivity.  See \code{\link{PaletteOfStyles}} for
 #'   details and limitations.  Also offers the same advanced usage as the
-#'   \code{brightness} paramter.
+#'   \code{brightness} parameter.
 #' @param word.diff TRUE (default) or FALSE, whether to run a secondary word
 #'   diff on the in-hunk diferences
-#' @param pager character(1L), one of \dQuote{auto}, \dQuote{on},
+#' @param pager one of \dQuote{auto} (default), \dQuote{on},
 #'   \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
 #'   pager is used to display the diff output.  If \dQuote{on} will use the
 #'   pager associated with the \code{\link{Style}} specified via the
-#'   \code{\link{style}} parameters.  if \dQuote{auto} (default) will behave
+#'   \code{\link{style}} parameters.  If \dQuote{auto} will behave
 #'   like \dQuote{on} but only if in interactive mode.  If the pager is
 #'   enabled, default behavior is to pipe output to \code{\link{file.show}} if
 #'   output is taller than the estimated terminal height and your terminal
-#'   supports ANSI escape sequences.  If not, the default is to attempt to pipe
-#'   output to a web browser with \code{\link{browseURL}}.  See
-#'   \code{\link{Pager}}, \code{\link{Style}}, and \code{\link{PaletteOfStyles}}
-#'   for more details.
+#'   supports ANSI escape sequences.  If the terminal does not support ANSI
+#'   escape sequences, the default is to attempt to pipe to the IDE viewer or
+#'   web browser.  See \code{\link{Pager}}, \code{\link{view_or_browse}},
+#'   \code{\link{Style}}, and \code{\link{PaletteOfStyles}} for more details.
 #' @param guides TRUE (default), FALSE, or a function that accepts at least two
 #'   arguments and requires no more than two arguments.  Guides
 #'   are additional context lines that are not strictly part of a hunk, but
 #'   provide important contextual data (e.g. column headers).  If TRUE, the
 #'   context lines are shown in addition to the normal diff output, typically
-#'   in a different color to inidicate they are not part of the hunk.  If a
+#'   in a different color to indicate they are not part of the hunk.  If a
 #'   function, the function should accept as the first argument the object
 #'   being diffed, and the second the character representation of the object.
 #'   The function should return the indices of the elements of the second
@@ -282,7 +281,7 @@ make_diff_fun <- function(capt_fun) {
 #' @param disp.width integer(1L) number of display columns to take up; note that
 #'   in \dQuote{sidebyside} \code{mode} the effective display width is half this
 #'   number (set to 0L to use default widths which are \code{getOption("width")}
-#'   for normal styles and \code{120L} for HTML styles.
+#'   for normal styles and \code{80L} for HTML styles.
 #' @param ignore.white.space TRUE or FALSE, whether to consider differences in
 #'   horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
 #'   FALSE)
@@ -302,16 +301,24 @@ make_diff_fun <- function(capt_fun) {
 #'   displayed (defaults to 0.25), or an \code{\link{AlignThreshold}} object.
 #'   Set to \code{1} to turn off alignment which will cause all lines in a hunk
 #'   from \code{target} to show up first, followed by all lines from
-#'   \code{current}.
-#' @param style \dQuote{auto}, or a \code{\link{Style}} object.
+#'   \code{current}.  Note that in order to be aligned lines must meet the
+#'   threshold and have at least 3 matching alphanumeric characters (see
+#'   \code{\link{AlignThreshold}} for details).
+#' @param style \dQuote{auto}, a \code{\link{Style}} object, or a list.
 #'   \dQuote{auto} by default.  If a \code{Style} object, will override the
 #'   the \code{format}, \code{brightness}, and \code{color.mode} parameters.
 #'   The \code{Style} object provides full control of diff output styling.
-#'   See \code{\link{Style}} for more details.
+#'   If a list, then the same as \dQuote{auto}, except that if the auto-selected
+#'   \code{Style} requires instantiation (see \code{\link{PaletteOfStyles}}),
+#'   then the list contents will be used as arguments when instantiating the
+#'   style object.  See \code{\link{Style}} for more details, in particular the
+#'   examples.
 #' @param palette.of.styles \code{\link{PaletteOfStyles}} object; advanced usage,
-#'   contains all the \code{\link{Style}} objects that are selected by
-#'   specifying the \code{format}, \code{brightness}, and \code{color.mode}
-#'   parameters.  See \code{\link{PaletteOfStyles}} for more details.
+#'   contains all the \code{\link{Style}} objects or
+#'   \dQuote{classRepresentation} objects extending \code{\link{Style}} that are
+#'   selected by specifying the \code{format}, \code{brightness}, and
+#'   \code{color.mode} parameters.  See \code{\link{PaletteOfStyles}} for more
+#'   details.
 #' @param frame an environment to use as the evaluation frame for the
 #'   \code{print/show/str}, calls and for \code{diffObj}, the evaluation frame
 #'   for the \code{diffPrint}/\code{diffStr} calls.  Defaults to the return
@@ -320,7 +327,8 @@ make_diff_fun <- function(capt_fun) {
 #'   interactive mode, defaults to the return value of
 #'   \code{\link{interactive}}.  If in interactive mode, pager will be used if
 #'   \code{pager} is \dQuote{auto}, and if ANSI styles are not supported and
-#'   \code{style} is \dQuote{auto}, output will be send to browser as HTML.
+#'   \code{style} is \dQuote{auto}, output will be send to viewer/browser as
+#'   HTML.
 #' @param term.colors integer(1L) how many ANSI colors are supported by the
 #'   terminal.  This variable is provided for when
 #'   \code{\link[=num_colors]{crayon::num_colors}} does not properly detect how
@@ -337,7 +345,7 @@ make_diff_fun <- function(capt_fun) {
 #' @param extra list additional arguments to pass on to the functions used to
 #'   create text representation of the objects to diff (e.g. \code{print},
 #'   \code{str}, etc.)
-#' @param ... unused, for compatibility of generics with methods
+#' @param ... unused, for compatibility of methods with generics
 #' @seealso \code{\link{diffObj}}, \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly,
 #'   \code{\link{diffDeparse}} to compare deparsed objects
@@ -353,7 +361,6 @@ make_diff_fun <- function(capt_fun) {
 #' @export
 #' @examples
 #' diffPrint(letters, letters[-5])
-
 setGeneric(
   "diffPrint", function(target, current, ...) standardGeneric("diffPrint")
 )
@@ -403,7 +410,9 @@ setMethod("diffStr", signature=c("ANY", "ANY"), make_diff_fun(capt_str))
 #' @export
 #' @rdname diffChr
 #' @examples
+#' \dontrun{
 #' diffChr(LETTERS[1:5], LETTERS[2:6])
+#' }
 
 setGeneric("diffChr", function(target, current, ...) standardGeneric("diffChr"))
 
@@ -426,7 +435,9 @@ setMethod("diffChr", signature=c("ANY", "ANY"), make_diff_fun(capt_chr))
 #' @export
 #' @rdname diffDeparse
 #' @examples
+#' \dontrun{
 #' diffDeparse(matrix(1:9, 3), 1:9)
+#' }
 
 setGeneric(
   "diffDeparse", function(target, current, ...) standardGeneric("diffDeparse")
@@ -452,10 +463,12 @@ setMethod("diffDeparse", signature=c("ANY", "ANY"), make_diff_fun(capt_deparse))
 #' @export
 #' @rdname diffFile
 #' @examples
+#' \dontrun{
 #' url.base <- "https://raw.githubusercontent.com/wch/r-source"
 #' f1 <- file.path(url.base, "29f013d1570e1df5dc047fb7ee304ff57c99ea68/README")
 #' f2 <- file.path(url.base, "daf0b5f6c728bd3dbcd0a3c976a7be9beee731d9/README")
 #' diffFile(f1, f2)
+#' }
 
 setGeneric(
   "diffFile", function(target, current, ...) standardGeneric("diffFile")
@@ -485,6 +498,7 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 #' @export
 #' @rdname diffCsv
 #' @examples
+#' \dontrun{
 #' iris.2 <- iris
 #' iris.2$Sepal.Length[5] <- 99
 #' f1 <- tempfile()
@@ -493,6 +507,7 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 #' write.csv(iris.2, f2, row.names=FALSE)
 #' diffCsv(f1, f2)
 #' unlink(c(f1, f2))
+#' }
 
 setGeneric(
   "diffCsv", function(target, current, ...) standardGeneric("diffCsv")
@@ -513,7 +528,7 @@ setMethod("diffCsv", signature=c("ANY", "ANY"), make_diff_fun(capt_csv))
 #' other output.
 #'
 #' @inheritParams diffPrint
-#' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
+#' @seealso \code{\link{diffPrint}} for details on the \code{diff*} methods,
 #'   \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly
 #'   \code{\link{diffDeparse}} to compare deparsed objects

@@ -1,4 +1,4 @@
-# diffobj - Compare R Objects with a Diff
+# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
 #
 # This program is free software: you can redistribute it and/or modify
@@ -14,6 +14,7 @@
 # Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
 
 #' @include html.R
+#' @include finalizer.R
 
 NULL
 
@@ -192,7 +193,7 @@ StyleText <- setClass(
     gutter.fill="~", gutter.fill.ctd="~",
     gutter.context.sep="~", gutter.context.sep.ctd="~",
     gutter.pad=" ", context.sep="----------",
-    pad.col=" ",
+    pad.col="  ",
     line.break="\n"
   ),
   validity=function(object){
@@ -201,10 +202,51 @@ StyleText <- setClass(
     TRUE
   }
 )
+#' Styling Information for Summaries
+#'
+#' @export
+#' @rdname StyleSummary
+#' @slot container function applied to entire summary
+#' @slot body function applied to everything except the actual map portion of
+#'   the summary
+#' @slot detail function applied to section showing how many deletions /
+#'   insertions, etc. occurred
+#' @slot map function applied to the map portion of the summary
+
+StyleSummary <- setClass("StyleSummary",
+  slots=c(container="ANY", body="ANY", map="ANY"),
+  prototype=list(
+    container=function(x) sprintf("\n%s\n", paste0(x, collapse="")),
+    body=identity,
+    detail=function(x) sprintf("\n%s\n", paste0("  ", x, collapse="")),
+    map=function(x) sprintf("\n%s", paste0("  ", x, collapse="\n"))
+  ),
+  validity=function(object) {
+    fun.slots <- c("container", "body", "map")
+    for(i in fun.slots) {
+      if(!isTRUE(is.one.arg.fun(slot(object, i))))
+        return(
+          "Slot ", i, " must contain a function that accepts at least one ",
+          "argument and requires no more than one argument."
+        )
+    }
+    TRUE
+  }
+)
+#' @rdname StyleSummary
+#' @export
+
+StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
+  prototype=list(
+    container=function(x) div_f("summary")(paste0(x, collapse="")),
+    body=div_f("body"),
+    detail=div_f("detail"),
+    map=div_f("map")
+) )
 #' Customize Appearance of Diff
 #'
 #' S4 objects that expose the formatting controls for \code{Diff}
-#' objects.  Many predifined formats are defined as classes that extend the
+#' objects.  Many predefined formats are defined as classes that extend the
 #' base \code{Style} class.  You may fine tune styles by either extending
 #' the pre-defined classes, or modifying an instance thereof.
 #'
@@ -231,15 +273,17 @@ StyleText <- setClass(
 #' same name (see examples).  Objects instantiated from these classes
 #' may also be used directly as the value for the \code{style} parameter to the
 #' \code{diff*} methods. This will override the automatic selection process
-#' that uses \code{\link{PaletteOfStyles}}.
+#' that uses \code{\link{PaletteOfStyles}}.  If you wish to tweak an
+#' auto-selected style rather than explicitly specify one, pass a parameter
+#' list instead of a \code{Style} objects as the \code{style} parameter to the
+#' \code{diff*} methods (see examples).
 #'
 #' There are predefined classes for most combinations of
 #' \code{format/color.mode/brightness}, but not all.  For example, there are
 #' only \dQuote{light} \code{brightness} defined for the \dQuote{html}
-#' \code{format}, and that class is re-used for all possible
-#' \code{brightness} values.  \code{\link{PaletteOfStyles}} substitutes an
-#' appropriate class when necessary (e.g. \code{StyleAnsi8NeutralYb} for the
-#' neutral yellow-blue Ansi256 entry).
+#' \code{format}, and those classes are re-used for all possible
+#' \code{brightness} values, and the 8 color ANSI neutral classes are used
+#' for the 256 color neutral selections as well.
 #'
 #' To get a preview of what a style looks like just instantiate
 #' an object; the \code{show} method will output a trivial diff to screen with
@@ -296,40 +340,49 @@ StyleText <- setClass(
 #'
 #' If you use a \code{Style} that inherits from \code{StyleHtml} the
 #' diff will be wrapped in HTML tags, styled with CSS, and output to
-#' a web browser by the pager.  The HTML output will be a full stand-alone
-#' HTML page with references to the built-in cascading style sheet.  If the
-#' pager is disabled or is not \code{\link{PagerBrowser}} then only the raw
-#' HTML for the diff is output.
+#' \code{getOption("viewer")} if your IDE supports it (e.g. Rstudio), or
+#' directly to the browser otherwise, assuming that the default
+#' \code{\link{Pager}} or a correctly configured pager that inherits from
+#' \code{\link{PagerBrowser}} is in effect.  Otherwise, the raw HTML will be
+#' output to your terminal.
+#'
+#' By default HTML output sent to the viewer/browser is a full stand-alone
+#' webpage with CSS styles to format and color the diff, and JS code to
+#' handle scaling.  The CSS and JS is read from the
+#' \link[=webfiles]{default files} and injected into the HTML to simplify
+#' packaging of the output.  You can customize the CSS and JS by using the
+#' \code{css} and \code{js} arguments respectively, but read the rest of this
+#' documentation section if you plan on doing so.
 #'
 #' Should you want to capture the HTML output for use elsewhere, you can do
 #' so by using \code{as.character} on the return value of the \code{diff*}
-#' methods.  If you want the raw HTML without any of the headers and
-#' css in \code{<style>} tags use \code{html.ouput="diff.only"} when you
-#' instantiate the \code{Style} object (see examples), or disable the
-#' \code{\link{Pager}}.  Another option is \code{html.output="diff.w.style"}
-#' which will add \code{<style>} tags with the CSS, but without wrapping those
-#' in \code{<head>} tags. This last option results in illegal HTML with a
-#' \code{<style>} block inside the \code{<body>} block, but appears to work and
-#' is useful if you want to embed HTML someplace but do not have access to the
-#' headers.
+#' methods.  If you want the raw HTML without any of the headers, CSS, and
+#' JS use \code{html.ouput="diff.only"} when you instantiate the
+#' \code{StyleHtml} object (see examples), or disable the \code{\link{Pager}}.
+#' Another option is \code{html.output="diff.w.style"} which will add
+#' \code{<style>} tags with the CSS, but without wrapping those in \code{<head>}
+#' tags. This last option results in illegal HTML with a \code{<style>} block
+#' outside of the \code{<head>} block, but appears to work and is useful if you
+#' want to embed HTML someplace but do not have access to the headers.
 #'
-#' For compatibility with RStudio server sessions the styles are always included
-#' directly within \code{style} tags rather than in an external style sheet.
+#' If you wish to modify the CSS styles you should do so cautiously.  The
+#' HTML and CSS work well together out of the box, but may not take to kindly
+#' to modifications.  The safest changes you can make are to the colors of the
+#' scheme.  You also probably should not modify the functions in the
+#' \code{@funs} slot of the \code{StyleHtml} object.  If you want to provide
+#' your own custom styles make a copy of the file at the location returned by
+#' \code{diffobj_css()}, modify it to your liking, and pass the location of your
+#' modified sheet back via the \code{css} argument (see examples).
 #'
-#' Unlike with ANSI styles, you should not modify the styling functions in the
-#' \code{@funs} slot of the \code{Style} object.  Instead, provide your own
-#' styles.  See \code{diffobj_css()} for the predefined styles.  The styles are
-#' structured so that they are applied to any element within a container of a
-#' particular class.
+#' The javascript controls the scaling of the output such that its width fits
+#' in the viewport.  If you wish to turn of this behavior you can do so via the
+#' \code{scale} argument.  You may need to modify the javascript if you modify
+#' the \code{@funs} functions, but otherwise you are probably best off leaving
+#' the javascript untouched.  You can provide the location of a modified
+#' javascript file via the \code{js} argument.
 #'
-#' To provide your own custom CSS style sheet you may:
-#' \itemize{
-#'   \item specify it through the \code{css} slot of a \code{StyleHtml} object,
-#'     and pass that object as the value for the \code{style} parameter for the
-#'     \code{diff*} methods (see example)
-#'   \item as above, but asign the object to the active \code{PaletteOfStyles}
-#'   \item  set the \dQuote{diffobj.html.css} option
-#' }
+#' Both the CSS and JS files can be specified via options,
+#' \dQuote{diffobj.html.css}, and \dQuote{diffobj.html.js} respectively.
 #'
 #' If you define your own custom \code{StyleHtml} object you may want to modify
 #' the slot \code{@funs@container}.  This slot contains a function that is
@@ -340,6 +393,22 @@ StyleText <- setClass(
 #' \dQuote{"diffobj_container light rgb"}.  This allows the CSS style sheet to
 #' target the \code{Diff} elements with the correct styles.
 #'
+#' @section Modifying Style Parameters Directly:
+#'
+#' Often you will want to specify some of the style parameters (e.g.
+#' \code{scale}) while still relying on the default style selection to
+#' pick the specific style.  You can do so by passing a list to the
+#' \code{style} parameter of the \code{\link[=diffPrint]{diff*}} methods.
+#' See examples.
+#'
+#' @section New Classes:
+#'
+#' You can in theory create entirely new classes that extent \code{Style}.  For
+#' example you could generate a class that renders the diff in \code{grid}
+#' graphics.  Note however that we have not tested such extensions and it is
+#' possible there is some embedded code that will misbehave with such a new
+#' class.
+#'
 #' @rdname Style
 #' @export Style
 #' @exportClass Style
@@ -347,6 +416,8 @@ StyleText <- setClass(
 #'   represented above
 #' @param text a \code{\link{StyleText}} object that contains the non-content
 #'   text used by the diff (e.g. \code{gutter.insert.txt})
+#' @param summary a \code{\link{StyleSummary}} object that contains formatting
+#'   functions and other meta data for rendering summaries
 #' @param wrap TRUE or FALSE, whether the text should be hard wrapped to fit in
 #'   the console
 #' @param pad TRUE or FALSE, whether text should be right padded
@@ -361,15 +432,25 @@ StyleText <- setClass(
 #'   collapsing
 #' @param finalizer function that accepts at least two parameters and requires
 #'   no more than two parameters, will receive as the first parameter the
-#'   full text of the diff as a character vector, and the active
-#'   \code{\link{Pager}} as the second argument.  This allows final
-#'   modifications to the character output so that it is displayed correctly
-#'   by the pager.  For example, \code{StyleHtml} objects use it to generate
-#'   HTML headers if the \code{Diff} is destined to be displayed in a browser.
-#'   The \code{Pager} object is passed along to provide information about the
-#'   paging device to the function.
+#'   the object to render (either a \code{Diff} or a \code{DiffSummary}
+#'   object), and the text representation of that object as the second
+#'   argument.  This allows final modifications to the character output so that
+#'   it is displayed correctly by the pager.  For example, \code{StyleHtml}
+#'   objects use it to generate HTML headers if the \code{Diff} is destined to
+#'   be displayed in a browser.  The object themselves are passed along to
+#'   provide information about the paging device and other contextual data to
+#'   the function.
+#' @param escape.html.entities (\code{StyleHtml} objects only) TRUE (default)
+#'   or FALSE, whether to escape HTML entities in the input
+#' @param scale (\code{StyleHtml} objects only) TRUE (default) or FALSE,
+#'   whether to scale HTML output to fit to the viewport
+#' @param css (\code{StyleHtml} objects only) path to file containing CSS styles
+#'   to style HTML output with
+#' @param js (\code{StyleHtml} objects only) path to file containing Javascript
+#'   used for scaling output to viewports.
 #' @return Style S4 object
 #' @examples
+#' \dontrun{
 #' ## Create a new style based on existing style by changing
 #' ## gutter symbols and guide color; see `?StyleFuns` and
 #' ## `?StyleText` for a full list of adjustable elements
@@ -386,15 +467,29 @@ StyleText <- setClass(
 #' my.css <- file.path(path.expand("~"), "web", "mycss.css")
 #' diffPrint(1:5, 2:6, style=StyleHtmlLightYb(css=my.css))
 #' }
+#'
+#' ## Turn of scaling; notice how we pass a list to `style`
+#' ## and we do not need to specify a specific style
+#' diffPrint(letters, letters[-5], format="html", style=list(scale=FALSE))
+#'
+#' ## Alternatively we can do the same by specifying a style, but we must
+#' ## give an exact html style instead of relying on preferences to pick
+#' ## one for us
+#' my.style <- StyleHtmlLightYb(scale=FALSE)
+#' diffPrint(letters, letters[-5], style=my.style)
+#'
 #' ## Return only the raw HTML without any of the headers
 #' as.character(
-#'   diffPrint(1:5, 2:6, style=StyleHtmlLightYb(html.output="diff.only"))
+#'   diffPrint(1:5, 2:6, format="html", style=list(html.output="diff.only"))
 #' )
+#' }
 
 Style <- setClass("Style", contains="VIRTUAL",
   slots=c(
     funs="StyleFuns",
     text="StyleText",
+    summary="StyleSummary",
+    nchar.fun="ANY",
     wrap="logical",
     pad="logical",
     finalizer="function",
@@ -409,12 +504,19 @@ Style <- setClass("Style", contains="VIRTUAL",
     wrap=TRUE,
     pad=TRUE,
     pager=PagerOff(),
-    finalizer=function(x, y) x,
+    finalizer=function(x, y) y,
     na.sub="",
     blank.sub="",
-    disp.width=0L
+    disp.width=0L,
+    nchar.fun=nchar
   ),
   validity=function(object){
+    if(!isTRUE(is.one.arg.fun(object@nchar.fun))) {
+      return(paste0(
+        "Slot `nchar.fun` should be a function with at least one argument that ",
+        "doesn't require more than one argument"
+      ) )
+    }
     if(!is.TF(object@wrap))
       return("Slot `wrap` must be TRUE or FALSE")
     if(!is.TF(object@pad))
@@ -461,7 +563,7 @@ StyleRaw <- setClass("StyleRaw", contains=c("Style", "Raw"))
 
 StyleAnsi <- setClass(
   "StyleAnsi", contains=c("StyleRaw", "Ansi"),
-  prototype=list(funs=StyleFunsAnsi()),
+  prototype=list(funs=StyleFunsAnsi(), nchar.fun=crayon::col_nchar),
 )
 setMethod(
   "initialize", "StyleAnsi",
@@ -500,23 +602,43 @@ StyleAnsi256LightRgb <- setClass(
   "StyleAnsi256LightRgb", contains=c("StyleAnsi", "Light", "Rgb"),
   prototype=list(
     funs=StyleFunsAnsi(
-      text.insert=crayon::make_style(rgb(4, 5, 4, maxColorValue=5), bg=TRUE),
-      text.delete=crayon::make_style(rgb(5, 4, 4, maxColorValue=5), bg=TRUE),
-      text.fill=crayon::make_style(
-        rgb(20, 20, 20, maxColorValue=23), bg=TRUE, grey=TRUE
+      text.insert=crayon::make_style(
+        rgb(4, 5, 4, maxColorValue=5), bg=TRUE, colors=256
       ),
-      word.insert=crayon::make_style(rgb(2, 4, 2, maxColorValue=5), bg=TRUE),
-      word.delete=crayon::make_style(rgb(4, 2, 2, maxColorValue=5), bg=TRUE),
-      gutter.insert=crayon::make_style(rgb(0, 3, 0, maxColorValue=5)),
-      gutter.insert.ctd=crayon::make_style(rgb(0, 3, 0, maxColorValue=5)),
-      gutter.delete=crayon::make_style(rgb(3, 0, 0, maxColorValue=5)),
-      gutter.delete.ctd=crayon::make_style(rgb(3, 0, 0, maxColorValue=5)),
-      header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5))
+      text.delete=crayon::make_style(
+        rgb(5, 4, 4, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      text.fill=crayon::make_style(
+        rgb(20, 20, 20, maxColorValue=23), bg=TRUE, grey=TRUE, colors=256
+      ),
+      word.insert=crayon::make_style(
+        rgb(2, 4, 2, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      word.delete=crayon::make_style(
+        rgb(4, 2, 2, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      gutter.insert=crayon::make_style(
+        rgb(0, 3, 0, maxColorValue=5), colors=256
+      ),
+      gutter.insert.ctd=crayon::make_style(
+        rgb(0, 3, 0, maxColorValue=5), colors=256
+      ),
+      gutter.delete=crayon::make_style(
+        rgb(3, 0, 0, maxColorValue=5), colors=256
+      ),
+      gutter.delete.ctd=crayon::make_style(
+        rgb(3, 0, 0, maxColorValue=5), colors=256
+      ),
+      header=crayon::make_style(
+        rgb(0, 3, 3, maxColorValue=5), colors=256
+      )
 ) ) )
 
-darkGray <- crayon::make_style(rgb(13, 13, 13, maxColorValue=23), grey=TRUE)
+darkGray <- crayon::make_style(
+  rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+)
 darkGrayBg <- crayon::make_style(
-  rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE
+  rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE, colors=256
 )
 #' @export StyleAnsi256LightYb
 #' @exportClass StyleAnsi256LightYb
@@ -526,18 +648,36 @@ StyleAnsi256LightYb <- setClass(
   "StyleAnsi256LightYb", contains=c("StyleAnsi", "Light", "Yb"),
   prototype=list(
     funs=StyleFunsAnsi(
-      text.insert=crayon::make_style(rgb(3, 3, 5, maxColorValue=5), bg=TRUE),
-      text.delete=crayon::make_style(rgb(4, 4, 2, maxColorValue=5), bg=TRUE),
-      text.fill=crayon::make_style(
-        rgb(20, 20, 20, maxColorValue=23), bg=TRUE, grey=TRUE
+      text.insert=crayon::make_style(
+        rgb(3, 3, 5, maxColorValue=5), bg=TRUE, colors=256
       ),
-      word.insert=crayon::make_style(rgb(2, 2, 4, maxColorValue=5), bg=TRUE),
-      word.delete=crayon::make_style(rgb(3, 3, 1, maxColorValue=5), bg=TRUE),
-      gutter.insert=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),
-      gutter.insert.ctd=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),
-      gutter.delete=crayon::make_style(rgb(2, 1, 0, maxColorValue=5)),
-      gutter.delete.ctd=crayon::make_style(rgb(2, 1, 0, maxColorValue=5)),
-      header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5))
+      text.delete=crayon::make_style(
+        rgb(4, 4, 2, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      text.fill=crayon::make_style(
+        rgb(20, 20, 20, maxColorValue=23), bg=TRUE, grey=TRUE, colors=256
+      ),
+      word.insert=crayon::make_style(
+        rgb(2, 2, 4, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      word.delete=crayon::make_style(
+        rgb(3, 3, 1, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      gutter.insert=crayon::make_style(
+        rgb(0, 0, 3, maxColorValue=5), colors=256
+      ),
+      gutter.insert.ctd=crayon::make_style(
+        rgb(0, 0, 3, maxColorValue=5), colors=256
+      ),
+      gutter.delete=crayon::make_style(
+        rgb(2, 1, 0, maxColorValue=5), colors=256
+      ),
+      gutter.delete.ctd=crayon::make_style(
+        rgb(2, 1, 0, maxColorValue=5), colors=256
+      ),
+      header=crayon::make_style(
+        rgb(0, 3, 3, maxColorValue=5), colors=256
+      )
 ) ) )
 #' @export StyleAnsi256DarkRgb
 #' @exportClass StyleAnsi256DarkRgb
@@ -547,14 +687,30 @@ StyleAnsi256DarkRgb <- setClass(
   "StyleAnsi256DarkRgb", contains=c("StyleAnsi", "Dark", "Rgb"),
   prototype=list(
     funs=StyleFunsAnsi(
-      text.insert=crayon::make_style(rgb(0, 1, 0, maxColorValue=5), bg=TRUE),
-      text.delete=crayon::make_style(rgb(1, 0, 0, maxColorValue=5), bg=TRUE),
-      word.insert=crayon::make_style(rgb(0, 3, 0, maxColorValue=5), bg=TRUE),
-      word.delete=crayon::make_style(rgb(3, 0, 0, maxColorValue=5), bg=TRUE),
-      gutter.insert=crayon::make_style(rgb(0, 2, 0, maxColorValue=5)),
-      gutter.insert.ctd=crayon::make_style(rgb(0, 2, 0, maxColorValue=5)),
-      gutter.delete=crayon::make_style(rgb(2, 0, 0, maxColorValue=5)),
-      gutter.delete.ctd=crayon::make_style(rgb(2, 0, 0, maxColorValue=5)),
+      text.insert=crayon::make_style(
+        rgb(0, 1, 0, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      text.delete=crayon::make_style(
+        rgb(1, 0, 0, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      word.insert=crayon::make_style(
+        rgb(0, 3, 0, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      word.delete=crayon::make_style(
+        rgb(3, 0, 0, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      gutter.insert=crayon::make_style(
+        rgb(0, 2, 0, maxColorValue=5), colors=256
+      ),
+      gutter.insert.ctd=crayon::make_style(
+        rgb(0, 2, 0, maxColorValue=5), colors=256
+      ),
+      gutter.delete=crayon::make_style(
+        rgb(2, 0, 0, maxColorValue=5), colors=256
+      ),
+      gutter.delete.ctd=crayon::make_style(
+        rgb(2, 0, 0, maxColorValue=5), colors=256
+      ),
       gutter.guide=darkGray, gutter.guide.ctd=darkGray, line.guide=darkGray,
       gutter.fill=darkGray, gutter.fill.ctd=darkGray, text.fill=darkGrayBg,
       gutter.context.sep=darkGray, gutter.context.sep.ctd=darkGray,
@@ -568,20 +724,62 @@ StyleAnsi256DarkYb <- setClass(
   "StyleAnsi256DarkYb", contains=c("StyleAnsi", "Dark", "Yb"),
   prototype=list(
     funs=StyleFunsAnsi(
-      text.insert=crayon::make_style(rgb(0, 0, 2, maxColorValue=5), bg=TRUE),
-      text.delete=crayon::make_style(rgb(1, 1, 0, maxColorValue=5), bg=TRUE),
-      word.insert=crayon::make_style(rgb(0, 0, 5, maxColorValue=5), bg=TRUE),
-      word.delete=crayon::make_style(rgb(3, 2, 0, maxColorValue=5), bg=TRUE),
-      gutter.insert=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),
-      gutter.insert.ctd=crayon::make_style(rgb(0, 0, 3, maxColorValue=5)),
-      gutter.delete=crayon::make_style(rgb(1, 1, 0, maxColorValue=5)),
-      gutter.delete.ctd=crayon::make_style(rgb(1, 1, 0, maxColorValue=5)),
-      header=crayon::make_style(rgb(0, 3, 3, maxColorValue=5)),
+      text.insert=crayon::make_style(
+        rgb(0, 0, 2, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      text.delete=crayon::make_style(
+        rgb(1, 1, 0, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      word.insert=crayon::make_style(
+        rgb(0, 0, 5, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      word.delete=crayon::make_style(
+        rgb(3, 2, 0, maxColorValue=5), bg=TRUE, colors=256
+      ),
+      gutter.insert=crayon::make_style(
+        rgb(0, 0, 3, maxColorValue=5), colors=256
+      ),
+      gutter.insert.ctd=crayon::make_style(
+        rgb(0, 0, 3, maxColorValue=5), colors=256
+      ),
+      gutter.delete=crayon::make_style(
+        rgb(1, 1, 0, maxColorValue=5), colors=256
+      ),
+      gutter.delete.ctd=crayon::make_style(
+        rgb(1, 1, 0, maxColorValue=5), colors=256
+      ),
+      header=crayon::make_style(
+        rgb(0, 3, 3, maxColorValue=5), colors=256
+      ),
       gutter.guide=darkGray, gutter.guide.ctd=darkGray, line.guide=darkGray,
       gutter.fill=darkGray, gutter.fill.ctd=darkGray, text.fill=darkGrayBg,
       gutter.context.sep=darkGray, gutter.context.sep.ctd=darkGray,
       context.sep=darkGray, meta=darkGray, trim=darkGray
 ) ) )
+#' Return Location of Default HTML Support Files
+#'
+#' File location for default CSS and JS files.  Note that these files are read
+#' and injected into the output HTML rather than referenced to simplify serving.
+#'
+#' @aliases diffobj_js
+#' @name webfiles
+#' @rdname webfiles
+#' @return path to the default CSS or JS file
+
+NULL
+
+#' @export
+#' @rdname webfiles
+
+diffobj_css <- function()
+  file.path(system.file(package="diffobj"), "css", "diffobj.css")
+
+#' @export
+#' @rdname webfiles
+
+diffobj_js <- function()
+  file.path(system.file(package="diffobj"), "script", "diffobj.js")
+
 #' @export StyleHtml
 #' @exportClass StyleHtml
 #' @rdname Style
@@ -589,7 +787,8 @@ StyleAnsi256DarkYb <- setClass(
 StyleHtml <- setClass(
   "StyleHtml", contains=c("Style", "Html"),
   slots=c(
-    css="character", html.output="character", escape.html.entities="logical"
+    css="character", html.output="character", escape.html.entities="logical",
+    js="character", scale="logical"
   ),
   prototype=list(
     funs=StyleFuns(
@@ -615,6 +814,14 @@ StyleHtml <- setClass(
       gutter.match=div_f("match"),
       gutter.guide=div_f("guide"),
       gutter.fill=div_f("fill"),
+      gutter.pad=div_f("pad"),
+      gutter.context.sep=div_f(c("context_sep", "ctd")),
+      gutter.insert.ctd=div_f(c("insert", "ctd")),
+      gutter.delete.ctd=div_f(c("delete", "ctd")),
+      gutter.match.ctd=div_f(c("match", "ctd")),
+      gutter.guide.ctd=div_f(c("guide", "ctd")),
+      gutter.fill.ctd=div_f(c("fill", "ctd")),
+      gutter.context.sep.ctd=div_f(c("context_sep", "ctd")),
       gutter=div_f("gutter"),
       context.sep=div_f("context_sep"),
       word.insert=span_f(c("word", "insert")),
@@ -626,84 +833,64 @@ StyleHtml <- setClass(
       gutter.insert="&gt;",
       gutter.delete="&lt;",
       gutter.match="&nbsp;",
-      line.break="<br />"
+      line.break="<br />",
+      pad.col=""
     ),
+    summary=StyleSummaryHtml(),
     pager=PagerBrowser(),
     wrap=FALSE,
     pad=FALSE,
+    nchar.fun=nchar_html,
     escape.html.entities=TRUE,
     na.sub="&nbsp;",
     blank.sub="&nbsp;",
-    disp.width=120L
+    disp.width=80L,
+    html.output="auto",
+    css=diffobj_css(),
+    js=diffobj_js(),
+    finalizer=finalizeHtml,
+    scale=TRUE
   ),
   validity=function(object) {
     if(!is.chr.1L(object@css))
       return("slot `css` must be character(1L)")
+    if(!is.chr.1L(object@js))
+      return("slot `js` must be character(1L)")
     if(!is.chr.1L(object@html.output))
       return("slot `html.output` must be character(1L)")
     if(!is.TF(object@escape.html.entities))
       return("slot `escape.html.entities` must be TRUE or FALSE.")
+    if(!is.TF(object@scale))
+      return("slot `scale` must be TRUE or FALSE.")
+    if(!identical(object@wrap, FALSE))
+      return("slot `wrap` must be FALSE for `styleHtml` objects.")
     TRUE
   }
 )
-#' Return Location of Default CSS File
-#'
-#' Used as the value for \code{getOption("diffobj.html.css")}.  Note that the
-#' contents of this file rather than the file address are used when
-#' constructing HTML output.
-#'
-#' @export
-#' @return path to the default CSS file
-
-diffobj_css <- function()
-  file.path(system.file(package="diffobj"), "css", "diffobj.css")
-
-# construct with default values specified via options; would this work with
-# initialize?  Depends on whether this is run by package installation process
+# construct with default values specified via options
 
 setMethod("initialize", "StyleHtml",
   function(
     .Object, css=getOption("diffobj.html.css"),
+    js=getOption("diffobj.html.js"),
     html.output=getOption("diffobj.html.output"),
     escape.html.entities=getOption("diffobj.html.escape.html.entities"),
+    scale=getOption("diffobj.html.scale"),
     ...
   ) {
     if(!is.chr.1L(css))
       stop("Argument `css` must be character(1L) and not NA")
+    if(!is.chr.1L(js))
+      stop("Argument `js` must be character(1L) and not NA")
+    if(!is.TF(scale))
+      stop("Argument `scale` must be TRUE or FALSE")
     valid.html.output <- c("auto", "page", "diff.only", "diff.w.style")
     if(!string_in(html.output, valid.html.output))
       stop("Argument `html.output` must be in `", dep(valid.html.output), "`.")
 
-    # Generate finalizer function
-
-    .Object@finalizer <- function(txt, pager) {
-      stopifnot(is(pager, "Pager"))
-
-      # Note this might conflict with threshold computations as we don't really
-      # know whether we are truly going to use the pager
-      use.pager <- !is(pager, "PagerOff")
-      header <- footer <- NULL
-      txt.flat <- paste0(txt, sep="")
-
-      if(html.output == "auto") {
-        html.output <- if(is(pager, "PagerBrowser")) "page" else "diff.only"
-      }
-      if(html.output %in% c("diff.w.style", "page")) {
-        css.txt <- try(paste0(readLines(css), collapse="\n"))
-        if(inherits(css.txt, "try-error")) stop("Cannot read css file ", css)
-        css <- sprintf("<style type='text/css'>%s</style>", css.txt)
-      }
-      if(html.output == "diff.w.style") {
-        tpl <- "%s%s"
-      } else if (html.output == "page") {
-        tpl <- "<!DOCTYPE html><html><head>%s</head><body>%s</body><html>"
-      } else if (html.output == "diff.only") {
-        css <- ""
-        tpl <- "%s%s"
-      } else stop("Logic Error: unexpected html.output; contact maintainer.")
-      sprintf(tpl, css, txt.flat)
-    }
-    callNextMethod(.Object, css=css, html.output=html.output, ...)
+    callNextMethod(
+      .Object, css=css, html.output=html.output, js=js, scale=scale, ...
+    )
 } )
 #' @export StyleHtmlLightRgb
 #' @exportClass StyleHtmlLightRgb
@@ -751,6 +938,20 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' scheme in \dQuote{ansi256} format), without having to provide a specific
 #' \code{\link{Style}} object.
 #'
+#' @section An Array of Styles:
+#'
+#' A \code{PaletteOfStyles} object is an \dQuote{array} containing either
+#' \dQuote{classRepresentation} objects that extend \code{StyleHtml} or are
+#' instances of objects that inherit from \code{StyleHtml}.  The \code{diff*}
+#' methods then pick an object/class from this array based on the values of
+#' the \code{format}, \code{brightness}, and \code{color.mode} parameters.
+#'
+#' For the most part the distinction between actual \code{Style} objects vs
+#' \dQuote{classRepresentation} ones is academic, except that with the latter
+#' you can control the instantiation by providing a parameter list as the
+#' \code{style} argument to the \code{diff*} methods. This is not an option with
+#' already instantiated objects.  See examples.
+#'
 #' @section Dimensions:
 #'
 #' There are three general orthogonal dimensions of styles that can be used when
@@ -762,17 +963,21 @@ setMethod("initialize", "StyleHtmlLightYb",
 #'
 #' The array/list dimensions are:
 #' \itemize{
-#'   \item format: the format type, typically \dQuote{raw}, \dQuote{ansi8},
-#'     \dQuote{ansi256}, or \dQuote{html}
-#'   \item brightness: whether the colors are bright or not, which allows user to
-#'     chose a scheme that is compatible with their console, typically:
-#'     \dQuote{light}, \dQuote{dark}, \dQuote{normal}
-#'   \item color.mode: \dQuote{rgb} for full color or \dQuote{yb} for
+#'   \item \code{format}: the format type, one of \dQuote{raw},
+#'     \dQuote{ansi8}, \dQuote{ansi256}, or \dQuote{html}
+#'   \item \code{brightness}: whether the colors are bright or not, which
+#'     allows user to chose a scheme that is compatible with their console,
+#'     one of: \dQuote{light}, \dQuote{dark}, \dQuote{normal}
+#'   \item \code{color.mode}: \dQuote{rgb} for full color or \dQuote{yb} for
 #'     dichromats (yb stands for Yellow Blue).
 #' }
+#'
+#' Each of these dimensions can be specified directly via the corresponding
+#' parameters to the \code{diff*} methods.
+#'
 #' @section Methods:
 #'
-#' The following methods are implemented:
+#' \code{PaletteOfStyles} objects have The following methods implemented:
 #' \itemize{
 #'   \item \code{[}, \code{[<-}, \code{[[}
 #'   \item show
@@ -788,28 +993,31 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' The array/list must be fully populated with objects that are or inherit
 #' \code{Style}, or are \dQuote{classRepresentation} objects (i.e. those of
 #' the type returned by \code{\link{getClassDef}}) that extend \code{Style}.
+#' By default the array is populated only with \dQuote{classRepresentation}
+#' objects as that allows the list form of the \code{style} parameter to the
+#' \code{diff*} methods.  If there is a particular combination of coordinates
+#' that does not have a corresponding defined style a reasonable substitution
+#' must be provided.  For example, this package only defines \dQuote{light}
+#' HTML styles, so it simply uses that style for all the possible
+#' \code{brightness} values.
+#'
 #' There is no explicit check that the objects in the list comply with the
 #' descriptions implied by their coordinates, although the default object
 #' provided by the package does comply for the most part.  One check that is
 #' carried out is that any element that has a \dQuote{html} value in the
 #' \code{format} dimension extends \code{StyleHtml}.
 #'
-#' Every cell in the list must be populated.  If there is a particular
-#' combination of coordinates that does not have a corresponding defined style
-#' a reasonable substitution must be provided.  For example, this package
-#' only defines \dQuote{light} HTML styles, so it simply uses that style for
-#' all the possible \code{brightness} values.
-#'
 #' While the list may only have the three dimensions described, you can add
 #' values to the dimensions provided the values described above are the first
 #' ones in each of their corresponding dimensions.  For example, if you wanted
 #' to allow for styles that would render in \code{grid} graphics, you could
-#' genarate a default list with \dQuote{"grid"} value appended to the values of
-#' the \code{format} dimension.
+#' generate a default list with a \dQuote{"grid"} value appended to the values
+#' of the \code{format} dimension.
 #'
 #' @export PaletteOfStyles
 #' @exportClass PaletteOfStyles
 #' @examples
+#' \dontrun{
 #' ## Look at all "ansi256" styles (assumes compatible terminal)
 #' PaletteOfStyles()["ansi256",,]
 #' ## Generate the default style object palette, and replace
@@ -827,7 +1035,6 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' )
 #' ## If so desired, set our new style palette as the default
 #' ## one; could also pass directly as argument to `diff*` funs
-#' \dontrun{
 #' options(diffobj.palette=defs)
 #' }
 
@@ -986,10 +1193,6 @@ setMethod("dimnames", "PaletteOfStyles", function(x) dimnames(x@data))
 
 # Matrices used for show methods for styles
 
-#' Unexported Matrix Used for Sample Display
-#'
-#' @aliases .mx2
-
 .mx1 <- .mx2 <- matrix(1:50, ncol=2)
 .mx2[c(6L, 40L)] <- 99L
 .mx2 <- .mx2[-7L,]
@@ -1006,7 +1209,9 @@ setMethod("dimnames", "PaletteOfStyles", function(x) dimnames(x@data))
 #' @param object a \code{Style} S4 object
 #' @return NULL, invisibly
 #' @examples
+#' \dontrun{
 #' show(StyleAnsi256LightYb())  # assumes ANSI colors supported
+#' }
 
 setMethod("show", "Style",
   function(object) {
@@ -1018,13 +1223,12 @@ setMethod("show", "Style",
     )
     d.txt <- capture.output(show(d.p))
     if(is(object, "Ansi")) {
-      old.crayon.opt <-
-        options(crayon.enabled=TRUE)
+      old.crayon.opt <- options(crayon.enabled=TRUE)
       on.exit(options(old.crayon.opt), add=TRUE)
-      pad.width <- max(crayon_nchar(d.txt))
+      pad.width <- max(object@nchar.fun(d.txt))
       d.txt <- rpad(d.txt, width=pad.width)
-      bgWhite <- crayon::make_style(rgb(1, 1, 1), bg=TRUE)
-      white <- crayon::make_style(rgb(1, 1, 1))
+      bgWhite <- crayon::make_style(rgb(1, 1, 1), bg=TRUE, colors=256)
+      white <- crayon::make_style(rgb(1, 1, 1), colors=256)
       if(is(object, "Light")) {
         d.txt <- bgWhite(crayon::black(d.txt))
       } else if (is(object, "Dark")) {

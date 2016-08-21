@@ -1,4 +1,4 @@
-# diffobj - Compare R Objects with a Diff
+# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
 #
 # This program is free software: you can redistribute it and/or modify
@@ -89,13 +89,18 @@ myers_simple_int <- function(A, B) {
             if(break.out) break
           }
         }
-        if(any(res < 0L))
-          stop("Logic Error: diff generated illegal coords; contact maintainer.")
+        if(any(res < 0L)) {
+          # nocov start
+          stop(
+            "Logic Error: diff generated illegal coords; contact maintainer."
+          )
+          # nocov end
+        }
         return(res)
       }
     }
   }
-  stop("Logic Error, should not get here")
+  stop("Logic Error, should not get here") # nocov
 }
 # Translates a diff path produced by the simple Myers Algorithm into the
 # standard format we use in the rest of the package

@@ -1,4 +1,4 @@
-# diffobj - Compare R Objects with a Diff
+# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
 #
 # This program is free software: you can redistribute it and/or modify
@@ -92,7 +92,8 @@ is.one.arg.fun <- function(x) {
     nm.forms <- vapply(formals(x), is.name, logical(1L))
     forms.chr <- character(length(nm.forms))
     forms.chr[nm.forms] <- as.character(formals(x)[nm.forms])
-    if(any(tail(!nzchar(forms.chr) & nm.forms, -1L)))
+    forms.names <- names(formals(x))
+    if(any(tail(!nzchar(forms.chr) & nm.forms & forms.names != "...", -1L)))
       "cannot have any non-optional arguments other than first one" else TRUE
   }
 }
@@ -125,6 +126,7 @@ check_args <- function(
   extra, interactive, term.colors
 ) {
   err <- make_err_fun(call)
+  warn <- make_warn_fun(call)
 
   # Check extra
 
@@ -207,6 +209,7 @@ check_args <- function(
 
   # int 1L vars
 
+  if(is.null(term.colors)) term.colors <- crayon::num_colors()
   msg.base <- "Argument `%s` must be integer(1L) and not NA."
   int.1L.vars <- c("max.diffs", "term.colors")
   for(x in int.1L.vars) {
@@ -239,11 +242,16 @@ check_args <- function(
   }
   # style
 
-  if(!is(style, "Style") && !string_in(style, "auto"))
-    err("Argument `style` must be \"auto\" or a `Style` object.")
+  valid_object(style, "style", err)
+  if(
+    !is(style, "Style") && !string_in(style, "auto") &&
+    !(is.list(style) && !is.object(style))
+  )
+    err("Argument `style` must be \"auto\",  a `Style` object, or a list.")
 
   # pager
 
+  valid_object(pager, "pager", err)
   valid.pagers <- c("auto", "off", "on")
   if(!is(pager, "Pager") && !string_in(pager, valid.pagers))
     err(
@@ -280,7 +288,17 @@ check_args <- function(
   }
   # format; decide what format to use
 
-  if(!is(style, "Style") && string_in(style, "auto")) {
+  if(
+    !is(style, "Style") &&
+    (
+      string_in(style, "auto") || (is.list(style) && !is.object(style))
+    )
+  ) {
+    if(is.list(style)) {
+      style.args <- style
+      style <- "auto"
+    } else style.args <- list()
+
     if(!is.chr.1L(format))
       err("Argument `format` must be character(1L) and not NA")
     valid.formats <- c("auto", dimnames(palette.of.styles@data)$format)
@@ -307,7 +325,24 @@ check_args <- function(
     style <- palette.of.styles[[
       format, get_pal_par(format, brightness), get_pal_par(format, color.mode)
     ]]
-    if(is(style, "classRepresentation")) style <- new(style)
+    if(is(style, "classRepresentation")) {
+      style <- try(do.call("new", c(list(style), style.args)))
+      if(inherits(style, "try-error"))
+        err("Unable to instantiate `Style` object; see prior errors.")
+    } else {
+      if(length(style.args)) {
+        warn(
+          "Extra `style` arguments cannot be applied because selected object ",
+          "`palette.of.styles` is a `Style` instance rather than a `Style` ",
+          "\"classRepresentation\".  See documentation for the `style` ",
+          "parameter for details."
+      ) }
+      valid_object(
+        style, "palette.of.styles", err,
+        paste0(
+          "Argument `%s` is an invalid `%s` because it contains and invalid ",
+          "`Style` object:"
+    ) ) }
   } else if(!is(style, "Style"))
     stop("Logic Error: unexpected style state; contact maintainer.")
 

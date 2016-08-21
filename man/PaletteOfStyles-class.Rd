@@ -12,6 +12,22 @@ request a style that meets a certain description (e.g. a \dQuote{light}
 scheme in \dQuote{ansi256} format), without having to provide a specific
 \code{\link{Style}} object.
 }
+\section{An Array of Styles}{
+
+
+A \code{PaletteOfStyles} object is an \dQuote{array} containing either
+\dQuote{classRepresentation} objects that extend \code{StyleHtml} or are
+instances of objects that inherit from \code{StyleHtml}.  The \code{diff*}
+methods then pick an object/class from this array based on the values of
+the \code{format}, \code{brightness}, and \code{color.mode} parameters.
+
+For the most part the distinction between actual \code{Style} objects vs
+\dQuote{classRepresentation} ones is academic, except that with the latter
+you can control the instantiation by providing a parameter list as the
+\code{style} argument to the \code{diff*} methods. This is not an option with
+already instantiated objects.  See examples.
+}
+
 \section{Dimensions}{
 
 
@@ -24,20 +40,23 @@ atomic vector of type \dQuote{list} with a length 3 \code{dim} attribute.
 
 The array/list dimensions are:
 \itemize{
-  \item format: the format type, typically \dQuote{raw}, \dQuote{ansi8},
-    \dQuote{ansi256}, or \dQuote{html}
-  \item brightness: whether the colors are bright or not, which allows user to
-    chose a scheme that is compatible with their console, typically:
-    \dQuote{light}, \dQuote{dark}, \dQuote{normal}
-  \item color.mode: \dQuote{rgb} for full color or \dQuote{yb} for
+  \item \code{format}: the format type, one of \dQuote{raw},
+    \dQuote{ansi8}, \dQuote{ansi256}, or \dQuote{html}
+  \item \code{brightness}: whether the colors are bright or not, which
+    allows user to chose a scheme that is compatible with their console,
+    one of: \dQuote{light}, \dQuote{dark}, \dQuote{normal}
+  \item \code{color.mode}: \dQuote{rgb} for full color or \dQuote{yb} for
     dichromats (yb stands for Yellow Blue).
 }
+
+Each of these dimensions can be specified directly via the corresponding
+parameters to the \code{diff*} methods.
 }
 
 \section{Methods}{
 
 
-The following methods are implemented:
+\code{PaletteOfStyles} objects have The following methods implemented:
 \itemize{
   \item \code{[}, \code{[<-}, \code{[[}
   \item show
@@ -56,26 +75,29 @@ may operate directly on the S4 object as you would on a regular array.
 The array/list must be fully populated with objects that are or inherit
 \code{Style}, or are \dQuote{classRepresentation} objects (i.e. those of
 the type returned by \code{\link{getClassDef}}) that extend \code{Style}.
+By default the array is populated only with \dQuote{classRepresentation}
+objects as that allows the list form of the \code{style} parameter to the
+\code{diff*} methods.  If there is a particular combination of coordinates
+that does not have a corresponding defined style a reasonable substitution
+must be provided.  For example, this package only defines \dQuote{light}
+HTML styles, so it simply uses that style for all the possible
+\code{brightness} values.
+
 There is no explicit check that the objects in the list comply with the
 descriptions implied by their coordinates, although the default object
 provided by the package does comply for the most part.  One check that is
 carried out is that any element that has a \dQuote{html} value in the
 \code{format} dimension extends \code{StyleHtml}.
 
-Every cell in the list must be populated.  If there is a particular
-combination of coordinates that does not have a corresponding defined style
-a reasonable substitution must be provided.  For example, this package
-only defines \dQuote{light} HTML styles, so it simply uses that style for
-all the possible \code{brightness} values.
-
 While the list may only have the three dimensions described, you can add
 values to the dimensions provided the values described above are the first
 ones in each of their corresponding dimensions.  For example, if you wanted
 to allow for styles that would render in \code{grid} graphics, you could
-genarate a default list with \dQuote{"grid"} value appended to the values of
-the \code{format} dimension.
+generate a default list with a \dQuote{"grid"} value appended to the values
+of the \code{format} dimension.
 }
 \examples{
+\dontrun{
 ## Look at all "ansi256" styles (assumes compatible terminal)
 PaletteOfStyles()["ansi256",,]
 ## Generate the default style object palette, and replace
@@ -93,7 +115,6 @@ diffPrint(
 )
 ## If so desired, set our new style palette as the default
 ## one; could also pass directly as argument to `diff*` funs
-\dontrun{
 options(diffobj.palette=defs)
 }
 }

@@ -1,4 +1,4 @@
-# diffobj - Compare R Objects with a Diff
+# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
 #
 # This program is free software: you can redistribute it and/or modify
@@ -532,14 +532,9 @@ trim_hunk <- function(hunk, type, line.id) {
   }
   hunk
 }
-trim_hunks <- function(x) {
-  stopifnot(is(x, "Diff"))
+trim_hunks <- function(hunk.grps, etc, tar.raw, cur.raw) {
+  stopifnot(is(etc, "Settings"))
 
-  # Originally we did not pass full `Diff` object, first steps are just to
-  # shim into legacy code
-
-  hunk.grps <- x@diffs
-  etc <- x@etc
   mode <- etc@mode
   disp.width <- etc@disp.width
   hunk.limit <- etc@hunk.limit
@@ -554,9 +549,8 @@ trim_hunks <- function(x) {
   hunk.grps.used <- min(hunk.grps.count, hunk.limit.act)
   hunk.grps <- hunk.grps[seq_len(hunk.grps.used)]
 
-  x@diffs <- hunk.grps
   lines <- get_hunk_chr_lens(
-    hunk.grps, etc=etc, tar.capt=x@tar.dat$raw, cur.capt=x@cur.dat$raw
+    hunk.grps, etc=etc, tar.capt=tar.raw, cur.capt=cur.raw
   )
   cum.len <- cumsum(abs(lines[, "len"]))
   cut.off <- -1L
@@ -627,6 +621,7 @@ trim_hunks <- function(x) {
       hunk.grps[[grp.cut]][[hunk.cut]] <- hunk.atom
       null.hunks <- seq_len(length(hunk.grps[[grp.cut]]) - hunk.cut) + hunk.cut
       hunk.grps[[grp.cut]][null.hunks] <- lapply(
+
         hunk.grps[[grp.cut]][null.hunks],
         function(h.a) {
           h.a <- trim_hunk(h.a, "cur", 0L)

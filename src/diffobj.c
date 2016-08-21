@@ -1,5 +1,5 @@
 /*
- * diffobj - Compare R Objects with a Diff
+ * diffobj - Visualize Differences Between R Objects
  * Copyright (C) 2016  Brodie Gaslam
  *
  * This program is free software: you can redistribute it and/or modify
@@ -34,10 +34,10 @@ SEXP DIFFOBJ_diffobj(SEXP a, SEXP b, SEXP max) {
   if(
     TYPEOF(max) != INTSXP || XLENGTH(max) != 1L || asInteger(max) == NA_INTEGER
   )
-    error("Logic Error: `max` not integer(1L) and not NA");
+    error("Logic Error: `max` not integer(1L) and not NA"); // nocov
 
   int max_i = asInteger(max);
-  if(max < 0) max = 0;
+  if(max_i < 0) max_i = 0;
 
   struct diff_edit *ses = (struct diff_edit *)
     R_alloc(n + m + 1, sizeof(struct diff_edit));

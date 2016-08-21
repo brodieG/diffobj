@@ -1,4 +1,5 @@
 library(diffobj)
+context("misc")
 
 test_that("trim_str", {
   a <- structure("hello", class="A", xx="B")
@@ -40,4 +41,24 @@ test_that("rle_sub", {
 
 test_that("myers_simple", {
 
+})
+
+test_that("call funs", {
+  # Failure case; assumes no S4 dispatch in testthat
+  calls <- list(quote(a()), quote(b()), quote(notafunctionblah()))
+  expect_equal(diffobj:::which_top(calls), length(calls))
+  expect_warning(diffobj:::extract_call(calls, new.env()), "Unable to find")
+})
+
+test_that("lines", {
+  old.val <- Sys.getenv("LINES", unset=NA)
+  on.exit(
+    if(is.na(old.val)) Sys.unsetenv("LINES") else Sys.setenv(LINES=old.val)
+  )
+  Sys.setenv(LINES="25")
+  expect_equal(console_lines(), 25L)
+  Sys.setenv(LINES="-25")
+  expect_equal(console_lines(), 48L)
+  Sys.unsetenv("LINES")
+  expect_equal(console_lines(), 48L)
 })

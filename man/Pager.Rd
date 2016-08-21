@@ -22,7 +22,7 @@ PagerSystem(pager = file.show, threshold = -1L, file.ext = "", ...)
 PagerSystemLess(pager = file.show, threshold = -1L, file.ext = "",
   flags = "R", ...)
 
-PagerBrowser(pager = make_blocking(browseURL), threshold = 0L,
+PagerBrowser(pager = make_blocking(view_or_browse), threshold = 0L,
   file.ext = "html", ...)
 }
 \arguments{
@@ -94,6 +94,8 @@ pager has a chance to read it.
 \examples{
 ## Assuming system pager is `less` and terminal supports ANSI ESC sequences
 ## Equivalent to running `less -RFX`
+\dontrun{
 diffPrint(letters, LETTERS, pager=PagerSystemLess(flags="RFX"))
+}
 }
 

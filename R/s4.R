@@ -1,4 +1,4 @@
-# diffobj - Compare R Objects with a Diff
+# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
 #
 # This program is free software: you can redistribute it and/or modify
@@ -159,7 +159,9 @@ setClass("Settings",
     disp.width=0L, text.width=0L, line.width=0L,
     text.width.half=0L, line.width.half=0L,
     guides=function(obj, obj.as.chr) integer(0L),
-    trim=function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr))
+    trim=function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr)),
+    ignore.white.space=TRUE, convert.hz.white.space=TRUE,
+    word.diff=TRUE, unwrap.atomic=TRUE
   ),
   validity=function(object){
     int.1L.and.pos <- c(
@@ -214,6 +216,7 @@ setMethod("sideBySide", "Settings",
   "orig", "raw", "trim", "trim.ind.start", "trim.ind.end", "comp", "eq", "fin",
   "fill", "word.ind", "tok.rat"
 )
+
 # Validate the *.dat slots of the Diff objects
 
 valid_dat <- function(x) {
@@ -254,7 +257,7 @@ valid_dat <- function(x) {
         not.list <- which(!vapply(x[list.cols], is.list, logical(1L)))
       )
     ) {
-      sprintf("element `%s` should be list", char.cols[not.char][[1L]])
+      sprintf("element `%s` should be list", list.cols[not.list][[1L]])
     } else if (
       !all(
         vapply(
@@ -267,7 +270,7 @@ valid_dat <- function(x) {
     ) {
       "element `word.ind` is not in expected format"
     } else if (
-      !is.numeric(x$tok.rat) || anyNA(x$tok.rat) || !all(x$to.rat %bw% c(0, 1))
+      !is.numeric(x$tok.rat) || anyNA(x$tok.rat) || !all(x$tok.rat %bw% c(0, 1))
     ) {
       "element `tok.rat` should be numeric with all values between 0 and 1"
     } else if (!is.logical(x$fill) || anyNA(x$fill)) {
@@ -290,6 +293,7 @@ setClass("Diff",
     capt.mode="character",        # whether in print or str mode
     hit.diffs.max="logical",
     diff.count.full="integer",         # only really used by diffStr when folding
+    hunk.heads="list",
     etc="Settings"
   ),
   prototype=list(
@@ -300,7 +304,7 @@ setClass("Diff",
   validity=function(object) {
     # Most of the validation is done by `check_args`
     if(
-      !is.chr.1L(object@capt.mode) || 
+      !is.chr.1L(object@capt.mode) ||
       ! object@capt.mode %in% c("print", "str", "chr", "deparse", "file")
     )
       return("slot `capt.mode` must be either \"print\" or \"str\"")
@@ -319,6 +323,49 @@ setClass("Diff",
       return("slot `hit.diffs.max` must be TRUE or FALSE")
 
     TRUE
+} )
+#' @rdname finalizeHtml
+
+setMethod("finalizeHtml", c("Diff"),
+  function(x, x.chr, ...) {
+    style <- x@etc@style
+    html.output <- style@html.output
+    if(html.output == "auto") {
+      html.output <- if(is(style@pager, "PagerBrowser"))
+        "page" else "diff.only"
+    }
+    if(html.output == "page") {
+      x.chr <- c(
+        make_dummy_row(x),
+        sprintf("<div id='diffobj_content'>%s</div>", x.chr),
+        sprintf( "
+          <script type=\"text/javascript\">
+            var scale=%s;
+          </script>", if(style@scale) "true" else "false"
+        )
+      )
+      rez.fun <- if(style@scale)
+        "resize_diff_out_scale" else "resize_diff_out_no_scale"
+      js <- try(readLines(style@js), silent=TRUE)
+      if(inherits(js, "try-error")) {
+        cond <- attr(js, "condition")
+        warning(
+          "Unable to read provided js file ", style@js, " (error: ",
+          paste0(conditionMessage(cond), collapse=""), ")."
+        )
+        js <- ""
+      } else {
+        js <- paste0(
+          c(
+            js,
+            sprintf(
+              "window.addEventListener('resize', %s, true);\n %s();",
+              rez.fun, rez.fun
+          ) ),
+          collapse="\n"
+      ) }
+    } else js <- ""
+    callNextMethod(x, x.chr, js=js, ...)
 } )
 # Helper fun used by `show` for Diff and DiffSummary objects
 
@@ -418,3 +465,27 @@ setClass(
     TRUE
   }
 )
+
+# Run validity on S4 objects
+#
+# Intended for use within check_args; unfortunately can't use complete=TRUE
+# because we are using ANY slots with S3 objects there-in, which causes
+# the complete check to freak out with "trying to get slot 'package' from..."
+#
+# @param x object to test
+# @param err.tpl a string used with sprintf, must contain two \dQuote{%s} for
+#   respectively \code{arg.name} and the class name
+# @param arg.name argument the object is supposed to come from
+# @param err error reporting function
+
+valid_object <- function(
+  x, arg.name, err, err.tpl="Argument `%s` is an invalid `%s` object because:"
+) {
+  if(isS4(x)) {
+    if(!isTRUE(test <- validObject(x, test=TRUE))) {
+      err(
+        paste(
+          sprintf(err.tpl, arg.name, class(x)[[1L]]),
+          strwrap(test, initial="- ", prefix="  "),
+          collapse="\n"
+) ) } } }

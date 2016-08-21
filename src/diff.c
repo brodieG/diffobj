@@ -3,7 +3,7 @@
  * Allen implementation of the Myers diff algorithm.  See next comment blocks for
  * original copyright and license information.
  *
- * diffobj - Compare R Objects with a Diff
+ * diffobj - Diffs for R Objects
  * Copyright (C) 2016  Brodie Gaslam
  *
  * This program is free software: you can redistribute it and/or modify
@@ -126,10 +126,12 @@ _setv(struct _ctx *ctx, int k, int r, int val)
   j = k <= 0 ? -k * 4 + r : k * 4 + (r - 2);
 
   if(j > ctx->bufmax || j < 0) {
+    // nocov start
     error(
       "Logic Error: exceeded buffer size (%d vs %d); contact maintainer.",
       j, ctx->bufmax
     );
+    // nocov end
   }
   i = ctx->buf + j;
   *i = val;
@@ -145,12 +147,14 @@ _v(struct _ctx *ctx, int k, int r)
   int j;
 
   j = k <= 0 ? -k * 4 + r : k * 4 + (r - 2);
-  if(j > ctx->bufmax || j < 0)
+  if(j > ctx->bufmax || j < 0) {
+    // nocov start
     error(
       "Logic Error: exceeded buffer 2 size (%d vs %d); contact maintainer.",
       j, ctx->bufmax
     );
-
+    // nocov end
+  }
   int bufval = *(ctx->buf + j);
   return bufval;
 }
@@ -273,7 +277,8 @@ _find_faux_snake(
   int x_sn = x_f, y_sn = y_f;
 
   /* initialize the fake snake */
-  if(max_steps < 0) error("Logic Error: fake snake step overflow? Contact maintainer.");
+  if(max_steps < 0)
+    error("Logic Error: fake snake step overflow? Contact maintainer."); // nocov
 
   diff_op * faux_snake_tmp = (diff_op*) R_alloc(max_steps, sizeof(diff_op));
   for(int i = 0; i < max_steps; i++) *(faux_snake_tmp + i) = DIFF_NULL;
@@ -283,7 +288,7 @@ _find_faux_snake(
    */
   while(x_sn < x_r || y_sn < y_r) {
     if(x_sn > x_r || y_sn > y_r) {
-      error("Logic Error: Exceeded buffer for finding fake snake; contact maintainer.");
+      error("Logic Error: Exceeded buffer for finding fake snake; contact maintainer.");  // nocov
     }
     /* check to see if we could possibly move on a diagonal, and do so
      * if possible, if not alternate going down and right*/
@@ -304,7 +309,7 @@ _find_faux_snake(
       *(faux_snake_tmp + steps) = DIFF_INSERT;
       step_dir = !step_dir;
     } else {
-      error("Logic Error: unexpected outcome in snake creation process; contact maintainer");
+      error("Logic Error: unexpected outcome in snake creation process; contact maintainer"); // nocov
     }
     steps++;
   }
@@ -313,7 +318,7 @@ _find_faux_snake(
    * to stop reading it
    */
   if(x_sn != x_r || y_sn != y_r || steps >= max_steps) {
-    error("Logic Error: faux snake process failed; contact maintainer.");
+    error("Logic Error: faux snake process failed; contact maintainer."); // nocov
   }
   /* modify the pointer to the pointer so we can return in by ref */
 
@@ -433,7 +438,7 @@ _find_middle_snake(
       }
     }
   }
-  error("Logic Error: failed finding middle snake, contact maintainer");
+  error("Logic Error: failed finding middle snake, contact maintainer"); // nocov
 }
 /*
  * Update edit script atom with newest info, we record the operation, and the
@@ -451,12 +456,12 @@ _edit(struct _ctx *ctx, int op, int off, int len)
                    */
   e = ctx->ses + ctx->si;
   if(ctx->si > ctx->simax)
-    error("Logic Error: exceed edit script length; contact maintainer.");
+    error("Logic Error: exceed edit script length; contact maintainer."); // nocov
   if (e->op != op) {
     if (e->op) {
       ctx->si++;
       if(ctx->si > ctx->simax)
-        error("Logic Error: exceed edit script length; contact maintainer.");
+        error("Logic Error: exceed edit script length; contact maintainer."); // nocov
       e = ctx->ses + ctx->si;
     }
     e->op = op;
@@ -481,7 +486,7 @@ _edit_faux(struct _ctx *ctx, diff_op * faux_snake, int aoff, int boff) {
       case DIFF_INSERT: off = boff++;
         break;
       default:
-        error("Logic Error: unexpected faux snake instruction; contact maintainer");
+        error("Logic Error: unexpected faux snake instruction; contact maintainer"); // nocov
     }
     /* use x (aoff) offset for MATCH and DELETE, y offset for INSERT */
     _edit(ctx, op, off, 1);
@@ -531,9 +536,11 @@ _ses(
 
     d = _find_middle_snake(a, aoff, n, b, boff, m, ctx, &ms, &faux_snake);
     if (d == -1) {
+      // nocov start
       error(
         "Logic error: failed trying to find middle snake, contact maintainer."
       );
+      // nocov end
     } else if (ctx->ses == NULL) {
       return d;
     } else if (d > 1) {
@@ -551,7 +558,7 @@ _ses(
       /* Beginning stub */
 
       if (_ses(a, aoff, ms.x, b, boff, ms.y, ctx) == -1) {
-        error("Logic error: failed trying to run ses; contact maintainer.");
+        error("Logic error: failed trying to run ses; contact maintainer.");  // nocov
       }
       /* Now record middle snake
        *
@@ -579,7 +586,7 @@ _ses(
       n -= ms.u;
       m -= ms.v;
       if (_ses(a, aoff, n, b, boff, m, ctx) == -1) {
-        error("Logic error: failed trying to run ses 2; contact maintainer.");
+        error("Logic error: failed trying to run ses 2; contact maintainer.");  // nocov
       }
     } else {
       int x = ms.x;
@@ -617,7 +624,7 @@ _ses(
         }
       } else {
         // Should never get here since this should be a D 2 case
-        error("Very special case n %d m %d aoff %d boff %d u %d\n", n, m, aoff, boff, ms.u);
+        error("Very special case n %d m %d aoff %d boff %d u %d\n", n, m, aoff, boff, ms.u);  // nocov
       }
     }
   }
@@ -635,7 +642,7 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
   void *context, int dmax, struct diff_edit *ses, int *sn
 ) {
   if(n < 0 || m < 0)
-    error("Logic Error: negative lengths; contact maintainer.");
+    error("Logic Error: negative lengths; contact maintainer.");  // nocov
   struct _ctx ctx;
   int d, x, y;
   struct diff_edit *e = NULL;
@@ -643,7 +650,7 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
   if(delta < 0) delta = -delta;
   int bufmax = 4 * (n + m + delta) + 1;  // see _setv
   if(bufmax < n || bufmax < m)
-    error("Logic Error: exceeded maximum allowable combined string length.");
+    error("Logic Error: exceeded maximum allowable combined string length.");  // nocov
 
   int *tmp = (int *) R_alloc(bufmax, sizeof(int));
   for(int i = 0; i < bufmax; i++) *(tmp + i) = 0;
@@ -663,7 +670,7 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
   /* initialize first ses edit struct*/
   if (ses && sn) {
     if ((e = ses) == NULL) {
-      error("Logic Error: specifying sn, but ses is NULL, contact maintainer.");
+      error("Logic Error: specifying sn, but ses is NULL, contact maintainer.");  // nocov
     }
     e->op = 0;
   }
@@ -679,7 +686,7 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
   ) {
     x++; y++;
     if(boff + y < boff + y - 1 || aoff + x < aoff + x - 1)
-      error("Logic Error: exceeded int size 45823; contact maintainer");
+      error("Logic Error: exceeded int size 45823; contact maintainer");  // nocov
   }
   _edit(&ctx, DIFF_MATCH, aoff, x);
 

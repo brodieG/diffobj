@@ -1,5 +1,11 @@
 language: r
+r:
+  - oldrel
+  - release
+  - devel
+
 sudo: false
+
 cache: packages
 
 branches:
@@ -9,4 +15,4 @@ branches:
     - rc
 
 after_success:
-  - Rscript -e 'covr::codecov()'
+  - Rscript covr.R
