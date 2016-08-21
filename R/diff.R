@@ -138,7 +138,7 @@ make_diff_fun <- function(capt_fun) {
 #' \code{vignette("diffobj")} and the examples.  Almost all aspects of how the
 #' diffs are computed and displayed are controllable through the \code{diff*}
 #' methods parameters.  This results in a lengthy parameter list, but in
-#' practice, you should rarely need to adjust anything past the
+#' practice you should rarely need to adjust anything past the
 #' \code{color.mode} parameter.  Default values are specified
 #' as options so that users may configure diffs in a persistent manner.
 #' \code{\link{gdo}} is a shorthand function to access \code{diffobj} options.
