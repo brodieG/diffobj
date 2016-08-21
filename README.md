@@ -1,4 +1,4 @@
-# diffobj - Visualize Differences Between R Objects
+# diffobj - Diffs for R Objects
 
 <a href='https://travis-ci.org/brodieG/diffobj'><img src='https://travis-ci.org/brodieG/diffobj.svg?branch=master'></a>
 <a href='https://codecov.io/github/brodieG/diffobj?branch=master'>
