@@ -1,4 +1,4 @@
-# diffobj - Compare R Objects with a Diff
+# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
 #
 # This program is free software: you can redistribute it and/or modify
@@ -80,7 +80,9 @@
 #' @examples
 #' ## Assuming system pager is `less` and terminal supports ANSI ESC sequences
 #' ## Equivalent to running `less -RFX`
+#' \dontrun{
 #' diffPrint(letters, LETTERS, pager=PagerSystemLess(flags="RFX"))
+#' }
 
 setClass(
   "Pager",

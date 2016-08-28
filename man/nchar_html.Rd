@@ -13,8 +13,9 @@ nchar_html(x)
 integer(length(x)) with number of characters of each element
 }
 \description{
-Very simple implementation that does not properly count white space width,
-will fail if there are any \dQuote{>} in the HTML that are not closing
-tags, and assumes that HTML entites are all one character wide.
+Very simple implementation that will fail if there are any \dQuote{>} in the
+HTML that are not closing tags, and assumes that HTML entities are all one
+character wide.  Also, spaces are counted as one width each because the
+HTML output is intended to be displayed inside \code{<PRE>} tags.
 }
 

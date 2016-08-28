@@ -89,7 +89,7 @@ color schemes that rely primarily on those colors to style diffs.
 Those colors can be easily distinguished by individuals with
 limited red-green color sensitivity.  See \code{\link{PaletteOfStyles}} for
 details and limitations.  Also offers the same advanced usage as the
-\code{brightness} paramter.}
+\code{brightness} parameter.}
 
 \item{word.diff}{TRUE (default) or FALSE, whether to run a secondary word
 diff on the in-hunk diferences}
@@ -98,7 +98,7 @@ diff on the in-hunk diferences}
 \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
 pager is used to display the diff output.  If \dQuote{on} will use the
 pager associated with the \code{\link{Style}} specified via the
-\code{\link{style}} parameters.  if \dQuote{auto} will behave
+\code{\link{style}} parameters.  If \dQuote{auto} will behave
 like \dQuote{on} but only if in interactive mode.  If the pager is
 enabled, default behavior is to pipe output to \code{\link{file.show}} if
 output is taller than the estimated terminal height and your terminal
@@ -112,7 +112,7 @@ arguments and requires no more than two arguments.  Guides
 are additional context lines that are not strictly part of a hunk, but
 provide important contextual data (e.g. column headers).  If TRUE, the
 context lines are shown in addition to the normal diff output, typically
-in a different color to inidicate they are not part of the hunk.  If a
+in a different color to indicate they are not part of the hunk.  If a
 function, the function should accept as the first argument the object
 being diffed, and the second the character representation of the object.
 The function should return the indices of the elements of the second
@@ -196,7 +196,9 @@ words in a line of \code{target} that must be matched in a line of
 displayed (defaults to 0.25), or an \code{\link{AlignThreshold}} object.
 Set to \code{1} to turn off alignment which will cause all lines in a hunk
 from \code{target} to show up first, followed by all lines from
-\code{current}.}
+\code{current}.  Note that in order to be aligned lines must meet the
+threshold and have at least 3 matching alphanumeric characters (see
+\code{\link{AlignThreshold}} for details).}
 
 \item{style}{\dQuote{auto}, a \code{\link{Style}} object, or a list.
 \dQuote{auto} by default.  If a \code{Style} object, will override the
@@ -224,7 +226,7 @@ value of \code{\link{par_frame}}.}
 interactive mode, defaults to the return value of
 \code{\link{interactive}}.  If in interactive mode, pager will be used if
 \code{pager} is \dQuote{auto}, and if ANSI styles are not supported and
-\code{style} is \dQuote{auto}, output will be send to viewer/browser as 
+\code{style} is \dQuote{auto}, output will be send to viewer/browser as
 HTML.}
 
 \item{term.colors}{integer(1L) how many ANSI colors are supported by the
@@ -262,7 +264,7 @@ for all the \code{diff*} methods.  For a high level introduction see
 \code{vignette("diffobj")} and the examples.  Almost all aspects of how the
 diffs are computed and displayed are controllable through the \code{diff*}
 methods parameters.  This results in a lengthy parameter list, but in
-practice, you should rarely need to adjust anything past the
+practice you should rarely need to adjust anything past the
 \code{color.mode} parameter.  Default values are specified
 as options so that users may configure diffs in a persistent manner.
 \code{\link{gdo}} is a shorthand function to access \code{diffobj} options.
@@ -271,7 +273,7 @@ This and other \code{diff*} functions are S4 generics that dispatch on the
 \code{target} and \code{current} parameters.  Methods with signature
 \code{c("ANY", "ANY")} are defined and act as the default methods.  You can
 use this to set up methods to pre-process or set specific parameters for
-selected clases that can then \code{callNextMethod} for the actual diff.
+selected classes that can then \code{callNextMethod} for the actual diff.
 Note that while the generics include \code{...} as an argument, none of the
 methods do.
 }

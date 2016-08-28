@@ -9,8 +9,9 @@ rdsf <- function(x)
 library(diffobj)
 
 test_that("lm models", {
-
-  expect_equal_to_reference(as.character(diffStr(mdl1, mdl2)), rdsf(100))
+  # formula display changed
+  if(R.Version()$major >= 3 && R.Version()$minor >= "3.1")
+    expect_equal_to_reference(as.character(diffStr(mdl1, mdl2)), rdsf(100))
   # Too strict a line limit, can't get under
   expect_equal_to_reference(
     as.character(diffStr(mdl1[7], mdl2[7], line.limit=10)), rdsf(200)
@@ -26,12 +27,15 @@ test_that("Simple structure", {
   expect_equal_to_reference(as.character(diffStr(iris.c, iris.s)), rdsf(400))
 })
 test_that("Strict width", {
-  expect_equal_to_reference(
-    as.character(
-      diffStr(mdl1, mdl2, extra=list(strict.width="wrap"), line.limit=30)
-    ),
-    rdsf(500)
-  )
+  # formula display changed
+  if(R.Version()$major >= 3 && R.Version()$minor >= "3.1") {
+    expect_equal_to_reference(
+      as.character(
+        diffStr(mdl1, mdl2, extra=list(strict.width="wrap"), line.limit=30)
+      ),
+      rdsf(500)
+    )
+  }
 })
 test_that("max.level", {
   expect_equal_to_reference(

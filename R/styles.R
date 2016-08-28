@@ -1,4 +1,4 @@
-# diffobj - Compare R Objects with a Diff
+# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
 #
 # This program is free software: you can redistribute it and/or modify
@@ -246,7 +246,7 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' Customize Appearance of Diff
 #'
 #' S4 objects that expose the formatting controls for \code{Diff}
-#' objects.  Many predifined formats are defined as classes that extend the
+#' objects.  Many predefined formats are defined as classes that extend the
 #' base \code{Style} class.  You may fine tune styles by either extending
 #' the pre-defined classes, or modifying an instance thereof.
 #'
@@ -401,6 +401,14 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' \code{style} parameter of the \code{\link[=diffPrint]{diff*}} methods.
 #' See examples.
 #'
+#' @section New Classes:
+#'
+#' You can in theory create entirely new classes that extent \code{Style}.  For
+#' example you could generate a class that renders the diff in \code{grid}
+#' graphics.  Note however that we have not tested such extensions and it is
+#' possible there is some embedded code that will misbehave with such a new
+#' class.
+#'
 #' @rdname Style
 #' @export Style
 #' @exportClass Style
@@ -442,6 +450,7 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #'   used for scaling output to viewports.
 #' @return Style S4 object
 #' @examples
+#' \dontrun{
 #' ## Create a new style based on existing style by changing
 #' ## gutter symbols and guide color; see `?StyleFuns` and
 #' ## `?StyleText` for a full list of adjustable elements
@@ -473,6 +482,7 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' as.character(
 #'   diffPrint(1:5, 2:6, format="html", style=list(html.output="diff.only"))
 #' )
+#' }
 
 Style <- setClass("Style", contains="VIRTUAL",
   slots=c(
@@ -938,7 +948,7 @@ setMethod("initialize", "StyleHtmlLightYb",
 #'
 #' For the most part the distinction between actual \code{Style} objects vs
 #' \dQuote{classRepresentation} ones is academic, except that with the latter
-#' you can control the instatiation by providing a parameter list as the
+#' you can control the instantiation by providing a parameter list as the
 #' \code{style} argument to the \code{diff*} methods. This is not an option with
 #' already instantiated objects.  See examples.
 #'
@@ -1001,12 +1011,13 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' values to the dimensions provided the values described above are the first
 #' ones in each of their corresponding dimensions.  For example, if you wanted
 #' to allow for styles that would render in \code{grid} graphics, you could
-#' genarate a default list with a \dQuote{"grid"} value appended to the values
+#' generate a default list with a \dQuote{"grid"} value appended to the values
 #' of the \code{format} dimension.
 #'
 #' @export PaletteOfStyles
 #' @exportClass PaletteOfStyles
 #' @examples
+#' \dontrun{
 #' ## Look at all "ansi256" styles (assumes compatible terminal)
 #' PaletteOfStyles()["ansi256",,]
 #' ## Generate the default style object palette, and replace
@@ -1024,7 +1035,6 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' )
 #' ## If so desired, set our new style palette as the default
 #' ## one; could also pass directly as argument to `diff*` funs
-#' \dontrun{
 #' options(diffobj.palette=defs)
 #' }
 
@@ -1183,10 +1193,6 @@ setMethod("dimnames", "PaletteOfStyles", function(x) dimnames(x@data))
 
 # Matrices used for show methods for styles
 
-#' Unexported Matrix Used for Sample Display
-#'
-#' @aliases .mx2
-
 .mx1 <- .mx2 <- matrix(1:50, ncol=2)
 .mx2[c(6L, 40L)] <- 99L
 .mx2 <- .mx2[-7L,]
@@ -1203,7 +1209,9 @@ setMethod("dimnames", "PaletteOfStyles", function(x) dimnames(x@data))
 #' @param object a \code{Style} S4 object
 #' @return NULL, invisibly
 #' @examples
+#' \dontrun{
 #' show(StyleAnsi256LightYb())  # assumes ANSI colors supported
+#' }
 
 setMethod("show", "Style",
   function(object) {
@@ -1215,8 +1223,7 @@ setMethod("show", "Style",
     )
     d.txt <- capture.output(show(d.p))
     if(is(object, "Ansi")) {
-      old.crayon.opt <-
-        options(crayon.enabled=TRUE)
+      old.crayon.opt <- options(crayon.enabled=TRUE)
       on.exit(options(old.crayon.opt), add=TRUE)
       pad.width <- max(object@nchar.fun(d.txt))
       d.txt <- rpad(d.txt, width=pad.width)

@@ -82,7 +82,7 @@ Style S4 object
 }
 \description{
 S4 objects that expose the formatting controls for \code{Diff}
-objects.  Many predifined formats are defined as classes that extend the
+objects.  Many predefined formats are defined as classes that extend the
 base \code{Style} class.  You may fine tune styles by either extending
 the pre-defined classes, or modifying an instance thereof.
 }
@@ -244,7 +244,18 @@ pick the specific style.  You can do so by passing a list to the
 \code{style} parameter of the \code{\link[=diffPrint]{diff*}} methods.
 See examples.
 }
+
+\section{New Classes}{
+
+
+You can in theory create entirely new classes that extent \code{Style}.  For
+example you could generate a class that renders the diff in \code{grid}
+graphics.  Note however that we have not tested such extensions and it is
+possible there is some embedded code that will misbehave with such a new
+class.
+}
 \examples{
+\dontrun{
 ## Create a new style based on existing style by changing
 ## gutter symbols and guide color; see `?StyleFuns` and
 ## `?StyleText` for a full list of adjustable elements
@@ -276,5 +287,6 @@ diffPrint(letters, letters[-5], style=my.style)
 as.character(
   diffPrint(1:5, 2:6, format="html", style=list(html.output="diff.only"))
 )
+}
 }
 

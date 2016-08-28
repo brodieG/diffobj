@@ -1,11 +1,11 @@
-# diffobj - Compare R Objects with a Diff
+# diffobj - Diffs for R Objects
 
 <a href='https://travis-ci.org/brodieG/diffobj'><img src='https://travis-ci.org/brodieG/diffobj.svg?branch=master'></a>
 <a href='https://codecov.io/github/brodieG/diffobj?branch=master'>
   <img src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=master'>
 </a>
 
-Colorized diffs to quickly identify _and understand_ differences between R objects.
+Generate a colorized diff of two R objects for an intuitive visualization of their differences.
 
 See [vignette](http://htmlpreview.github.io/?https://raw.githubusercontent.com/brodieG/diffobj/master/inst/doc/diffobj.html) for details.
 
@@ -15,7 +15,7 @@ If your terminal supports formatting through ANSI escape sequences, `diffobj` wi
 
 ![Color Scheme Examples](vignettes/ansi256brightness.png)
 
-If ANSI support is not detected, output will be colored with HTML/CSS and sent to your browser.
+If ANSI support is not detected, output will be colored with HTML/CSS and sent to the IDE viewport if available or to your browser otherwise.
 
 ## Installation
 

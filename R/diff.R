@@ -1,4 +1,4 @@
-# diffobj - Compare R Objects with a Diff
+# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
 #
 # This program is free software: you can redistribute it and/or modify
@@ -13,10 +13,11 @@
 #
 # Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
 
-#' Compare R Objects with a Diff
+
+#' Diffs for R Objects
 #'
-#' Colorized diffs to quickly identify _and understand_ differences between R
-#' objects.  See `vignette("diffobj")` for details.
+#' Generate a colorized diff of two R objects for an intuitive visualization of
+#' their differences.  See `vignette(package="diffobj", "diffobj")` for details.
 #'
 #' @import crayon
 #' @import methods
@@ -29,7 +30,7 @@
 NULL
 
 # Because all these functions are so similar, we have constructed them with a
-# function factory.  This allows us to easily maintain consisten formals during
+# function factory.  This allows us to easily maintain consistent formals during
 # initial development process when they have not been set in stone yet.
 
 make_diff_fun <- function(capt_fun) {
@@ -137,7 +138,7 @@ make_diff_fun <- function(capt_fun) {
 #' \code{vignette("diffobj")} and the examples.  Almost all aspects of how the
 #' diffs are computed and displayed are controllable through the \code{diff*}
 #' methods parameters.  This results in a lengthy parameter list, but in
-#' practice, you should rarely need to adjust anything past the
+#' practice you should rarely need to adjust anything past the
 #' \code{color.mode} parameter.  Default values are specified
 #' as options so that users may configure diffs in a persistent manner.
 #' \code{\link{gdo}} is a shorthand function to access \code{diffobj} options.
@@ -146,7 +147,7 @@ make_diff_fun <- function(capt_fun) {
 #' \code{target} and \code{current} parameters.  Methods with signature
 #' \code{c("ANY", "ANY")} are defined and act as the default methods.  You can
 #' use this to set up methods to pre-process or set specific parameters for
-#' selected clases that can then \code{callNextMethod} for the actual diff.
+#' selected classes that can then \code{callNextMethod} for the actual diff.
 #' Note that while the generics include \code{...} as an argument, none of the
 #' methods do.
 #'
@@ -207,14 +208,14 @@ make_diff_fun <- function(capt_fun) {
 #'   Those colors can be easily distinguished by individuals with
 #'   limited red-green color sensitivity.  See \code{\link{PaletteOfStyles}} for
 #'   details and limitations.  Also offers the same advanced usage as the
-#'   \code{brightness} paramter.
+#'   \code{brightness} parameter.
 #' @param word.diff TRUE (default) or FALSE, whether to run a secondary word
 #'   diff on the in-hunk diferences
 #' @param pager one of \dQuote{auto} (default), \dQuote{on},
 #'   \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
 #'   pager is used to display the diff output.  If \dQuote{on} will use the
 #'   pager associated with the \code{\link{Style}} specified via the
-#'   \code{\link{style}} parameters.  if \dQuote{auto} will behave
+#'   \code{\link{style}} parameters.  If \dQuote{auto} will behave
 #'   like \dQuote{on} but only if in interactive mode.  If the pager is
 #'   enabled, default behavior is to pipe output to \code{\link{file.show}} if
 #'   output is taller than the estimated terminal height and your terminal
@@ -227,7 +228,7 @@ make_diff_fun <- function(capt_fun) {
 #'   are additional context lines that are not strictly part of a hunk, but
 #'   provide important contextual data (e.g. column headers).  If TRUE, the
 #'   context lines are shown in addition to the normal diff output, typically
-#'   in a different color to inidicate they are not part of the hunk.  If a
+#'   in a different color to indicate they are not part of the hunk.  If a
 #'   function, the function should accept as the first argument the object
 #'   being diffed, and the second the character representation of the object.
 #'   The function should return the indices of the elements of the second
@@ -326,7 +327,7 @@ make_diff_fun <- function(capt_fun) {
 #'   interactive mode, defaults to the return value of
 #'   \code{\link{interactive}}.  If in interactive mode, pager will be used if
 #'   \code{pager} is \dQuote{auto}, and if ANSI styles are not supported and
-#'   \code{style} is \dQuote{auto}, output will be send to viewer/browser as 
+#'   \code{style} is \dQuote{auto}, output will be send to viewer/browser as
 #'   HTML.
 #' @param term.colors integer(1L) how many ANSI colors are supported by the
 #'   terminal.  This variable is provided for when
@@ -409,7 +410,9 @@ setMethod("diffStr", signature=c("ANY", "ANY"), make_diff_fun(capt_str))
 #' @export
 #' @rdname diffChr
 #' @examples
+#' \dontrun{
 #' diffChr(LETTERS[1:5], LETTERS[2:6])
+#' }
 
 setGeneric("diffChr", function(target, current, ...) standardGeneric("diffChr"))
 
@@ -432,7 +435,9 @@ setMethod("diffChr", signature=c("ANY", "ANY"), make_diff_fun(capt_chr))
 #' @export
 #' @rdname diffDeparse
 #' @examples
+#' \dontrun{
 #' diffDeparse(matrix(1:9, 3), 1:9)
+#' }
 
 setGeneric(
   "diffDeparse", function(target, current, ...) standardGeneric("diffDeparse")
@@ -458,10 +463,12 @@ setMethod("diffDeparse", signature=c("ANY", "ANY"), make_diff_fun(capt_deparse))
 #' @export
 #' @rdname diffFile
 #' @examples
+#' \dontrun{
 #' url.base <- "https://raw.githubusercontent.com/wch/r-source"
 #' f1 <- file.path(url.base, "29f013d1570e1df5dc047fb7ee304ff57c99ea68/README")
 #' f2 <- file.path(url.base, "daf0b5f6c728bd3dbcd0a3c976a7be9beee731d9/README")
 #' diffFile(f1, f2)
+#' }
 
 setGeneric(
   "diffFile", function(target, current, ...) standardGeneric("diffFile")
@@ -491,6 +498,7 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 #' @export
 #' @rdname diffCsv
 #' @examples
+#' \dontrun{
 #' iris.2 <- iris
 #' iris.2$Sepal.Length[5] <- 99
 #' f1 <- tempfile()
@@ -499,6 +507,7 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 #' write.csv(iris.2, f2, row.names=FALSE)
 #' diffCsv(f1, f2)
 #' unlink(c(f1, f2))
+#' }
 
 setGeneric(
   "diffCsv", function(target, current, ...) standardGeneric("diffCsv")

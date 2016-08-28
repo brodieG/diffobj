@@ -94,6 +94,8 @@ pager has a chance to read it.
 \examples{
 ## Assuming system pager is `less` and terminal supports ANSI ESC sequences
 ## Equivalent to running `less -RFX`
+\dontrun{
 diffPrint(letters, LETTERS, pager=PagerSystemLess(flags="RFX"))
+}
 }
 
