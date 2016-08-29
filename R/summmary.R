@@ -53,6 +53,8 @@ setClass("DiffSummary",
 #'   to \code{getOption("width")}
 #' @param ... unused, for compatibility with generic
 #' @return a \code{DiffSummary} object
+#' ## `pager="off"` for CRAN compliance; you may omit in normal use
+#' summary(diffChr(letters, letters[-c(5, 15)], format="raw", pager="off"))
 
 setMethod("summary", "Diff",
   function(
@@ -100,7 +102,10 @@ setMethod("finalizeHtml", c("DiffSummary"),
 #' @param ... not used, for compatibility with generic
 #' @return the summary as a character vector intended to be \code{cat}ed to
 #'   terminal
-
+#' @examples
+#' as.character(
+#'   summary(diffChr(letters, letters[-c(5, 15)], format="raw", pager="off"))
+#' )
 setMethod("as.character", "DiffSummary",
   function(x, ...) {
     style <- x@etc@style
@@ -304,6 +309,9 @@ setMethod("as.character", "DiffSummary",
 #'
 #' @param object a \code{DiffSummary} object
 #' @return NULL, invisbly
+#' show(
+#'   summary(diffChr(letters, letters[-c(5, 15)], format="raw", pager="off"))
+#' )
 
 setMethod("show", "DiffSummary",
   function(object) {

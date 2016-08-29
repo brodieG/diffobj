@@ -19,4 +19,9 @@ the summary as a character vector intended to be \code{cat}ed to
 \description{
 Generate Character Representation of DiffSummary Object
 }
+\examples{
+as.character(
+  summary(diffChr(letters, letters[-c(5, 15)], format="raw", pager="off"))
+)
+}
 

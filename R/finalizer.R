@@ -19,7 +19,7 @@ NULL
 
 #' Finalizing Methods for HTML Output
 #'
-#' Use as the \code{finalizer} slot to \code{\link{StyleHtml}} objects to wrap
+#' Used as the \code{finalizer} slot to \code{\link{StyleHtml}} objects to wrap
 #' character output prior to output to device.  Used primarily by styles that
 #' output to HTML to properly configure HTML page structure, including injecting
 #' JS, CSS, etc..

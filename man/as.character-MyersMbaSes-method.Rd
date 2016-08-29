@@ -21,4 +21,5 @@ Generate a character representation of Shortest Edit Sequence
 \seealso{
 \code{\link{ses}}
 }
+\keyword{internal}
 

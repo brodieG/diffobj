@@ -12,6 +12,7 @@
 }
 \value{
 list the dimension names
+dimnames(PaletteOfStyles())
 }
 \description{
 Retrieve Dimnames for PaletteOfStyles Objects

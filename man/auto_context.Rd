@@ -14,10 +14,20 @@ auto_context(min = getOption("diffobj.context.auto.min"),
 }
 \value{
 S4 object containing configuration parameters, for use as the
-  \code{context} or parameter value in \code{\link[=diffPrint]{diff*}} methods
+  \code{context} or parameter value in \code{\link[=diffPrint]{diff*}} 
+  methods
 }
 \description{
 Helper functions to help define parameters for selecting an appropriate
 \code{context} value.
+}
+\examples{
+## `pager="off"` for CRAN compliance; you may omit in normal use
+diffChr(letters, letters[-13], context=auto_context(0, 3), pager="off")
+diffChr(letters, letters[-13], context=auto_context(0, 10), pager="off")
+diffChr(
+  letters, letters[-13], context=auto_context(0, 10), line.limit=3L,
+  pager="off"
+)
 }
 

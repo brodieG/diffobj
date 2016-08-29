@@ -18,4 +18,7 @@ HTML that are not closing tags, and assumes that HTML entities are all one
 character wide.  Also, spaces are counted as one width each because the
 HTML output is intended to be displayed inside \code{<PRE>} tags.
 }
+\examples{
+nchar_html("<a href='http:www.domain.com'>hello</a>")
+}
 

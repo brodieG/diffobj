@@ -177,7 +177,7 @@ and the second the number of lines to truncate to, which should be fewer
 than the threshold.  Note that this parameter is implemented on a
 best-efforts basis and should not be relied on to produce the exact
 number of lines requested.  If you want a specific number of lines use
-\code{[} or \code{head}/\code{tail}.  One advantage of \code{line.limit}
+\code{[} or \code{head} / \code{tail}.  One advantage of \code{line.limit}
 over these other options is that you can combine it with
 \code{context="auto"} and auto \code{max.level} selection (the latter for
 \code{diffStr}), which allows the diff to dynamically adjust to make best
@@ -219,7 +219,7 @@ details.}
 
 \item{frame}{an environment to use as the evaluation frame for the
 \code{print/show/str}, calls and for \code{diffObj}, the evaluation frame
-for the \code{diffPrint}/\code{diffStr} calls.  Defaults to the return
+for the \code{diffPrint} / \code{diffStr} calls.  Defaults to the return
 value of \code{\link{par_frame}}.}
 
 \item{interactive}{TRUE or FALSE whether the function is being run in
@@ -264,6 +264,10 @@ objects with nested attributes, and also due to the relative slowness of
 \code{str}, this function simulates the effect of \code{max.level} by hiding
 nested lines instead of repeatedly calling \code{str} with varying values of
 \code{max.level}.
+}
+\examples{
+## `pager="off"` for CRAN compliance; you may omit in normal use
+with(mtcars, diffStr(lm(mpg ~ hp)$qr, lm(mpg ~ disp)$qr, pager="off"))
 }
 \seealso{
 \code{\link{diffPrint}} for details on the \code{diff*} functions,

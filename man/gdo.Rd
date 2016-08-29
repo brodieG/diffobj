@@ -13,4 +13,7 @@ the \dQuote{diffobj.} prefix}
 \description{
 \code{gdo(x)} is equivalent to \code{getOption(sprintf("diffobj.\%s", x))}.
 }
+\examples{
+gdo("format")
+}
 

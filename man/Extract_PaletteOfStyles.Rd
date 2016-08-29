@@ -40,6 +40,12 @@ a \code{\link{Style}} \code{ClassRepresentation} object or
 \description{
 Extract/Replace a Style Class or Object from PaletteOfStyles
 }
+\examples{
+pal <- PaletteOfStyles()
+pal[["ansi256", "light", "rgb"]]
+pal["ansi256", "light", ]
+pal["ansi256", "light", "rgb"] <- list(StyleAnsi8NeutralRgb())
+}
 \seealso{
 \code{\link{diffPrint}} for explanations of \code{format},
   \code{brightness}, and \code{color.mode}

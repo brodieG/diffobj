@@ -26,6 +26,11 @@ a particular selection under specific circumstances.  Instead, use
 \code{\link{diffPrint}} or \code{\link{diffStr}} if you require one or the
 other output.
 }
+\examples{
+## `pager="off"` for CRAN compliance; you may omit in normal use
+diffObj(letters, c(letters[1:10], LETTERS[11:26]), pager="off")
+with(mtcars, diffObj(lm(mpg ~ hp)$qr, lm(mpg ~ disp)$qr, pager="off"))
+}
 \seealso{
 \code{\link{diffPrint}} for details on the \code{diff*} methods,
   \code{\link{diffStr}},

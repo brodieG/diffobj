@@ -178,7 +178,7 @@ and the second the number of lines to truncate to, which should be fewer
 than the threshold.  Note that this parameter is implemented on a
 best-efforts basis and should not be relied on to produce the exact
 number of lines requested.  If you want a specific number of lines use
-\code{[} or \code{head}/\code{tail}.  One advantage of \code{line.limit}
+\code{[} or \code{head} / \code{tail}.  One advantage of \code{line.limit}
 over these other options is that you can combine it with
 \code{context="auto"} and auto \code{max.level} selection (the latter for
 \code{diffStr}), which allows the diff to dynamically adjust to make best
@@ -220,7 +220,7 @@ details.}
 
 \item{frame}{an environment to use as the evaluation frame for the
 \code{print/show/str}, calls and for \code{diffObj}, the evaluation frame
-for the \code{diffPrint}/\code{diffStr} calls.  Defaults to the return
+for the \code{diffPrint} / \code{diffStr} calls.  Defaults to the return
 value of \code{\link{par_frame}}.}
 
 \item{interactive}{TRUE or FALSE whether the function is being run in
@@ -262,16 +262,15 @@ functions you will need to \code{read.csv} the files and pass them to
 \code{diffPrint} yourself.
 }
 \examples{
-\dontrun{
 iris.2 <- iris
 iris.2$Sepal.Length[5] <- 99
 f1 <- tempfile()
 f2 <- tempfile()
 write.csv(iris, f1, row.names=FALSE)
 write.csv(iris.2, f2, row.names=FALSE)
-diffCsv(f1, f2)
+## `pager="off"` for CRAN compliance; you may omit in normal use
+diffCsv(f1, f2, pager="off")
 unlink(c(f1, f2))
-}
 }
 \seealso{
 \code{\link{diffPrint}} for details on the \code{diff*} functions,

@@ -14,4 +14,7 @@ Checks whether \code{\link[=Rdiff]{tools::Rdiff}} issues a warning when
 running with \code{useDiff=TRUE} and if it does assumes this is because the
 diff utility is not available.  Intended primarily for testing purposes.
 }
+\examples{
+has_Rdiff()
+}
 
