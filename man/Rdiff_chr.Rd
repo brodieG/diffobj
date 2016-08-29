@@ -24,6 +24,8 @@ actual differences or only the actual edit script commands}
 }
 \value{
 the Rdiff output, invisibly if \code{silent} is FALSE
+Rdiff_chr(letters[1:5], LETTERS[1:5])
+Rdiff_obj(letters[1:5], LETTERS[1:5])
 }
 \description{
 These functions are here for reference and testing purposes.  They are

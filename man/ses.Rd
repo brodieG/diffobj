@@ -21,4 +21,7 @@ for debugging or for other applications that understand that particular
 format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}
 for how to interpret the symbols.
 }
+\examples{
+ses(letters[1:3], letters[2:4])
+}
 

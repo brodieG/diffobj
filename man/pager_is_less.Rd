@@ -14,4 +14,7 @@ Checks system \code{PAGER} variable and that \code{PAGER_PATH} is pointed
 at \dQuote{R_HOME/bin/pager}.  This is an approximation and may return
 false positives or negatives depending on your system.
 }
+\examples{
+pager_is_less()
+}
 

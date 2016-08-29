@@ -23,4 +23,5 @@ whatever the data frame print method returns
 Displays the data required to generate the shortest edit path for comparison
 between two strings.
 }
+\keyword{internal}
 

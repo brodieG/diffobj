@@ -268,10 +268,8 @@ my.style   ## Notice gutters and guide color
 
 ## Provide a custom style sheet; here we assume there is a style sheet at
 ## `HOME/web/mycss.css`
-\dontrun{
 my.css <- file.path(path.expand("~"), "web", "mycss.css")
 diffPrint(1:5, 2:6, style=StyleHtmlLightYb(css=my.css))
-}
 
 ## Turn of scaling; notice how we pass a list to `style`
 ## and we do not need to specify a specific style
@@ -282,11 +280,10 @@ diffPrint(letters, letters[-5], format="html", style=list(scale=FALSE))
 ## one for us
 my.style <- StyleHtmlLightYb(scale=FALSE)
 diffPrint(letters, letters[-5], style=my.style)
-
+}
 ## Return only the raw HTML without any of the headers
 as.character(
   diffPrint(1:5, 2:6, format="html", style=list(html.output="diff.only"))
 )
-}
 }
 

@@ -25,6 +25,8 @@ to \code{getOption("width")}}
 }
 \value{
 a \code{DiffSummary} object
+## `pager="off"` for CRAN compliance; you may omit in normal use
+summary(diffChr(letters, letters[-c(5, 15)], format="raw", pager="off"))
 }
 \description{
 Provides high level count of insertions, deletions, and matches, as well as a

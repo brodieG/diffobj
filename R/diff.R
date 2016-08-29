@@ -264,7 +264,7 @@ make_diff_fun <- function(capt_fun) {
 #'   than the threshold.  Note that this parameter is implemented on a
 #'   best-efforts basis and should not be relied on to produce the exact
 #'   number of lines requested.  If you want a specific number of lines use
-#'   \code{[} or \code{head}/\code{tail}.  One advantage of \code{line.limit}
+#'   \code{[} or \code{head} / \code{tail}.  One advantage of \code{line.limit}
 #'   over these other options is that you can combine it with
 #'   \code{context="auto"} and auto \code{max.level} selection (the latter for
 #'   \code{diffStr}), which allows the diff to dynamically adjust to make best
@@ -321,7 +321,7 @@ make_diff_fun <- function(capt_fun) {
 #'   details.
 #' @param frame an environment to use as the evaluation frame for the
 #'   \code{print/show/str}, calls and for \code{diffObj}, the evaluation frame
-#'   for the \code{diffPrint}/\code{diffStr} calls.  Defaults to the return
+#'   for the \code{diffPrint} / \code{diffStr} calls.  Defaults to the return
 #'   value of \code{\link{par_frame}}.
 #' @param interactive TRUE or FALSE whether the function is being run in
 #'   interactive mode, defaults to the return value of
@@ -360,10 +360,13 @@ make_diff_fun <- function(capt_fun) {
 #' @name diffPrint
 #' @export
 #' @examples
-#' diffPrint(letters, letters[-5])
+#' ## `pager="off"` for CRAN compliance; you may omit in normal use
+#' diffPrint(letters, letters[-5], pager="off")
+
 setGeneric(
   "diffPrint", function(target, current, ...) standardGeneric("diffPrint")
 )
+
 #' @rdname diffPrint
 
 setMethod("diffPrint", signature=c("ANY", "ANY"), make_diff_fun(capt_print))
@@ -389,6 +392,9 @@ setMethod("diffPrint", signature=c("ANY", "ANY"), make_diff_fun(capt_print))
 #' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @rdname diffStr
 #' @export
+#' @examples
+#' ## `pager="off"` for CRAN compliance; you may omit in normal use
+#' with(mtcars, diffStr(lm(mpg ~ hp)$qr, lm(mpg ~ disp)$qr, pager="off"))
 
 setGeneric("diffStr", function(target, current, ...) standardGeneric("diffStr"))
 
@@ -410,9 +416,8 @@ setMethod("diffStr", signature=c("ANY", "ANY"), make_diff_fun(capt_str))
 #' @export
 #' @rdname diffChr
 #' @examples
-#' \dontrun{
-#' diffChr(LETTERS[1:5], LETTERS[2:6])
-#' }
+#' ## `pager="off"` for CRAN compliance; you may omit in normal use
+#' diffChr(LETTERS[1:5], LETTERS[2:6], pager="off")
 
 setGeneric("diffChr", function(target, current, ...) standardGeneric("diffChr"))
 
@@ -435,9 +440,8 @@ setMethod("diffChr", signature=c("ANY", "ANY"), make_diff_fun(capt_chr))
 #' @export
 #' @rdname diffDeparse
 #' @examples
-#' \dontrun{
-#' diffDeparse(matrix(1:9, 3), 1:9)
-#' }
+#' ## `pager="off"` for CRAN compliance; you may omit in normal use
+#' diffDeparse(matrix(1:9, 3), 1:9, pager="off")
 
 setGeneric(
   "diffDeparse", function(target, current, ...) standardGeneric("diffDeparse")
@@ -463,12 +467,13 @@ setMethod("diffDeparse", signature=c("ANY", "ANY"), make_diff_fun(capt_deparse))
 #' @export
 #' @rdname diffFile
 #' @examples
-#' \dontrun{
-#' url.base <- "https://raw.githubusercontent.com/wch/r-source"
-#' f1 <- file.path(url.base, "29f013d1570e1df5dc047fb7ee304ff57c99ea68/README")
-#' f2 <- file.path(url.base, "daf0b5f6c728bd3dbcd0a3c976a7be9beee731d9/README")
-#' diffFile(f1, f2)
-#' }
+#' base <- file.path(
+#'   system.file(package="diffobj"), "tests", "testthat", "helper", "diffFile"
+#' )
+#' f1 <- file.path(base, "s.o.30dbe0.R")
+#' f2 <- file.path(base, "s.o.3f1f68.R")
+#' ## `pager="off"` for CRAN compliance; you may omit in normal use
+#' diffFile(f1, f2, pager="off")
 
 setGeneric(
   "diffFile", function(target, current, ...) standardGeneric("diffFile")
@@ -498,16 +503,15 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 #' @export
 #' @rdname diffCsv
 #' @examples
-#' \dontrun{
 #' iris.2 <- iris
 #' iris.2$Sepal.Length[5] <- 99
 #' f1 <- tempfile()
 #' f2 <- tempfile()
 #' write.csv(iris, f1, row.names=FALSE)
 #' write.csv(iris.2, f2, row.names=FALSE)
-#' diffCsv(f1, f2)
+#' ## `pager="off"` for CRAN compliance; you may omit in normal use
+#' diffCsv(f1, f2, pager="off")
 #' unlink(c(f1, f2))
-#' }
 
 setGeneric(
   "diffCsv", function(target, current, ...) standardGeneric("diffCsv")
@@ -534,6 +538,10 @@ setMethod("diffCsv", signature=c("ANY", "ANY"), make_diff_fun(capt_csv))
 #'   \code{\link{diffDeparse}} to compare deparsed objects
 #' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @export
+#' @examples
+#' ## `pager="off"` for CRAN compliance; you may omit in normal use
+#' diffObj(letters, c(letters[1:10], LETTERS[11:26]), pager="off")
+#' with(mtcars, diffObj(lm(mpg ~ hp)$qr, lm(mpg ~ disp)$qr, pager="off"))
 
 setGeneric("diffObj", function(target, current, ...) standardGeneric("diffObj"))
 

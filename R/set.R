@@ -24,6 +24,8 @@ NULL
 #'
 #' @export
 #' @return integer(1L)
+#' @examples
+#' console_lines()
 
 console_lines <- function() {
   LINES <- as.integer(Sys.getenv("LINES"))
@@ -38,7 +40,16 @@ console_lines <- function() {
 #' @param min integer(1L), positive, set to zero to allow any context
 #' @param max integer(1L), set to negative to allow any context
 #' @return S4 object containing configuration parameters, for use as the
-#'   \code{context} or parameter value in \code{\link[=diffPrint]{diff*}} methods
+#'   \code{context} or parameter value in \code{\link[=diffPrint]{diff*}} 
+#'   methods
+#' @examples
+#' ## `pager="off"` for CRAN compliance; you may omit in normal use
+#' diffChr(letters, letters[-13], context=auto_context(0, 3), pager="off")
+#' diffChr(letters, letters[-13], context=auto_context(0, 10), pager="off")
+#' diffChr(
+#'   letters, letters[-13], context=auto_context(0, 10), line.limit=3L,
+#'   pager="off"
+#' )
 
 auto_context <- function(
   min=getOption("diffobj.context.auto.min"),
@@ -58,6 +69,8 @@ auto_context <- function(
 #'
 #' @return TRUE or FALSE
 #' @export
+#' @examples
+#' pager_is_less()
 
 pager_is_less <- function() {
   PAGER <- Sys.getenv("PAGER")

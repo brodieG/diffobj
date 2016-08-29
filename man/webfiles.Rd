@@ -17,4 +17,8 @@ path to the default CSS or JS file
 File location for default CSS and JS files.  Note that these files are read
 and injected into the output HTML rather than referenced to simplify serving.
 }
+\examples{
+diffobj_css()
+diffobj_js()
+}
 

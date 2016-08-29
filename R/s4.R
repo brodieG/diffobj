@@ -46,6 +46,18 @@ NULL
 #'   otherwise meet the \code{min.chars} limit
 #' @export AlignThreshold
 #' @exportClass AlignThreshold
+#' @examples
+#' a1 <- AlignThreshold(threshold=0)
+#' a2 <- AlignThreshold(threshold=1)
+#' a3 <- AlignThreshold(threshold=0, min.chars=2)
+#' ## Note how "e f g" is aligned
+#' diffChr(c("a b c e", "d e f g"), "D e f g", align=a1, pager="off")
+#' ## But now it is not
+#' diffChr(c("a b c e", "d e f g"), "D e f g", align=a2, pager="off")
+#' ## "e f" are not enough chars to align
+#' diffChr(c("a b c", "d e f"), "D e f", align=a1, pager="off")
+#' ## Override with min.chars, so now they align
+#' diffChr(c("a b c", "d e f"), "D e f", align=a3, pager="off")
 
 AlignThreshold <- setClass("AlignThreshold",
   slots=c(
@@ -419,6 +431,9 @@ setMethod("lineCoverage", "Diff",
 #' @param na.rm unused, for compatibility with generic
 #' @return TRUE if there are differences, FALSE if not, FALSE with warning if
 #'   there are no differences but objects are not \code{\link{all.equal}}
+#' @examples
+#' any(diffChr(letters, letters))
+#' any(diffChr(letters, letters[-c(1, 5, 8)]))
 
 setMethod("any", "Diff",
   function(x, ..., na.rm = FALSE) {

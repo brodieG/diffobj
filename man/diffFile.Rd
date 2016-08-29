@@ -178,7 +178,7 @@ and the second the number of lines to truncate to, which should be fewer
 than the threshold.  Note that this parameter is implemented on a
 best-efforts basis and should not be relied on to produce the exact
 number of lines requested.  If you want a specific number of lines use
-\code{[} or \code{head}/\code{tail}.  One advantage of \code{line.limit}
+\code{[} or \code{head} / \code{tail}.  One advantage of \code{line.limit}
 over these other options is that you can combine it with
 \code{context="auto"} and auto \code{max.level} selection (the latter for
 \code{diffStr}), which allows the diff to dynamically adjust to make best
@@ -220,7 +220,7 @@ details.}
 
 \item{frame}{an environment to use as the evaluation frame for the
 \code{print/show/str}, calls and for \code{diffObj}, the evaluation frame
-for the \code{diffPrint}/\code{diffStr} calls.  Defaults to the return
+for the \code{diffPrint} / \code{diffStr} calls.  Defaults to the return
 value of \code{\link{par_frame}}.}
 
 \item{interactive}{TRUE or FALSE whether the function is being run in
@@ -258,12 +258,13 @@ Reads text files with \code{\link{readLines}} and performs a diff on the
 resulting character vectors.
 }
 \examples{
-\dontrun{
-url.base <- "https://raw.githubusercontent.com/wch/r-source"
-f1 <- file.path(url.base, "29f013d1570e1df5dc047fb7ee304ff57c99ea68/README")
-f2 <- file.path(url.base, "daf0b5f6c728bd3dbcd0a3c976a7be9beee731d9/README")
-diffFile(f1, f2)
-}
+base <- file.path(
+  system.file(package="diffobj"), "tests", "testthat", "helper", "diffFile"
+)
+f1 <- file.path(base, "s.o.30dbe0.R")
+f2 <- file.path(base, "s.o.3f1f68.R")
+## `pager="off"` for CRAN compliance; you may omit in normal use
+diffFile(f1, f2, pager="off")
 }
 \seealso{
 \code{\link{diffPrint}} for details on the \code{diff*} functions,

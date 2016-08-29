@@ -95,7 +95,6 @@ to use \code{\link{setOldClass}} as the \code{guides*} generics are S4.
 }
 \examples{
 ## Roundabout way of suppressing guides for matrices
-\dontrun{
 setMethod("guidesPrint", c("matrix", "character"),
   function(obj, obj.as.chr) integer(0L)
 )
@@ -107,6 +106,5 @@ setMethod("guidesPrint", c("zulu", "character"),
     if(length(obj) > 20) grep("^zulu[0-9]*", obj.as.chr)
     else integer(0L)
 } )
-}
 }
 
