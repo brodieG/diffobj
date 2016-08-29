@@ -10,12 +10,9 @@ See [vignette](http://htmlpreview.github.io/?https://raw.githubusercontent.com/b
 
 ## Output
 
-If your terminal supports formatting through ANSI escape sequences, `diffobj` will output colored diffs to the terminal.  Otherwise, output will be colored with HTML/CSS and sent to the IDE viewport if available or to your browser otherwise.
+If your terminal supports formatting through ANSI escape sequences, `diffobj` will output colored diffs to the terminal.  Otherwise, output will be colored with HTML/CSS and sent to the IDE viewport or to your browser.  `diffobj` comes with several built-in color schemes that can be further customized.  Some examples:
 
-![Output Examples](vignettes/cliandrstudio.png)
-
-`diffobj` comes with several built-in color schemes that can be further
-customized.
+![Output Examples](https://raw.githubusercontent.com/brodieG/diffobj/rc/vignettes/cliandrstudio.png)
 
 ## Installation
 
