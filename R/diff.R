@@ -467,13 +467,12 @@ setMethod("diffDeparse", signature=c("ANY", "ANY"), make_diff_fun(capt_deparse))
 #' @export
 #' @rdname diffFile
 #' @examples
-#' base <- file.path(
-#'   system.file(package="diffobj"), "tests", "testthat", "helper", "diffFile"
-#' )
-#' f1 <- file.path(base, "s.o.30dbe0.R")
-#' f2 <- file.path(base, "s.o.3f1f68.R")
-#' ## `pager="off"` for CRAN compliance; you may omit in normal use
-#' diffFile(f1, f2, pager="off")
+#' \dontrun{
+#' url.base <- "https://raw.githubusercontent.com/wch/r-source"
+#' f1 <- file.path(url.base, "29f013d1570e1df5dc047fb7ee304ff57c99ea68/README")
+#' f2 <- file.path(url.base, "daf0b5f6c728bd3dbcd0a3c976a7be9beee731d9/README")
+#' diffFile(f1, f2)
+#' }
 
 setGeneric(
   "diffFile", function(target, current, ...) standardGeneric("diffFile")
