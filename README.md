@@ -4,7 +4,6 @@
 <a href='https://codecov.io/github/brodieG/diffobj?branch=master'>
   <img src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=master'>
 </a>
-[![](http://www.r-pkg.org/badges/version/diffobj)](http://cran.rstudio.com/web/packages/diffobj/index.html)
 
 Generate a colorized diff of two R objects for an intuitive visualization of their differences.
 
