@@ -2,6 +2,7 @@
 
 ## v0.1.3
 
+* First version on CRAN
 * [#51](https://github.com/brodieG/diffobj/issues/51) use RStudio viewport to display HTML diffs when running in RStudio, as per [Noam Ross](https://twitter.com/noamross/status/760115813559009280)
 * [#54](https://github.com/brodieG/diffobj/issues/54), [#55](https://github.com/brodieG/diffobj/issues/55), scale HTML output to viewport width (see `?Style`)
 * [#53](https://github.com/brodieG/diffobj/issues/53), default term colors computed on run instead of on package load
