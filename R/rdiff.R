@@ -45,6 +45,8 @@
 #' @param minimal TRUE or FALSE, whether to exclude the lines that show the
 #'   actual differences or only the actual edit script commands
 #' @return the Rdiff output, invisibly if \code{silent} is FALSE
+#' Rdiff_chr(letters[1:5], LETTERS[1:5])
+#' Rdiff_obj(letters[1:5], LETTERS[1:5])
 
 Rdiff_chr <- function(from, to, silent=FALSE, minimal=FALSE, nullPointers=TRUE) {
   A <- try(as.character(from))
@@ -126,6 +128,8 @@ Rdiff_run <- function(from, to, nullPointers, silent, minimal) {
 #'
 #' @export
 #' @return TRUE or FALSE
+#' @examples
+#' has_Rdiff()
 
 has_Rdiff <- function() {
   f.a <- tempfile()

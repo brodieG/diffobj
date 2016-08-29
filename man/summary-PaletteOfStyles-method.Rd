@@ -15,6 +15,7 @@
 \value{
 character representation showing classes and/or objects in
   PaletteOfStyles
+summary(PaletteOfStyles())
 }
 \description{
 Display a Summarized Version of a PaletteOfStyles

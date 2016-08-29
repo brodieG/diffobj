@@ -169,6 +169,7 @@ setMethod("initialize", "PagerSystemLess",
 #' @param msg character(1L) a message to use as the \code{readline} prompt
 #' @param invisible.res whether to return the result of \code{fun} invisibly
 #' @return \code{fun}, wrapped in a function that does the blocking
+#' make_blocking(sum, invisible.res=FALSE)(1:10)
 
 make_blocking <- function(
   fun, msg="Press ENTER to continue...", invisible.res=TRUE

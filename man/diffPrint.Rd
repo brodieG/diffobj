@@ -177,7 +177,7 @@ and the second the number of lines to truncate to, which should be fewer
 than the threshold.  Note that this parameter is implemented on a
 best-efforts basis and should not be relied on to produce the exact
 number of lines requested.  If you want a specific number of lines use
-\code{[} or \code{head}/\code{tail}.  One advantage of \code{line.limit}
+\code{[} or \code{head} / \code{tail}.  One advantage of \code{line.limit}
 over these other options is that you can combine it with
 \code{context="auto"} and auto \code{max.level} selection (the latter for
 \code{diffStr}), which allows the diff to dynamically adjust to make best
@@ -219,7 +219,7 @@ details.}
 
 \item{frame}{an environment to use as the evaluation frame for the
 \code{print/show/str}, calls and for \code{diffObj}, the evaluation frame
-for the \code{diffPrint}/\code{diffStr} calls.  Defaults to the return
+for the \code{diffPrint} / \code{diffStr} calls.  Defaults to the return
 value of \code{\link{par_frame}}.}
 
 \item{interactive}{TRUE or FALSE whether the function is being run in
@@ -282,7 +282,8 @@ Runs the diff between the \code{print} or \code{show} output produced by
 \code{target} and \code{current}.
 }
 \examples{
-diffPrint(letters, letters[-5])
+## `pager="off"` for CRAN compliance; you may omit in normal use
+diffPrint(letters, letters[-5], pager="off")
 }
 \seealso{
 \code{\link{diffObj}}, \code{\link{diffStr}},

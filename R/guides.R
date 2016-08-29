@@ -281,7 +281,6 @@ detect_array_guides <- function(txt, dim.n) {
 #' @return integer containing values in \code{seq_along(obj.as.chr)}
 #' @examples
 #' ## Roundabout way of suppressing guides for matrices
-#' \dontrun{
 #' setMethod("guidesPrint", c("matrix", "character"),
 #'   function(obj, obj.as.chr) integer(0L)
 #' )
@@ -293,7 +292,6 @@ detect_array_guides <- function(txt, dim.n) {
 #'     if(length(obj) > 20) grep("^zulu[0-9]*", obj.as.chr)
 #'     else integer(0L)
 #' } )
-#' }
 
 NULL
 

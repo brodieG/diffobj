@@ -19,6 +19,7 @@ NULL
 
 #' Generate a character representation of Shortest Edit Sequence
 #'
+#' @keywords internal
 #' @seealso \code{\link{ses}}
 #' @param x S4 object of class \code{MyersMbaSes}
 #' @param ... unused
@@ -141,6 +142,8 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' @param a character
 #' @param b character
 #' @return character
+#' @examples
+#' ses(letters[1:3], letters[2:4])
 
 ses <- function(a, b) as.character(diff_myers_mba(a, b))
 
@@ -203,6 +206,7 @@ setMethod("show", "MyersMbaSes",
 #' between two strings.
 #'
 #' @export
+#' @keywords internal
 #' @param object the \code{diff_myers_mba} object to display
 #' @param with.match logical(1L) whether to show what text the edit command
 #'   refers to
