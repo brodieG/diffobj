@@ -463,10 +463,8 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #'
 #' ## Provide a custom style sheet; here we assume there is a style sheet at
 #' ## `HOME/web/mycss.css`
-#' \dontrun{
 #' my.css <- file.path(path.expand("~"), "web", "mycss.css")
 #' diffPrint(1:5, 2:6, style=StyleHtmlLightYb(css=my.css))
-#' }
 #'
 #' ## Turn of scaling; notice how we pass a list to `style`
 #' ## and we do not need to specify a specific style
@@ -477,12 +475,11 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' ## one for us
 #' my.style <- StyleHtmlLightYb(scale=FALSE)
 #' diffPrint(letters, letters[-5], style=my.style)
-#'
+#' }
 #' ## Return only the raw HTML without any of the headers
 #' as.character(
 #'   diffPrint(1:5, 2:6, format="html", style=list(html.output="diff.only"))
 #' )
-#' }
 
 Style <- setClass("Style", contains="VIRTUAL",
   slots=c(
@@ -765,6 +762,9 @@ StyleAnsi256DarkYb <- setClass(
 #' @name webfiles
 #' @rdname webfiles
 #' @return path to the default CSS or JS file
+#' @examples
+#' diffobj_css()
+#' diffobj_js()
 
 NULL
 
@@ -1020,21 +1020,24 @@ setMethod("initialize", "StyleHtmlLightYb",
 #' \dontrun{
 #' ## Look at all "ansi256" styles (assumes compatible terminal)
 #' PaletteOfStyles()["ansi256",,]
+#' }
 #' ## Generate the default style object palette, and replace
 #' ## the ansi256 / light / rgb style with our modified one
 #' ## which for illustrative purposes is the raw style
 #' my.pal <- PaletteOfStyles()
 #' my.style <- StyleRaw()   # See `?Style` for custom styles
-#' my.style@funs@word.delete <- crayon::bgBlue
+#' my.style@funs@word.delete <- function(x) sprintf("--%s--", x)
 #' my.pal["ansi256", "light", "rgb"] <- list(my.style) # note `list()`
 #' ## Output has no format now for format/color.mode/brightness
 #' ## we modified ...
+#' ## `pager="off"` for CRAN compliance; you may omit in normal use
 #' diffPrint(
 #'    1:3, 2:5, format="ansi256", color.mode="rgb", brightness="light",
-#'    palette.of.styles=my.pal
+#'    palette.of.styles=my.pal, pager="off", disp.width=80
 #' )
 #' ## If so desired, set our new style palette as the default
 #' ## one; could also pass directly as argument to `diff*` funs
+#' \dontrun{
 #' options(diffobj.palette=defs)
 #' }
 
@@ -1177,6 +1180,11 @@ setMethod(
 #' @return a \code{\link{Style}} \code{ClassRepresentation} object or
 #'    \code{\link{Style}} object for \code{[[}, and a list of the same for
 #'    \code{[}
+#' @examples
+#' pal <- PaletteOfStyles()
+#' pal[["ansi256", "light", "rgb"]]
+#' pal["ansi256", "light", ]
+#' pal["ansi256", "light", "rgb"] <- list(StyleAnsi8NeutralRgb())
 
 setMethod(
   "[[", signature=c(x="PaletteOfStyles"),
@@ -1188,6 +1196,7 @@ setMethod(
 #'
 #' @param x a \code{\link{PaletteOfStyles}} object
 #' @return list the dimension names
+#' dimnames(PaletteOfStyles())
 
 setMethod("dimnames", "PaletteOfStyles", function(x) dimnames(x@data))
 
@@ -1209,9 +1218,7 @@ setMethod("dimnames", "PaletteOfStyles", function(x) dimnames(x@data))
 #' @param object a \code{Style} S4 object
 #' @return NULL, invisibly
 #' @examples
-#' \dontrun{
 #' show(StyleAnsi256LightYb())  # assumes ANSI colors supported
-#' }
 
 setMethod("show", "Style",
   function(object) {
@@ -1283,6 +1290,7 @@ setMethod("show", "PaletteOfStyles",
 #' @param ... unused, for compatibility with generic
 #' @return character representation showing classes and/or objects in
 #'   PaletteOfStyles
+#' summary(PaletteOfStyles())
 
 setMethod("summary", "PaletteOfStyles",
   function(object, ...)

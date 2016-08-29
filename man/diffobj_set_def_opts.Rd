@@ -13,4 +13,9 @@ list for use with \code{options} that contains values of
 \description{
 Used primarily for testing to ensure all options are set to default values.
 }
+\examples{
+\dontrun{
+  diffobj_set_def_opts()
+}
+}
 

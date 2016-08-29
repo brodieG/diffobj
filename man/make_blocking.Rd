@@ -15,6 +15,7 @@ make_blocking(fun, msg = "Press ENTER to continue...", invisible.res = TRUE)
 }
 \value{
 \code{fun}, wrapped in a function that does the blocking
+make_blocking(sum, invisible.res=FALSE)(1:10)
 }
 \description{
 Wraps \code{fun} in a function that runs \code{fun} and then issues a

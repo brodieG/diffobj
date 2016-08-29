@@ -1,9 +1,8 @@
 # diffobj - Diffs for R Objects
 
-<a href='https://travis-ci.org/brodieG/diffobj'><img src='https://travis-ci.org/brodieG/diffobj.svg?branch=master'></a>
-<a href='https://codecov.io/github/brodieG/diffobj?branch=master'>
-  <img src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=master'>
-</a>
+[![](https://travis-ci.org/brodieG/diffobj.svg?branch=master)](https://travis-ci.org/brodieG/diffobj)
+[![](https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=master)](https://codecov.io/github/brodieG/diffobj?branch=master)
+[![](http://www.r-pkg.org/badges/version/diffobj)](https://cran.r-project.org/web/packages/diffobj/index.html)
 
 Generate a colorized diff of two R objects for an intuitive visualization of their differences.
 
@@ -11,54 +10,19 @@ See [vignette](http://htmlpreview.github.io/?https://raw.githubusercontent.com/b
 
 ## Output
 
-If your terminal supports formatting through ANSI escape sequences, `diffobj` will output colored diffs to the terminal.  Here are some examples of available color schemes from a 256 color terminal:
+If your terminal supports formatting through ANSI escape sequences, `diffobj` will output colored diffs to the terminal.  Otherwise, output will be colored with HTML/CSS and sent to the IDE viewport or to your browser.  `diffobj` comes with several built-in color schemes that can be further customized.  Some examples:
 
-![Color Scheme Examples](vignettes/ansi256brightness.png)
-
-If ANSI support is not detected, output will be colored with HTML/CSS and sent to the IDE viewport if available or to your browser otherwise.
+![Output Examples](https://raw.githubusercontent.com/brodieG/diffobj/master/vignettes/cliandrstudio.png)
 
 ## Installation
 
-Currently this package is only available on Github:
+This package is available on [CRAN](https://cran.r-project.org/web/packages/diffobj/index.html).
 
 ```
-devtools::install_github("brodieG/diffobj")
+install.packages("diffobj")
 vignette("diffobj", package="diffobj")
 ```
 
-## Branch Status
+Go to [Github](https://github.com/brodieG/diffobj) to report issues or if you
+are interested in development versions of this package.
 
-<table style="border: none; background-color: transparent;">
-  <tr style="border: none; background-color: transparent; padding: 2px;">
-  <th style="text-align: right;">rc:
-  <td>
-  <a href='https://travis-ci.org/brodieG/diffobj'>
-    <img
-      style="vertical-align: middle;"
-      src='https://travis-ci.org/brodieG/diffobj.svg?branch=rc'
-    >
-  </a>
-  <td>
-  <a href='https://codecov.io/github/brodieG/diffobj?branch=rc'>
-    <img
-      src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=rc'
-      style="vertical-align: middle;"
-    >
-  </a>
-  <tr style="border: none; background-color: transparent; padding: 2px;">
-  <th style="text-align: right;">development:
-  <td>
-  <a href='https://travis-ci.org/brodieG/diffobj'>
-    <img
-      style="vertical-align: middle;"
-      src='https://travis-ci.org/brodieG/diffobj.svg?branch=development'
-    >
-  </a>
-  <td>
-  <a href='https://codecov.io/github/brodieG/diffobj?branch=development'>
-    <img
-      src='https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=development'
-      style="vertical-align: middle;"
-    >
-  </a>
-</table>

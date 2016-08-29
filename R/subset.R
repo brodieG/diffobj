@@ -42,6 +42,12 @@ NULL
 #' @param ... unused, for compatibility with generics
 #' @return \code{Diff} object with subsetting indices recorded for use by
 #'   \code{show}
+#' ## `pager="off"` for CRAN compliance; you may omit in normal use
+#' diff <- diffChr(letters, LETTERS, format="raw", pager="off")
+#' diff[5:15]
+#' head(diff, 5)
+#' tail(diff, 5)
+#' head(head(diff, 5), 8)  ## note not 'typical' behavior
 
 setMethod(
   "[", signature(x="Diff", i="numeric", j="missing", drop="missing"),

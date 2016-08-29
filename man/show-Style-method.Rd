@@ -25,8 +25,6 @@ this is not done in normal output (i.e. if you intend on using a
 light or expect sub-optimal rendering).
 }
 \examples{
-\dontrun{
 show(StyleAnsi256LightYb())  # assumes ANSI colors supported
-}
 }
 

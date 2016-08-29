@@ -13,4 +13,7 @@ integer(1L)
 Returns the value of the \code{LINES} system variable if it is reasonable,
 48 otherwise.
 }
+\examples{
+console_lines()
+}
 

@@ -80,6 +80,8 @@
 #' @export
 #' @param x character(1L) name off \code{diffobj} option to retrieve, without
 #'   the \dQuote{diffobj.} prefix
+#' @examples
+#' gdo("format")
 
 gdo <- function(x) getOption(sprintf("diffobj.%s", x))
 
@@ -90,5 +92,9 @@ gdo <- function(x) getOption(sprintf("diffobj.%s", x))
 #' @export
 #' @return list for use with \code{options} that contains values of
 #'   \code{diffob} options before they were forced to defaults
+#' @examples
+#' \dontrun{
+#'   diffobj_set_def_opts()
+#' }
 
 diffobj_set_def_opts <- function() options(.default.opts)

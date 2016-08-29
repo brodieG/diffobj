@@ -12,6 +12,9 @@
 }
 \value{
 NULL, invisbly
+show(
+  summary(diffChr(letters, letters[-c(5, 15)], format="raw", pager="off"))
+)
 }
 \description{
 Display DiffSummary Objects

@@ -21,4 +21,8 @@ TRUE if there are differences, FALSE if not, FALSE with warning if
 \description{
 Determine if Diff Object Has Differences
 }
+\examples{
+any(diffChr(letters, letters))
+any(diffChr(letters, letters[-c(1, 5, 8)]))
+}
 
