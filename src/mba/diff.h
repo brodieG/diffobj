@@ -1,7 +1,7 @@
 /*
- * This file is part of a program that contains an adaptation of the Michael B.
- * Allen implementation of the Myers diff algorithm.  See next comment blocks for
- * original copyright and license information.
+ * This file is part of a program that contains a heavily modified version of
+ * Michael B. Allen implementation of the Myers diff algorithm.  See next
+ * comment blocks for original copyright and license information.
  *
  * diffobj - Compare R Objects with a Diff
  * Copyright (C) 2016  Brodie Gaslam
@@ -44,8 +44,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef MBA_DIFF_H
-#define MBA_DIFF_H
+#ifndef DIFFOBJ_DIFF_H
+#define DIFFOBJ_DIFF_H
 
 /* diff - compute a shortest edit script (SES) given two sequences
  */
@@ -53,20 +53,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/*
-#ifndef LIBMBA_API
-#ifdef WIN32
-# ifdef LIBMBA_EXPORTS
-#  define LIBMBA_API  __declspec(dllexport)
-# else // LIBMBA_EXPORTS
-#  define LIBMBA_API  __declspec(dllimport)
-# endif // LIBMBA_EXPORTS
-#else // WIN32
-# define LIBMBA_API extern
-#endif // WIN32
-#endif // LIBMBA_API
-*/
 
 typedef enum {
         DIFF_NULL = 0,
@@ -93,4 +79,4 @@ int diff(SEXP a, int aoff, int n,
 }
 #endif
 
-#endif /* MBA_DIFF_H */
+#endif
