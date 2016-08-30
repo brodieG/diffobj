@@ -6,5 +6,6 @@
 ^\CRAN\.md$
 ^\.travis\.yml$
 ^scratch\.R$
+^cliandrstudio\.png$
 \.Rdata
 covr\.R
