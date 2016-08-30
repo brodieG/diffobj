@@ -99,32 +99,32 @@ local({
   } )
   test_that("print/summary", {
     capture.output(
-      res.1 <- summary(diffobj:::diff_myers_mba(A, B), with.match=TRUE)
+      res.1 <- summary(diffobj:::diff_myers(A, B), with.match=TRUE)
     )
     expect_identical(
       res.1,
       structure(list(type = structure(c(3L, 1L, 3L, 1L, 2L, 1L, 2L), .Label = c("Match", "Insert", "Delete"), class = "factor"), string = structure(c(2L, 5L, 1L, 3L, 1L, 4L, 5L), .Label = c("a", "ab", "b", "ba", "c"), class = "factor"), len = c(2L, 1L, 1L, 1L, 1L, 2L, 1L), offset = c(1L, 3L, 4L, 5L, 3L, 6L, 6L)), .Names = c("type", "string", "len", "offset"), row.names = c(NA, -7L), class = "data.frame")
     )
     capture.output(
-      res.2 <- summary(diffobj:::diff_myers_mba(A, B), with.match=FALSE)
+      res.2 <- summary(diffobj:::diff_myers(A, B), with.match=FALSE)
     )
     expect_identical(
       res.2,
       structure(list(type = structure(c(3L, 1L, 3L, 1L, 2L, 1L, 2L), .Label = c("Match", "Insert", "Delete"), class = "factor"), len = c(2L, 1L, 1L, 1L, 1L, 2L, 1L), offset = c(1L, 3L, 4L, 5L, 3L, 6L, 6L)), .Names = c("type", "len", "offset"), row.names = c(NA, -7L), class = "data.frame")
     )
     expect_identical(
-      capture.output(print(diffobj:::diff_myers_mba(A, B))), ses(A, B)
+      capture.output(print(diffobj:::diff_myers(A, B))), ses(A, B)
     )
   })
   #  test_that("translate", {
   #    aa <- c("a", "b", "b", "c", "e")
   #    bb <- c("x", "y", "c", "f", "e")
   #    expect_identical(
-  #      diffobj:::diffObjCompact(diffobj:::diff_myers_mba(A, B)),
+  #      diffobj:::diffObjCompact(diffobj:::diff_myers(A, B)),
   #      list(target = c(NA, NA, 0L, NA, 0L, 0L, 0L), current = c(0L, 0L, NA, 0L, 0L, NA))
   #    )
   #    expect_identical(
-  #      diffobj:::diffObjCompact(diffobj:::diff_myers_mba(aa, bb)),
+  #      diffobj:::diffObjCompact(diffobj:::diff_myers(aa, bb)),
   #      list(target = c(1L, 2L, NA, 0L, 0L), current = c(1L, 2L, 0L, NA, 0L))
   #    )
   #

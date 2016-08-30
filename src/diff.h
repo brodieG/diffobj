@@ -1,9 +1,10 @@
 /*
  * This file is part of a program that contains a heavily modified version of
- * Michael B. Allen implementation of the Myers diff algorithm.  See next
+ * Michael B. Allen implementation of the Myers diff algorithm.  This
+ * implementation is not compatible with the original one.  See next
  * comment blocks for original copyright and license information.
  *
- * diffobj - Compare R Objects with a Diff
+ * diffobj - Diffs for R Objects
  * Copyright (C) 2016  Brodie Gaslam
  *
  * This program is free software: you can redistribute it and/or modify
