@@ -16,7 +16,7 @@ If your terminal supports formatting through ANSI escape sequences, `diffobj` wi
 
 ## Installation
 
-This package is available on [CRAN](https://cran.r-project.org/web/packages/diffobj/index.html).
+This package is available on [CRAN](https://cran.r-project.org/package=diffobj).
 
 ```
 install.packages("diffobj")
