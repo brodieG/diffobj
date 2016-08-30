@@ -116,6 +116,8 @@ is.valid.width <- function(x)
     "must be integer(1L) and 0, or between 10 and 10000"
   } else TRUE
 
+is.one.file.name <- function(x) is.chr.1L(x) && file_test("-f", x)
+
 # Checks common arguments across functions
 
 check_args <- function(
