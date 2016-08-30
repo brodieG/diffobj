@@ -881,10 +881,10 @@ setMethod("initialize", "StyleHtml",
     if(is.null(css)) css <- diffobj_css()
     if(is.null(js)) js <- diffobj_js()
 
-    if(!is.one.file.name(css))
-      stop("Argument `css` must be a vaild file path.")
-    if(!is.one.file.name(js))
-      stop("Argument `js` must be a vaild file path.")
+    if(!isTRUE(css.err <- is.one.file.name(css)))
+      stop("Argument `css` ", css.err)
+    if(!isTRUE(js.err <- is.one.file.name(js)))
+      stop("Argument `js` ", js.err)
 
     if(!is.TF(scale))
       stop("Argument `scale` must be TRUE or FALSE")

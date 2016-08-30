@@ -24,7 +24,7 @@ test_that("crayon settings", {
   expect_identical(crayon::green("green"), "green")
 })
 test_that("palette of styles", {
-  expect_identical(pos <- PaletteOfStyles(), gdo("palette"))
+  pos <- PaletteOfStyles()
   expect_identical(
     pos[["ansi256", "light", "rgb"]],
     getClassDef("StyleAnsi256LightRgb", package="diffobj", inherits=FALSE)
