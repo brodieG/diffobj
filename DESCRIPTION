@@ -12,7 +12,7 @@ Authors@R: c(
     person(
     "Michael B.", "Allen", email="ioplex@gmail.com",
     role=c("ctb", "cph"),
-    comment="C implementation of Myers Diff Algorithm"))
+    comment="Original C implementation of Myers Diff Algorithm"))
 License: GPL-3
 LazyData: true
 URL: https://github.com/brodieG/diffobj

@@ -294,7 +294,7 @@ y[<span class="dv">2</span>] &lt;-<span class="st"> &quot;GREMLINS&quot;</span>
 <blockquote>
 <p>E. Myers, “An O(ND) Difference Algorithm and Its Variations”, Algorithmica 1, 2 (1986), 251-266.</p>
 </blockquote>
-<p>and should be the same algorithm used by GNU diff. The implementation used here is an adaptation of Michael B. Allen’s diff program from the <a href="http://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz"><code>libmba</code></a> <code>C</code> library.</p>
+<p>and should be the same algorithm used by GNU diff. The implementation used here is a heavily modified version of Michael B. Allen’s diff program from the <a href="http://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz"><code>libmba</code></a> <code>C</code> library. Any and all bugs in the C code in this package were most likely introduced by yours truly. Please note that the resulting C code is incompatible with the original <code>libmba</code> library.</p>
 <p>This algorithm scales with the <em>square</em> of the number of <em>differences</em>.</p>
 <p>Unless you have a diff with many (&gt; 10K) differences, odds are that the slow step in the process will be the post-processing this package does to generate the display representation of the diff rather than the diff itself.</p>
 </div>
