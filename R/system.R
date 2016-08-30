@@ -49,12 +49,12 @@
   diffobj.brightness="neutral",
   diffobj.tab.stops=8L,
   diffobj.disp.width=0L,        # 0L == use style width, see param docs
-  diffobj.palette=PaletteOfStyles(),
+  diffobj.palette=NULL,         # NULL == PaletteOfStyles()
   diffobj.guides=TRUE,
   diffobj.trim=TRUE,
   diffobj.html.escape.html.entities=TRUE,
-  diffobj.html.js=diffobj_js(),
-  diffobj.html.css=diffobj_css(),
+  diffobj.html.js=NULL,         # NULL == diffobj_js()
+  diffobj.html.css=NULL,        # NULL == diffobj_css()
   diffobj.html.scale=TRUE,
   diffobj.html.output="auto"
 )

@@ -127,12 +127,16 @@ test_that("html page output", {
   pager.warn <- PagerBrowser(
     pager=function(x) cat(readLines(x), sep="\n"),
   )
-  expect_warning(
-    capture.output(
-      show(
-        diffChr(
-          "A", "B", pager=pager.warn, format="html", style=list(js="notafile")
-    ) ) ),
-    "Unable to read"
+  expect_error(
+    diffChr(
+      "A", "B", pager=pager.warn, format="html", style=list(js="notafile")
+    ),
+    "Unable to instantiate `Style` object: Argument `js` .* is not a file"
+  )
+  expect_error(
+    diffChr(
+      "A", "B", pager=pager.warn, format="html", style=list(css="notafile")
+    ),
+    "Unable to instantiate `Style` object: Argument `css` .* is not a file"
   )
 })

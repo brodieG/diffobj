@@ -846,8 +846,8 @@ StyleHtml <- setClass(
     blank.sub="&nbsp;",
     disp.width=80L,
     html.output="auto",
-    css=diffobj_css(),
-    js=diffobj_js(),
+    css="",
+    js="",
     finalizer=finalizeHtml,
     scale=TRUE
   ),
@@ -878,10 +878,14 @@ setMethod("initialize", "StyleHtml",
     scale=getOption("diffobj.html.scale"),
     ...
   ) {
-    if(!is.chr.1L(css))
-      stop("Argument `css` must be character(1L) and not NA")
-    if(!is.chr.1L(js))
-      stop("Argument `js` must be character(1L) and not NA")
+    if(is.null(css)) css <- diffobj_css()
+    if(is.null(js)) js <- diffobj_js()
+
+    if(!isTRUE(css.err <- is.one.file.name(css)))
+      stop("Argument `css` ", css.err)
+    if(!isTRUE(js.err <- is.one.file.name(js)))
+      stop("Argument `js` ", js.err)
+
     if(!is.TF(scale))
       stop("Argument `scale` must be TRUE or FALSE")
     valid.html.output <- c("auto", "page", "diff.only", "diff.w.style")
