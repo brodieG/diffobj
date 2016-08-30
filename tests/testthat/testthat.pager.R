@@ -124,9 +124,7 @@ test_that("html page output", {
     capture.output(show(diffChr("A", "B", pager=pager, style=StyleRaw()))),
     c("< \"A\"       > \"B\"     ", "@@ 1 @@     @@ 1 @@   ", "< A         > B       ")
   )
-  pager.warn <- PagerBrowser(
-    pager=function(x) cat(readLines(x), sep="\n"),
-  )
+  pager.warn <- PagerBrowser(pager=function(x) cat(readLines(x), sep="\n"))
   expect_error(
     diffChr(
       "A", "B", pager=pager.warn, format="html", style=list(js="notafile")
@@ -138,5 +136,23 @@ test_that("html page output", {
       "A", "B", pager=pager.warn, format="html", style=list(css="notafile")
     ),
     "Unable to instantiate `Style` object: Argument `css` .* is not a file"
+  )
+  # Create objects that bypass the validation
+
+  style.obj.1 <- style.obj.2 <- StyleHtmlLightYb()
+  style.obj.1@css <- "notafile"
+  style.obj.2@js <- "notafile"
+
+  expect_warning(
+    capture.output(
+      show(diffChr("A", "B", pager=pager.warn, style=style.obj.1))
+    ),
+    "Unable to read provided css file"
+  )
+  expect_warning(
+    capture.output(
+      show(diffChr("A", "B", pager=pager.warn, style=style.obj.2))
+    ),
+    "Unable to read provided js file"
   )
 })

@@ -362,7 +362,7 @@ setMethod("finalizeHtml", c("Diff"),
       if(inherits(js, "try-error")) {
         cond <- attr(js, "condition")
         warning(
-          "Unable to read provided js file ", style@js, " (error: ",
+          "Unable to read provided js file \"", style@js, "\" (error: ",
           paste0(conditionMessage(cond), collapse=""), ")."
         )
         js <- ""

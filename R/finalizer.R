@@ -55,7 +55,7 @@ setMethod("finalizeHtml", c("ANY"),
       if(inherits(css.txt, "try-error")) {
         cond <- attr(css.txt, "condition")
         warning(
-          "Unable to read provided css file ", style@css, " (error: ",
+          "Unable to read provided css file \"", style@css, "\" (error: ",
           paste0(conditionMessage(cond), collapse=""), ")."
         )
         css <- ""
