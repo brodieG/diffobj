@@ -2,7 +2,7 @@
 
 [![](https://travis-ci.org/brodieG/diffobj.svg?branch=master)](https://travis-ci.org/brodieG/diffobj)
 [![](https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=master)](https://codecov.io/github/brodieG/diffobj?branch=master)
-[![](http://www.r-pkg.org/badges/version/diffobj)](https://cran.r-project.org/web/packages/diffobj/index.html)
+[![](http://www.r-pkg.org/badges/version/diffobj)](https://cran.r-project.org/package=diffobj)
 
 Generate a colorized diff of two R objects for an intuitive visualization of their differences.
 
