@@ -20,7 +20,7 @@
 
 #include <R.h>
 #include <Rinternals.h>
-#include "mba/diff.h"
+#include "diff.h"
 
 SEXP DIFFOBJ_diffobj(SEXP a, SEXP b, SEXP max);
 

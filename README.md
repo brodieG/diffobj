@@ -12,11 +12,11 @@ See [vignette](http://htmlpreview.github.io/?https://raw.githubusercontent.com/b
 
 If your terminal supports formatting through ANSI escape sequences, `diffobj` will output colored diffs to the terminal.  Otherwise, output will be colored with HTML/CSS and sent to the IDE viewport or to your browser.  `diffobj` comes with several built-in color schemes that can be further customized.  Some examples:
 
-![Output Examples](https://raw.githubusercontent.com/brodieG/diffobj/master/vignettes/cliandrstudio.png)
+![Output Examples](https://raw.githubusercontent.com/brodieG/diffobj/master/cliandrstudio.png)
 
 ## Installation
 
-This package is available on [CRAN](https://cran.r-project.org/web/packages/diffobj/index.html).
+This package is available on [CRAN](https://cran.r-project.org/package=diffobj).
 
 ```
 install.packages("diffobj")

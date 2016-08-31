@@ -116,6 +116,13 @@ is.valid.width <- function(x)
     "must be integer(1L) and 0, or between 10 and 10000"
   } else TRUE
 
+is.one.file.name <- function(x) {
+  if(!is.chr.1L(x)) {
+    "must be character(1L) and not NA"
+  } else if(!file_test("-f", x)) {
+    sprintf("(\"%s\") is not a file", x)
+  } else TRUE
+}
 # Checks common arguments across functions
 
 check_args <- function(
@@ -326,9 +333,11 @@ check_args <- function(
       format, get_pal_par(format, brightness), get_pal_par(format, color.mode)
     ]]
     if(is(style, "classRepresentation")) {
-      style <- try(do.call("new", c(list(style), style.args)))
-      if(inherits(style, "try-error"))
-        err("Unable to instantiate `Style` object; see prior errors.")
+      style <- try(do.call("new", c(list(style), style.args)), silent=TRUE)
+      if(inherits(style, "try-error")) {
+        msg <- conditionMessage(attr(style, "condition"))
+        err("Unable to instantiate `Style` object: ", msg)
+      }
     } else {
       if(length(style.args)) {
         warn(

@@ -16,7 +16,8 @@
  */
 
 /*
- * Code based on libmba-0.9.1/examples/strdiff.c
+ * Code originally based on libmba-0.9.1/examples/strdiff.c, but heavily
+ * modified below
  */
 
 #include <stdlib.h>

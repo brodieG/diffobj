@@ -1,7 +1,8 @@
 /*
- * This file is part of a program that contains an adaptation of the Michael B.
- * Allen implementation of the Myers diff algorithm.  See next comment blocks for
- * original copyright and license information.
+ * This file is part of a program that contains a heavily modified version of
+ * Michael B. Allen implementation of the Myers diff algorithm.  This
+ * implementation is not compatible with the original one.  See next
+ * comment blocks for original copyright and license information.
  *
  * diffobj - Diffs for R Objects
  * Copyright (C) 2016  Brodie Gaslam
@@ -51,13 +52,16 @@
  *   Algorithmica 1, 2 (1986), 251-266.
  *   http://www.cs.arizona.edu/people/gene/PAPERS/diff.ps
  *
- * This is the same algorithm used by GNU diff(1).  The original source code
- * is available at:
+ * This is the same algorithm used by GNU diff(1).  Please note that the
+ * code in this file is heavily modified from the original source code
+ * that is available at:
  *
  *   <http://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz>
+ *
+ * This implementation is not compatible with the original libmba library.
  */
 /* The following is a list of the modifications made to the original Michael
- * B Allen code:
+ * B. Allen code:
  *
  * Here is a list of changes from the original implementation:
  * - Switch memory allocation and error handling to R specific functions

@@ -145,18 +145,21 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' @examples
 #' ses(letters[1:3], letters[2:4])
 
-ses <- function(a, b) as.character(diff_myers_mba(a, b))
+ses <- function(a, b) as.character(diff_myers(a, b))
 
 #' Diff two character vectors
 #'
-#' Implementation of Myer's with linear space refinement originally implemented
-#' by Mike B. Allen as part of
+#' Implementation of Myer's Diff algorithm with linear space refinement
+#' originally implemented by Mike B. Allen as part of
 #' \href{libmba}{http://www.ioplex.com/~miallen/libmba/}
-#' version 0.9.1.  This implementation uses the exact same algorithm, except
-#' that the C code is simplified by using fixed size arrays instead of variable
+#' version 0.9.1.  This implementation is a heavily modified version of the
+#' original C code and is not compatible with the \code{libmba} library.
+#' The C code is simplified by using fixed size arrays instead of variable
 #' ones for tracking the longest reaching paths and for recording the shortest
 #' edit scripts.  Additionally all error handling and memory allocation calls
 #' have been moved to the internal R functions designed to handle those things.
+#' A failover result is provided in the case where max diffs allowed is
+#' exceeded.  Ability to provide custom comparison functions is removed.
 #'
 #' @keywords internal
 #' @param a character
@@ -166,7 +169,7 @@ ses <- function(a, b) as.character(diff_myers_mba(a, b))
 #' @return list
 #' @useDynLib diffobj, .registration=TRUE, .fixes="DIFFOBJ_"
 
-diff_myers_mba <- function(a, b, max.diffs=0L) {
+diff_myers <- function(a, b, max.diffs=0L) {
   stopifnot(
     is.character(a), is.character(b), all(!is.na(c(a, b))), is.int.1L(max.diffs)
   )
@@ -207,7 +210,7 @@ setMethod("show", "MyersMbaSes",
 #'
 #' @export
 #' @keywords internal
-#' @param object the \code{diff_myers_mba} object to display
+#' @param object the \code{diff_myers} object to display
 #' @param with.match logical(1L) whether to show what text the edit command
 #'   refers to
 #' @param ... forwarded to the data frame print method used to actually display
@@ -244,7 +247,7 @@ char_diff <- function(x, y, context=-1L, etc, diff.mode, warn) {
     isTRUE(warn) || identical(warn, FALSE)
   )
   max.diffs <- etc@max.diffs
-  diff <- diff_myers_mba(x, y, max.diffs)  # probably shouldn't generate S4
+  diff <- diff_myers(x, y, max.diffs)  # probably shouldn't generate S4
 
   hunks <- as.hunks(diff, etc=etc)
   hit.diffs.max <- FALSE
