@@ -1,5 +1,11 @@
 # diffobj
 
+## v0.1.4
+
+* [#67](https://github.com/brodieG/diffobj/issues/67) Fix CRAN Binaries
+* Clarified that C code is heaviliy modified and incompatible with original
+  `libmba` implementation
+
 ## v0.1.3
 
 * First version on CRAN
