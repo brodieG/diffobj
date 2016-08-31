@@ -51,9 +51,17 @@ setMethod("finalizeHtml", c("ANY"),
       html.output <- if(is(pager, "PagerBrowser")) "page" else "diff.only"
     }
     if(html.output %in% c("diff.w.style", "page")) {
-      css.txt <- try(paste0(readLines(style@css), collapse="\n"))
-      if(inherits(css.txt, "try-error")) stop("Cannot read css file ", css)
-      css <- sprintf("<style type='text/css'>\n%s\n</style>", css.txt)
+      css.txt <- try(paste0(readLines(style@css), collapse="\n"), silent=TRUE)
+      if(inherits(css.txt, "try-error")) {
+        cond <- attr(css.txt, "condition")
+        warning(
+          "Unable to read provided css file \"", style@css, "\" (error: ",
+          paste0(conditionMessage(cond), collapse=""), ")."
+        )
+        css <- ""
+      } else {
+        css <- sprintf("<style type='text/css'>\n%s\n</style>", css.txt)
+      }
     }
     if(html.output == "diff.w.style") {
       tpl <- "%s%s"

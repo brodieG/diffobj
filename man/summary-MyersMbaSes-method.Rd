@@ -8,7 +8,7 @@
 \S4method{summary}{MyersMbaSes}(object, with.match = FALSE, ...)
 }
 \arguments{
-\item{object}{the \code{diff_myers_mba} object to display}
+\item{object}{the \code{diff_myers} object to display}
 
 \item{with.match}{logical(1L) whether to show what text the edit command
 refers to}

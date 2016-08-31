@@ -8,7 +8,7 @@ The original source code is available at:
 
   http://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz
 
-The adapted and modified code is available in src/diff.c, src/mba/diff.h.  See those files for additional details.
+The adapted and heavily modified code is available in src/diff.c, src/diff.h.  See those files for additional details.
 
 This package is released under the GPL-3 license:
 
