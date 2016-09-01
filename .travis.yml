@@ -10,7 +10,6 @@ cache: packages
 
 branches:
   only:
-    - issue67
     - master
     - development
     - rc

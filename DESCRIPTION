@@ -4,7 +4,7 @@ Title: Diffs for R Objects
 Description: Generate a colorized diff of two R objects for an intuitive
     visualization of their differences.
 Version: 0.1.4
-Date: 2016-08-28
+Date: 2016-08-31
 Authors@R: c(
     person(
     "Brodie", "Gaslam", email="brodie.gaslam@yahoo.com",
