@@ -35,14 +35,68 @@ with the "aha, that's how they're different".
 
 ## Vectors
 
-```{r, results="asis"}
+### Stage 1
+
+```{r}
 all.equal(1:10, c(1:9, 11))
-compare::compare(1:10, c(1:9, 11))
 testthat::compare(1:10, c(1:9, 11))
+```
+```{r, results="asis"}
 diffPrint(1:10, c(1:9, 11))
 ```
 
+Have I mentioned I don't care about mean relative differences? IMO `all.equal`
+is out of the running already.  `testthat::compare` hangs on though.  I'm biased
+so I prefer the `diffPrint` output, but there certainly is an argument for a clean
+simple output.
+
+### Stage 2
+
+Let's up the difficulty a little bit:
+
+```{r}
+testthat::compare(1:10, c(10, 1:9))
+```
+```{r, results="asis"}
+diffPrint(1:10, c(10, 1:9))
+```
+
+`diffPrint` recognizes that there is only one difference.
+
+### Stage 2a
+
+```{r}
+all.equal(1:10, c(11:10, 1:9))
+testthat::compare(1:10, c(11:10, 1:9))
+```
+```{r, results="asis"}
+diffPrint(1:10, c(11:10, 1:9))
+```
+
+### Stage 3
+
+```{r}
+v1 <- 1:1e4
+v2 <- c(1e4 + 1, v1[-c(4:7, 1e2, 9e3)])
+all.equal(v1, v2)
+testthat::compare(v1, v2)
+```
+```{r, results="asis"}
+diffPrint(v1, v2, context=1, align=1)
+```
+
+The more helpful output does come at a cost in computation time.  In this case,
+most of the time is spent on the secondary word diff.
+
 ## Data Frames and Matrices
+
+```{r}
+all.equal(iris, iris[-60,])
+testthat::compare(iris, iris[-60,])
+```
+```{r, results="asis"}
+diffPrint(iris, iris[-60,])
+```
 
 ## Lists and Other Objects
 
