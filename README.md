@@ -26,3 +26,10 @@ vignette("diffobj", package="diffobj")
 Go to [Github](https://github.com/brodieG/diffobj) to report issues or if you
 are interested in development versions of this package.
 
+## Related Software
+
+* [tools::Rdiff](https://stat.ethz.ch/R-manual/R-devel/library/tools/html/Rdiff.html)
+* [Daff](https://github.com/ediwndj/daff) diff, patch and merge for data.frames
+* [GNU diff](https://www.gnu.org/software/diffutils)
+
+
