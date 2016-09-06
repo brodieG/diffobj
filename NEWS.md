@@ -3,7 +3,7 @@
 ## v0.1.4
 
 * [#67](https://github.com/brodieG/diffobj/issues/67) Fix CRAN Binaries
-* Clarified that C code is heaviliy modified and incompatible with original
+* Clarified that C code is heavily modified and incompatible with original
   `libmba` implementation
 
 ## v0.1.3
@@ -20,7 +20,7 @@
 * Improve in-hunk alignment of partially matching lines
 * Compile with `-pedantic`, fix related warnings [Arun](http://stackoverflow.com/users/559784/arun)
 * Improved coverage and more robust testing
-* Several internal structure changes to accomodate improvements
+* Several internal structure changes to accommodate improvements
 
 ## v0.1.2
 
