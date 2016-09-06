@@ -323,7 +323,8 @@ line_diff <- function(
     tar.capt.p <- strip_hz_control(tar.capt, stops=etc@tab.stops)
     cur.capt.p <- strip_hz_control(cur.capt, stops=etc@tab.stops)
   }
-  # Apply trimming to remove row heads, etc
+  # Apply trimming to remove row heads, etc, but only if something gets trimmed
+  # from both elements
 
   tar.trim.ind <- apply_trim(target, tar.capt.p, etc@trim)
   tar.trim <- do.call(
@@ -333,6 +334,13 @@ line_diff <- function(
   cur.trim <- do.call(
     substr, list(cur.capt.p, cur.trim.ind[, 1L], cur.trim.ind[, 2L])
   )
+  if(identical(tar.trim, tar.capt.p) || identical(cur.trim, cur.capt.p)) {
+    # didn't trim in both, so go back to original
+    tar.trim <- tar.capt.p
+    tar.trim.ind <- cbind(1L, nchar(tar.capt.p))
+    cur.trim <- cur.capt.p
+    cur.trim.ind <- cbind(1L, nchar(cur.capt.p))
+  }
   # Remove whitespace if warranted
 
   tar.comp <- tar.trim
