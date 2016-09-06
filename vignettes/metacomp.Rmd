@@ -1,0 +1,48 @@
+---
+title: "A Meta Comparison of R Comparison Functions"
+author: "Brodie Gaslam"
+output:
+    function(...) rmarkdown::html_vignette(..., md_extensions="-markdown_in_html_blocks", css=c(file.path(system.file(package="diffobj"), "css", "diffobj.css"), "styles.css")):
+        toc: true
+
+vignette: >
+  %\VignetteIndexEntry{diffobj}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+
+---
+
+```{r, echo=FALSE}
+old.opt <- options(
+  diffobj.disp.width=80, diffobj.pager="off", diffobj.format="html"
+)
+```
+
+Do you care about mean relative differences? A comparison of #rstats comparison
+functions.
+
+I wrote `diffobj` to answer a simple question: how are these two R objects
+different.  There are many functions available in R and in add-on packages that
+address several aspects of the problem, but none that consistently provides me
+with the "aha, that's how they're different".
+
+## The Functions
+
+* `all.equal`, from base R
+* `testthat::compare`
+* `compare::compare`
+* `diffobj::diffPrint`
+
+## Vectors
+
+```{r, results="asis"}
+all.equal(1:10, c(1:9, 11))
+compare::compare(1:10, c(1:9, 11))
+testthat::compare(1:10, c(1:9, 11))
+diffPrint(1:10, c(1:9, 11))
+```
+
+## Data Frames and Matrices
+
+## Lists and Other Objects
+
