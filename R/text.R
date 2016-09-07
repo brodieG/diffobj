@@ -321,8 +321,7 @@ strip_hz_control <- function(txt, stops=8L) {
 }
 # Normalize strings so whitespace differences don't show up as differences
 
-normalize_whitespace <- function(txt)
-  gsub("(\t| )+", " ", gsub("^(\t| )*|(\t| )*$", "", txt))
+normalize_whitespace <- function(txt) gsub("(\t| )+", " ", trimws(txt))
 
 # Simple text manip functions
 

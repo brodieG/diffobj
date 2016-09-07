@@ -2,6 +2,8 @@
 
 ## v0.1.5
 
+* [#69](https://github.com/brodieG/diffobj/issues/69) Improve performance on
+  large print output objects
 * [#]() Warn when `style` param overrides other user supplied params
 * [#]() Buggy diffs b/w data frames when one has sequential row numbers and the
   other does not, loosely related to [#38](https://github.com/brodieG/diffobj/issues/38)
