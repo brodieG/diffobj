@@ -34,7 +34,7 @@ capture <- function(x, etc, err) {
   # capture without a file
 
   capt.file <- tempfile()
-  on.exit(unlink(capt.file))
+  on.exit(unlink(capt.file), add=TRUE)
   res <- try({
     capture.output(eval(x, etc@frame), file=capt.file)
     obj.out <- readLines(capt.file)
