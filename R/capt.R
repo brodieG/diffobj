@@ -30,7 +30,15 @@ capture <- function(x, etc, err) {
       )
     } else on.exit(options(width.old))
   }
-  res <- try(obj.out <- capture.output(eval(x, etc@frame)))
+  # Note, we use `tempfile` for capture as that appears much faster than normal
+  # capture without a file
+
+  capt.file <- tempfile()
+  on.exit(unlink(capt.file))
+  res <- try({
+    capture.output(eval(x, etc@frame), file=capt.file)
+    obj.out <- readLines(capt.file)
+  })
   if(inherits(res, "try-error"))
     err(
       "Failed attempting to get text representation of object: ",
