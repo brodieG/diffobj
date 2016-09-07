@@ -211,7 +211,8 @@ make_diff_fun <- function(capt_fun) {
 #'   details and limitations.  Also offers the same advanced usage as the
 #'   \code{brightness} parameter.
 #' @param word.diff TRUE (default) or FALSE, whether to run a secondary word
-#'   diff on the in-hunk diferences
+#'   diff on the in-hunk differences.  For atomic vectors this could
+#'   make the diff \emph{slower} (see the \code{unwrap.atomic} parameter).
 #' @param pager one of \dQuote{auto} (default), \dQuote{on},
 #'   \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
 #'   pager is used to display the diff output.  If \dQuote{on} will use the
@@ -257,7 +258,11 @@ make_diff_fun <- function(capt_fun) {
 #'   paired up.  Since the vectors may well be wrapped with different
 #'   periodicities this will result in lines that are paired up that look like
 #'   they should not be paired up, though the locations of the differences
-#'   should be.
+#'   should be.  If is entirely possible that setting this parameter to FALSE
+#'   will result in a slower diff.  This happens if two vectors are actually
+#'   fairly similar, but their line representations are not.  For example, in
+#'   comparing \code{1:100} to \code{c(100, 1:99)}, there is really only one
+#'   difference at the \dQuote{word} level, but every screen line is different.
 #' @param line.limit integer(2L) or integer(1L), if length 1 how many lines of
 #'   output to show, where \code{-1} means no limit.  If length 2, the first
 #'   value indicates the threshold of screen lines to begin truncating output,
