@@ -2,10 +2,9 @@
 
 ## v0.1.5
 
-* `trim` parameter only applies when both `target` and `current` are trimmable,
-  as otherwise object with trimmed row numbers will not match one without
-  trimmed numbers even if rows match perfectly.  Manifests with data frames and
-  is loosely related to [#38](https://github.com/brodieG/diffobj/issues/39)
+* [#]() Warn when `style` param overrides other user supplied params
+* [#]() Buggy diffs b/w data frames when one has sequential row numbers and the
+  other does not, loosely related to [#38](https://github.com/brodieG/diffobj/issues/38)
 
 ## v0.1.4
 
