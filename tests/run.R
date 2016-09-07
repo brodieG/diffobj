@@ -5,11 +5,15 @@ library(covr)
 library(diffobj)
 
 local({                                         # so we can use `on.exit`
-  old.opts <- diffobj_set_def_opts()
-  options(useFancyQuotes=FALSE)   # all.equals uses fancy quotes
-  options(diffobj.style=StyleAnsi8NeutralYb())  # force ANSI colors
-  options(diffobj.pager="off")                  # run tests without pager
-  options(width=80L)
+  old.opts <- c(
+    diffobj_set_def_opts(),
+    options(
+      useFancyQuotes=FALSE,   # all.equals uses fancy quotes
+      diffobj.format="ansi8", # force ANSI colors
+      diffobj.color.mode="yb",# force yb
+      diffobj.pager="off",    # run tests without pager
+      width=80L
+  ) )
 
   # # covr options have no effect here; just recorded so we can use them ahead
   # # of calling package_coverage()
