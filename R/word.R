@@ -490,8 +490,8 @@ diff_word2 <- function(
 
   # Remove the leading spaces we grabbed for each word
 
-  tar.unsplit <- sub("^\\s*", "", tar.unsplit)
-  cur.unsplit <- sub("^\\s*", "", cur.unsplit)
+  tar.unsplit <- trimws(tar.unsplit, "left")
+  cur.unsplit <- trimws(cur.unsplit, "left")
 
   # Run the word diff as a line diff configured in a manner compatible for the
   # word diff
