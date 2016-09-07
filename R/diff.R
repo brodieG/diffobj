@@ -81,7 +81,8 @@ make_diff_fun <- function(capt_fun) {
       tab.stops=tab.stops, style=style, palette.of.styles=palette.of.styles,
       frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides,
       rds=rds, trim=trim, word.diff=word.diff, unwrap.atomic=unwrap.atomic,
-      extra=extra, interactive=interactive, term.colors=term.colors
+      extra=extra, interactive=interactive, term.colors=term.colors,
+      call.match=match.call()
     )
     # If in rds mode, try to see if either target or current reference an RDS
 
