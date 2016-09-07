@@ -337,9 +337,9 @@ line_diff <- function(
   if(identical(tar.trim, tar.capt.p) || identical(cur.trim, cur.capt.p)) {
     # didn't trim in both, so go back to original
     tar.trim <- tar.capt.p
-    tar.trim.ind <- cbind(1L, nchar(tar.capt.p))
+    tar.trim.ind <- cbind(rep(1L, length(tar.capt.p)), nchar(tar.capt.p))
     cur.trim <- cur.capt.p
-    cur.trim.ind <- cbind(1L, nchar(cur.capt.p))
+    cur.trim.ind <- cbind(rep(1L, length(cur.capt.p)), nchar(cur.capt.p))
   }
   # Remove whitespace if warranted
 
