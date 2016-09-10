@@ -22,11 +22,14 @@ Most R object comparison functions are good at telling you that
 objects are different, but less so at intuitively conveying _how_ they are
 different.  `diffobj` seeks to provide the "aha, that's how they are different" comparison.  In this vignette I will compare `diffPrint` to `all.equal`, and to `testthat::compare`.
 
+Disclaimer: I picked the examples here to showcase `diffobj` capabilities, not
+to carry out a fair and balanced comparison of the functions.  Nonetheless, I
+hope you will find the examples realistic and representative of common
+situations where comparison of R objects is useful.
+
 ## Vectors
 
-I have defined four pairs of numeric vectors for us to compare, each pair with
-an increasing level of complexity.  I purposefully omit the variable definitions
-to simulate a comparison of unknown objects.
+I defined four pairs of numeric vectors for us to compare.  I purposefully hid the variable definitions to simulate a comparison of unknown objects.
 
 ```{r echo=FALSE}
 A1 <- 1:10
@@ -42,17 +45,21 @@ B3 <- c(20:21, 1:19)
 ```{r}
 all.equal(A1, B1)
 ```
-I am sure there are situations where the mean relative difference is a useful
-statistic when comparing R objects, but for whatever reason I have not run into them.
+Okay, the objects are different.  At this point I would normally print both `A1`
+and `B1` to try to figure out how that difference came about.
+
 ```{r}
 testthat::compare(A1, B1)
 ```
-`testthat::compare` does a better job, but in order to appreciate the meaning of
-the difference it is helpful to see the context the difference occurs in:
+
+`testthat::compare` does a better job, but I still feel the need to look at `A1`
+and `B1`.
+
 ```{r, results="asis"}
 diffPrint(A1, B1)
 ```
-Aha, that's how they are different.
+
+Aha, that's how they are different!
 
 ### Stage 2
 
@@ -63,7 +70,8 @@ testthat::compare(A2, B2)
 ```
 
 In this case we have a minor modification to a vector, yet the output suggests a
-complete change.  `diffPrint` produces a more intuitive outcome:
+complete change.  Furthermore, the output is truncated.  I find the `diffPrint`
+result more intuitive:
 
 ```{r, results="asis"}
 diffPrint(A2, B2)
@@ -71,25 +79,23 @@ diffPrint(A2, B2)
 
 ### Stage 3
 
-Both `all.equal` and `testthat::compare` throw in the towel as soon as lengths
-are unequal:
+`testthat::compare` throws in the towel as soon as lengths are unequal:
 ```{r}
 testthat::compare(A3, B3)
 ```
-`diffPrint` is unfazed:
+
+`all.equal` does the same.  `diffPrint` is unfazed:
+
 ```{r, results="asis"}
 diffPrint(A3, B3)
 ```
 
-### Stage 4
-
-By focusing on the differences, `diffPrint` produces useful output for largish
-vectors:
+`diffPrint` also produces useful output for largish vectors:
 
 ```{r, results="asis"}
 A4 <- 1:1e4
 B4 <- c(1e4 + 1, A4[-c(4:7, 9e3)])
-diffPrint(A4, B4, context=1)
+diffPrint(A4, B4)
 ```
 
 Do note that the comparison algorithm scales with the square of the number of
@@ -110,18 +116,22 @@ diffPrint(iris, iris[-60,])
 And:
 
 ```{r, R.options=list(max.print=5)}
-sumlm1 <- summary(lm(hp ~ disp, mtcars))
-sumlm2 <- summary(lm(hp ~ cyl, mtcars))
-all.equal(sumlm1, sumlm2)
+all.equal(lm(hp ~ disp, mtcars), lm(hp ~ cyl, mtcars))
 ```
 ```{r, results="asis"}
-diffPrint(sumlm1, sumlm2, mode="unified")
+diffPrint(lm(hp ~ disp, mtcars), lm(hp ~ cyl, mtcars))
 ```
 
-In these examples we limited `all.equal` output to five lines for the sake of
-brevity.  Also, since `testthat::compare` reverts to `all.equal` output with more complex objects, we omitted from this comparison.
+In these examples I limited `all.equal` output to five lines for the sake of
+brevity.  Also, since `testthat::compare` reverts to `all.equal` output with
+more complex objects I omit it from this comparison.
 
-Sometimes it is necessary to look underneath the surface of `print` / `show`
-methods.  In those cases you can use `diffStr(A, B)` or `diffPrint(unclass(A),
-unclass(B))`.
+## Parting Thoughts
 
+Another candidate comparison function is `compare::compare`.  I omitted it from
+this vignette because it focuses more on similarities than on differences.
+Additionally, `testthat::compare` and `compare::compare` `print` methods
+conflict so they cannot be used together.
+
+For a more thorough exploration of `diffobj` function features please see the
+[primary `diffobj` vignette](diffobj.html).

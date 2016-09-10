@@ -35,7 +35,7 @@ diffPrint(A3, B3)
 ## ---- results="asis"-----------------------------------------------------
 A4 <- 1:1e4
 B4 <- c(1e4 + 1, A4[-c(4:7, 9e3)])
-diffPrint(A4, B4, context=1)
+diffPrint(A4, B4)
 
 ## ---- R.options=list(max.print=5)----------------------------------------
 all.equal(iris, iris[-60,])
@@ -44,10 +44,8 @@ all.equal(iris, iris[-60,])
 diffPrint(iris, iris[-60,])
 
 ## ---- R.options=list(max.print=5)----------------------------------------
-sumlm1 <- summary(lm(hp ~ disp, mtcars))
-sumlm2 <- summary(lm(hp ~ cyl, mtcars))
-all.equal(sumlm1, sumlm2)
+all.equal(lm(hp ~ disp, mtcars), lm(hp ~ cyl, mtcars))
 
 ## ---- results="asis"-----------------------------------------------------
-diffPrint(sumlm1, sumlm2, mode="unified")
+diffPrint(lm(hp ~ disp, mtcars), lm(hp ~ cyl, mtcars))
 
