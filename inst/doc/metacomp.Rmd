@@ -25,7 +25,7 @@ different.  `diffobj` seeks to provide the "aha, that's how they are different" 
 ## Vectors
 
 I have defined four pairs of numeric vectors for us to compare, each pair with
-an increasing level of complexity.  I purposefully hide the variable definitions
+an increasing level of complexity.  I purposefully omit the variable definitions
 to simulate a comparison of unknown objects.
 
 ```{r echo=FALSE}
@@ -63,8 +63,7 @@ testthat::compare(A2, B2)
 ```
 
 In this case we have a minor modification to a vector, yet the output suggests a
-complete change.  Furthermore, the output is truncated.  I find the `diffPrint`
-result more intuitive:
+complete change.  `diffPrint` produces a more intuitive outcome:
 
 ```{r, results="asis"}
 diffPrint(A2, B2)
