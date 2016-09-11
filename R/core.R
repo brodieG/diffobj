@@ -319,7 +319,7 @@ line_diff <- function(
 
   tar.capt.p <- tar.capt
   cur.capt.p <- cur.capt
-  if(strip) {
+  if(etc@convert.hz.white.space) {
     tar.capt.p <- strip_hz_control(tar.capt, stops=etc@tab.stops)
     cur.capt.p <- strip_hz_control(cur.capt, stops=etc@tab.stops)
   }
