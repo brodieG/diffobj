@@ -11,6 +11,8 @@
   parameter overrides other user supplied parameters
 * [#70](https://github.com/brodieG/diffobj/issues/70) Improve word contrast in YB
   HTML mode
+* [#63](https://github.com/brodieG/diffobj/issues/63) Show `all.equal` output
+  when objects are not `all.equal` but there are no visible differences
 * Add [Mean Relative
   Indifference](http://htmlpreview.github.io/?https://raw.githubusercontent.com/brodieG/diffobj/master/inst/doc/metacomp.html)
   vignette and update vignette styling
