@@ -93,7 +93,8 @@ details and limitations.  Also offers the same advanced usage as the
 \code{brightness} parameter.}
 
 \item{word.diff}{TRUE (default) or FALSE, whether to run a secondary word
-diff on the in-hunk diferences}
+diff on the in-hunk differences.  For atomic vectors this could
+make the diff \emph{slower} (see the \code{unwrap.atomic} parameter).}
 
 \item{pager}{one of \dQuote{auto} (default), \dQuote{on},
 \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
@@ -144,7 +145,11 @@ diff.  Lines that contain the location of the word differences will be
 paired up.  Since the vectors may well be wrapped with different
 periodicities this will result in lines that are paired up that look like
 they should not be paired up, though the locations of the differences
-should be.}
+should be.  If is entirely possible that setting this parameter to FALSE
+will result in a slower diff.  This happens if two vectors are actually
+fairly similar, but their line representations are not.  For example, in
+comparing \code{1:100} to \code{c(100, 1:99)}, there is really only one
+difference at the \dQuote{word} level, but every screen line is different.}
 
 \item{max.diffs}{integer(1L), number of \emph{differences} after which we
 abandon the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to

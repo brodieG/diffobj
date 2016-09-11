@@ -284,20 +284,25 @@ setMethod("as.character", "Diff",
       # This needs to account for "trim" effects
 
       msg <- "No visible differences between objects"
-      msg.extra <- if(
+      if(
         (ignore.white.space || x@etc@convert.hz.white.space) &&
         !isTRUE(all.equal(x@tar.dat$orig, x@cur.dat$orig)) &&
         isTRUE(all.equal(x@tar.dat$comp, x@cur.dat$comp))
       ) {
         paste0(
-          ", but there are white space differences; re-run diff with ",
+          msg, ", but there are white space differences; re-run diff with ",
           "`ignore.white.space=FALSE` and `convert.hz.white.space=FALSE` ",
           "to show them.", collapse=""
         )
-      } else if (!isTRUE(all.equal(x@target, x@current))) {
-        ", but objects are _not_ `all.equal`."
-      } else "."
-      res <- paste0(msg, msg.extra)
+      } else if (!isTRUE(all.eq <- all.equal(x@target, x@current))) {
+        c(
+          paste0(
+            msg, ", but objects are *not* `all.equal`",
+            if(length(all.eq)) ":" else "."
+          ),
+          if(length(all.eq)) paste0("- ", all.eq)
+        )
+      } else paste0(msg, ".")
     }
     # Basic width computation and banner size; start by computing gutter so we
     # can figure out what's left
@@ -380,9 +385,13 @@ setMethod("as.character", "Diff",
     # - Substitute appropriate values for empty strings
 
     f.f <- x@etc@style@funs
-    tar.w.c <- word_color(x@tar.dat$trim, x@tar.dat$word.ind, f.f@word.delete)
-    cur.w.c <- word_color(x@cur.dat$trim, x@cur.dat$word.ind, f.f@word.insert)
-
+    if(x@etc@word.diff) {
+      tar.w.c <- word_color(x@tar.dat$trim, x@tar.dat$word.ind, f.f@word.delete)
+      cur.w.c <- word_color(x@cur.dat$trim, x@cur.dat$word.ind, f.f@word.insert)
+    } else {
+      tar.w.c <- x@tar.dat$trim
+      cur.w.c <- x@cur.dat$trim
+    }
     x@tar.dat$fin <- untrim(x@tar.dat, tar.w.c, x@etc)
     x@cur.dat$fin <- untrim(x@cur.dat, cur.w.c, x@etc)
 
