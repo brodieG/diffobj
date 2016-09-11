@@ -20,11 +20,11 @@ old.opt <- options(
 
 Most R object comparison functions are good at telling you that
 objects are different, but less so at conveying _how_ they are
-different.  `diffobj` seeks to provide the "aha, that's how they are different" comparison.  In this vignette I will compare `diffPrint` to `all.equal` and to `testthat::compare`.
+different.  I wrote `diffobj` to provide an "aha, that's how they are different" comparison.  In this vignette I will compare `diffPrint` to `all.equal` and to `testthat::compare`.
 
 Disclaimer: I picked the examples here to showcase `diffobj` capabilities, not
-to carry out a fair and balanced comparison of the functions.  Nonetheless, I
-hope you will find the examples realistic and representative of common
+to carry out a fair and balanced comparison of these comparison functions.
+Nonetheless, I hope you will find the examples representative of common
 situations where comparison of R objects is useful.
 
 ## Vectors
@@ -45,8 +45,10 @@ B3 <- c(20:21, 1:19)
 ```{r}
 all.equal(A1, B1)
 ```
-Okay, the objects are different.  At this point I would normally print both `A1`
-and `B1` to try to figure out how that difference came about.
+
+The objects are different...  At this point I would normally print both `A1` and
+`B1` to try to figure out how that difference came about since the "mean
+relative difference" is unhelpful.
 
 ```{r}
 testthat::compare(A1, B1)
@@ -69,9 +71,10 @@ Let's up the difficulty a little bit:
 testthat::compare(A2, B2)
 ```
 
-In this case we have a minor modification to a vector, yet the output suggests a
-complete change.  Furthermore, the output is truncated.  `diffPrint` recognizes
-that the two vectors are mostly the same:
+If you look closely you will see that despite a reported 20/20 differences, the
+two vectors are actually similar, at least in the part visible part of the
+output. With `diffPrint` it is obvious that `B2` and is the same as `A2`, except
+that the last value has been moved to the first position:
 
 ```{r, results="asis"}
 diffPrint(A2, B2)
@@ -80,6 +83,7 @@ diffPrint(A2, B2)
 ### Stage 3
 
 `testthat::compare` throws in the towel as soon as lengths are unequal:
+
 ```{r}
 testthat::compare(A3, B3)
 ```
@@ -109,6 +113,9 @@ methods.  `diffPrint` takes advantage of this.  Compare:
 ```{r, R.options=list(max.print=5)}
 all.equal(iris, iris[-60,])
 ```
+
+to:
+
 ```{r, results="asis"}
 diffPrint(iris, iris[-60,])
 ```
@@ -118,6 +125,9 @@ And:
 ```{r, R.options=list(max.print=5)}
 all.equal(lm(hp ~ disp, mtcars), lm(hp ~ cyl, mtcars))
 ```
+
+to:
+
 ```{r, results="asis"}
 diffPrint(lm(hp ~ disp, mtcars), lm(hp ~ cyl, mtcars))
 ```
@@ -133,8 +143,7 @@ this vignette because it focuses more on similarities than on differences.
 Additionally, `testthat::compare` and `compare::compare` `print` methods
 conflict so they cannot be used together.
 
-For a more thorough exploration of `diffobj` function features please see the
-[primary `diffobj` vignette](diffobj.html).
+For a more thorough exploration of `diffobj` methods and their features please see the [primary `diffobj` vignette](diffobj.html).
 
 ```{r, echo=FALSE}
 options(old.opt)
