@@ -1,7 +1,6 @@
 ## ---- echo=FALSE---------------------------------------------------------
 old.opt <- options(
-  diffobj.disp.width=80, diffobj.pager="off", diffobj.format="html",
-  diffobj.color.mode="rgb"
+  diffobj.disp.width=80, diffobj.pager="off", diffobj.format="html"
 )
 
 ## ----echo=FALSE----------------------------------------------------------

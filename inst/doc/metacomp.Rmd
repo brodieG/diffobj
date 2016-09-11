@@ -14,14 +14,13 @@ vignette: >
 
 ```{r, echo=FALSE}
 old.opt <- options(
-  diffobj.disp.width=80, diffobj.pager="off", diffobj.format="html",
-  diffobj.color.mode="rgb"
+  diffobj.disp.width=80, diffobj.pager="off", diffobj.format="html"
 )
 ```
 
 Most R object comparison functions are good at telling you that
-objects are different, but less so at intuitively conveying _how_ they are
-different.  `diffobj` seeks to provide the "aha, that's how they are different" comparison.  In this vignette I will compare `diffPrint` to `all.equal`, and to `testthat::compare`.
+objects are different, but less so at conveying _how_ they are
+different.  `diffobj` seeks to provide the "aha, that's how they are different" comparison.  In this vignette I will compare `diffPrint` to `all.equal` and to `testthat::compare`.
 
 Disclaimer: I picked the examples here to showcase `diffobj` capabilities, not
 to carry out a fair and balanced comparison of the functions.  Nonetheless, I
