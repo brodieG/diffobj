@@ -294,8 +294,11 @@ setMethod("as.character", "Diff",
           "`ignore.white.space=FALSE` and `convert.hz.white.space=FALSE` ",
           "to show them.", collapse=""
         )
-      } else if (!isTRUE(all.equal(x@target, x@current))) {
-        ", but objects are _not_ `all.equal`."
+      } else if (!isTRUE(all.eq <- all.equal(x@target, x@current))) {
+        paste0(
+          ", but objects are _not_ `all.equal`", if(length(all.eq)) ":\n", ".",
+          paste0("- ", all.eq, collapse="\n")
+        )
       } else "."
       res <- paste0(msg, msg.extra)
     }
