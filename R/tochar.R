@@ -380,9 +380,13 @@ setMethod("as.character", "Diff",
     # - Substitute appropriate values for empty strings
 
     f.f <- x@etc@style@funs
-    tar.w.c <- word_color(x@tar.dat$trim, x@tar.dat$word.ind, f.f@word.delete)
-    cur.w.c <- word_color(x@cur.dat$trim, x@cur.dat$word.ind, f.f@word.insert)
-
+    if(x@etc@word.diff) {
+      tar.w.c <- word_color(x@tar.dat$trim, x@tar.dat$word.ind, f.f@word.delete)
+      cur.w.c <- word_color(x@cur.dat$trim, x@cur.dat$word.ind, f.f@word.insert)
+    } else {
+      tar.w.c <- x@tar.dat$trim
+      cur.w.c <- x@cur.dat$trim
+    }
     x@tar.dat$fin <- untrim(x@tar.dat, tar.w.c, x@etc)
     x@cur.dat$fin <- untrim(x@cur.dat, cur.w.c, x@etc)
 
