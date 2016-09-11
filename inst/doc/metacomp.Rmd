@@ -14,7 +14,8 @@ vignette: >
 
 ```{r, echo=FALSE}
 old.opt <- options(
-  diffobj.disp.width=80, diffobj.pager="off", diffobj.format="html"
+  diffobj.disp.width=80, diffobj.pager="off", diffobj.format="html",
+  diffobj.color.mode="rgb"
 )
 ```
 
@@ -135,3 +136,8 @@ conflict so they cannot be used together.
 
 For a more thorough exploration of `diffobj` function features please see the
 [primary `diffobj` vignette](diffobj.html).
+
+```{r, echo=FALSE}
+options(old.opt)
+```
+
