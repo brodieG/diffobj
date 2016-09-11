@@ -464,21 +464,22 @@ line_diff <- function(
       tar.dat <- h.a.w.d$tar.dat
       cur.dat <- h.a.w.d$cur.dat
       warn <- !h.a.w.d$hit.diffs.max
-  } }
-  # Compute the token ratios
+    }
+    # Compute the token ratios
 
-  tok_ratio_compute <- function(z) vapply(
-    z,
-    function(y)
-      if(is.null(wc <- attr(y, "word.count"))) 1
-      else max(0, (wc - length(y)) / wc),
-    numeric(1L)
-  )
-  tar.dat$tok.rat <- tok_ratio_compute(tar.dat$word.ind)
-  cur.dat$tok.rat <- tok_ratio_compute(cur.dat$word.ind)
-  tar.dat$eq <- `regmatches<-`(tar.dat$trim, tar.dat$word.ind, value="")
-  cur.dat$eq <- `regmatches<-`(cur.dat$trim, cur.dat$word.ind, value="")
+    tok_ratio_compute <- function(z) vapply(
+      z,
+      function(y)
+        if(is.null(wc <- attr(y, "word.count"))) 1
+        else max(0, (wc - length(y)) / wc),
+      numeric(1L)
+    )
+    tar.dat$tok.rat <- tok_ratio_compute(tar.dat$word.ind)
+    cur.dat$tok.rat <- tok_ratio_compute(cur.dat$word.ind)
 
+    tar.dat$eq <- `regmatches<-`(tar.dat$trim, tar.dat$word.ind, value="")
+    cur.dat$eq <- `regmatches<-`(cur.dat$trim, cur.dat$word.ind, value="")
+  }
   # Instantiate result
 
   hunk.grps.raw <- group_hunks(
