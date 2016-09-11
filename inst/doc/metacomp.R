@@ -1,6 +1,7 @@
 ## ---- echo=FALSE---------------------------------------------------------
 old.opt <- options(
-  diffobj.disp.width=80, diffobj.pager="off", diffobj.format="html"
+  diffobj.disp.width=80, diffobj.pager="off", diffobj.format="html",
+  diffobj.color.mode="rgb"
 )
 
 ## ----echo=FALSE----------------------------------------------------------
@@ -48,4 +49,7 @@ all.equal(lm(hp ~ disp, mtcars), lm(hp ~ cyl, mtcars))
 
 ## ---- results="asis"-----------------------------------------------------
 diffPrint(lm(hp ~ disp, mtcars), lm(hp ~ cyl, mtcars))
+
+## ---- echo=FALSE---------------------------------------------------------
+options(old.opt)
 

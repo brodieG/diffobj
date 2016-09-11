@@ -15,13 +15,13 @@ local({                                         # so we can use `on.exit`
       width=80L
   ) )
 
-  # # covr options have no effect here; just recorded so we can use them ahead
-  # # of calling package_coverage()
-
-  # options(covr.exclude_start="(?://|#)[[:space:]]*nocov[[:space:]]*start")
-  # options(covr.exclude_end="(?://|#)[[:space:]]*nocov[[:space:]]*end")
-  # options(covr.exclude_pattern="(?://|#)[[:space:]]*nocov")
-
+  # covr options have no effect here; just recorded so we can use them ahead
+  # of calling package_coverage() when running tests manually
+  if(FALSE) {
+    options(covr.exclude_start="(?://|#)[[:space:]]*nocov[[:space:]]*start")
+    options(covr.exclude_end="(?://|#)[[:space:]]*nocov[[:space:]]*end")
+    options(covr.exclude_pattern="(?://|#)[[:space:]]*nocov")
+  }
   on.exit(options(old.opts))
   test.res <- test_dir(
     "testthat",
