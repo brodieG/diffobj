@@ -319,11 +319,12 @@ line_diff <- function(
 
   tar.capt.p <- tar.capt
   cur.capt.p <- cur.capt
-  if(strip) {
+  if(etc@convert.hz.white.space) {
     tar.capt.p <- strip_hz_control(tar.capt, stops=etc@tab.stops)
     cur.capt.p <- strip_hz_control(cur.capt, stops=etc@tab.stops)
   }
-  # Apply trimming to remove row heads, etc
+  # Apply trimming to remove row heads, etc, but only if something gets trimmed
+  # from both elements
 
   tar.trim.ind <- apply_trim(target, tar.capt.p, etc@trim)
   tar.trim <- do.call(
@@ -333,6 +334,13 @@ line_diff <- function(
   cur.trim <- do.call(
     substr, list(cur.capt.p, cur.trim.ind[, 1L], cur.trim.ind[, 2L])
   )
+  if(identical(tar.trim, tar.capt.p) || identical(cur.trim, cur.capt.p)) {
+    # didn't trim in both, so go back to original
+    tar.trim <- tar.capt.p
+    tar.trim.ind <- cbind(rep(1L, length(tar.capt.p)), nchar(tar.capt.p))
+    cur.trim <- cur.capt.p
+    cur.trim.ind <- cbind(rep(1L, length(cur.capt.p)), nchar(cur.capt.p))
+  }
   # Remove whitespace if warranted
 
   tar.comp <- tar.trim
@@ -456,21 +464,22 @@ line_diff <- function(
       tar.dat <- h.a.w.d$tar.dat
       cur.dat <- h.a.w.d$cur.dat
       warn <- !h.a.w.d$hit.diffs.max
-  } }
-  # Compute the token ratios
+    }
+    # Compute the token ratios
 
-  tok_ratio_compute <- function(z) vapply(
-    z,
-    function(y)
-      if(is.null(wc <- attr(y, "word.count"))) 1
-      else max(0, (wc - length(y)) / wc),
-    numeric(1L)
-  )
-  tar.dat$tok.rat <- tok_ratio_compute(tar.dat$word.ind)
-  cur.dat$tok.rat <- tok_ratio_compute(cur.dat$word.ind)
-  tar.dat$eq <- `regmatches<-`(tar.dat$trim, tar.dat$word.ind, value="")
-  cur.dat$eq <- `regmatches<-`(cur.dat$trim, cur.dat$word.ind, value="")
+    tok_ratio_compute <- function(z) vapply(
+      z,
+      function(y)
+        if(is.null(wc <- attr(y, "word.count"))) 1
+        else max(0, (wc - length(y)) / wc),
+      numeric(1L)
+    )
+    tar.dat$tok.rat <- tok_ratio_compute(tar.dat$word.ind)
+    cur.dat$tok.rat <- tok_ratio_compute(cur.dat$word.ind)
 
+    tar.dat$eq <- `regmatches<-`(tar.dat$trim, tar.dat$word.ind, value="")
+    cur.dat$eq <- `regmatches<-`(cur.dat$trim, cur.dat$word.ind, value="")
+  }
   # Instantiate result
 
   hunk.grps.raw <- group_hunks(

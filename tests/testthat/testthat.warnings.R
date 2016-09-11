@@ -19,3 +19,13 @@ test_that("Max diffs", {
 
   expect_warning(diffChr(A3, B3, max.diffs=2), "Exceeded diff")
 })
+test_that("Overriden formals", {
+  expect_warning(
+    diffChr(letters, LETTERS, style=StyleRaw(), form="ansi8"),
+    "Provided `style` argument will override the provided `format` argument"
+  )
+  expect_warning(
+    diffChr(letters, LETTERS, style=StyleRaw(), form="ansi8", color.mode="rgb"),
+    "Provided `style` .* `format` and `color.mode` arguments"
+  )
+})

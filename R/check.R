@@ -123,6 +123,9 @@ is.one.file.name <- function(x) {
     sprintf("(\"%s\") is not a file", x)
   } else TRUE
 }
+is.non.obj.style <- function(x)
+  string_in(x, "auto") || (is.list(x) && !is.object(x))
+
 # Checks common arguments across functions
 
 check_args <- function(
@@ -130,10 +133,31 @@ check_args <- function(
   color.mode, pager, ignore.white.space, max.diffs, align, disp.width,
   hunk.limit, convert.hz.white.space, tab.stops, style, palette.of.styles,
   frame, tar.banner, cur.banner, guides, rds, trim, word.diff, unwrap.atomic,
-  extra, interactive, term.colors
+  extra, interactive, term.colors, call.match
 ) {
   err <- make_err_fun(call)
   warn <- make_warn_fun(call)
+
+  # Check for conflicting arguments
+
+  formals <- tail(names(call.match), -1L)
+  style.overrideable <- c("format", "brightness", "color.mode")
+  if(
+    "style" %in% formals && !is.non.obj.style(style) &&
+    any(s.ov <- style.overrideable %in% formals)
+  )
+    warn(
+      "Provided `style` argument will override the provided ",
+      if(sum(s.ov) < 2L) {
+        sprintf("`%s` argument", style.overrideable[s.ov])
+      } else {
+        paste0(
+          paste0(
+            sprintf("`%s`", head(style.overrideable[s.ov], -1L)),
+            collapse=", "
+          ),
+          " and `", tail(style.overrideable[s.ov], 1L), "` arguments."
+    ) } )
 
   # Check extra
 

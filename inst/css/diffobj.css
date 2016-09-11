@@ -115,17 +115,17 @@ DIV.diffobj_container.light.rgb DIV.line>DIV.insert {
 }
 DIV.diffobj_container.light.rgb SPAN.word.delete,
 DIV.diffobj_container.light.rgb DIV.line>DIV.delete {
-  background-color: #f8cbcb;
+  background-color: #f8c2c2;
 }
 DIV.diffobj_container.light.rgb DIV.text>DIV.insert {
-  background-color: #eaffea;
+  background-color: #efffef;
 }
 DIV.diffobj_container.light.rgb DIV.text>DIV.insert,
 DIV.diffobj_container.light.rgb DIV.line>DIV.insert {
   border-left: 1px solid #33bb33;
 }
 DIV.diffobj_container.light.rgb DIV.text>DIV.delete {
-  background-color: #ffecec;
+  background-color: #ffefef;
 }
 DIV.diffobj_container.light.rgb DIV.text>DIV.delete,
 DIV.diffobj_container.light.rgb DIV.line>DIV.delete {
@@ -139,21 +139,21 @@ DIV.diffobj_container.light.rgb DIV.header {
 
 DIV.diffobj_container.light.yb SPAN.word.insert,
 DIV.diffobj_container.light.yb DIV.line>DIV.insert {
-  background-color: #cbcbf8;
+  background-color: #c0cfff;
 }
 DIV.diffobj_container.light.yb SPAN.word.delete,
 DIV.diffobj_container.light.yb DIV.line>DIV.delete {
-  background-color: #e0e096;
+  background-color: #e7e780;
 }
 DIV.diffobj_container.light.yb DIV.text>DIV.insert {
-  background-color: #eaeaff;
+  background-color: #efefff;
 }
 DIV.diffobj_container.light.yb DIV.text>DIV.insert,
 DIV.diffobj_container.light.yb DIV.line>DIV.insert {
   border-left: 1px solid #3333bb;
 }
 DIV.diffobj_container.light.yb DIV.text>DIV.delete {
-  background-color: #fbfbcd;
+  background-color: #fefee5;
 }
 DIV.diffobj_container.light.yb DIV.text>DIV.delete,
 DIV.diffobj_container.light.yb DIV.line>DIV.delete {

@@ -252,7 +252,7 @@ The default is to auto pick a style based on the values of the `format`, `color.
 
 If you specify the `style` parameter the values of the `format`, `brightness`, and `color.mode` parameters will be ignored.
 
-## Algorithm
+## Diff Algorithm
 
 The primary diff algorithm is Myer's solution to the shortest edit script /
 longest common sequence problem with the Hirschberg linear space refinement
@@ -264,9 +264,51 @@ Algorithmica 1, 2 (1986), 251-266.
 and should be the same algorithm used by GNU diff.  The implementation used here is a heavily modified version of Michael B. Allen's diff program from the [`libmba`](http://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz) `C`
 library.  Any and all bugs in the C code in this package were most likely introduced by yours truly.  Please note that the resulting C code is incompatible with the original `libmba` library.
 
-This algorithm scales with the _square_ of the number of _differences_.
+## Performance Considerations
 
-Unless you have a diff with many (> 10K) differences, odds are that the slow step in the process will be the post-processing this package does to generate the display representation of the diff rather than the diff itself.
+### Diff
+
+The diff algorithm scales with the _square_ of the number of _differences_.  For
+reasonably small diffs (< 10K differences), the diff itself is unlikely to be
+the bottleneck.
+
+### Capture and Processing
+
+Capture of inputs for `diffPrint` and `diffStr`, and processing of output for
+all `diff*` methods will account for most of the execution time unless you have
+large numbers of differences.  This input and output processing scales mostly
+linearly with the input size.
+
+You can improve performance somewhat by using `diffChr` since that skips the
+capture part, and by turning off options:
+
+For example:
+
+```{r, eval=FALSE}
+v1 <- 1:5e4
+v2 <- v1[-sample(v1, 100)]
+diffChr(
+  v1, v2, word.diff=FALSE, convert.hz.white.space=FALSE,
+  ignore.white.space=FALSE
+)
+```
+
+will be over 2x as fast as:
+
+```{r, eval=FALSE}
+diffPrint(v1, v2)
+```
+
+### Minimal Diff
+
+If you are looking for the fastest possible diff you can use `ses` and
+completely bypass input and output processing:
+
+```{r, eval=FALSE}
+ses(as.character(v1), as.character(v2))
+```
+
+This will be 10-20x faster than `diffChr`, at the cost of less useful output.
 
 ## Acknowledgements
 
