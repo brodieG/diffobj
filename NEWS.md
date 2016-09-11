@@ -7,8 +7,8 @@
   related to [#38](https://github.com/brodieG/diffobj/issues/38)
 * [#69](https://github.com/brodieG/diffobj/issues/69) Improve performance on
   outputs with large print/show output, and other assorted minor optimizations
-* [#72](https://github.com/brodieG/diffobj/issues/72) Warn when `style` param
-  overrides other user supplied params
+* [#72](https://github.com/brodieG/diffobj/issues/72) Warn when `style`
+  parameter overrides other user supplied parameters
 * [#70](https://github.com/brodieG/diffobj/issues/70) Improve word contrast in YB
   HTML mode
 * Add [Mean Relative
