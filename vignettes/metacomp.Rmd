@@ -70,8 +70,8 @@ testthat::compare(A2, B2)
 ```
 
 In this case we have a minor modification to a vector, yet the output suggests a
-complete change.  Furthermore, the output is truncated.  I find the `diffPrint`
-result more intuitive:
+complete change.  Furthermore, the output is truncated.  `diffPrint` recognizes
+that the two vectors are mostly the same:
 
 ```{r, results="asis"}
 diffPrint(A2, B2)

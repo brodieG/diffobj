@@ -118,15 +118,15 @@ h3.subtitle {
   margin-top: -23px;
 }
 pre, code {
-  background-color: #eee;
-  /*border-radius: 3px;*/
+  background-color: #EEE;
   color: #333;
+  /*border-radius: 3px;*/
 }
 pre {
+  border: 2px solid #EEE;
   overflow: auto;
   white-space: pre-wrap;    /* Wrap long lines */
   /*
-  border: 1px solid #eee;
   border-radius: 3px;
   */
   margin: 5px 0px;
@@ -134,14 +134,14 @@ pre {
   font-size: 85%;
 }
 pre:not([class]) {
-  border-radius: 0px 0px 3px 3px;
+  color: #353;
+  /*border-radius: 0px 0px 3px 3px;*/
 }
 div.sourceCode pre, div.sourceCode code  {
-  background-color: #FFF;
+  background-color: #FAFAFA;
 }
 div.sourceCode pre{
-  border-radius: 3px 3px 0px 0px;
-  border: 1px solid #EEE;
+  /*border-radius: 3px 3px 0px 0px;*/
 }
 div.sourceCode + pre,
 div.sourceCode + div.diffobj_container {
