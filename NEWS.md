@@ -2,11 +2,18 @@
 
 ## v0.1.5
 
+* [#71](https://github.com/brodieG/diffobj/issues/71) Buggy diffs b/w data
+  frames when one has sequential row numbers and the other does not, loosely
+  related to [#38](https://github.com/brodieG/diffobj/issues/38)
 * [#69](https://github.com/brodieG/diffobj/issues/69) Improve performance on
-  large print output objects
-* [#]() Warn when `style` param overrides other user supplied params
-* [#]() Buggy diffs b/w data frames when one has sequential row numbers and the
-  other does not, loosely related to [#38](https://github.com/brodieG/diffobj/issues/38)
+  outputs with large print/show output, and other assorted minor optimizations
+* [#72](https://github.com/brodieG/diffobj/issues/72) Warn when `style` param
+  overrides other user supplied params
+* [#70](https://github.com/brodieG/diffobj/issues/70) Improve word contrast in YB
+  HTML mode
+* Add [Mean Relative
+  Indifference](http://htmlpreview.github.io/?https://raw.githubusercontent.com/brodieG/diffobj/master/inst/doc/metacomp.html)
+  vignette and update vignette styling
 
 ## v0.1.4
 

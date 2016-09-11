@@ -327,10 +327,11 @@ setClass("Diff",
       !all(vapply(object@trim.dat, length, integer(1L)) == 2L)
     )
       return("slot `trim.dat` in incorrect format")
-    if(!isTRUE(tar.dat.val <- valid_dat(object@tar.dat)))
-      return(paste0("slot `tar.dat` not valid: ", tar.dat.val))
-    if(!isTRUE(cur.dat.val <- valid_dat(object@cur.dat)))
-      return(paste0("slot `cur.dat` not valid: ", cur.dat.val))
+    ## too expensive computationally
+    # if(!isTRUE(tar.dat.val <- valid_dat(object@tar.dat)))
+    #   return(paste0("slot `tar.dat` not valid: ", tar.dat.val))
+    # if(!isTRUE(cur.dat.val <- valid_dat(object@cur.dat)))
+    #   return(paste0("slot `cur.dat` not valid: ", cur.dat.val))
     if(!is.TF(object@hit.diffs.max))
       return("slot `hit.diffs.max` must be TRUE or FALSE")
 

@@ -69,6 +69,20 @@ diffChr(x, y, mode="context")
 ## ---- results="asis"-----------------------------------------------------
 diffChr(x, y, color.mode="rgb")
 
+## ---- eval=FALSE---------------------------------------------------------
+#  v1 <- 1:5e4
+#  v2 <- v1[-sample(v1, 100)]
+#  diffChr(
+#    v1, v2, word.diff=FALSE, convert.hz.white.space=FALSE,
+#    ignore.white.space=FALSE
+#  )
+
+## ---- eval=FALSE---------------------------------------------------------
+#  diffPrint(v1, v2)
+
+## ---- eval=FALSE---------------------------------------------------------
+#  ses(as.character(v1), as.character(v2))
+
 ## ---- echo=FALSE---------------------------------------------------------
 options(old.opt)
 
