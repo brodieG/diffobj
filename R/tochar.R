@@ -284,23 +284,25 @@ setMethod("as.character", "Diff",
       # This needs to account for "trim" effects
 
       msg <- "No visible differences between objects"
-      msg.extra <- if(
+      if(
         (ignore.white.space || x@etc@convert.hz.white.space) &&
         !isTRUE(all.equal(x@tar.dat$orig, x@cur.dat$orig)) &&
         isTRUE(all.equal(x@tar.dat$comp, x@cur.dat$comp))
       ) {
         paste0(
-          ", but there are white space differences; re-run diff with ",
+          msg, ", but there are white space differences; re-run diff with ",
           "`ignore.white.space=FALSE` and `convert.hz.white.space=FALSE` ",
           "to show them.", collapse=""
         )
       } else if (!isTRUE(all.eq <- all.equal(x@target, x@current))) {
-        paste0(
-          ", but objects are _not_ `all.equal`", if(length(all.eq)) ":\n", ".",
-          paste0("- ", all.eq, collapse="\n")
+        c(
+          paste0(
+            msg, ", but objects are *not* `all.equal`",
+            if(length(all.eq)) ":" else "."
+          ),
+          if(length(all.eq)) paste0("- ", all.eq)
         )
-      } else "."
-      res <- paste0(msg, msg.extra)
+      } else paste0(msg, ".")
     }
     # Basic width computation and banner size; start by computing gutter so we
     # can figure out what's left

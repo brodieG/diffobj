@@ -65,4 +65,7 @@ test_that("max.level", {
     as.character(diffStr(lst.1, lst.3, line.limit=6)), rdsf(1000)
   )
 })
+test_that("No visible differences", {
+  diffStr(1:100, c(1:99, 101L))
 
+})
