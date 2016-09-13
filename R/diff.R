@@ -555,27 +555,38 @@ body(diff_obj) <- quote({
   if(length(extra))
     stop("Argument `extra` must be empty in `diffObj`.")
 
-  frame # force frame so that `par_frame` called in this context
-  call.raw <- extract_call(sys.calls(), frame)$call
-  call.raw[["frame"]] <- frame
-  call.str <- call.print <- call.raw
-  call.str[[1L]] <- quote(diffobj::diffStr)
-  call.str[["extra"]] <- list(max.level="auto")
-  call.print[[1L]] <- quote(diffobj::diffPrint)
+  # frame # force frame so that `par_frame` called in this context
+
+  # Need to generate calls inside a new child environment so that we do not
+  # pollute the environment and create potential conflicts with ... args
+
+  res <- local({
+    args <- as.list(parent.frame(2))
+    call.dat <- extract_call(sys.calls(), frame)
+    err <- make_err_fun(call.dat$call)
+
+    if(is.null(args$tar.banner)) args$tar.banner <- dep(call.dat$tar)
+    if(is.null(args$cur.banner)) args$cur.banner <- dep(call.dat$cur)
+
+    call.print <- as.call(c(list(quote(diffobj::diffPrint)), args))
+    call.str <- as.call(c(list(quote(diffobj::diffStr)), args))
+    call.str[["extra"]] <- list(max.level="auto")
+    res.print <- try(eval(call.print, frame), silent=TRUE)
+    res.str <- try(eval(call.str, frame), silent=TRUE)
+
+    if(inherits(res.str, "try-error"))
+      err(conditionMessage(attr(res.str, "condition")))
+    if(inherits(res.print, "try-error"))
+      err(conditionMessage(attr(res.print, "condition")))
+
+    list(res.print, res.str)
+  })
+  res.print <- res[[1L]]
+  res.str <- res[[2L]]
 
   # Run both the print and str versions, and then decide which to use based
   # on some weighting of various factors including how many lines needed to be
   # omitted vs. how many differences were reported
-
-  res <- try({
-    res.print <- eval(call.print, frame)
-    res.str <- eval(call.str, frame)
-  })
-  if(inherits(res, "try-error")) {
-    stop(
-      "Logic Error: failed evaluating `diffPrint` or `diffStr` calls; ",
-      "contact maintainer."
-  ) }
 
   diff.p <- count_diff_hunks(res.print@diffs)
   diff.s <- count_diff_hunks(res.str@diffs)
