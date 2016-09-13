@@ -81,24 +81,39 @@ which_top <- function(s.c) {
     length(s.c)
   }
 }
+get_fun <- function(name, env) {
+  get.fun <- if(is.name(name) || (is.character(name) && length(name) == 1L)) {
+    try(get(as.character(name), envir=env), silent=TRUE)
+  } else if(
+    is.call(name) && (
+      identical(as.character(name[[1L]]), "::") ||
+      identical(as.character(name[[1L]]), ":::")
+    ) && length(name) == 3L
+  ) {
+    get.fun <- try(eval(name[[1L]], env))
+  }
+  if(is.function(get.fun)) get.fun else {
+    warning(
+      "Unable to find function `", deparse(name), "` to ",
+      "match call with."
+    )
+  }
+}
 extract_call <- function(s.c, par.env) {
   idx <- which_top(s.c)
   found.call <- s.c[[idx]]
   no.match <- list(call=NULL, tar=NULL, cur=NULL)
-  get.fun.t <- try(
-    get.fun <- get(as.character(found.call[[1L]]), envir=par.env), silent=TRUE
-  )
-  if(inherits(get.fun.t, "try-error")) {
-    warning(
-      "Unable to find function `", as.character(found.call[[1L]]), "` to ",
-      "match call with."
-    )
-    no.match
-  } else {
-    found.call.m <- match.call(definition=get.fun, call=found.call)
-    if(length(found.call.m) < 3L) length(found.call.m) <- 3L
-    list(call=found.call.m, tar=found.call.m[[2L]], cur=found.call.m[[3L]])
+  get.fun <- get_fun(found.call[[1L]], env=par.env)
+  res <- no.match
+  if(is.function(get.fun)) {
+    found.call.m <- try(match.call(definition=get.fun, call=found.call))
+    if(!inherits(found.call.m, "try-error")) {
+      if(length(found.call.m) < 3L) length(found.call.m) <- 3L
+      res <-
+        list(call=found.call.m, tar=found.call.m[[2L]], cur=found.call.m[[3L]])
+    }
   }
+  res
 }
 #' Get Parent Frame of S4 Call Stack
 #'

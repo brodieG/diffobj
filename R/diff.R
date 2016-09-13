@@ -559,7 +559,7 @@ body(diff_obj) <- quote({
   call.raw <- extract_call(sys.calls(), frame)$call
   call.raw[["frame"]] <- frame
   call.str <- call.print <- call.raw
-  call.str[[1L]] <- quote(diffStr)
+  call.str[[1L]] <- quote(diffobj::diffStr)
   call.str[["extra"]] <- list(max.level="auto")
   call.print[[1L]] <- quote(diffPrint)
 
