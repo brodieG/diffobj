@@ -97,6 +97,7 @@ get_fun <- function(name, env) {
       "Unable to find function `", deparse(name), "` to ",
       "match call with."
     )
+    NULL
   }
 }
 extract_call <- function(s.c, par.env) {
