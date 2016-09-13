@@ -69,11 +69,12 @@ test_that("get_funs", {
     diffobj::diffPrint
   )
   expect_identical(
-    diffobj:::get_fun(quote(diffPrint), getNamespace("diffobj"))
+    diffobj:::get_fun(quote(diffPrint), getNamespace("diffobj")),
     diffobj::diffPrint
   )
-  expect_identical(
-    diffobj:::get_fun(quote(notAFunction), getNamespace("diffobj"))
-    NULL
+  expect_warning(
+    gf <- diffobj:::get_fun(quote(notAFunction), getNamespace("diffobj")),
+    "Unable to find function"
   )
+  expect_identical(gf, NULL)
 })

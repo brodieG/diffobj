@@ -90,7 +90,7 @@ get_fun <- function(name, env) {
       identical(as.character(name[[1L]]), ":::")
     ) && length(name) == 3L
   ) {
-    get.fun <- try(eval(name[[1L]], env))
+    get.fun <- try(eval(name, env))
   }
   if(is.function(get.fun)) get.fun else {
     warning(
