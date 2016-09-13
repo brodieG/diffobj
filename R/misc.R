@@ -59,8 +59,7 @@ c.factor <- function(..., recursive=FALSE) {
 stack_funs <- function(s.c) {
   if(!length(s.c)) stop("Logic Error: call stack empty; contact maintainer.")
   vapply(
-    s.c, function(x) if(is.name(x[[1L]])) as.character(x[[1L]])[[1L]] else "",
-    character(1L)
+    s.c, function(call) paste0(deparse(call), collapse="\n"), character(1L)
   )
 }
 # Pull out the first call reading back from sys.calls that is likely to be

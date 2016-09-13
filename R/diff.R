@@ -561,14 +561,21 @@ body(diff_obj) <- quote({
   call.str <- call.print <- call.raw
   call.str[[1L]] <- quote(diffobj::diffStr)
   call.str[["extra"]] <- list(max.level="auto")
-  call.print[[1L]] <- quote(diffPrint)
+  call.print[[1L]] <- quote(diffobj::diffPrint)
 
   # Run both the print and str versions, and then decide which to use based
   # on some weighting of various factors including how many lines needed to be
   # omitted vs. how many differences were reported
 
-  res.print <- eval(call.print, frame)
-  res.str <- eval(call.str, frame)
+  res <- try({
+    res.print <- eval(call.print, frame)
+    res.str <- eval(call.str, frame)
+  })
+  if(inherits(res, "try-error")) {
+    stop(
+      "Logic Error: failed evaluating `diffPrint` or `diffStr` calls; ",
+      "contact maintainer."
+  ) }
 
   diff.p <- count_diff_hunks(res.print@diffs)
   diff.s <- count_diff_hunks(res.str@diffs)
