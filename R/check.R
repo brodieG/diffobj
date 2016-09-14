@@ -263,11 +263,11 @@ check_args <- function(
     y <- get(x, inherits=FALSE)
     if(!is.possibly.substituted(y)) err(sprintf(msg.base, x))
   }
-  if(!is.chr.1L(tar.banner)) {
+  if(!is.chr.1L(tar.banner) && !is.null(tar.banner)) {
     tar.exp <- tar.banner
     tar.banner <- NULL
   }
-  if(!is.chr.1L(cur.banner)) {
+  if(!is.chr.1L(cur.banner) && !is.null(cur.banner)) {
     cur.exp <- cur.banner
     cur.banner <- NULL
   }
