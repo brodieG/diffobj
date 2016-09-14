@@ -34,14 +34,16 @@ test_that("Force unified", {
     as.character(diffObj(new("testdiffobj", a=1L), new("testdiffobj", a=2L))),
     rdsf(200)
   )
+  # Make sure we can still get side by side?
   expect_equal_to_reference(
     as.character(
       diffObj(
         new("testdiffobj", a=1L), new("testdiffobj", a=2L), mode="sidebyside"
-      ) ),
-    rdsf(200)
+    ) ),
+    rdsf(100)
   )
-
-  # Make sure we can still get side by side?
-
+  expect_error(
+    diffObj(new("testdiffobj", a=1L), new("testdiffobj", a=2L), mode="hello"),
+    "Argument `mode` must be"
+  )
 })

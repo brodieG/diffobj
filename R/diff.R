@@ -575,9 +575,15 @@ body(diff_obj) <- quote({
     res.str <- try(eval(call.str, frame), silent=TRUE)
 
     if(inherits(res.str, "try-error"))
-      err(conditionMessage(attr(res.str, "condition")))
+      err(
+        "Error in calling `diffStr`: ",
+        conditionMessage(attr(res.str, "condition"))
+      )
     if(inherits(res.print, "try-error"))
-      err(conditionMessage(attr(res.print, "condition")))
+      err(
+        "Error in callling `diffPrint`: ",
+        conditionMessage(attr(res.print, "condition"))
+      )
 
     list(res.print, res.str)
   })
