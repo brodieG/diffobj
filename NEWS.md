@@ -1,5 +1,10 @@
 # diffobj
 
+## v0.1.6
+
+* More robust handling of external `diff*` methods and of how `diffObj` calls
+  `diffStr` and `diffPrint`
+
 ## v0.1.5
 
 * [#71](https://github.com/brodieG/diffobj/issues/71) Buggy diffs b/w data

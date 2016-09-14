@@ -343,9 +343,16 @@ make_diff_fun <- function(capt_fun) {
 #'   allow ANSI colors, or any other number to disallow them.  This only
 #'   impacts output format selection when \code{style} and \code{format} are
 #'   both set to \dQuote{auto}.
-#' @param tar.banner character(1L) or NULL, text to display ahead of the diff
-#'   section representing the target output.  If NULL will be
-#'   inferred from \code{target} and \code{current} expressions.
+#' @param tar.banner character(1L), language, or NULL, used to generate the
+#'   text to display ahead of the diff section representing the target output.
+#'   If NULL will use the deparsed \code{target} expression, if language, will
+#'   use the language as it would the \code{target} expression, if
+#'   character(1L), will use the string with no modifications.  The language
+#'   mode is provided because \code{diffStr} modifies the expression prior to
+#'   display (e.g. by wrapping it in a call to \code{str}).  Note that it is
+#'   possible in some cases that the substituted value of \code{target} actually
+#'   is character(1L), but if you provide a character(1L) value here it will be
+#'   assumed you intend to use that value literally.
 #' @param cur.banner character(1L) like \code{tar.banner}, but for
 #'   \code{current}
 #' @param extra list additional arguments to pass on to the functions used to
@@ -555,20 +562,44 @@ body(diff_obj) <- quote({
   if(length(extra))
     stop("Argument `extra` must be empty in `diffObj`.")
 
-  frame # force frame so that `par_frame` called in this context
-  call.raw <- extract_call(sys.calls(), frame)$call
-  call.raw[["frame"]] <- frame
-  call.str <- call.print <- call.raw
-  call.str[[1L]] <- quote(diffStr)
-  call.str[["extra"]] <- list(max.level="auto")
-  call.print[[1L]] <- quote(diffPrint)
+  # frame # force frame so that `par_frame` called in this context
+
+  # Need to generate calls inside a new child environment so that we do not
+  # pollute the environment and create potential conflicts with ... args
+
+  res <- local({
+    args <- as.list(parent.frame(2))
+    call.dat <- extract_call(sys.calls(), frame)
+    err <- make_err_fun(call.dat$call)
+
+    if(is.null(args$tar.banner)) args$tar.banner <- call("quote", call.dat$tar)
+    if(is.null(args$cur.banner)) args$cur.banner <- call("quote", call.dat$cur)
+
+    call.print <- as.call(c(list(quote(diffobj::diffPrint)), args))
+    call.str <- as.call(c(list(quote(diffobj::diffStr)), args))
+    call.str[["extra"]] <- list(max.level="auto")
+    res.print <- try(eval(call.print, frame), silent=TRUE)
+    res.str <- try(eval(call.str, frame), silent=TRUE)
+
+    if(inherits(res.str, "try-error"))
+      err(
+        "Error in calling `diffStr`: ",
+        conditionMessage(attr(res.str, "condition"))
+      )
+    if(inherits(res.print, "try-error"))
+      err(
+        "Error in callling `diffPrint`: ",
+        conditionMessage(attr(res.print, "condition"))
+      )
+
+    list(res.print, res.str)
+  })
+  res.print <- res[[1L]]
+  res.str <- res[[2L]]
 
   # Run both the print and str versions, and then decide which to use based
   # on some weighting of various factors including how many lines needed to be
   # omitted vs. how many differences were reported
-
-  res.print <- eval(call.print, frame)
-  res.str <- eval(call.str, frame)
 
   diff.p <- count_diff_hunks(res.print@diffs)
   diff.s <- count_diff_hunks(res.str@diffs)
