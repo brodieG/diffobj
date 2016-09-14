@@ -42,6 +42,7 @@ local({                                         # so we can use `on.exit`
         "guide",
         "html",
         "limit",
+        "methods",
         "misc",
         "pager",
         "rdiff",

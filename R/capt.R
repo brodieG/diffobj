@@ -149,7 +149,8 @@ capt_str <- function(target, current, etc, err, extra){
     max.level.pos <- length(str.match)
     max.level.supplied <- FALSE
   }
-  # Was wrap specified in strict width mode?
+  # Was wrap specified in strict width mode?  Not sure this is correct any more;
+  # should probably be looking at extra args.
 
   wrap <- FALSE
   if("strict.width" %in% names(str.match)) {

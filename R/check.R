@@ -126,6 +126,11 @@ is.one.file.name <- function(x) {
 is.non.obj.style <- function(x)
   string_in(x, "auto") || (is.list(x) && !is.object(x))
 
+# Things that could possibly be output by substitute
+
+is.possibly.substituted <- function(x)
+  (is.atomic(x) && length(x) == 1L) || is.null(x) || is.name(x) || is.call(x)
+
 # Checks common arguments across functions
 
 check_args <- function(
@@ -248,13 +253,23 @@ check_args <- function(
       err(sprintf(msg.base, "max.diffs"))
     assign(x, as.integer(int.val))
   }
-  # char or NULL vars
+  # Banners; convolution here is to accomodate `diffObj` and have it be able
+  # to pass captured target/current expressions
 
-  chr1LorNULL.vars <- c("tar.banner", "cur.banner")
-  msg.base <- "Argument `%s` must be character(1L) and not NA, or NULL"
-  for(x in chr1LorNULL.vars) {
+  chr1LorNULLorLanguage.vars <- c("tar.banner", "cur.banner")
+  msg.base <-
+    "Argument `%s` must be atomic and length(1L), NULL, a symbol, or a call"
+  for(x in chr1LorNULLorLanguage.vars ) {
     y <- get(x, inherits=FALSE)
-    if(!is.chr.1L(y) && !is.null(y)) err(sprintf(msg.base, x))
+    if(!is.possibly.substituted(y)) err(sprintf(msg.base, x))
+  }
+  if(!is.chr.1L(tar.banner)) {
+    tar.exp <- tar.banner
+    tar.banner <- NULL
+  }
+  if(!is.chr.1L(cur.banner)) {
+    cur.exp <- cur.banner
+    cur.banner <- NULL
   }
   # Align threshold
 

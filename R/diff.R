@@ -343,9 +343,16 @@ make_diff_fun <- function(capt_fun) {
 #'   allow ANSI colors, or any other number to disallow them.  This only
 #'   impacts output format selection when \code{style} and \code{format} are
 #'   both set to \dQuote{auto}.
-#' @param tar.banner character(1L) or NULL, text to display ahead of the diff
-#'   section representing the target output.  If NULL will be
-#'   inferred from \code{target} and \code{current} expressions.
+#' @param tar.banner character(1L), language, or NULL, used to generate the
+#'   text to display ahead of the diff section representing the target output.
+#'   If NULL will use the deparsed \code{target} expression, if language, will
+#'   use the language as it would the \code{target} expression, if
+#'   character(1L), will use the string with no modifications.  The language
+#'   mode is provided because \code{diffStr} modifies the expression prior to
+#'   display (e.g. by wrapping it in a call to \code{str}).  Note that it is
+#'   possible in some cases that the substituted value of \code{target} actually
+#'   is character(1L), but if you provide a character(1L) value here it will be
+#'   assumed you intend to use that value literally.
 #' @param cur.banner character(1L) like \code{tar.banner}, but for
 #'   \code{current}
 #' @param extra list additional arguments to pass on to the functions used to
@@ -565,8 +572,8 @@ body(diff_obj) <- quote({
     call.dat <- extract_call(sys.calls(), frame)
     err <- make_err_fun(call.dat$call)
 
-    if(is.null(args$tar.banner)) args$tar.banner <- dep(call.dat$tar)
-    if(is.null(args$cur.banner)) args$cur.banner <- dep(call.dat$cur)
+    if(is.null(args$tar.banner)) args$tar.banner <- call("quote", call.dat$tar)
+    if(is.null(args$cur.banner)) args$cur.banner <- call("quote", call.dat$cur)
 
     call.print <- as.call(c(list(quote(diffobj::diffPrint)), args))
     call.str <- as.call(c(list(quote(diffobj::diffStr)), args))
