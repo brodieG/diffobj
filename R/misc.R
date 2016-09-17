@@ -84,7 +84,7 @@ which_top <- function(s.c) {
 
     rle.elig <- rle_sub(f.rle, which(val.calls))
     rle.elig.max <- vapply(rle.elig, max, integer(1L))
-    rle.followed <- which(rle.elig.max + 1L == fun.ref.loc)
+    rle.followed <- which(rle.elig.max < max(fun.ref.loc))
     if(!length(rle.followed)) {  # can't find correct one
       length(s.c)
     } else {
