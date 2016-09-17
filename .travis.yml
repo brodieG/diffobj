@@ -13,6 +13,7 @@ branches:
     - master
     - development
     - rc
+    - rdevel
 
 after_success:
   - Rscript covr.R
