@@ -62,19 +62,39 @@ stack_funs <- function(s.c) {
     s.c, function(call) paste0(deparse(call), collapse="\n"), character(1L)
   )
 }
+
+.internal.call <- quote(.local(target, current, ...))
+
 # Pull out the first call reading back from sys.calls that is likely to be
-# be the top level call to the dif* funs
+# be the top level call to the diff* methods.  This is somewhat fragile
+# unfortunately, but there doesn't seem to be a systematic way to figure this
+# out
 
 which_top <- function(s.c) {
   if(!length(s.c))
     stop("Logic Error: stack should have at least one call, contact maintainer")
   funs <- stack_funs(s.c)
-  f.rle <-rle(funs)
+  fun.ref <- stack_funs(list(.internal.call))  # find .local call
+  fun.ref.loc <- match(fun.ref, funs, nomatch=0L)
+
+  f.rle <- rle(funs)
   val.calls <- f.rle$lengths == 2
 
-  if(any(val.calls)) {
-    # return first index of any pairs of identical calls in the call stack
-    rle_sub(f.rle, max(which(val.calls)))[[1L]][1L]
+  if(any(val.calls) && fun.ref.loc) {
+    # return first index of last pairs of identical calls in the call stack
+    # that is followed by a correct .internal call, and also that are not
+    # calls to `eval`.
+
+    rle.elig <- rle_sub(f.rle, which(val.calls))
+    rle.elig.max <- vapply(rle.elig, max, integer(1L))
+    rle.followed <- which(
+      rle.elig.max < max(fun.ref.loc) & !grepl("eval\\(", funs[rle.elig.max])
+    )
+    if(!length(rle.followed)) {  # can't find correct one
+      length(s.c)
+    } else {
+      rle.elig[[max(rle.followed)]][1L]
+    }
   } else {
     # failed to find a value, so just return last call on stack
     length(s.c)
@@ -126,11 +146,12 @@ extract_call <- function(s.c, par.env) {
 #' for the \code{frame} argument for the \code{\link[=diffPrint]{diff*}}
 #' methods.
 #'
-#' Matching is done purely by looking for the first repeated call which is
-#' what usual happens with S4 dispatch since there will be a call to the generic
-#' and then to the method.  Since methods can be renamed by the user we make
-#' no attempt to verify method names.  This method could potentially be tricked
-#' if you implement custom \code{\link[=diffPrint]{diff*}} methods that somehow
+#' Matching is done purely by looking for the last repeated call followed
+#' by \code{.local(target, current, ...)} that is not a call to \code{eval}.
+#' This pattern seems to match the correct call most of the time.
+#' Since methods can be renamed by the user we make no attempt to verify method
+#' names.  This method could potentially be tricked if you implement custom
+#' \code{\link[=diffPrint]{diff*}} methods that somehow
 #' issue two identical sequential calls before calling \code{callNextMethod}.
 #' Failure in this case means the wrong \code{frame} will be returned.
 #'
