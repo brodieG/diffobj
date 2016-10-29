@@ -291,7 +291,19 @@ make_hh <- function(h.g, mode, tar.dat, cur.dat, ranges.orig) {
     sprintf("@@ %s / %s @@", hh.a, hh.b)
   }
 }
+# Do not allow `useBytes=TRUE` if there are any matches with `useBytes=FALSE`
+#
+# Clean up word.ind to avoid issues where we have mixed UTF-8 and non
+# UTF-8 strings in different hunks, and gregexpr is trying to optimize
+# buy using useBytes=TRUE in ASCII only strings without knowing that in a
+# different hunk there are UTF-8 strings
 
+fix_word_ind <- function(x) {
+  matches <- vapply(x, function(y) length(y) > 1L || y != -1L, logical(1L))
+  useBytes <- vapply(x, function(y) isTRUE(attr(y, "useBytes")), logical(1L))
+  if(!all(useBytes[matches])) x <- lapply(x, `attr<-`, "useBytes", NULL)
+  x
+}
 # Variation on `char_diff` used for the overall diff where we don't need
 # to worry about overhead from creating the `Diff` object
 
@@ -477,8 +489,15 @@ line_diff <- function(
     tar.dat$tok.rat <- tok_ratio_compute(tar.dat$word.ind)
     cur.dat$tok.rat <- tok_ratio_compute(cur.dat$word.ind)
 
-    tar.dat$eq <- `regmatches<-`(tar.dat$trim, tar.dat$word.ind, value="")
-    cur.dat$eq <- `regmatches<-`(cur.dat$trim, cur.dat$word.ind, value="")
+    # Deal with mixed UTF/plain strings
+
+    tar.dat$word.ind <- fix_word_ind(tar.dat$word.ind)
+    cur.dat$word.ind <- fix_word_ind(cur.dat$word.ind)
+
+    # Remove different words to make equal strings
+
+    tar.dat$eq <- with(tar.dat, `regmatches<-`(trim, word.ind, value=""))
+    cur.dat$eq <- with(cur.dat, `regmatches<-`(trim, word.ind, value=""))
   }
   # Instantiate result
 
