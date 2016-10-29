@@ -212,5 +212,14 @@ test_that("covr workaround", {
   # jhester
   diffobj:::make_diff_fun()
 })
-
+test_that("UTF-8 chars", {
+  a <- "Gábor Csárdi"
+  b <- sprintf("%s wow", a)
+  expect_equal_to_reference(
+    capture.output(
+      show(diffPrint(list(hell=a, b=NULL), list(hell=b, b=list())))
+    ),
+    rdsf(3500)
+  )
+})
 

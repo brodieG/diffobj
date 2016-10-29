@@ -4,6 +4,8 @@
 
 * More robust handling of external `diff*` methods and of how `diffObj` calls
   `diffStr` and `diffPrint`
+* [#81](https://github.com/brodieG/diffobj/issues/81) Better handling of mixed
+  UTF-8 / ASCII strings, reported by [jennybc](https://github.com/jennybc)
 
 ## v0.1.5
 
