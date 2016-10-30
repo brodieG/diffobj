@@ -40,7 +40,7 @@ console_lines <- function() {
 #' @param min integer(1L), positive, set to zero to allow any context
 #' @param max integer(1L), set to negative to allow any context
 #' @return S4 object containing configuration parameters, for use as the
-#'   \code{context} or parameter value in \code{\link[=diffPrint]{diff*}} 
+#'   \code{context} or parameter value in \code{\link[=diffPrint]{diff*}}
 #'   methods
 #' @examples
 #' ## `pager="off"` for CRAN compliance; you may omit in normal use
@@ -64,7 +64,12 @@ auto_context <- function(
 #' Check Whether System Has less as Pager
 #'
 #' Checks system \code{PAGER} variable corresponds to \code{less} by trying to
-#' run the pager with the \dQuote{version} flag.
+#' run the pager with the \dQuote{version} flag, and confirms that the default
+#' pager is set in with \code{getOption("pager")}.  Note this function will only
+#' return TRUE if the R session is configured to use less in the standard way.
+#' If you are using non-standard set-ups you will need to explicitly specify the 
+#' \code{\link{PagerIsLess}} object as the \code{pager} argument to the
+#' \code{\link[=diffPrint]{diff*}} methods.
 #'
 #' @return TRUE or FALSE
 #' @export
@@ -73,7 +78,11 @@ auto_context <- function(
 
 pager_is_less <- function() {
   PAGER <- Sys.getenv("PAGER")
-  if(is.chr.1L(PAGER) && file_test("-x", PAGER)) {
+  if(
+    is.chr.1L(PAGER) &&
+    identical(getOption("pager", file.path(R.home(), "bin", "pager"))) &&
+    file_test("-x", PAGER)
+  ) {
     res <- tryCatch(
       system2(Sys.getenv("PAGER"), "--version", stdout=TRUE, stderr=TRUE),
       warning=function(e) NULL,
