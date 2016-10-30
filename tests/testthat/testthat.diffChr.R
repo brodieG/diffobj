@@ -112,12 +112,12 @@ test_that("NAs", {
     as.character(
       diffChr(c(letters[1:3]), c(letters[1:3], LETTERS[1:2], NA))
     ),
-    rdsf(1300)
+    rdsf(1400)
   )
   expect_equal_to_reference(
     as.character(
       diffChr(c(NA, letters[1:3]), c(letters[1:3], LETTERS[1:2]))
     ),
-    rdsf(1300)
+    rdsf(1500)
   )
 })
