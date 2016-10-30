@@ -291,6 +291,14 @@ valid_dat <- function(x) {
     else TRUE
   }
 }
+#' Diff Result Object
+#'
+#' Return value for the \code{\link[=diffPrint]{diff*}} methods.  Has
+#' \code{show}, \code{as.character}, \code{summmary}, \code{[}, \code{head},
+#' \code{tail}, and \code{any} methods.
+#'
+#' @export
+
 setClass("Diff",
   slots=c(
     target="ANY",                    # Actual object

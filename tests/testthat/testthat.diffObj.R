@@ -28,3 +28,15 @@ test_that("fits or doesn't", {
   # methods
   expect_equal(diffObj(mdl1, mdl2, line.limit=5)@capt.mode, "print")
 })
+
+# Random exmaples to think through `diffObj` output
+
+diffObj(
+  pairlist("`logical(2L)` should be length 2 (is 3)"),
+  pairlist("be length 2 (is 3)")
+)
+
+diffObj(
+  pairlist("`matrix(integer(), nrow = 3)` should be matrix (is list)", "`list(character(1L), 1L)[[2]]` should be type \"integer-like\" (is \"character\")"),
+  pairlist("be class \"matrix\" (is \"list\")", "be type \"integer-like\" (is \"character\") at index [[2]]")
+)

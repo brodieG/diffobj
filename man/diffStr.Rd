@@ -243,9 +243,16 @@ allow ANSI colors, or any other number to disallow them.  This only
 impacts output format selection when \code{style} and \code{format} are
 both set to \dQuote{auto}.}
 
-\item{tar.banner}{character(1L) or NULL, text to display ahead of the diff
-section representing the target output.  If NULL will be
-inferred from \code{target} and \code{current} expressions.}
+\item{tar.banner}{character(1L), language, or NULL, used to generate the
+text to display ahead of the diff section representing the target output.
+If NULL will use the deparsed \code{target} expression, if language, will
+use the language as it would the \code{target} expression, if
+character(1L), will use the string with no modifications.  The language
+mode is provided because \code{diffStr} modifies the expression prior to
+display (e.g. by wrapping it in a call to \code{str}).  Note that it is
+possible in some cases that the substituted value of \code{target} actually
+is character(1L), but if you provide a character(1L) value here it will be
+assumed you intend to use that value literally.}
 
 \item{cur.banner}{character(1L) like \code{tar.banner}, but for
 \code{current}}
