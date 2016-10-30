@@ -81,7 +81,7 @@ diffChr(x, y, color.mode="rgb")
 #  diffPrint(v1, v2)
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  ses(as.character(v1), as.character(v2))
+#  ses(v1, v2)
 
 ## ---- echo=FALSE---------------------------------------------------------
 options(old.opt)

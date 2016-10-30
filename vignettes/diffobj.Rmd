@@ -302,10 +302,11 @@ diffPrint(v1, v2)
 ### Minimal Diff
 
 If you are looking for the fastest possible diff you can use `ses` and
-completely bypass input and output processing:
+completely bypass most input and output processing.  Inputs will be coerced to
+character if they are not character.
 
 ```{r, eval=FALSE}
-ses(as.character(v1), as.character(v2))
+ses(v1, v2)
 ```
 
 This will be 10-20x faster than `diffChr`, at the cost of less useful output.
