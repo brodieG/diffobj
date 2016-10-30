@@ -63,9 +63,8 @@ auto_context <- function(
 }
 #' Check Whether System Has less as Pager
 #'
-#' Checks system \code{PAGER} variable and that \code{PAGER_PATH} is pointed
-#' at \dQuote{R_HOME/bin/pager}.  This is an approximation and may return
-#' false positives or negatives depending on your system.
+#' Checks system \code{PAGER} variable corresponds to \code{less} by trying to
+#' run the pager with the \dQuote{version} flag.
 #'
 #' @return TRUE or FALSE
 #' @export
@@ -74,10 +73,14 @@ auto_context <- function(
 
 pager_is_less <- function() {
   PAGER <- Sys.getenv("PAGER")
-  PAGER_PATH <- getOption("pager")
-  R_HOME <- Sys.getenv("R_HOME")
-  isTRUE(grepl("/less$", PAGER)) &&
-    identical(PAGER_PATH, file.path(R_HOME, "bin", "pager"))
+  if(is.chr.1L(PAGER) && file_test("-x", PAGER)) {
+    res <- tryCatch(
+      system2(Sys.getenv("PAGER"), "--version", stdout=TRUE, stderr=TRUE),
+      warning=function(e) NULL,
+      error=function(e) NULL
+    )
+    length(res) && grepl("^less ", res[1L])
+  } else FALSE
 }
 # Changes the LESS system variable to make it compatible with ANSI escape
 # sequences

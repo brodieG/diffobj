@@ -6,6 +6,8 @@
   `diffStr` and `diffPrint`
 * [#81](https://github.com/brodieG/diffobj/issues/81) Better handling of mixed
   UTF-8 / ASCII strings, reported by [jennybc](https://github.com/jennybc)
+* [#82](https://github.com/brodieG/diffobj/issues/82) `diffChr` and `ses` now
+  treat `NA` as "NA" (needed with change in `nchar(NA)` in base R)
 
 ## v0.1.5
 
