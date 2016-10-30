@@ -419,7 +419,8 @@ setMethod("diffStr", signature=c("ANY", "ANY"), make_diff_fun(capt_str))
 #'
 #' Will perform the diff on the actual string values of the character vectors
 #' instead of capturing the printed screen output. Each vector element is
-#' treated as a line of text.
+#' treated as a line of text.  NA elements are treated as the string
+#' \dQuote{NA}.
 #'
 #' @inheritParams diffPrint
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,

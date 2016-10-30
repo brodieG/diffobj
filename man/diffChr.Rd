@@ -267,7 +267,8 @@ a \code{Diff} object; see \code{\link{diffPrint}}.
 \description{
 Will perform the diff on the actual string values of the character vectors
 instead of capturing the printed screen output. Each vector element is
-treated as a line of text.
+treated as a line of text.  NA elements are treated as the string
+\dQuote{NA}.
 }
 \examples{
 ## `pager="off"` for CRAN compliance; you may omit in normal use
