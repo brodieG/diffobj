@@ -505,7 +505,7 @@ Style <- setClass("Style", contains="VIRTUAL",
     na.sub="",
     blank.sub="",
     disp.width=0L,
-    nchar.fun=nchar
+    nchar.fun=function(x) nchar(x, keepNA=FALSE)
   ),
   validity=function(object){
     if(!isTRUE(is.one.arg.fun(object@nchar.fun))) {
@@ -560,7 +560,10 @@ StyleRaw <- setClass("StyleRaw", contains=c("Style", "Raw"))
 
 StyleAnsi <- setClass(
   "StyleAnsi", contains=c("StyleRaw", "Ansi"),
-  prototype=list(funs=StyleFunsAnsi(), nchar.fun=crayon::col_nchar),
+  prototype=list(
+    funs=StyleFunsAnsi(),
+    nchar.fun=function(x) crayon::col_nchar(x, keepNA=FALSE)
+  )
 )
 setMethod(
   "initialize", "StyleAnsi",

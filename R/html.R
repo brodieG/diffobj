@@ -111,5 +111,5 @@ nchar_html <- function(x) {
   # http://stackoverflow.com/a/8806462/2725969
   ent.less <-
     gsub("&(?:[a-z\\d]+|#\\d+|#x[a-f\\d]+);", "X", tag.less, perl=TRUE)
-  nchar(ent.less)
+  nchar(ent.less, keepNA=FALSE)
 }

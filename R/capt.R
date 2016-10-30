@@ -295,6 +295,9 @@ capt_chr <- function(target, current, etc, err, extra){
   cur.capt <- if(!is.character(current))
     do.call(as.character, c(list(current), extra)) else current
 
+  if(anyNA(tar.capt)) tar.capt[is.na(tar.capt)] <- "NA"
+  if(anyNA(cur.capt)) cur.capt[is.na(cur.capt)] <- "NA"
+
   etc <- set_mode(etc, tar.capt, cur.capt)
   if(isTRUE(etc@guides)) etc@guides <- guidesChr
   if(isTRUE(etc@trim)) etc@trim <- trimChr
