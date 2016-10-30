@@ -93,11 +93,31 @@ test_that("Alignment", {
     as.character(diffChr(chr.7, chr.8, align=4.01/6)), rdsf(1200)
   )
   expect_equal_to_reference(
+    as.character(diffChr(chr.7, chr.8, align=AlignThreshold(min.chars=4))),
+    rdsf(1100)  # same as earlier
+  )
+  expect_equal_to_reference(
     as.character(diffChr(chr.7, chr.8, align=AlignThreshold(min.chars=5))),
     rdsf(1200)  # same as above
   )
+})
+test_that("NAs", {
   expect_equal_to_reference(
-    as.character(diffChr(chr.7, chr.8, align=AlignThreshold(min.chars=4))),
-    rdsf(1100)  # same as earlier
+    as.character(
+      diffChr(c(NA, letters[1:3]), c(letters[1:3], LETTERS[1:2], NA))
+    ),
+    rdsf(1300)
+  )
+  expect_equal_to_reference(
+    as.character(
+      diffChr(c(letters[1:3]), c(letters[1:3], LETTERS[1:2], NA))
+    ),
+    rdsf(1400)
+  )
+  expect_equal_to_reference(
+    as.character(
+      diffChr(c(NA, letters[1:3]), c(letters[1:3], LETTERS[1:2]))
+    ),
+    rdsf(1500)
   )
 })

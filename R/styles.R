@@ -560,7 +560,10 @@ StyleRaw <- setClass("StyleRaw", contains=c("Style", "Raw"))
 
 StyleAnsi <- setClass(
   "StyleAnsi", contains=c("StyleRaw", "Ansi"),
-  prototype=list(funs=StyleFunsAnsi(), nchar.fun=crayon::col_nchar),
+  prototype=list(
+    funs=StyleFunsAnsi(),
+    nchar.fun=crayon::col_nchar
+  )
 )
 setMethod(
   "initialize", "StyleAnsi",

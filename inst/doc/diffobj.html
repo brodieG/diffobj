@@ -323,8 +323,8 @@ v2 &lt;-<span class="st"> </span>v1[-<span class="kw">sample</span>(v1, <span cl
 </div>
 <div id="minimal-diff" class="section level3">
 <h3>Minimal Diff</h3>
-<p>If you are looking for the fastest possible diff you can use <code>ses</code> and completely bypass input and output processing:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ses</span>(<span class="kw">as.character</span>(v1), <span class="kw">as.character</span>(v2))</code></pre></div>
+<p>If you are looking for the fastest possible diff you can use <code>ses</code> and completely bypass most input and output processing. Inputs will be coerced to character if they are not character.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ses</span>(v1, v2)</code></pre></div>
 <p>This will be 10-20x faster than <code>diffChr</code>, at the cost of less useful output.</p>
 </div>
 </div>

@@ -96,6 +96,9 @@ local({
     B5 <- c("A", "B",  "X", "W", "D", "E", "F", "W", "G")
     expect_identical(ses(A5, B5), c("2d1", "4c3,4", "7a8", "9d9"))
 
+    # NAs treated as strings
+
+    expect_identical(ses(c(NA, "a", "b"), c("a", "b", NA)), c("1d0", "3a3"))
   } )
   test_that("print/summary", {
     capture.output(
