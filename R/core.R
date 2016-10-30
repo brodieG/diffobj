@@ -138,6 +138,8 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}
 #' for how to interpret the symbols.
 #'
+#' NAs are treated as the string \dQuote{NA}.
+#'
 #' @export
 #' @param a character
 #' @param b character
@@ -145,7 +147,21 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' @examples
 #' ses(letters[1:3], letters[2:4])
 
-ses <- function(a, b) as.character(diff_myers(a, b))
+ses <- function(a, b) {
+  if(!is.character(a)) {
+    a <- try(as.character(a))
+    if(inherits(a, "try-error"))
+      stop("Argument `a` is not character and could not be coerced to such")
+  }
+  if(!is.character(b)) {
+    b <- try(as.character(b))
+    if(inherits(b, "try-error"))
+      stop("Argument `b` is not character and could not be coerced to such")
+  }
+  if(anyNA(a)) a[is.na(a)] <- "NA"
+  if(anyNA(b)) b[is.na(b)] <- "NA"
+  as.character(diff_myers(a, b))
+}
 
 #' Diff two character vectors
 #'
