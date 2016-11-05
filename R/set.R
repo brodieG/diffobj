@@ -61,7 +61,7 @@ auto_context <- function(
     stop("Argument `max` must be integer(1L) and not NA")
   new("AutoContext", min=as.integer(min), max=as.integer(max))
 }
-## Helper Function to Check if a File is Likely to be less pager
+## Helper Function to Check if a File is Likely to be less Pager
 
 file_is_less <- function(x) {
   if(
@@ -74,6 +74,11 @@ file_is_less <- function(x) {
     )
     length(res) && grepl("^less \\d+", res[1L])
   } else FALSE
+}
+pager_opt_default <- function(x=getOption("pager")) {
+  is.character(x) && !is.na(x[1L]) &&
+  normalizePath(x[1L], mustWork=FALSE) ==
+    normalizePath(file.path(R.home(), "bin", "pager"), mustWork=FALSE)
 }
 
 #' Check Whether System Has less as Pager
@@ -95,20 +100,10 @@ file_is_less <- function(x) {
 
 pager_is_less <- function() {
   pager.opt <- getOption("pager")
-  if(is.character(pager.opt) && !is.na(pager.opt[1L])) {
-    if(
-      normalizePath(pager.opt[1L], mustWork=FALSE) ==
-        normalizePath(file.path(R.home(), "bin", "pager"), mustWork=FALSE)
-    ) {
-      # Pager is set to default option, so check the PAGER env variable
-
-      file_is_less(Sys.getenv("PAGER"))
-
-    } else {
-      # Possible for user to have set pager to less directly
-
-      file_is_less(pager.opt[1L])
-    }
+  if(pager_opt_default(pager.opt)) {
+    file_is_less(Sys.getenv("PAGER"))
+  } else if (is.character(pager.opt)) {
+    file_is_less(head(pager.opt, 1L))
   } else FALSE
 }
 # Changes the LESS system variable to make it compatible with ANSI escape
