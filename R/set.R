@@ -61,15 +61,32 @@ auto_context <- function(
     stop("Argument `max` must be integer(1L) and not NA")
   new("AutoContext", min=as.integer(min), max=as.integer(max))
 }
+## Helper Function to Check if a File is Likely to be less pager
+
+file_is_less <- function(x) {
+  if(
+    is.chr.1L(x) && file_test("-x", x) && basename(x) == "less"
+  ) {
+    res <- tryCatch(
+      system2(x, "--version", stdout=TRUE, stderr=TRUE),
+      warning=function(e) NULL,
+      error=function(e) NULL
+    )
+    length(res) && grepl("^less \\d+", res[1L])
+  } else FALSE
+}
+
 #' Check Whether System Has less as Pager
 #'
-#' Checks system \code{PAGER} variable corresponds to \code{less} by trying to
-#' run the pager with the \dQuote{version} flag, and confirms that the default
-#' pager is set in with \code{getOption("pager")}.  Note this function will only
-#' return TRUE if the R session is configured to use less in the standard way.
-#' If you are using non-standard set-ups you will need to explicitly specify the 
-#' \code{\link{PagerIsLess}} object as the \code{pager} argument to the
-#' \code{\link[=diffPrint]{diff*}} methods.
+#' If \code{getOption(pager)} is set to the default value, checks whether
+#' \code{Sys.getenv("PAGER")} appears to be \code{less} by trying to run the
+#' pager with the \dQuote{version} flag and confirming that the file name is
+#' also \code{less}.  If \code{getOption(pager)} is not the default value, then
+#' checks whether it points to the \code{less} program.
+#'
+#' In some systems \code{more} is just a copy of \code{less}, but because in
+#' those cases the binary does not appear to always respond to the
+#' \code{$LESS} environment variable it is treated as if it is not \code{less}.
 #'
 #' @return TRUE or FALSE
 #' @export
@@ -77,18 +94,21 @@ auto_context <- function(
 #' pager_is_less()
 
 pager_is_less <- function() {
-  PAGER <- Sys.getenv("PAGER")
-  if(
-    is.chr.1L(PAGER) &&
-    identical(getOption("pager", file.path(R.home(), "bin", "pager"))) &&
-    file_test("-x", PAGER)
-  ) {
-    res <- tryCatch(
-      system2(Sys.getenv("PAGER"), "--version", stdout=TRUE, stderr=TRUE),
-      warning=function(e) NULL,
-      error=function(e) NULL
-    )
-    length(res) && grepl("^less ", res[1L])
+  pager.opt <- getOption("pager")
+  if(is.character(pager.opt) && !is.na(pager.opt[1L])) {
+    if(
+      normalizePath(pager.opt[1L], mustWork=FALSE) ==
+        normalizePath(file.path(R.home(), "bin", "pager"), mustWork=FALSE)
+    ) {
+      # Pager is set to default option, so check the PAGER env variable
+
+      file_is_less(Sys.getenv("PAGER"))
+
+    } else {
+      # Possible for user to have set pager to less directly
+
+      file_is_less(pager.opt[1L])
+    }
   } else FALSE
 }
 # Changes the LESS system variable to make it compatible with ANSI escape
