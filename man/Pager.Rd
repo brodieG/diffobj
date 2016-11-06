@@ -89,7 +89,7 @@ output is rendered in HTML and sent to the IDE viewer
 \code{\link{browseURL}} if not.  This behavior may seem sub-optimal for
 systems that have ANSI aware terminals and ANSI aware pagers other than
 \code{less}, but these should be rare and it is possible to configure
-\code{diffobj} to produce the correct output for them (see examples0.
+\code{diffobj} to produce the correct output for them (see examples).
 }
 
 \section{Pagers and Styles}{
@@ -179,7 +179,7 @@ the pager has a chance to read it.
 ## Assuming system pager is `less` and terminal supports ANSI ESC sequences
 ## Equivalent to running `less -RFX`
 
-diffPrint(1:200, 180:300, pager=PagerSystemLess(flags="RFX"))
+diffChr(1:200, 180:300, pager=PagerSystemLess(flags="RFX"))
 
 ## System pager is not less, but it supports ANSI escape sequences
 
@@ -190,12 +190,12 @@ diffChr(1:200, 180:300, pager=PagerSystem(ansi=TRUE))
 
 page.fun <- function(x) cat(paste0("| ", readLines(x)), sep="\\n")
 page.conf <- PagerSystem(pager=page.fun, threshold=0L)
-diffPrint(1:200, 180:300, pager=page.conf, width=getOption("width") - 2)
+diffChr(1:200, 180:300, pager=page.conf, width=getOption("width") - 2)
 
 ## Set-up the custom pager as the default pager
 
 options(diffobj.pager=page.conf)
-diffPrint(1:200, 180:300)
+diffChr(1:200, 180:300)
 
 ## A blocking pager (this is effectively very similar to what `PagerBrowser`
 ## does); need to block b/c otherwise temp file with diff could be deleted
@@ -205,7 +205,7 @@ diffPrint(1:200, 180:300)
 
 page.fun <- make_blocking(browseURL)
 page.conf <- PagerSystem(pager=page.fun, file.ext="txt")
-diffPrint(1:200, 180:300, pager=page.conf)
+diffChr(1:200, 180:300, pager=page.conf)
 }
 }
 \seealso{
