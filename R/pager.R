@@ -160,7 +160,7 @@
 #' ## Assuming system pager is `less` and terminal supports ANSI ESC sequences
 #' ## Equivalent to running `less -RFX`
 #'
-#' diffPrint(1:200, 180:300, pager=PagerSystemLess(flags="RFX"))
+#' diffChr(1:200, 180:300, pager=PagerSystemLess(flags="RFX"))
 #'
 #' ## System pager is not less, but it supports ANSI escape sequences
 #'
@@ -171,12 +171,12 @@
 #'
 #' page.fun <- function(x) cat(paste0("| ", readLines(x)), sep="\n")
 #' page.conf <- PagerSystem(pager=page.fun, threshold=0L)
-#' diffPrint(1:200, 180:300, pager=page.conf, width=getOption("width") - 2)
+#' diffChr(1:200, 180:300, pager=page.conf, width=getOption("width") - 2)
 #'
 #' ## Set-up the custom pager as the default pager
 #'
 #' options(diffobj.pager=page.conf)
-#' diffPrint(1:200, 180:300)
+#' diffChr(1:200, 180:300)
 #'
 #' ## A blocking pager (this is effectively very similar to what `PagerBrowser`
 #' ## does); need to block b/c otherwise temp file with diff could be deleted
@@ -186,7 +186,7 @@
 #'
 #' page.fun <- make_blocking(browseURL)
 #' page.conf <- PagerSystem(pager=page.fun, file.ext="txt")
-#' diffPrint(1:200, 180:300, pager=page.conf)
+#' diffChr(1:200, 180:300, pager=page.conf)
 #' }
 
 setClass(
