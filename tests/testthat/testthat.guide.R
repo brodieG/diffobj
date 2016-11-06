@@ -147,3 +147,28 @@ test_that("detect_array_guides", {
     c(1L, 2L)
   )
 })
+test_that("detect_s4_guides", {
+  setClass("gtest2", slots=c(hello="integer", `good bye`="list"))
+  setClass("gtest1",
+    slots=c(
+      sub.class="gtest2", blah="character", gah="list", sub.class.2="gtest2"
+  ) )
+  obj <- new(
+    "gtest1",
+    sub.class=new(
+      "gtest2", hello=1:3, `good bye`=list("a", list(l1=5, l2="wow"))
+    ),
+    blah=letters, gah=list(one=1:10, two=LETTERS),
+    sub.class.2=new(
+      "gtest2", hello=3:1, `good bye`=list("B", list(l1=5, l2="wow"))
+    )
+  )
+  # note at this point the nested stuff doesn't work, so we're just shooting for
+  # the simple match
+
+  c.1 <- capture.output(obj)
+  expect_identical(
+    diffobj:::detect_s4_guides(c.1, obj),
+    c(1L, 2L, 21L, 25L, 34L)
+  )
+})
