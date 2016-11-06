@@ -39,7 +39,7 @@
 #' \code{\link{browseURL}} if not.  This behavior may seem sub-optimal for
 #' systems that have ANSI aware terminals and ANSI aware pagers other than
 #' \code{less}, but these should be rare and it is possible to configure
-#' \code{diffobj} to produce the correct output for them (see examples0.
+#' \code{diffobj} to produce the correct output for them (see examples).
 #'
 #' @section Pagers and Styles:
 #'
@@ -193,7 +193,7 @@ setClass(
   "Pager",
   contains="VIRTUAL",
   slots=c(
-    pager="function", file.ext="character", threshold="integer",
+    pager="function", file.ext="character", threshold="numeric",
     ansi="logical"
   ),
   prototype=list(
