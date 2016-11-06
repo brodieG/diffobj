@@ -171,14 +171,19 @@
 setClass(
   "Pager",
   contains="VIRTUAL",
-  slots=c(pager="function", file.ext="character", threshold="integer"),
+  slots=c(
+    pager="function", file.ext="character", threshold="integer",
+    supports.ansi="logical"
+  ),
   prototype=list(
     file.ext="", threshold=0L,
-    pager=function(x) stop("Pager object does not specify a paging function.")
+    pager=function(x) stop("Pager object does not specify a paging function."),
+    supports.ansi=FALSE
   ),
   validity=function(object) {
     if(!is.chr.1L(object@file.ext)) return("Invalid `file.ext` slot")
     if(!is.int.1L(object@threshold)) return("Invalid `threshold` slot")
+    if(!is.TF(object@supports.ansi)) return("Invalid `supports.ansi` slot")
     TRUE
   }
 )
@@ -202,7 +207,9 @@ setClass(
 #' @export
 #' @rdname Pager
 
-PagerSystem <- function(pager=file.show, threshold=-1L, file.ext="", ...)
+PagerSystem <- function(
+  pager=file.show, threshold=-1L, file.ext="", ...
+)
   new("PagerSystem", pager=pager, threshold=threshold, file.ext=file.ext, ...)
 
 #' @export
@@ -215,11 +222,13 @@ setClass(
 #' @export
 #' @rdname Pager
 
-PagerSystemLess <-
-  function(pager=file.show, threshold=-1L, file.ext="", flags="R", ...)
+PagerSystemLess <- function(
+    pager=file.show, threshold=-1L, file.ext="", flags="R",
+    supports.ansi=TRUE, ...
+  )
     new(
       "PagerSystemLess", pager=pager, threshold=threshold, file.ext=file.ext,
-      flags=flags, ...
+      flags=flags, supports.ansi=supports.ansi, ...
     )
 
 # Must use initialize so that the pager function can access the flags slot
