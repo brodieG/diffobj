@@ -15,10 +15,57 @@
 
 #' Objects for Specifying Pager Settings
 #'
-#' Generate pager configuration objects to use as the \code{pager} argument to
-#' the \code{\link[=diffPrint]{diff*}} methods or as the \code{pager} slot for
-#' \code{\link{Style}} objects.
+#' Modify use of pager behavior with pager configuration objects to use as the
+#' \code{pager} argument to the \code{\link[=diffPrint]{diff*}} methods or as
+#' the \code{pager} slot for \code{\link{Style}} objects.  Note that in this
+#' documentation we use the \dQuote{pager} term loosely and intend it to refer
+#' to any device other than the terminal that can be used to render output.
 #'
+#' @section Default Output Behavior:
+#'
+#' \code{\link[=diffPrint]{diff*}} methods use \dQuote{pagers} to help
+#' manage large outputs and also to provide an alternative colored diff when the
+#' terminal does not support them directly.
+#'
+#' For OS X and *nix systems where \code{less} is the pager and the
+#' terminal supports ANSI escape sequences, output is colored with ANSI escape
+#' sequences.  If the output exceeds one screen height (as estimated by
+#' \code{\link{console_lines}}) in size it is sent to the pager.
+#'
+#' If the terminal does not support ANSI escape sequences, or if the system
+#' pager is not \code{less} as detected by \code{\link{pager_is_less}}, then the
+#' output is rendered in HTML and sent to the IDE viewer
+#' (\code{getOption("viewer")}) if defined, or to the browser with
+#' \code{\link{browseURL}} if not.  This behavior may seem sub-optimal for
+#' systems that have ANSI aware terminals and ANSI aware pagers other than
+#' \code{less}, but these should be rare and it is possible to configure
+#' \code{diffobj} to produce the correct output for them (see examples).
+#'
+#' @section Pagers and Styles:
+#'
+#' There is a close relationship between pagers and \code{\link{Style}}.  The
+#' \code{Style} objects control whether the output is raw text, formatted
+#' with ANSI escape sequences, or marked up with HTML.  In order for these
+#' different types of outputs to render properly, they need to be sent to the
+#' right device.  For this reason \code{\link{Style}} objects come with a
+#' \code{Pager} configuration object pre-assigned so the output can render
+#' correctly.  The exact \code{Pager} configuration object depends on the
+#' \code{\link{Style}} as well as the system configuration.
+#'
+#' In any call to the \code{\link[=diffPrint]{diff*}} methods you can always
+#' specify both the \code{\link{Style}} and \code{Pager} configuration object
+#' directly for full control of output formatting and rendering.  We have tried
+#' to set-up sensible defaults for most likely use cases, but given the complex
+#' interactions involved it is possible you may need to configure things
+#' explicitly.  Should you need to define explicit configurations you can save
+#' them as option values with
+#' \code{options(diffobj.pager=..., diffobj.style=...)} so that you do not need
+#' to specify them each time you use \code{diffobj}.
+#'
+#' @section Pager Configuration Objects:
+#'
+#' The \code{Pager} configuration objects allow you to specify what device to
+#' use as the pager and under what circumstances the pager should be used.
 #' Several pre-defined pager configuration objects are available via
 #' constructor functions:
 #' \itemize{
@@ -26,25 +73,48 @@
 #'   \item \code{PagerSystem}: Use the system pager as invoked by
 #'      \code{\link{file.show}}
 #'   \item \code{PagerSystemLess}: Like \code{PagerSystem}, but provides
-#'      additional configuration options if it the system pager is \code{less}
-#'   \item \code{PagerBrowser}: Use \code{\link{browseURL}} as the pager
+#'      additional configuration options if the system pager is \code{less}.
+#'      Note this object does not change the system pager; it only allows you to
+#'      configure it via the \code{$LESS} environment variable which will have
+#'      no effect unless the system pager is set to be \code{less}.
+#'   \item \code{PagerBrowser}: Use \code{getOption("viewer")} if defined, or
+#'     \code{\link{browseURL}} if not
 #' }
-#' Make sure you instantiate the pagers with the constructor functions rather
-#' than with \code{new} to make sure they are properly configured.
+#' \emph{Important}: Make sure you instantiate the pager objects with the
+#' constructor functions (e.g. \code{PagerSystemLess(...)} not
+#' \code{new('PagerSystemLess', ...)} rather than with \code{new} as otherwise
+#' they will not be properly configured.
 #'
-#' @section Custom Pagers:
+#' The default configuration for \code{PagerSystem} and \code{PagerSystemLess}
+#' leads to output being sent to the pager if it exceeds the estimated window
+#' size, whereas \code{PagerBrowser} always sends output to the pager.  This
+#' behavior can be configured via the \code{threshold} parameter.
+#'
+#' \code{PagerSystemLess} primary role is to correctly configure the
+#' \code{$LESS} system variable so that \code{less} renders the ANSI escape
+#' sequences correctly.
+#'
+#' @section Custom Pager Configurations:
+#'
+#' In most cases the simplest way to generate new pager configurations is to
+#' start with one of the existing configuration objects.  For example, if you
+#' wanted to tell \code{diffobj} that your default system pager supports ANSI
+#' escape sequences despite not being \code{less} you could use
+#' \code{diffPrint(a, b, pager=PagerSystem(ansi=TRUE)}.
+#'
+#' You can change what system pager is used by changing it with
+#' \code{options(pager=...} or by changing the \code{$PAGER} environment
+#' variable.  You can also explicitly set a function to act as the pager when
+#' you instantiate the \code{Pager} configuration object (see examples).
 #'
 #' If you wish to define your own pager object you should do so by extending the
-#' \code{Pager} virtual class.  In most cases you should be able to use one of
-#' the existing objects configured with different parameters, but if your
-#' pager function requires special treatment then you can define a custom pager
-#' object.  At a minimum you should specify the \code{pager} slot of the object
-#' (see constructor function parameter definition).  If the function you
-#' use to handle the actual paging is non-blocking (i.e. allows R code
-#' evaluation to continue after it is spawned, you may want to wrap it in a
-#' function that pauses evaluation such as \code{\link{make_blocking}}, as
-#' otherwise the temporary file that contains the diff may be deleted before the
-#' pager has a chance to read it.
+#' \code{Pager} virtual class.  At a minimum you should specify the \code{pager}
+#' slot of the object (see constructor function parameter definition).  If the
+#' function you use to handle the actual paging is non-blocking (i.e. allows R
+#' code evaluation to continue after it is spawned, you may want to wrap it in
+#' a function that pauses evaluation such as \code{\link{make_blocking}}, as
+#' otherwise the temporary file that contains the diff may be deleted before
+#' the pager has a chance to read it.
 #'
 #' @param pager a function that accepts at least one parameter and does not
 #'   require a parameter other than the first parameter.  This function will be
@@ -52,15 +122,20 @@
 #'   will contain the text of the diff.  This is a temporary file that will be
 #'   deleted as soon as the pager function completes evaluation.
 #'   \code{PagerSystem} and \code{PagerSystemLess} use \code{\link{file.show}}
-#'   by default, and \code{PagerBrowser} uses \code{\link{browseURL}}.
+#'   by default, and \code{PagerBrowser} uses
+#'   \code{make_blocking(view_or_browse)}.  Note that
+#'   \code{\link{make_blocking}} ensures that the temporary file is not deleted
+#'   before the pager can access it.
 #' @param file.ext character(1L) an extension to append to file name passed to
 #'   \code{pager}, \emph{without} the period.  For example, \code{PagerBrowser}
-#'   uses \dQuote{html} to cause \code{\link{browseURL}} to launch the
-#'   web browser.
+#'   uses \dQuote{html} to cause \code{\link{browseURL}} to launch the web
+#'   browser.
 #' @param threshold integer(1L) number of lines of output that triggers the use
 #'   of the pager; negative values lead to using
 #'   \code{\link{console_lines} + 1}, and zero leads to always using the pager
 #'   irrespective of how many lines the output has.
+#' @param ansi TRUE or FALSE, whether the pager supports ANSI escape
+#'   sequences.
 #' @param flags character(1L), only for \code{PagerSystemLess}, what flags to
 #'   set with the \code{LESS} system environment variable.  By default the
 #'   \dQuote{R} flag is set to ensure ANSI escape sequences are interpreted if
@@ -77,31 +152,69 @@
 #' @importFrom utils browseURL
 #' @rdname Pager
 #' @name Pager
+#' @seealso \code{\link{Style}}, \code{\link{pager_is_less}}
 #' @examples
+#' ## We `dontrun` these examples as they involve pagers that should only be run
+#' ## in interactive mode
+#' \dontrun{
 #' ## Assuming system pager is `less` and terminal supports ANSI ESC sequences
 #' ## Equivalent to running `less -RFX`
-#' \dontrun{
-#' diffPrint(letters, LETTERS, pager=PagerSystemLess(flags="RFX"))
+#'
+#' diffChr(1:200, 180:300, pager=PagerSystemLess(flags="RFX"))
+#'
+#' ## System pager is not less, but it supports ANSI escape sequences
+#'
+#' diffChr(1:200, 180:300, pager=PagerSystem(ansi=TRUE))
+#'
+#' ## Use a custom pager, in this case we make up a trivial one and configure it
+#' ## always page (`threshold=0L`)
+#'
+#' page.fun <- function(x) cat(paste0("| ", readLines(x)), sep="\n")
+#' page.conf <- PagerSystem(pager=page.fun, threshold=0L)
+#' diffChr(1:200, 180:300, pager=page.conf, width=getOption("width") - 2)
+#'
+#' ## Set-up the custom pager as the default pager
+#'
+#' options(diffobj.pager=page.conf)
+#' diffChr(1:200, 180:300)
+#'
+#' ## A blocking pager (this is effectively very similar to what `PagerBrowser`
+#' ## does); need to block b/c otherwise temp file with diff could be deleted
+#' ## before the device has a chance to read it since `browseURL` is not
+#' ## blocking itself.  On OS X we need to specify the extension so the correct
+#' ## program opens it (in this case `TextEdit`):
+#'
+#' page.fun <- make_blocking(browseURL)
+#' page.conf <- PagerSystem(pager=page.fun, file.ext="txt")
+#' diffChr(1:200, 180:300, pager=page.conf)
 #' }
 
 setClass(
   "Pager",
   contains="VIRTUAL",
-  slots=c(pager="function", file.ext="character", threshold="integer"),
+  slots=c(
+    pager="function", file.ext="character", threshold="numeric",
+    ansi="logical"
+  ),
   prototype=list(
     file.ext="", threshold=0L,
-    pager=function(x) stop("Pager object does not specify a paging function.")
+    pager=function(x) stop("Pager object does not specify a paging function."),
+    ansi=FALSE
   ),
   validity=function(object) {
     if(!is.chr.1L(object@file.ext)) return("Invalid `file.ext` slot")
     if(!is.int.1L(object@threshold)) return("Invalid `threshold` slot")
+    if(!is.TF(object@ansi)) return("Invalid `ansi` slot")
     TRUE
   }
 )
 #' @export
 #' @rdname Pager
 
-setClass("PagerOff", contains="Pager")
+setClass(
+  "PagerOff", contains="Pager",
+  prototype=list(ansi=TRUE)    # pager off shouldn't prevent ANSI use
+)
 
 #' @export
 #' @rdname Pager
@@ -118,7 +231,9 @@ setClass(
 #' @export
 #' @rdname Pager
 
-PagerSystem <- function(pager=file.show, threshold=-1L, file.ext="", ...)
+PagerSystem <- function(
+  pager=file.show, threshold=-1L, file.ext="", ...
+)
   new("PagerSystem", pager=pager, threshold=threshold, file.ext=file.ext, ...)
 
 #' @export
@@ -131,11 +246,13 @@ setClass(
 #' @export
 #' @rdname Pager
 
-PagerSystemLess <-
-  function(pager=file.show, threshold=-1L, file.ext="", flags="R", ...)
+PagerSystemLess <- function(
+    pager=file.show, threshold=-1L, file.ext="", flags="R",
+    ansi=TRUE, ...
+  )
     new(
       "PagerSystemLess", pager=pager, threshold=threshold, file.ext=file.ext,
-      flags=flags, ...
+      flags=flags, ansi=ansi, ...
     )
 
 # Must use initialize so that the pager function can access the flags slot

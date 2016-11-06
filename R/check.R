@@ -293,7 +293,7 @@ check_args <- function(
     !is(style, "Style") && !string_in(style, "auto") &&
     !(is.list(style) && !is.object(style))
   )
-    err("Argument `style` must be \"auto\",  a `Style` object, or a list.")
+    err("Argument `style` must be \"auto\", a `Style` object, or a list.")
 
   # pager
 
@@ -345,6 +345,13 @@ check_args <- function(
       style <- "auto"
     } else style.args <- list()
 
+    # We only want to allow ansi styles if the pager supports them too;
+    # unfortuantely we cannot have different styles depending on whether the
+    # output is paged or not, at least not at this time
+
+    pager.could.be.ansi <- if(is(pager, "Pager"))
+      pager@ansi else pager_is_less()
+
     if(!is.chr.1L(format))
       err("Argument `format` must be character(1L) and not NA")
     valid.formats <- c("auto", dimnames(palette.of.styles@data)$format)
@@ -358,7 +365,7 @@ check_args <- function(
         )
       # No recognized color alternatives, try to use HTML if we can
 
-      format <- if(!term.colors %in% c(8, 256)) {
+      format <- if(!term.colors %in% c(8, 256) || !pager.could.be.ansi) {
         if(
           interactive && (identical(pager, "on") || is(pager, "PagerBrowser"))
         ) "html" else "raw"

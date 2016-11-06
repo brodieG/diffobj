@@ -99,6 +99,10 @@ local({
     # NAs treated as strings
 
     expect_identical(ses(c(NA, "a", "b"), c("a", "b", NA)), c("1d0", "3a3"))
+
+    # Coersion to character
+
+    expect_identical(ses(1:5, 4:6), c("1,3d0", "5a3"))
   } )
   test_that("print/summary", {
     capture.output(

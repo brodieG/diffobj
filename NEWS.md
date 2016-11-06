@@ -6,6 +6,11 @@
   `diffStr` and `diffPrint`
 * [#81](https://github.com/brodieG/diffobj/issues/81) Better handling of mixed
   UTF-8 / ASCII strings, reported by [jennybc](https://github.com/jennybc)
+* [#82](https://github.com/brodieG/diffobj/issues/82) `diffChr` and `ses` now
+  treat `NA` as "NA" (needed with change in `nchar(NA)` in base R)
+* [#83](https://github.com/brodieG/diffobj/issues/83) Improve pager auto
+  detection (note now ANSI output is only allowed by default if terminal
+  supports ANSI colors and the system pager is `less`, see `?Pager` for details)
 
 ## v0.1.5
 

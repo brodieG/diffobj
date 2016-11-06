@@ -40,7 +40,7 @@ console_lines <- function() {
 #' @param min integer(1L), positive, set to zero to allow any context
 #' @param max integer(1L), set to negative to allow any context
 #' @return S4 object containing configuration parameters, for use as the
-#'   \code{context} or parameter value in \code{\link[=diffPrint]{diff*}} 
+#'   \code{context} or parameter value in \code{\link[=diffPrint]{diff*}}
 #'   methods
 #' @examples
 #' ## `pager="off"` for CRAN compliance; you may omit in normal use
@@ -61,11 +61,37 @@ auto_context <- function(
     stop("Argument `max` must be integer(1L) and not NA")
   new("AutoContext", min=as.integer(min), max=as.integer(max))
 }
+## Helper Function to Check if a File is Likely to be less Pager
+
+file_is_less <- function(x) {
+  if(
+    is.chr.1L(x) && file_test("-x", x) && basename(x) == "less"
+  ) {
+    res <- tryCatch(
+      system2(x, "--version", stdout=TRUE, stderr=TRUE),
+      warning=function(e) NULL,
+      error=function(e) NULL
+    )
+    length(res) && grepl("^less \\d+", res[1L])
+  } else FALSE
+}
+pager_opt_default <- function(x=getOption("pager")) {
+  is.character(x) && !is.na(x[1L]) &&
+  normalizePath(x[1L], mustWork=FALSE) ==
+    normalizePath(file.path(R.home(), "bin", "pager"), mustWork=FALSE)
+}
+
 #' Check Whether System Has less as Pager
 #'
-#' Checks system \code{PAGER} variable and that \code{PAGER_PATH} is pointed
-#' at \dQuote{R_HOME/bin/pager}.  This is an approximation and may return
-#' false positives or negatives depending on your system.
+#' If \code{getOption(pager)} is set to the default value, checks whether
+#' \code{Sys.getenv("PAGER")} appears to be \code{less} by trying to run the
+#' pager with the \dQuote{version} flag and confirming that the file name is
+#' also \code{less}.  If \code{getOption(pager)} is not the default value, then
+#' checks whether it points to the \code{less} program.
+#'
+#' In some systems \code{more} is just a copy of \code{less}, but because in
+#' those cases the binary does not appear to always respond to the
+#' \code{$LESS} environment variable it is treated as if it is not \code{less}.
 #'
 #' @return TRUE or FALSE
 #' @export
@@ -73,11 +99,12 @@ auto_context <- function(
 #' pager_is_less()
 
 pager_is_less <- function() {
-  PAGER <- Sys.getenv("PAGER")
-  PAGER_PATH <- getOption("pager")
-  R_HOME <- Sys.getenv("R_HOME")
-  isTRUE(grepl("/less$", PAGER)) &&
-    identical(PAGER_PATH, file.path(R_HOME, "bin", "pager"))
+  pager.opt <- getOption("pager")
+  if(pager_opt_default(pager.opt)) {
+    file_is_less(Sys.getenv("PAGER"))
+  } else if (is.character(pager.opt)) {
+    file_is_less(head(pager.opt, 1L))
+  } else FALSE
 }
 # Changes the LESS system variable to make it compatible with ANSI escape
 # sequences

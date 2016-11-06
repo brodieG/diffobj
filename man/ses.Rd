@@ -21,6 +21,9 @@ for debugging or for other applications that understand that particular
 format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}
 for how to interpret the symbols.
 }
+\details{
+NAs are treated as the string \dQuote{NA}.
+}
 \examples{
 ses(letters[1:3], letters[2:4])
 }
