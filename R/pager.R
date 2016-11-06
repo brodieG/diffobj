@@ -100,7 +100,7 @@
 #' start with one of the existing configuration objects.  For example, if you
 #' wanted to tell \code{diffobj} that your default system pager supports ANSI
 #' escape sequences despite not being \code{less} you could use
-#' \code{diffPrint(a, b, pager=PagerSystem(supports.ansi=TRUE)}.
+#' \code{diffPrint(a, b, pager=PagerSystem(ansi=TRUE)}.
 #'
 #' You can change what system pager is used by changing it with
 #' \code{options(pager=...} or by changing the \code{$PAGER} environment
@@ -134,7 +134,7 @@
 #'   of the pager; negative values lead to using
 #'   \code{\link{console_lines} + 1}, and zero leads to always using the pager
 #'   irrespective of how many lines the output has.
-#' @param supports.ansi TRUE or FALSE, whether the pager supports ANSI escape
+#' @param ansi TRUE or FALSE, whether the pager supports ANSI escape
 #'   sequences.
 #' @param flags character(1L), only for \code{PagerSystemLess}, what flags to
 #'   set with the \code{LESS} system environment variable.  By default the
@@ -173,24 +173,27 @@ setClass(
   contains="VIRTUAL",
   slots=c(
     pager="function", file.ext="character", threshold="integer",
-    supports.ansi="logical"
+    ansi="logical"
   ),
   prototype=list(
     file.ext="", threshold=0L,
     pager=function(x) stop("Pager object does not specify a paging function."),
-    supports.ansi=FALSE
+    ansi=FALSE
   ),
   validity=function(object) {
     if(!is.chr.1L(object@file.ext)) return("Invalid `file.ext` slot")
     if(!is.int.1L(object@threshold)) return("Invalid `threshold` slot")
-    if(!is.TF(object@supports.ansi)) return("Invalid `supports.ansi` slot")
+    if(!is.TF(object@ansi)) return("Invalid `ansi` slot")
     TRUE
   }
 )
 #' @export
 #' @rdname Pager
 
-setClass("PagerOff", contains="Pager")
+setClass(
+  "PagerOff", contains="Pager",
+  prototype=list(ansi=TRUE)    # pager off shouldn't prevent ANSI use
+)
 
 #' @export
 #' @rdname Pager
@@ -224,11 +227,11 @@ setClass(
 
 PagerSystemLess <- function(
     pager=file.show, threshold=-1L, file.ext="", flags="R",
-    supports.ansi=TRUE, ...
+    ansi=TRUE, ...
   )
     new(
       "PagerSystemLess", pager=pager, threshold=threshold, file.ext=file.ext,
-      flags=flags, supports.ansi=supports.ansi, ...
+      flags=flags, ansi=ansi, ...
     )
 
 # Must use initialize so that the pager function can access the flags slot
