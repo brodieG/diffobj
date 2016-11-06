@@ -240,7 +240,7 @@ At this time the only `format` that is affected by this parameter is "ansi256". 
 
 ### Pagers
 
-In interactive mode, if the diff output is very long or if your terminal does not support ANSI colors, `diff*` methods will pipe output to a pager. This is done by writing the output to a temporary file and passing the file reference to the pager.  The default action is to invoke the pager with `file.show` if your terminal supports ANSI colors, or if not to use `getOption("viewer")` if available (this outputs to the viewport in RStudio), or if not to use `browseURL`.
+In interactive mode, if the diff output is very long or if your terminal does not support ANSI colors, `diff*` methods will pipe output to a pager. This is done by writing the output to a temporary file and passing the file reference to the pager.  The default action is to invoke the pager with `file.show` if your terminal supports ANSI colors and the pager is known to support ANSI colors as well (as of this writing, only `less` is assumed to support ANSI colors), or if not to use `getOption("viewer")` if available (this outputs to the viewport in RStudio), or if not to use `browseURL`.
 
 You can fine tune when, how, and if a pager is used with the `pager` parameter.  See `?diffPrint` and `?Pager` for more details.
 
