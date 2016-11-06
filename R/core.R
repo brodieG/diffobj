@@ -61,7 +61,7 @@ setMethod("as.character", "MyersMbaSes",
         } else if (ins) {
           paste0(d$last.a[[1L]], "a", ses_rng(ins.off, ins))
         } else {
-          stop("Logic Error: unexpected edit type; contact maintainer.")
+          stop("Logic Error: unexpected edit type; contact maintainer.") # nocov
         }
       },
       character(1L)
