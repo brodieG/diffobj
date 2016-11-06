@@ -29,8 +29,8 @@
 #'
 #' For OS X and *nix systems where \code{less} is the pager and the
 #' terminal supports ANSI escape sequences, output is colored with ANSI escape
-#' sequences.  If the output exceeds one screen height in size it is sent to the
-#' pager.
+#' sequences.  If the output exceeds one screen height (as estimated by
+#' \code{\link{console_lines}}) in size it is sent to the pager.
 #'
 #' If the terminal does not support ANSI escape sequences, or if the system
 #' pager is not \code{less} as detected by \code{\link{pager_is_less}}, then the
@@ -39,7 +39,7 @@
 #' \code{\link{browseURL}} if not.  This behavior may seem sub-optimal for
 #' systems that have ANSI aware terminals and ANSI aware pagers other than
 #' \code{less}, but these should be rare and it is possible to configure
-#' \code{diffobj} to produce the correct output for them.
+#' \code{diffobj} to produce the correct output for them (see examples0.
 #'
 #' @section Pagers and Styles:
 #'
@@ -154,18 +154,39 @@
 #' @name Pager
 #' @seealso \code{\link{Style}}, \code{\link{pager_is_less}}
 #' @examples
+#' ## We `dontrun` these examples as they involve pagers that should only be run
+#' ## in interactive mode
 #' \dontrun{
 #' ## Assuming system pager is `less` and terminal supports ANSI ESC sequences
 #' ## Equivalent to running `less -RFX`
-#' diffPrint(letters, LETTERS, pager=PagerSystemLess(flags="RFX"))
 #'
-#' ## Use a custom pager, in this case we make up a trivial one;
-#' my.pager <- make_blocking(function(x) cat(readLines(x), sep="\n"))
-#' diffPrint(letters, LETTERS, pager=PagerSystem(pager=my.pager))
+#' diffPrint(1:200, 180:300, pager=PagerSystemLess(flags="RFX"))
+#'
+#' ## System pager is not less, but it supports ANSI escape sequences
+#'
+#' diffChr(1:200, 180:300, pager=PagerSystem(ansi=TRUE))
+#'
+#' ## Use a custom pager, in this case we make up a trivial one and configure it
+#' ## always page (`threshold=0L`)
+#'
+#' page.fun <- function(x) cat(paste0("| ", readLines(x)), sep="\n")
+#' page.conf <- PagerSystem(pager=page.fun, threshold=0L)
+#' diffPrint(1:200, 180:300, pager=page.conf, width=getOption("width") - 2)
 #'
 #' ## Set-up the custom pager as the default pager
-#' options(diffobj.pager=PagerSystem(pager=my.pager))
-#' diffPrint(letters, LETTERS)
+#'
+#' options(diffobj.pager=page.conf)
+#' diffPrint(1:200, 180:300)
+#'
+#' ## A blocking pager (this is effectively very similar to what `PagerBrowser`
+#' ## does); need to block b/c otherwise temp file with diff could be deleted
+#' ## before the device has a chance to read it since `browseURL` is not
+#' ## blocking itself.  On OS X we need to specify the extension so the correct
+#' ## program opens it (in this case `TextEdit`):
+#'
+#' page.fun <- make_blocking(browseURL)
+#' page.conf <- PagerSystem(pager=page.fun, file.ext="txt")
+#' diffPrint(1:200, 180:300, pager=page.conf)
 #' }
 
 setClass(

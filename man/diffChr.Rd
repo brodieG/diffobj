@@ -99,14 +99,14 @@ make the diff \emph{slower} (see the \code{unwrap.atomic} parameter).}
 \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
 pager is used to display the diff output.  If \dQuote{on} will use the
 pager associated with the \code{\link{Style}} specified via the
-\code{\link{style}} parameters.  If \dQuote{auto} will behave
-like \dQuote{on} but only if in interactive mode.  If the pager is
-enabled, default behavior is to pipe output to \code{\link{file.show}} if
-output is taller than the estimated terminal height and your terminal
-supports ANSI escape sequences.  If the terminal does not support ANSI
-escape sequences, the default is to attempt to pipe to the IDE viewer or
-web browser.  See \code{\link{Pager}}, \code{\link{view_or_browse}},
-\code{\link{Style}}, and \code{\link{PaletteOfStyles}} for more details.}
+\code{\link{style}} parameters.  The default behavior is to use a pager if
+either the R console does not support ANSI colors, or if the output of the
+\code{diff*} methods would be taller than one screen.  If the system pager
+is not known to support ANSI colors then we will try to display the output
+in HTML with the IDE viewer if available or with the web browser if not.
+See \code{\link{Pager}}, \code{\link{view_or_browse}}, \code{\link{Style}},
+and \code{\link{PaletteOfStyles}} for more details and for instructions on
+how to modify the default behavior.}
 
 \item{guides}{TRUE (default), FALSE, or a function that accepts at least two
 arguments and requires no more than two arguments.  Guides
