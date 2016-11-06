@@ -11,6 +11,10 @@
 * [#83](https://github.com/brodieG/diffobj/issues/83) Improve pager auto
   detection (note now ANSI output is only allowed by default if terminal
   supports ANSI colors and the system pager is `less`, see `?Pager` for details)
+* [#80](https://github.com/brodieG/diffobj/issues/80),
+  [#45](https://github.com/brodieG/diffobj/issues/45), basic implementation of
+  S4 guidelines (full resolution eventually with
+  [#33](https://github.com/brodieG/diffobj/issues/33))
 
 ## v0.1.5
 
