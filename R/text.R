@@ -297,27 +297,36 @@ strip_hz_control <- function(txt, stops=8L) {
   #   is.character(txt), !anyNA(txt),
   #   is.integer(stops), length(stops) >= 1L, !anyNA(stops), all(stops > 0L)
   # )
-  txt.l <- strsplit(txt, "\n")
-  txt.zero <- !vapply(txt.l, length, integer(1L))
-  txt.l[txt.zero] <- ""  # strsplit turns "" into character(0L)
-  txt <- unlist(txt.l)
 
-  use.ansi <- crayon_hascolor()
-  has.ansi <- grepl(ansi_regex, txt, perl=TRUE) & use.ansi
-  w.ansi <- which(has.ansi)
-  wo.ansi <- which(!has.ansi)
+  # for speed in case no special chars, just skip; obviously this adds a penalty
+  # for other cases but it is small
 
-  # since for the time being the crayon funs are a bit slow, only us them on
-  # strings that are known to have ansi escape sequences
+  if(!any(grepl("\n|\t|\r", txt, perl=TRUE))) {
+    txt
+  } else {
+    if(length(has.n <- grep("\n", txt, fixed=TRUE))) {
+      txt.l <- as.list(txt)
+      txt.l.n <- strsplit(txt[has.n], "\n")
+      txt.l[has.n] <- txt.l.n
+      txt <- unlist(txt.l)
+    }
+    use.ansi <- crayon_hascolor()
+    has.ansi <- grepl(ansi_regex, txt, perl=TRUE) & use.ansi
+    w.ansi <- which(has.ansi)
+    wo.ansi <- which(!has.ansi)
 
-  res <- character(length(txt))
-  res[w.ansi] <- strip_hz_c_int(
-    txt[w.ansi], stops, use.ansi, crayon_nchar, crayon_substr, crayon_split
-  )
-  res[wo.ansi] <- strip_hz_c_int(
-    txt[wo.ansi], stops, use.ansi, nchar, substr, strsplit
-  )
-  res
+    # since for the time being the crayon funs are a bit slow, only us them on
+    # strings that are known to have ansi escape sequences
+
+    res <- character(length(txt))
+    res[w.ansi] <- strip_hz_c_int(
+      txt[w.ansi], stops, use.ansi, crayon_nchar, crayon_substr, crayon_split
+    )
+    res[wo.ansi] <- strip_hz_c_int(
+      txt[wo.ansi], stops, use.ansi, nchar, substr, strsplit
+    )
+    res
+  }
 }
 # Normalize strings so whitespace differences don't show up as differences
 
