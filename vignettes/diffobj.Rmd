@@ -280,24 +280,28 @@ large numbers of differences.  This input and output processing scales mostly
 linearly with the input size.
 
 You can improve performance somewhat by using `diffChr` since that skips the
-capture part, and by turning off options:
-
-For example:
+capture part, and by turning off `word.diff`:
 
 ```{r, eval=FALSE}
 v1 <- 1:5e4
 v2 <- v1[-sample(v1, 100)]
-diffChr(
-  v1, v2, word.diff=FALSE, convert.hz.white.space=FALSE,
-  ignore.white.space=FALSE
-)
+diffChr(v1, v2, word.diff=FALSE)
 ```
 
-will be over 2x as fast as:
+will be ~2x as fast as:
 
 ```{r, eval=FALSE}
 diffPrint(v1, v2)
 ```
+
+*Note*: turning off `word.diff` when using `diffPrint` with unnamed atomic
+vectors can actually _slow down_ the diff because there may well be fewer
+element by element differences than line differences as displayed.   For
+example, when comparing `1:1e6` to `2:1e6` there is only one element difference,
+but every line as displayed is different because of the shift.  Using
+`word.diff=TRUE` (and `unwrap.atomic=TRUE`) allows `diffPrint` to compare
+element by element rather than line by line.  `diffChr` always compares element
+by element.
 
 ### Minimal Diff
 

@@ -283,7 +283,7 @@ y[<span class="dv">2</span>] &lt;-<span class="st"> &quot;GREMLINS&quot;</span>
 </div>
 <div id="pagers" class="section level3">
 <h3>Pagers</h3>
-<p>In interactive mode, if the diff output is very long or if your terminal does not support ANSI colors, <code>diff*</code> methods will pipe output to a pager. This is done by writing the output to a temporary file and passing the file reference to the pager. The default action is to invoke the pager with <code>file.show</code> if your terminal supports ANSI colors, or if not to use <code>getOption(&quot;viewer&quot;)</code> if available (this outputs to the viewport in RStudio), or if not to use <code>browseURL</code>.</p>
+<p>In interactive mode, if the diff output is very long or if your terminal does not support ANSI colors, <code>diff*</code> methods will pipe output to a pager. This is done by writing the output to a temporary file and passing the file reference to the pager. The default action is to invoke the pager with <code>file.show</code> if your terminal supports ANSI colors and the pager is known to support ANSI colors as well (as of this writing, only <code>less</code> is assumed to support ANSI colors), or if not to use <code>getOption(&quot;viewer&quot;)</code> if available (this outputs to the viewport in RStudio), or if not to use <code>browseURL</code>.</p>
 <p>You can fine tune when, how, and if a pager is used with the <code>pager</code> parameter. See <code>?diffPrint</code> and <code>?Pager</code> for more details.</p>
 </div>
 <div id="styles" class="section level3">
@@ -310,16 +310,14 @@ y[<span class="dv">2</span>] &lt;-<span class="st"> &quot;GREMLINS&quot;</span>
 <div id="capture-and-processing" class="section level3">
 <h3>Capture and Processing</h3>
 <p>Capture of inputs for <code>diffPrint</code> and <code>diffStr</code>, and processing of output for all <code>diff*</code> methods will account for most of the execution time unless you have large numbers of differences. This input and output processing scales mostly linearly with the input size.</p>
-<p>You can improve performance somewhat by using <code>diffChr</code> since that skips the capture part, and by turning off options:</p>
+<p>You can improve performance somewhat by using <code>diffChr</code> since that skips the capture part, and by turning off <code>word.diff</code>:</p>
 <p>For example:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">v1 &lt;-<span class="st"> </span><span class="dv">1</span>:<span class="fl">5e4</span>
 v2 &lt;-<span class="st"> </span>v1[-<span class="kw">sample</span>(v1, <span class="dv">100</span>)]
-<span class="kw">diffChr</span>(
-  v1, v2, <span class="dt">word.diff=</span><span class="ot">FALSE</span>, <span class="dt">convert.hz.white.space=</span><span class="ot">FALSE</span>,
-  <span class="dt">ignore.white.space=</span><span class="ot">FALSE</span>
-)</code></pre></div>
-<p>will be over 2x as fast as:</p>
+<span class="kw">diffChr</span>(v1, v2, <span class="dt">word.diff=</span><span class="ot">FALSE</span>)</code></pre></div>
+<p>will be ~2x as fast as:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">diffPrint</span>(v1, v2)</code></pre></div>
+<p><em>Note</em>: turning off <code>word.diff</code> when using <code>diffPrint</code> with unnamed atomic vectors can actually <em>slow down</em> the diff because there may well be fewer element by element differences than line differences as displayed. For example, when comparing <code>1:1e6</code> to <code>2:1e6</code> there is only one element difference, but every line as displayed is different because of the shift. Using <code>word.diff=TRUE</code> (and <code>unwrap.atomic=TRUE</code>) allows <code>diffPrint</code> to compare element by element rather than line by line. <code>diffChr</code> always compares element by element.</p>
 </div>
 <div id="minimal-diff" class="section level3">
 <h3>Minimal Diff</h3>
