@@ -22,6 +22,10 @@ format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/d
 for how to interpret the symbols.
 }
 \details{
+\code{ses} will be much faster than any of the
+\code{\link[=diffPrint]{diff*}} methods, particularly for large inputs with
+limited numbers of differences.
+
 NAs are treated as the string \dQuote{NA}.
 }
 \examples{
