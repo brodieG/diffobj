@@ -86,12 +86,18 @@ matrices, arrays, etc., or alternatively you can pass a guide finding
 function directly via the \code{guides} parameter to the \code{diff*}
 methods.  The default method for \code{guidesStr} highlights top level
 objects.  The default methods for the other \code{guide*} methods
-don't do anything and exist only as a mechanism for providing custom guide
+do not do anything and exist only as a mechanism for providing custom guide
 line methods.
 
 If you have classed objects with special patterns you can define your own
 methods for them (see examples), though if your objects are S3 you will need
 to use \code{\link{setOldClass}} as the \code{guides*} generics are S4.
+}
+\note{
+the mechanism for identifying guides will almost certainly change in
+  the future to allow for better handling of nested guides, so if you do
+  implement custom guideline methods do so with the understanding that they
+  will likely be deprecated in one of the future releases.
 }
 \examples{
 ## Roundabout way of suppressing guides for matrices

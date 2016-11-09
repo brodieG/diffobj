@@ -153,6 +153,10 @@ make_diff_fun <- function(capt_fun) {
 #' methods do.
 #'
 #' @export
+#' @seealso \code{\link{diffObj}}, \code{\link{diffStr}},
+#'   \code{\link{diffChr}} to compare character vectors directly,
+#'   \code{\link{diffDeparse}} to compare deparsed objects, \code{\link{ses}}
+#'   for a minimal and fast diff @param target the reference object
 #' @param target the reference object
 #' @param current the object being compared to \code{target}
 #' @param mode character(1L), one of:
@@ -211,8 +215,10 @@ make_diff_fun <- function(capt_fun) {
 #'   details and limitations.  Also offers the same advanced usage as the
 #'   \code{brightness} parameter.
 #' @param word.diff TRUE (default) or FALSE, whether to run a secondary word
-#'   diff on the in-hunk differences.  For atomic vectors this could
-#'   make the diff \emph{slower} (see the \code{unwrap.atomic} parameter).
+#'   diff on the in-hunk differences.  For atomic vectors setting this to
+#'   FALSE could make the diff \emph{slower} (see the \code{unwrap.atomic}
+#'   parameter).  For other uses, particularly with \code{\link{diffChr}}
+#'   setting this to FALSE can substantially improve performance.
 #' @param pager one of \dQuote{auto} (default), \dQuote{on},
 #'   \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
 #'   pager is used to display the diff output.  If \dQuote{on} will use the
@@ -359,9 +365,6 @@ make_diff_fun <- function(capt_fun) {
 #'   create text representation of the objects to diff (e.g. \code{print},
 #'   \code{str}, etc.)
 #' @param ... unused, for compatibility of methods with generics
-#' @seealso \code{\link{diffObj}}, \code{\link{diffStr}},
-#'   \code{\link{diffChr}} to compare character vectors directly,
-#'   \code{\link{diffDeparse}} to compare deparsed objects
 #' @return a \code{Diff} object; this object has a \code{show}
 #'   method that will display the diff to screen or pager, as well as
 #'   \code{summary}, \code{any}, and \code{as.character} methods.
@@ -401,7 +404,8 @@ setMethod("diffPrint", signature=c("ANY", "ANY"), make_diff_fun(capt_print))
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
 #'   \code{\link{diffObj}}, \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly,
-#'   \code{\link{diffDeparse}} to compare deparsed objects
+#'   \code{\link{diffDeparse}} to compare deparsed objects,
+#'   \code{\link{ses}} for a minimal and fast diff
 #' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @rdname diffStr
 #' @export
@@ -425,7 +429,8 @@ setMethod("diffStr", signature=c("ANY", "ANY"), make_diff_fun(capt_str))
 #' @inheritParams diffPrint
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
 #'   \code{\link{diffObj}}, \code{\link{diffStr}},
-#'   \code{\link{diffDeparse}} to compare deparsed objects
+#'   \code{\link{diffDeparse}} to compare deparsed objects,
+#'   \code{\link{ses}} for a minimal and fast diff
 #' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @export
 #' @rdname diffChr
@@ -449,7 +454,8 @@ setMethod("diffChr", signature=c("ANY", "ANY"), make_diff_fun(capt_chr))
 #' @inheritParams diffPrint
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
 #'   \code{\link{diffObj}}, \code{\link{diffStr}},
-#'   \code{\link{diffChr}} to compare character vectors directly
+#'   \code{\link{diffChr}} to compare character vectors directly,
+#'   \code{\link{ses}} for a minimal and fast diff
 #' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @export
 #' @rdname diffDeparse
@@ -476,7 +482,8 @@ setMethod("diffDeparse", signature=c("ANY", "ANY"), make_diff_fun(capt_deparse))
 #' @inheritParams diffPrint
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
 #'   \code{\link{diffObj}}, \code{\link{diffStr}},
-#'   \code{\link{diffChr}} to compare character vectors directly
+#'   \code{\link{diffChr}} to compare character vectors directly,
+#'   \code{\link{ses}} for a minimal and fast diff
 #' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @export
 #' @rdname diffFile
@@ -511,7 +518,8 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 #' @inheritParams diffPrint
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
 #'   \code{\link{diffObj}}, \code{\link{diffStr}},
-#'   \code{\link{diffChr}} to compare character vectors directly
+#'   \code{\link{diffChr}} to compare character vectors directly,
+#'   \code{\link{ses}} for a minimal and fast diff
 #' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @export
 #' @rdname diffCsv
@@ -548,7 +556,8 @@ setMethod("diffCsv", signature=c("ANY", "ANY"), make_diff_fun(capt_csv))
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} methods,
 #'   \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly
-#'   \code{\link{diffDeparse}} to compare deparsed objects
+#'   \code{\link{diffDeparse}} to compare deparsed objects,
+#'   \code{\link{ses}} for a minimal and fast diff
 #' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @export
 #' @examples

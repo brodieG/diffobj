@@ -72,10 +72,7 @@ diffChr(x, y, color.mode="rgb")
 ## ---- eval=FALSE---------------------------------------------------------
 #  v1 <- 1:5e4
 #  v2 <- v1[-sample(v1, 100)]
-#  diffChr(
-#    v1, v2, word.diff=FALSE, convert.hz.white.space=FALSE,
-#    ignore.white.space=FALSE
-#  )
+#  diffChr(v1, v2, word.diff=FALSE)
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  diffPrint(v1, v2)

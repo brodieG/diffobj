@@ -138,6 +138,10 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}
 #' for how to interpret the symbols.
 #'
+#' \code{ses} will be much faster than any of the
+#' \code{\link[=diffPrint]{diff*}} methods, particularly for large inputs with
+#' limited numbers of differences.
+#'
 #' NAs are treated as the string \dQuote{NA}.
 #'
 #' @export

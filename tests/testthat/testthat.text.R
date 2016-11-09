@@ -84,6 +84,12 @@ test_that("strip hz whitespace", {
     ),
     c("HELLOthere", "ABCdef78")
   )
+  # newlines
+
+  expect_equal(
+    diffobj:::strip_hz_control(c("a", "", "\n", "a\nb")),
+    c("a", "", "", "a", "b")
+  )
   # with colors
 
   options(crayon.enabled=TRUE)

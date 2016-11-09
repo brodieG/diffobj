@@ -15,6 +15,8 @@
   [#45](https://github.com/brodieG/diffobj/issues/45), basic implementation of
   S4 guidelines (full resolution eventually with
   [#33](https://github.com/brodieG/diffobj/issues/33))
+* [#84](https://github.com/brodieG/diffobj/issues/84), simplify how to call
+  `diffChr` for improved performance
 
 ## v0.1.5
 

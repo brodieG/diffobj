@@ -92,8 +92,10 @@ details and limitations.  Also offers the same advanced usage as the
 \code{brightness} parameter.}
 
 \item{word.diff}{TRUE (default) or FALSE, whether to run a secondary word
-diff on the in-hunk differences.  For atomic vectors this could
-make the diff \emph{slower} (see the \code{unwrap.atomic} parameter).}
+diff on the in-hunk differences.  For atomic vectors setting this to
+FALSE could make the diff \emph{slower} (see the \code{unwrap.atomic}
+parameter).  For other uses, particularly with \code{\link{diffChr}}
+setting this to FALSE can substantially improve performance.}
 
 \item{pager}{one of \dQuote{auto} (default), \dQuote{on},
 \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
@@ -285,6 +287,7 @@ with(mtcars, diffStr(lm(mpg ~ hp)$qr, lm(mpg ~ disp)$qr, pager="off"))
 \code{\link{diffPrint}} for details on the \code{diff*} functions,
   \code{\link{diffObj}}, \code{\link{diffStr}},
   \code{\link{diffChr}} to compare character vectors directly,
-  \code{\link{diffDeparse}} to compare deparsed objects
+  \code{\link{diffDeparse}} to compare deparsed objects,
+  \code{\link{ses}} for a minimal and fast diff
 }
 

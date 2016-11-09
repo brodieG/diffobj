@@ -240,7 +240,7 @@ At this time the only `format` that is affected by this parameter is "ansi256". 
 
 ### Pagers
 
-In interactive mode, if the diff output is very long or if your terminal does not support ANSI colors, `diff*` methods will pipe output to a pager. This is done by writing the output to a temporary file and passing the file reference to the pager.  The default action is to invoke the pager with `file.show` if your terminal supports ANSI colors, or if not to use `getOption("viewer")` if available (this outputs to the viewport in RStudio), or if not to use `browseURL`.
+In interactive mode, if the diff output is very long or if your terminal does not support ANSI colors, `diff*` methods will pipe output to a pager. This is done by writing the output to a temporary file and passing the file reference to the pager.  The default action is to invoke the pager with `file.show` if your terminal supports ANSI colors and the pager is known to support ANSI colors as well (as of this writing, only `less` is assumed to support ANSI colors), or if not to use `getOption("viewer")` if available (this outputs to the viewport in RStudio), or if not to use `browseURL`.
 
 You can fine tune when, how, and if a pager is used with the `pager` parameter.  See `?diffPrint` and `?Pager` for more details.
 
@@ -280,24 +280,30 @@ large numbers of differences.  This input and output processing scales mostly
 linearly with the input size.
 
 You can improve performance somewhat by using `diffChr` since that skips the
-capture part, and by turning off options:
+capture part, and by turning off `word.diff`:
 
 For example:
 
 ```{r, eval=FALSE}
 v1 <- 1:5e4
 v2 <- v1[-sample(v1, 100)]
-diffChr(
-  v1, v2, word.diff=FALSE, convert.hz.white.space=FALSE,
-  ignore.white.space=FALSE
-)
+diffChr(v1, v2, word.diff=FALSE)
 ```
 
-will be over 2x as fast as:
+will be ~2x as fast as:
 
 ```{r, eval=FALSE}
 diffPrint(v1, v2)
 ```
+
+*Note*: turning off `word.diff` when using `diffPrint` with unnamed atomic
+vectors can actually _slow down_ the diff because there may well be fewer
+element by element differences than line differences as displayed.   For
+example, when comparing `1:1e6` to `2:1e6` there is only one element difference,
+but every line as displayed is different because of the shift.  Using
+`word.diff=TRUE` (and `unwrap.atomic=TRUE`) allows `diffPrint` to compare
+element by element rather than line by line.  `diffChr` always compares element
+by element.
 
 ### Minimal Diff
 
