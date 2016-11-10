@@ -12,7 +12,10 @@ local({                                         # so we can use `on.exit`
       diffobj.format="ansi8", # force ANSI colors
       diffobj.color.mode="yb",# force yb
       diffobj.pager="off",    # run tests without pager
-      width=80L
+      width=80L,
+      warnPartialMatchArgs=TRUE,
+      warnPartialMatchAttr=TRUE,
+      warnPartialMatchDollar=TRUE
   ) )
 
   # covr options have no effect here; just recorded so we can use them ahead
