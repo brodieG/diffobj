@@ -175,6 +175,21 @@ test_that("List", {
     diffobj:::strip_list_rh(l1.c, l1),
     c("[[1]]", "     [,1] [,2]", "   1    3", "   2    4", "", "$b", "$b$abc", "\"a\" \"b\" \"c\" \"d\" \"e\" \"f\" \"g\" \"h\" \"i\" \"j\" \"k\" \"l\" \"m\" \"n\" \"o\" \"p\" \"q\" \"r\" \"s\"", "\"t\" \"u\" \"v\" \"w\" \"x\" \"y\" \"z\" \"A\" \"B\" \"C\" \"D\" \"E\" \"F\" \"G\" \"H\" \"I\" \"J\" \"K\" \"L\"", "\"M\" \"N\" \"O\" \"P\" \"Q\" \"R\" \"S\" \"T\" \"U\" \"V\" \"W\" \"X\" \"Y\" \"Z\"", "", "$b[[2]]", "$b[[2]][[1]]", "     [,1] [,2]", "   4    2", "   3    1", "", "", "")
   )
+  a <- list(list())
+  aa <- list(list(), "a")
+  b <- list("a", list())
+  c <- list(list("a"), "b")
+  d <- list("a", "b", "c")
+
+  expect_identical(
+    diffobj:::strip_list_rh(capture.output(d), d),
+    c("[[1]]", "\"a\"", "", "[[2]]", "\"b\"", "", "[[3]]", "\"c\"", "")
+  )
+  expect_identical(
+    diffobj:::strip_list_rh(capture.output(aa), aa),
+    c("[[1]]", "list()", "", "[[2]]", "\"a\"", "")
+  )
+
 })
 
 

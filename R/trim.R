@@ -288,46 +288,56 @@ strip_array_rh <- function(x, dim.names.x) {
 #
 # Also, right now we are passing the list components with all the trailing
 # new lines, and it isn't completely clear that is the right thing to do
+#
+# Note that we're not actually trimming the list headers themselves since unlike
+# in atomics and matrices, etc, the list headers are on their own line and won't
+# affect the matching diff of the actual contents of the list
 
 strip_list_rh <- function(x, obj) {
-  # Split output into each list component
-
-  list.h <- detect_list_guides(x)
-  dat <- split_by_guides(x, list.h, drop.leading=FALSE)
-  elements <- flatten_list(obj)
-
-  # Special case where first element in list is deeper than one value, which
-  # means there will be leading non-data elements in `dat` that we have to
-  # reconstruct; note that if no len then rendered as `list()` so it doesn't get
-  # a guide.
-
-  offset <- if(
-    is.list(obj[[1L]]) && !is.object(obj[[1L]]) && length(obj[[1L]])
-  ) 1L else 0L
-
-  if(length(elements) != length(dat) - offset) {
+  if(!length(obj)) {
+    # empty list, nothing to do, and also if it is nested causes problems later
     x
   } else {
-    # Use `trimPrint` to get indices, and trim back to stuff without row header
+    # Split output into each list component
 
-    if(offset) {
-      hd <- dat[[1L]]
-      tl <- tail(dat, -offset)
+    list.h <- detect_list_guides(x)
+    dat <- split_by_guides(x, list.h, drop.leading=FALSE)
+    elements <- flatten_list(obj)
+
+    # Special case where first element in list is deeper than one value, which
+    # means there will be leading non-data elements in `dat` that we have to
+    # reconstruct; note that if no len then rendered as `list()` so it doesn't
+    # get a guide.
+
+    offset <- if(
+      is.list(obj[[1L]]) && !is.object(obj[[1L]]) && length(obj[[1L]])
+    ) 1L else 0L
+
+    if(length(elements) != length(dat) - offset) {
+      # Something went wrong here, so return as is?
+      x
     } else {
-      hd <- NULL
-      tl <- dat
-    }
-    dat.trim <- Map(trimPrint, elements, tl)
-    dat.w.o.rh <- Map(
-      function(chr, ind) substr(chr, ind[, 1], ind[, 2]), tl, dat.trim
-    )
-    unlist(
-      c(
-        list(hd),
+      # Use `trimPrint` to get indices, and trim back to stuff without row header
+
+      if(offset) {
+        hd <- dat[[1L]]
+        tl <- tail(dat, -offset)
+      } else {
+        hd <- NULL
+        tl <- dat
+      }
+      dat.trim <- Map(trimPrint, elements, tl)
+      dat.w.o.rh <- Map(
+        function(chr, ind) substr(chr, ind[, 1], ind[, 2]), tl, dat.trim
+      )
+      unlist(
         c(
-          as.list(x[list.h]), dat.w.o.rh
-        )[order(rep(seq_along(list.h), 2))]
-    ) )
+          list(hd),
+          c(
+            as.list(x[list.h]), dat.w.o.rh
+          )[order(rep(seq_along(list.h), 2))]
+      ) )
+    }
   }
 }
 #' Methods to Remove Unsemantic Text Prior to Diff
