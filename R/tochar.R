@@ -285,14 +285,18 @@ setMethod("as.character", "Diff",
 
       msg <- "No visible differences between objects"
       if(
-        (ignore.white.space || x@etc@convert.hz.white.space) &&
+        (
+          ignore.white.space || x@etc@convert.hz.white.space ||
+          !identical(x@etc@trim, trim_identity)
+        ) &&
         !isTRUE(all.equal(x@tar.dat$orig, x@cur.dat$orig)) &&
         isTRUE(all.equal(x@tar.dat$comp, x@cur.dat$comp))
       ) {
         paste0(
-          msg, ", but there are white space differences; re-run diff with ",
-          "`ignore.white.space=FALSE` and `convert.hz.white.space=FALSE` ",
-          "to show them.", collapse=""
+          msg, ", but there are some differences suppressed by ",
+          "`ignore.white.space`, `convert.hz.white.space`, and/or `trim`. ",
+          "Set all those arguments to FALSE to highlight the differences.",
+          collapse=""
         )
       } else if (!isTRUE(all.eq <- all.equal(x@target, x@current))) {
         c(

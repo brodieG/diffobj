@@ -94,7 +94,7 @@ which_atomic_rh <- function(x) {
     first.block <- min(which(w.pat.rle$values))
     w.pat.start <- sum(head(w.pat.rle$lengths, first.block - 1L), 0L) + 1L
     w.pat.ind <-
-      seq(from=w.pat.start, length=w.pat.rle$lengths[first.block], by=1L)
+      seq(from=w.pat.start, length.out=w.pat.rle$lengths[first.block], by=1L)
 
     # Re extract those and run checks on them to make sure they truly are
     # what we think they are: width of headers is the same, and numbers
