@@ -346,7 +346,7 @@ strip_list_rh <- function(x, obj) {
 #' representation of an object prior to running the diff to reduce the incidence
 #' of spurious mismatches caused by unsemantic differences.  For example, we
 #' look to remove matrix row indices and atomic vector indices (i.e. the
-#' \samp{[1]} or \samp{[1,]} strings at the beginning of each display line).
+#' \samp{[1,]} or \samp{[1]} strings at the beginning of each display line).
 #'
 #' Consider: \preformatted{
 #' > matrix(10:12)
@@ -375,7 +375,7 @@ strip_list_rh <- function(x, obj) {
 #' \code{trimPrint} removes row index headers provided that they are of the
 #' default un-named variety.  If you add row names, or if numeric row indices
 #' are not ascending from 1, they will not be stripped as those have meaning.
-#' \code{trimStr} removes the \samp{..$} and \samp{..-} tokens
+#' \code{trimStr} removes the \samp{..$}, \samp{..-}, and \samp{..@} tokens
 #' to minimize spurious matches.
 #'
 #' You can modify how text is trimmed by providing your own functions to the
@@ -540,18 +540,20 @@ apply_trim <- function(obj, obj.as.chr, trim_fun) {
     )
   trim <- try(trim_fun(obj, obj.as.chr))
   msg.extra <- paste0(
-    "If you did not define custom `*trim` methods contact maintainer ",
-    "(see `?trim`)."
+    "If you did not specify a `trim` function or define custom `trim*` ",
+    "methods contact maintainer (see `?trim`).  Proceeding without trimming."
   )
-  if(inherits(trim, "try-error"))
-    stop(
-      "`*trim` method produced an error when attempting to trim ; ", msg.extra
+  if(inherits(trim, "try-error")) {
+    warning(
+      "`trim*` method produced an error when attempting to trim ; ", msg.extra
     )
+    trim <- cbind(rep(1L, length(obj.as.chr)), nchar(obj.as.chr))
+  }
   if(!isTRUE(trim.check <- valid_trim_ind(trim)))
-    stop("`*trim` method return value ", trim.check, "; ", msg.extra)
+    stop("`trim*` method return value ", trim.check, "; ", msg.extra)
   if(nrow(trim) != length(obj.as.chr))
     stop(
-      "`*trim` method output matrix must have as many rows as object ",
+      "`trim*` method output matrix must have as many rows as object ",
       "character representation has elements; ", msg.extra
     )
   trim

@@ -1,5 +1,11 @@
 context("Guides")
 
+if(!identical(basename(getwd()), "testthat"))
+  stop("Working dir does not appear to be /testthat, is ", getwd())
+
+rdsf <- function(x)
+  file.path(getwd(), "helper", "guides", sprintf("%s.rds", x))
+
 test_that("detect_2d_guides", {
    iris.dply <- c("Source: local data frame [150 x 5]", "Groups: Species [3]", "", "   Sepal.Length Sepal.Width", "          (dbl)       (dbl)", "1           5.1         3.5", "2           4.9         3.0", "3           4.7         3.2", "4           4.6         3.1", "5           5.0         3.6", "6           5.4         3.9", "7           4.6         3.4", "8           5.0         3.4", "9           4.4         2.9", "10          4.9         3.1", "..          ...         ...", "Variables not shown: Petal.Length", "  (dbl), Petal.Width (dbl), Species", "  (fctr)")
    expect_equal(diffobj:::detect_2d_guides(iris.dply), 4:5)
@@ -171,4 +177,23 @@ test_that("detect_s4_guides", {
     diffobj:::detect_s4_guides(c.1, obj),
     c(1L, 2L, 21L, 25L, 34L)
   )
+})
+test_that("custom guide fun", {
+  a <- b <- matrix(1:100)
+  b[50] <- -99L
+
+  fun1 <- function(x, y) c(1L, 14L, 53L)
+
+  expect_equal_to_reference(
+    as.character(diffPrint(a, b, guides=fun1)), rdsf(100)
+  )
+  expect_warning(
+    capture.output(
+      trim.err <-
+        as.character(diffPrint(a, b, guides=function(x, y) stop("boom"))),
+      type="message"
+    ),
+    "If you did not specify a `guides`"
+  )
+  expect_equal_to_reference(trim.err, rdsf(200))
 })
