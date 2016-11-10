@@ -298,9 +298,12 @@ strip_list_rh <- function(x, obj) {
 
   # Special case where first element in list is deeper than one value, which
   # means there will be leading non-data elements in `dat` that we have to
-  # reconstruct
+  # reconstruct; note that if no len then rendered as `list()` so it doesn't get
+  # a guide.
 
-  offset <- if(is.list(obj[[1L]]) && !is.object(obj[[1L]])) 1L else 0L
+  offset <- if(
+    is.list(obj[[1L]]) && !is.object(obj[[1L]]) && length(obj[[1L]])
+  ) 1L else 0L
 
   if(length(elements) != length(dat) - offset) {
     x
