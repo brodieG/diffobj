@@ -576,36 +576,33 @@ body(diff_obj) <- quote({
 
   # Need to generate calls inside a new child environment so that we do not
   # pollute the environment and create potential conflicts with ... args
+  # used to run this inside a `local` call, but issues cropped up with the
+  # advent of JIT, and can't recall why just storing arguments at first
+  # was a problem
 
-  res <- local({
-    args <- as.list(parent.frame(2))
-    call.dat <- extract_call(sys.calls(), frame)
-    err <- make_err_fun(call.dat$call)
+  args <- as.list(environment())
+  call.dat <- extract_call(sys.calls(), frame)
+  err <- make_err_fun(call.dat$call)
 
-    if(is.null(args$tar.banner)) args$tar.banner <- call("quote", call.dat$tar)
-    if(is.null(args$cur.banner)) args$cur.banner <- call("quote", call.dat$cur)
+  if(is.null(args$tar.banner)) args$tar.banner <- call("quote", call.dat$tar)
+  if(is.null(args$cur.banner)) args$cur.banner <- call("quote", call.dat$cur)
 
-    call.print <- as.call(c(list(quote(diffobj::diffPrint)), args))
-    call.str <- as.call(c(list(quote(diffobj::diffStr)), args))
-    call.str[["extra"]] <- list(max.level="auto")
-    res.print <- try(eval(call.print, frame), silent=TRUE)
-    res.str <- try(eval(call.str, frame), silent=TRUE)
+  call.print <- as.call(c(list(quote(diffobj::diffPrint)), args))
+  call.str <- as.call(c(list(quote(diffobj::diffStr)), args))
+  call.str[["extra"]] <- list(max.level="auto")
+  res.print <- try(eval(call.print, frame), silent=TRUE)
+  res.str <- try(eval(call.str, frame), silent=TRUE)
 
-    if(inherits(res.str, "try-error"))
-      err(
-        "Error in calling `diffStr`: ",
-        conditionMessage(attr(res.str, "condition"))
-      )
-    if(inherits(res.print, "try-error"))
-      err(
-        "Error in calling `diffPrint`: ",
-        conditionMessage(attr(res.print, "condition"))
-      )
-
-    list(res.print, res.str)
-  })
-  res.print <- res[[1L]]
-  res.str <- res[[2L]]
+  if(inherits(res.str, "try-error"))
+    err(
+      "Error in calling `diffStr`: ",
+      conditionMessage(attr(res.str, "condition"))
+    )
+  if(inherits(res.print, "try-error"))
+    err(
+      "Error in calling `diffPrint`: ",
+      conditionMessage(attr(res.print, "condition"))
+    )
 
   # Run both the print and str versions, and then decide which to use based
   # on some weighting of various factors including how many lines needed to be
