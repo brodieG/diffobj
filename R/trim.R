@@ -174,7 +174,7 @@ wtr_help <- function(x, pat) {
 
       max.valid <- max(which(match.valid))
       ranges <- rle_sub(
-        w.pat.rle, seq_along(w.pat.rle$lengths) <= max.valid & w.pat.rle$value
+        w.pat.rle, seq_along(w.pat.rle$lengths) <= max.valid & w.pat.rle$values
       )
       heads.l <- regmatches(x, regexec(pat, x))
       heads <- character(length(heads.l))

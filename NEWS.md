@@ -17,6 +17,8 @@
   [#33](https://github.com/brodieG/diffobj/issues/33))
 * [#84](https://github.com/brodieG/diffobj/issues/84), simplify how to call
   `diffChr` for improved performance
+* [#88](https://github.com/brodieG/diffobj/issues/88), correctly handle trimming
+  when empty lists are involved, reported by [wch](https://github.com/wch)
 
 ## v0.1.5
 

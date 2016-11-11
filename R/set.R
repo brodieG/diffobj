@@ -64,9 +64,7 @@ auto_context <- function(
 ## Helper Function to Check if a File is Likely to be less Pager
 
 file_is_less <- function(x) {
-  if(
-    is.chr.1L(x) && file_test("-x", x) && basename(x) == "less"
-  ) {
+  if(is.chr.1L(x) && file_test("-x", x)) {
     res <- tryCatch(
       system2(x, "--version", stdout=TRUE, stderr=TRUE),
       warning=function(e) NULL,
