@@ -72,7 +72,7 @@ file_is_less <- function(x) {
       warning=function(e) NULL,
       error=function(e) NULL
     )
-    length(res) && grepl("^less \\d+", res[1L])
+    !!length(res)
   } else FALSE
 }
 pager_opt_default <- function(x=getOption("pager")) {
