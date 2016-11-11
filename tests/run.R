@@ -19,14 +19,16 @@ local({                                         # so we can use `on.exit`
       diffobj.format="ansi8", # force ANSI colors
       diffobj.color.mode="yb",# force yb
       diffobj.pager="off",    # run tests without pager
-      width=80L,
-      warnPartialMatchArgs=TRUE,
-      warnPartialMatchAttr=TRUE,
-      warnPartialMatchDollar=TRUE
-    ),
-    no.null.opt.list
+      width=80L
+    )
   )
   old.opts <- options(c(diffobj_set_def_opts(), all.opts))
+  options(
+    warnPartialMatchArgs=TRUE,
+    warnPartialMatchAttr=TRUE,
+    warnPartialMatchDollar=TRUE
+  )
+  old.opts <- c(old.opts, no.null.opt.list)
 
   # covr options have no effect here; just recorded so we can use them ahead
   # of calling package_coverage() when running tests manually
