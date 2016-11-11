@@ -90,9 +90,16 @@
 #' size, whereas \code{PagerBrowser} always sends output to the pager.  This
 #' behavior can be configured via the \code{threshold} parameter.
 #'
-#' \code{PagerSystemLess} primary role is to correctly configure the
+#' \code{PagerSystemLess}'s primary role is to correctly configure the
 #' \code{$LESS} system variable so that \code{less} renders the ANSI escape
-#' sequences correctly.
+#' sequences as intended.  On OS X \code{more} is a faux-alias to \code{less} of
+#' sorts, except it does not appear to read the \code{$LESS} system variable.
+#' Should you configure your system pager to be the \code{more} version of
+#' \code{less}, \code{\link{pager_is_less}} will be tricked into thinking you are
+#' using a \dQuote{normal} version of \code{less} and you will likely end up
+#' seeing gibberish in the pager.  If this is your use case you will need to
+#' set-up a custom pager configuration object that sets the correct system
+#' variables.
 #'
 #' @section Custom Pager Configurations:
 #'
