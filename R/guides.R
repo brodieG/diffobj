@@ -417,11 +417,17 @@ apply_guides <- function(obj, obj.as.chr, guide_fun) {
   msg.extra <- paste0(
     "If you did not define custom `guides*` methods contact maintainer."
   )
-  if(inherits(guide, "try-error"))
-    stop(
+  msg.extra <- paste0(
+    "If you did not specify a `guides` function or define custom `guides*` ",
+    "methods contact maintainer (see `?guides`).  Proceeding without guides."
+  )
+  if(inherits(guide, "try-error")) {
+    warning(
       "`guides*` method produced an error when attempting to compute guide ",
-      "lines; ", msg.extra
+      "lines ; ", msg.extra
     )
+    guide <- integer()
+  }
   if(
     !is.integer(guide) || anyNA(guide) || anyDuplicated(guide) ||
     !all(guide %in% seq_along(obj.as.chr))

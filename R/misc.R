@@ -298,5 +298,5 @@ has_non_def_formals <- function(arg.list) {
 }
 
 flatten_list <- function(l)
-  if(is.list(l) && !is.object(l)) do.call(c, lapply(l, flatten_list)) else
-    list(l)
+  if(is.list(l) && !is.object(l) && length(l))
+    do.call(c, lapply(l, flatten_list)) else list(l)

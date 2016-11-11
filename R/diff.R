@@ -598,7 +598,7 @@ body(diff_obj) <- quote({
       )
     if(inherits(res.print, "try-error"))
       err(
-        "Error in callling `diffPrint`: ",
+        "Error in calling `diffPrint`: ",
         conditionMessage(attr(res.print, "condition"))
       )
 

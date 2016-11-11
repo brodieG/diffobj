@@ -160,7 +160,7 @@ word_to_line_map <- function(
     # If a diff hunk and empty, but the matching hunk isn't empty, then add
     # the last element of prior hunk and first element of next hunk
 
-    if(!h$cont && !length(inds.a) && length(inds.b)) {
+    if(!h$context && !length(inds.a) && length(inds.b)) {
       inds.prev <- if(h.i > 1L) if(pos) inds_pos(h.prev) else inds_neg(h.prev)
       inds.next <- if(h.i < length(hunks))
         if(pos) inds_pos(h.next) else inds_neg(h.next)
