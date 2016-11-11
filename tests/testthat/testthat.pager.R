@@ -165,8 +165,8 @@ test_that("pager_is_less", {
     system2("which", "less", stdout=TRUE, stderr=TRUE),
     error=function(e) NULL, warning=function(e) NULL
   )
-  more <- tryCatch(
-    system2("which", "more", stdout=TRUE, stderr=TRUE),
+  sys.cat <- tryCatch(
+    system2("which", "cat", stdout=TRUE, stderr=TRUE),
     error=function(e) NULL, warning=function(e) NULL
   )
   if(diffobj:::is.chr.1L(less) && file_test("-x", less)) {
@@ -178,9 +178,9 @@ test_that("pager_is_less", {
       expect_true(pager_is_less())
     })
   }
-  if(diffobj:::is.chr.1L(more) && file_test("-x", more)) {
+  if(diffobj:::is.chr.1L(sys.cat) && file_test("-x", sys.cat)) {
     local({
-      old.opt <- options(pager=more)
+      old.opt <- options(pager=sys.cat)
       on.exit(options(old.opt))
 
       expect_false(diffobj:::pager_opt_default())
