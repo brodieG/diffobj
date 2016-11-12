@@ -504,6 +504,9 @@ setMethod("as.character", "Diff",
 
     # NOTE: any changes here need to be reflected in `make_dummy_row`
 
+    # CAN WE MOVE THIS WAY EARLIER SO WE CAN GET THE CORRECT TEXT WIDTHS?
+    # SEE #65
+
     es <- x@etc@style
     funs.ts <- list(
       insert=function(x) es@funs@text(es@funs@text.insert(x)),
