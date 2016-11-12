@@ -525,20 +525,19 @@ line_diff <- function(
   hunk.grps.raw <- group_hunks(
     hunks.flat, etc=etc, tar.capt=tar.dat$raw, cur.capt=cur.dat$raw
   )
-  # Recompute line limit accounting for banner len
-
   gutter.dat <- etc@gutter
-  banner.len <- banner_len(etc@mode)
   max.w <- etc@text.width
 
-  line.limit <- etc@line.limit
-  line.limit.a <- if(line.limit[[1L]] >= 0L)
-    pmax(integer(2L), line.limit - banner.len) else line.limit
-  etc@line.limit <- line.limit.a
+  # Recompute line limit accounting for banner len, needed for correct trim
 
-  # Trim hunks to the extented needed to make sure we fit in lines
+  etc.group <- etc
+  if(etc.group@line.limit[[1L]] >= 0L) {
+    etc.group@line.limit <-
+      pmax(integer(2L), etc@line.limit - banner_len(etc@mode))
+  }
+  # Trim hunks to the extent needed to make sure we fit in lines
 
-  hunk.grps <- trim_hunks(hunk.grps.raw, etc, tar.dat$raw, cur.dat$raw)
+  hunk.grps <- trim_hunks(hunk.grps.raw, etc.group, tar.dat$raw, cur.dat$raw)
   hunks.flat <- unlist(hunk.grps, recursive=FALSE)
 
   # Compact to width of widest element, so retrieve all char values; also

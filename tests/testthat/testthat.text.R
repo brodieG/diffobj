@@ -1,5 +1,6 @@
 library(diffobj)
 
+context("text")
 test_that("simple wrap", {
   txt1 <- c(
     "humpty dumpty sat on a wall and had a big fall",

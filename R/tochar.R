@@ -344,8 +344,18 @@ setMethod("as.character", "Diff",
     # that each banner line does not exceed 1 in length; may change in future
 
     if(line.limit[[1L]] >= 0) {
-      if(line.limit[[2L]] < 2L && mode != "sidebyside") banner.A <- NULL
-      if(line.limit[[2L]] < 1L) banner.B <- banner.A <- NULL
+      ll2 <- line.limit[[2L]]
+      if(ll2 < 2L && mode != "sidebyside") {
+        banner.A <- NULL
+      }
+      if(ll2 < 1L) {
+        banner.B <- banner.A <- NULL
+      }
+    }
+    if(mode == "sidebyside") {
+      line.limit <- pmax(integer(2L), line.limit - 2L)
+    } else {
+      line.limit <- pmax(integer(2L), line.limit - 1L)
     }
     # Post trim, figure out max lines we could possibly be showing from capture
     # strings; careful with ranges,
