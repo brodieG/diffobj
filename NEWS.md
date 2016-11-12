@@ -2,6 +2,8 @@
 
 ## v0.1.6
 
+* [#87](https://github.com/brodieG/diffobj/issues/87) `diffobj` is now GPL (>=2)
+  instead of GPL-3.
 * More robust handling of external `diff*` methods and of how `diffObj` calls
   `diffStr` and `diffPrint`
 * [#81](https://github.com/brodieG/diffobj/issues/81) Better handling of mixed
@@ -16,9 +18,12 @@
   S4 guidelines (full resolution eventually with
   [#33](https://github.com/brodieG/diffobj/issues/33))
 * [#84](https://github.com/brodieG/diffobj/issues/84), simplify how to call
-  `diffChr` for improved performance
+  `diffChr` for improved performance, including "optimization" of
+  `convert.hz.whitespace`.
 * [#88](https://github.com/brodieG/diffobj/issues/88), correctly handle trimming
   when empty lists are involved, reported by [wch](https://github.com/wch)
+* [#64](https://github.com/brodieG/diffobj/issues/64), fix line limit in corner
+  case
 
 ## v0.1.5
 
