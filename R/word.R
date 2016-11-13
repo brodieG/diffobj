@@ -77,68 +77,21 @@ reassign_lines2 <- function(lines, cont, hunk.diff) {
       for(i in n.r[[1L]]:n.r[[2L]])
         if(i != keep.h) lines.p[[i]] <- lines.p[[i]][lines.p[[i]] != n]
   }
-  # for(n in nums.d) {
-  #   n.r <- range(nums.l[nums == n])
-
-  #   # Find earliest diff hunk in range and if it is empty and the corresponding
-  #   # data from other object is not all diffs, move line `n` to it, otherwise
-  #   # move it to the earliest matching hunk
-
-  #   min.diff.h <- head(which(!cont & hunk.n >= n.r[[1L]]), 1L)
-  #   min.mtch.h <- head(which(cont), 1L)
-
-  #   keep.h <- if(
-  #     length(min.diff.h) && (
-  #       !hunk.diff[[min.diff.h]] || length(lines.p[[min.diff.h]])
-  #     )
-  #   )
-  #     min.diff.h else min.mtch.h
-
-  #   # Being a bit lazy with the add since we may not actually need to add it
-
-  #   for(i in n.r[[1L]]:n.r[[2L]]) {
-  #     lines.p[[i]] <- if(i == keep.h) unique(sort(c(lines.p[[i]], n))) else
-  #       lines.p[[i]][lines.p[[i]] != n]
-  #   }
-  # }
-  # Now, for any empty diff that isn't matched up with a full diff from the
-  # other, steal a line from the next matched hunk if it exists, or the prior
-  # one if not, provided that the other object cumulative diffs exceeds this
-  # one
-
-  # empty.h <- which(
-  #   !vapply(lines.p, length, integer(1L)) & !hunk.diff & !cont
-  # )
-  # for(i in empty.h) {
-  #   if(cumsum(w.diff.a[seq.int(i)])[i] < cumsum(w.diff.b[seq.int(i)])[i]) {
-  #     moved.diff <- TRUE
-  #     if(i < hunk.count && length(lines.p[[i + 1L]])) {
-  #       lines.p[[i]] <- head(lines.p[[i + 1L]], 1L)
-  #       lines.p[[i + 1L]] <- tail(lines.p[[i + 1L]], -1L)
-  #     } else if (
-  #       i > 1L && length(lines.p[[i - 1L]])
-  #     ) {
-  #       lines.p[[i]] <- tail(lines.p[[i - 1L]], 1L)
-  #       lines.p[[i - 1L]] <- head(lines.p[[i - 1L]], -1L)
-  #     } else moved.diff <- FALSE
-
-  #     # We added a diff so need to record it
-  #     if(moved.diff) {
-  #       w.diff.a[[i]] <- TRUE
-  #     }
-  #   }
-  # }
   lines.p
 }
-# Helper Function for Mapping Word Diffs to Lines
-#
-# Used when we're doing a wrapped diff for atomic vectors.
-#
-# @param tar.ends and cur.ends are the indices of the last elements in each line
-#   of the vector
-# @param tar.dat and cur.dat are the data
-# @param tar.ind and cur.ind seem to be used by augment, but don't totally
-#   remember what for.  They can have positive and negative values
+## Helper Function for Mapping Word Diffs to Lines
+##
+## Used when we're doing a wrapped diff for atomic vectors.  We have been
+## through several iterations trying to get the most intuitive behavior and the
+## result is a fairly non-intuitive and likely inefficient algorithm.  It works
+## for the most part, so we leave it as is, but is long, messy, and could
+## probably be replaced by a far more elegant solution.
+##
+## @param tar.ends and cur.ends are the indices of the last elements in each line
+##   of the vector
+## @param tar.dat and cur.dat are the data
+## @param tar.ind and cur.ind seem to be used by augment, but don't totally
+##   remember what for.  They can have positive and negative values
 
 word_to_line_map <- function(
   hunks, tar.dat, cur.dat, tar.ends, cur.ends, tar.ind, cur.ind
@@ -148,10 +101,6 @@ word_to_line_map <- function(
   # lines should go at beginning (this includes full "context" lines where there
   # is an insertion or deletion in middle. End mix lines should go at end.
   #
-  # To do this we need to track whether a line is end mix (as otherwise every
-  # other line goes at beginning)
-  #
-
   # For each hunk, we need to identify what lines it contains, and whether the
   # lines are contained in full or not
   #
