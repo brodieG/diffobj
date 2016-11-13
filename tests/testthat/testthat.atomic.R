@@ -9,6 +9,7 @@ rdsf <- function(x)
   file.path(getwd(), "helper", "atomic", sprintf("%s.rds", x))
 
 test_that("Basic Tests", {
+  browser()
   expect_equal_to_reference(as.character(diffPrint(chr.1, chr.2)), rdsf(100))
   expect_equal_to_reference(
     as.character(diffPrint(chr.1, chr.2, mode="unified")), rdsf(200)

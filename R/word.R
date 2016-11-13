@@ -377,12 +377,10 @@ word_to_line_map <- function(
         pad_in_middle(short, pad)
       } else {
         if(
-          short.type == "starts" || long.type[[1L]] %in% c("starts", "both")
+          short.type == "ends" && (long.type[[1L]] %in% c("ends", "neither"))
         ) {
-          c(short, pad)
-        } else {
           c(pad, short)
-        }
+        } else c(short, pad)
       }
       if(tar.long) cur.lines.f2[[i]] <- short else tar.lines.f2[[i]] <- short
   } }
