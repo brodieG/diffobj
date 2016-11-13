@@ -92,7 +92,10 @@ diffPrint(state.abb, state.abb2)
 
 Due to the different wrapping frequency no line in the text display of our two vectors matches.  Despite this, `diffPrint` only highlights the lines that actually contain differences.  The side effect is that lines that only contain matching elements are shown as matching even though the actual lines may be different.  You can turn off this behavior in favor of a normal line diff with the `unwrap.atomic` argument to `diffPrint`.
 
-Currently this only works for _unnamed_ vectors, and even for them some inputs may produce sub-optimal results.  You can also use `diffChr` (see below) to do a direct element by element comparison.
+Currently this only works for _unnamed_ vectors, and even for them some inputs
+may produce sub-optimal results.  Nested vectors inside lists will not be
+unwrapped.  You can also use `diffChr` (see below) to do a direct element by
+element comparison.
 
 ## Other Diff Functions
 
@@ -240,7 +243,7 @@ At this time the only `format` that is affected by this parameter is "ansi256". 
 
 ### Pagers
 
-In interactive mode, if the diff output is very long or if your terminal does not support ANSI colors, `diff*` methods will pipe output to a pager. This is done by writing the output to a temporary file and passing the file reference to the pager.  The default action is to invoke the pager with `file.show` if your terminal supports ANSI colors, or if not to use `getOption("viewer")` if available (this outputs to the viewport in RStudio), or if not to use `browseURL`.
+In interactive mode, if the diff output is very long or if your terminal does not support ANSI colors, `diff*` methods will pipe output to a pager. This is done by writing the output to a temporary file and passing the file reference to the pager.  The default action is to invoke the pager with `file.show` if your terminal supports ANSI colors and the pager is known to support ANSI colors as well (as of this writing, only `less` is assumed to support ANSI colors), or if not to use `getOption("viewer")` if available (this outputs to the viewport in RStudio), or if not to use `browseURL`.
 
 You can fine tune when, how, and if a pager is used with the `pager` parameter.  See `?diffPrint` and `?Pager` for more details.
 
@@ -280,32 +283,37 @@ large numbers of differences.  This input and output processing scales mostly
 linearly with the input size.
 
 You can improve performance somewhat by using `diffChr` since that skips the
-capture part, and by turning off options:
-
-For example:
+capture part, and by turning off `word.diff`:
 
 ```{r, eval=FALSE}
 v1 <- 1:5e4
 v2 <- v1[-sample(v1, 100)]
-diffChr(
-  v1, v2, word.diff=FALSE, convert.hz.white.space=FALSE,
-  ignore.white.space=FALSE
-)
+diffChr(v1, v2, word.diff=FALSE)
 ```
 
-will be over 2x as fast as:
+will be ~2x as fast as:
 
 ```{r, eval=FALSE}
 diffPrint(v1, v2)
 ```
 
+*Note*: turning off `word.diff` when using `diffPrint` with unnamed atomic
+vectors can actually _slow down_ the diff because there may well be fewer
+element by element differences than line differences as displayed.   For
+example, when comparing `1:1e6` to `2:1e6` there is only one element difference,
+but every line as displayed is different because of the shift.  Using
+`word.diff=TRUE` (and `unwrap.atomic=TRUE`) allows `diffPrint` to compare
+element by element rather than line by line.  `diffChr` always compares element
+by element.
+
 ### Minimal Diff
 
 If you are looking for the fastest possible diff you can use `ses` and
-completely bypass input and output processing:
+completely bypass most input and output processing.  Inputs will be coerced to
+character if they are not character.
 
 ```{r, eval=FALSE}
-ses(as.character(v1), as.character(v2))
+ses(v1, v2)
 ```
 
 This will be 10-20x faster than `diffChr`, at the cost of less useful output.

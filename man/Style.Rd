@@ -139,7 +139,10 @@ Most of the customization is done by specifying functions that operate on
 character vectors and return a modified character vector of the same length.
 The intended use case is to pass \code{crayon} functions such as
 \code{crayon::red}, although you may pass any function of your liking
-that behaves as described.
+that behaves as described.  Formatting functions are expected to return their
+inputs formatted in such a way that their \emph{display} width is unchanged.
+If your formatting functions change display width output may not render
+properly, particularly when using \code{mode="sidebyside"}.
 
 The visual representation of the diff has many nested components.  The
 functions you specify here will be applied starting with the innermost ones.
@@ -239,8 +242,8 @@ target the \code{Diff} elements with the correct styles.
 
 
 Often you will want to specify some of the style parameters (e.g.
-\code{scale}) while still relying on the default style selection to
-pick the specific style.  You can do so by passing a list to the
+\code{scale} for html styles) while still relying on the default style
+selection to pick the specific style.  You can do so by passing a list to the
 \code{style} parameter of the \code{\link[=diffPrint]{diff*}} methods.
 See examples.
 }

@@ -23,8 +23,12 @@ install.packages("diffobj")
 vignette("diffobj", package="diffobj")
 ```
 
+## Development
+
 Go to [Github](https://github.com/brodieG/diffobj) to report issues or if you
-are interested in development versions of this package.
+are interested in development versions of this package.  The `master` branch is
+considered stable.  If you want to submit a PR please do so against the
+`development` branch.
 
 ## Related Software
 

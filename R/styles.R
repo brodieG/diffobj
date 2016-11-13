@@ -1,9 +1,10 @@
-# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
+#
+# This file is part of "diffobj - Diffs for R Objects"
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
@@ -11,7 +12,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
+# Go to <https://www.r-project.org/Licenses/GPL-2> for a copy of the license.
 
 #' @include html.R
 #' @include finalizer.R
@@ -300,7 +301,10 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' character vectors and return a modified character vector of the same length.
 #' The intended use case is to pass \code{crayon} functions such as
 #' \code{crayon::red}, although you may pass any function of your liking
-#' that behaves as described.
+#' that behaves as described.  Formatting functions are expected to return their
+#' inputs formatted in such a way that their \emph{display} width is unchanged.
+#' If your formatting functions change display width output may not render
+#' properly, particularly when using \code{mode="sidebyside"}.
 #'
 #' The visual representation of the diff has many nested components.  The
 #' functions you specify here will be applied starting with the innermost ones.
@@ -396,8 +400,8 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' @section Modifying Style Parameters Directly:
 #'
 #' Often you will want to specify some of the style parameters (e.g.
-#' \code{scale}) while still relying on the default style selection to
-#' pick the specific style.  You can do so by passing a list to the
+#' \code{scale} for html styles) while still relying on the default style
+#' selection to pick the specific style.  You can do so by passing a list to the
 #' \code{style} parameter of the \code{\link[=diffPrint]{diff*}} methods.
 #' See examples.
 #'
@@ -560,7 +564,10 @@ StyleRaw <- setClass("StyleRaw", contains=c("Style", "Raw"))
 
 StyleAnsi <- setClass(
   "StyleAnsi", contains=c("StyleRaw", "Ansi"),
-  prototype=list(funs=StyleFunsAnsi(), nchar.fun=crayon::col_nchar),
+  prototype=list(
+    funs=StyleFunsAnsi(),
+    nchar.fun=crayon::col_nchar
+  )
 )
 setMethod(
   "initialize", "StyleAnsi",

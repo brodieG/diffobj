@@ -1,9 +1,10 @@
-# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
+#
+# This file is part of "diffobj - Diffs for R Objects"
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
@@ -11,7 +12,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
+# Go to <https://www.r-project.org/Licenses/GPL-2> for a copy of the license.
 
 # Detect and remove atomic headers
 
@@ -94,7 +95,7 @@ which_atomic_rh <- function(x) {
     first.block <- min(which(w.pat.rle$values))
     w.pat.start <- sum(head(w.pat.rle$lengths, first.block - 1L), 0L) + 1L
     w.pat.ind <-
-      seq(from=w.pat.start, length=w.pat.rle$lengths[first.block], by=1L)
+      seq(from=w.pat.start, length.out=w.pat.rle$lengths[first.block], by=1L)
 
     # Re extract those and run checks on them to make sure they truly are
     # what we think they are: width of headers is the same, and numbers
@@ -174,7 +175,7 @@ wtr_help <- function(x, pat) {
 
       max.valid <- max(which(match.valid))
       ranges <- rle_sub(
-        w.pat.rle, seq_along(w.pat.rle$lengths) <= max.valid & w.pat.rle$value
+        w.pat.rle, seq_along(w.pat.rle$lengths) <= max.valid & w.pat.rle$values
       )
       heads.l <- regmatches(x, regexec(pat, x))
       heads <- character(length(heads.l))
@@ -288,43 +289,57 @@ strip_array_rh <- function(x, dim.names.x) {
 #
 # Also, right now we are passing the list components with all the trailing
 # new lines, and it isn't completely clear that is the right thing to do
+#
+# Note that we're not actually trimming the list headers themselves since unlike
+# in atomics and matrices, etc, the list headers are on their own line and won't
+# affect the matching diff of the actual contents of the list
 
 strip_list_rh <- function(x, obj) {
-  # Split output into each list component
-
-  list.h <- detect_list_guides(x)
-  dat <- split_by_guides(x, list.h, drop.leading=FALSE)
-  elements <- flatten_list(obj)
-
-  # Special case where first element in list is deeper than one value, which
-  # means there will be leading non-data elements in `dat` that we have to
-  # reconstruct
-
-  offset <- if(is.list(obj[[1L]]) && !is.object(obj[[1L]])) 1L else 0L
-
-  if(length(elements) != length(dat) - offset) {
+  if(!length(obj)) {
+    # empty list, nothing to do, and also if it is nested causes problems later
     x
   } else {
-    # Use `trimPrint` to get indices, and trim back to stuff without row header
+    # Split output into each list component
 
-    if(offset) {
-      hd <- dat[[1L]]
-      tl <- tail(dat, -offset)
+    list.h <- detect_list_guides(x)
+    dat <- split_by_guides(x, list.h, drop.leading=FALSE)
+    elements <- flatten_list(obj)
+
+    # Special case where first element in list is deeper than one value, which
+    # means there will be leading non-data elements in `dat` that we have to
+    # reconstruct; note that if no len then rendered as `list()` so it doesn't
+    # get a guide.
+
+    offset <- if(
+      is.list(obj[[1L]]) && !is.object(obj[[1L]]) && length(obj[[1L]])
+    ) 1L else 0L
+
+    if(length(elements) != length(dat) - offset) {
+      # Something went wrong here, so return as is?
+      x
     } else {
-      hd <- NULL
-      tl <- dat
-    }
-    dat.trim <- Map(trimPrint, elements, tl)
-    dat.w.o.rh <- Map(
-      function(chr, ind) substr(chr, ind[, 1], ind[, 2]), tl, dat.trim
-    )
-    unlist(
-      c(
-        list(hd),
+      # Use `trimPrint` to get indices, and trim back to stuff without row
+      # header
+
+      if(offset) {
+        hd <- dat[[1L]]
+        tl <- tail(dat, -offset)
+      } else {
+        hd <- NULL
+        tl <- dat
+      }
+      dat.trim <- Map(trimPrint, elements, tl)
+      dat.w.o.rh <- Map(
+        function(chr, ind) substr(chr, ind[, 1], ind[, 2]), tl, dat.trim
+      )
+      unlist(
         c(
-          as.list(x[list.h]), dat.w.o.rh
-        )[order(rep(seq_along(list.h), 2))]
-    ) )
+          list(hd),
+          c(
+            as.list(x[list.h]), dat.w.o.rh
+          )[order(rep(seq_along(list.h), 2))]
+      ) )
+    }
   }
 }
 #' Methods to Remove Unsemantic Text Prior to Diff
@@ -333,7 +348,7 @@ strip_list_rh <- function(x, obj) {
 #' representation of an object prior to running the diff to reduce the incidence
 #' of spurious mismatches caused by unsemantic differences.  For example, we
 #' look to remove matrix row indices and atomic vector indices (i.e. the
-#' \samp{[1]} or \samp{[1,]} strings at the beginning of each display line).
+#' \samp{[1,]} or \samp{[1]} strings at the beginning of each display line).
 #'
 #' Consider: \preformatted{
 #' > matrix(10:12)
@@ -362,7 +377,7 @@ strip_list_rh <- function(x, obj) {
 #' \code{trimPrint} removes row index headers provided that they are of the
 #' default un-named variety.  If you add row names, or if numeric row indices
 #' are not ascending from 1, they will not be stripped as those have meaning.
-#' \code{trimStr} removes the \samp{..$} and \samp{..-} tokens
+#' \code{trimStr} removes the \samp{..$}, \samp{..-}, and \samp{..@} tokens
 #' to minimize spurious matches.
 #'
 #' You can modify how text is trimmed by providing your own functions to the
@@ -427,7 +442,7 @@ setMethod(
   function(obj, obj.as.chr) {
     # Remove the stuff we don't want
 
-    pat <- "^ (?: \\.\\.)*(?:\\$|-) "
+    pat <- "^ (?: \\.\\.)*(?:\\$|-|@) "
     stripped <- gsub(pat, "", obj.as.chr, perl=TRUE)
 
     # Figure out the indices that correspond to what we want, knowing that all
@@ -527,18 +542,20 @@ apply_trim <- function(obj, obj.as.chr, trim_fun) {
     )
   trim <- try(trim_fun(obj, obj.as.chr))
   msg.extra <- paste0(
-    "If you did not define custom `*trim` methods contact maintainer ",
-    "(see `?trim`)."
+    "If you did not specify a `trim` function or define custom `trim*` ",
+    "methods contact maintainer (see `?trim`).  Proceeding without trimming."
   )
-  if(inherits(trim, "try-error"))
-    stop(
-      "`*trim` method produced an error when attempting to trim ; ", msg.extra
+  if(inherits(trim, "try-error")) {
+    warning(
+      "`trim*` method produced an error when attempting to trim ; ", msg.extra
     )
+    trim <- cbind(rep(1L, length(obj.as.chr)), nchar(obj.as.chr))
+  }
   if(!isTRUE(trim.check <- valid_trim_ind(trim)))
-    stop("`*trim` method return value ", trim.check, "; ", msg.extra)
+    stop("`trim*` method return value ", trim.check, "; ", msg.extra)
   if(nrow(trim) != length(obj.as.chr))
     stop(
-      "`*trim` method output matrix must have as many rows as object ",
+      "`trim*` method output matrix must have as many rows as object ",
       "character representation has elements; ", msg.extra
     )
   trim

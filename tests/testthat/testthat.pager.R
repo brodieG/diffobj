@@ -156,3 +156,35 @@ test_that("html page output", {
     "Unable to read provided js file"
   )
 })
+
+test_that("pager_is_less", {
+  is.less <- pager_is_less()
+  expect_true(diffobj:::is.TF(is.less))
+
+  less <- tryCatch(
+    system2("which", "less", stdout=TRUE, stderr=TRUE),
+    error=function(e) NULL, warning=function(e) NULL
+  )
+  sys.cat <- tryCatch(
+    system2("which", "cat", stdout=TRUE, stderr=TRUE),
+    error=function(e) NULL, warning=function(e) NULL
+  )
+  if(diffobj:::is.chr.1L(less) && file_test("-x", less)) {
+    local({
+      old.opt <- options(pager=less)
+      on.exit(options(old.opt))
+
+      expect_false(diffobj:::pager_opt_default())
+      expect_true(pager_is_less())
+    })
+  }
+  if(diffobj:::is.chr.1L(sys.cat) && file_test("-x", sys.cat)) {
+    local({
+      old.opt <- options(pager=sys.cat)
+      on.exit(options(old.opt))
+
+      expect_false(diffobj:::pager_opt_default())
+      expect_false(pager_is_less())
+    })
+  }
+})

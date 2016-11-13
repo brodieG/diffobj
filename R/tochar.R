@@ -1,9 +1,10 @@
-# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
+#
+# This file is part of "diffobj - Diffs for R Objects"
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
@@ -11,7 +12,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
+# Go to <https://www.r-project.org/Licenses/GPL-2> for a copy of the license.
 
 # @include S4.R
 
@@ -20,11 +21,18 @@ NULL
 # Compute the ranges of a hunk group based on atomic hunk ids
 #
 # rng.o is a matrix where each column represents `c(tar.rng, cur.rng)`
-# and rng.o has the original untrimmed values
+# and rng.o has the original untrimmed values (ACTUALLY, not clear this is
+# what we are doing currently, seems like we're passing the post context
+# assesment hunks)
+#
+# fill indicates which lines where fill lines and should not be picked to
+# represent the start or end point of a range (these are added by the atomic
+# word diff)
 
-find_rng <- function(ids, rng.o) {
+find_rng <- function(ids, rng.o, fill) {
+  # first row of rng.o is the start of the hunk
   with.rng <- ids[which(rng.o[1L, ids] > 0L)]
-  if(!length(with.rng)) {
+  rng <- if(!length(with.rng)) {
     # Find previous earliest originally existing item we want to insert
     # after; note we need to look at the non-trimmed ranges, and we include
     # the first context atomic hunk in the group as a potential match
@@ -285,14 +293,18 @@ setMethod("as.character", "Diff",
 
       msg <- "No visible differences between objects"
       if(
-        (ignore.white.space || x@etc@convert.hz.white.space) &&
+        (
+          ignore.white.space || x@etc@convert.hz.white.space ||
+          !identical(x@etc@trim, trim_identity)
+        ) &&
         !isTRUE(all.equal(x@tar.dat$orig, x@cur.dat$orig)) &&
         isTRUE(all.equal(x@tar.dat$comp, x@cur.dat$comp))
       ) {
         paste0(
-          msg, ", but there are white space differences; re-run diff with ",
-          "`ignore.white.space=FALSE` and `convert.hz.white.space=FALSE` ",
-          "to show them.", collapse=""
+          msg, ", but there are some differences suppressed by ",
+          "`ignore.white.space`, `convert.hz.white.space`, and/or `trim`. ",
+          "Set all those arguments to FALSE to highlight the differences.",
+          collapse=""
         )
       } else if (!isTRUE(all.eq <- all.equal(x@target, x@current))) {
         c(
@@ -339,8 +351,18 @@ setMethod("as.character", "Diff",
     # that each banner line does not exceed 1 in length; may change in future
 
     if(line.limit[[1L]] >= 0) {
-      if(line.limit[[2L]] < 2L && mode != "sidebyside") banner.A <- NULL
-      if(line.limit[[2L]] < 1L) banner.B <- banner.A <- NULL
+      ll2 <- line.limit[[2L]]
+      if(ll2 < 2L && mode != "sidebyside") {
+        banner.A <- NULL
+      }
+      if(ll2 < 1L) {
+        banner.B <- banner.A <- NULL
+      }
+    }
+    if(mode == "sidebyside") {
+      line.limit <- pmax(integer(2L), line.limit - 2L)
+    } else {
+      line.limit <- pmax(integer(2L), line.limit - 1L)
     }
     # Post trim, figure out max lines we could possibly be showing from capture
     # strings; careful with ranges,
@@ -499,6 +521,9 @@ setMethod("as.character", "Diff",
     # group with `lines.na`
 
     # NOTE: any changes here need to be reflected in `make_dummy_row`
+
+    # CAN WE MOVE THIS WAY EARLIER SO WE CAN GET THE CORRECT TEXT WIDTHS?
+    # SEE #65
 
     es <- x@etc@style
     funs.ts <- list(

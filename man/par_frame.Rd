@@ -20,11 +20,12 @@ The function is not exported and intended only for use as the default value
 for the \code{frame} argument for the \code{\link[=diffPrint]{diff*}}
 methods.
 
-Matching is done purely by looking for the first repeated call which is
-what usual happens with S4 dispatch since there will be a call to the generic
-and then to the method.  Since methods can be renamed by the user we make
-no attempt to verify method names.  This method could potentially be tricked
-if you implement custom \code{\link[=diffPrint]{diff*}} methods that somehow
+Matching is done purely by looking for the last repeated call followed
+by \code{.local(target, current, ...)} that is not a call to \code{eval}.
+This pattern seems to match the correct call most of the time.
+Since methods can be renamed by the user we make no attempt to verify method
+names.  This method could potentially be tricked if you implement custom
+\code{\link[=diffPrint]{diff*}} methods that somehow
 issue two identical sequential calls before calling \code{callNextMethod}.
 Failure in this case means the wrong \code{frame} will be returned.
 }
