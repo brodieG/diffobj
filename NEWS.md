@@ -8,6 +8,8 @@
   UTF-8 / ASCII strings, reported by [jennybc](https://github.com/jennybc)
 * [#88](https://github.com/brodieG/diffobj/issues/88), correctly handle trimming
   when empty lists are involved, reported by [wch](https://github.com/wch)
+* [#77](https://github.com/brodieG/diffobj/issues/77) `diffObj` now favors
+  dispatching to `diffPrint` unless `diffPrint` output is large
 * [#82](https://github.com/brodieG/diffobj/issues/82) `diffChr` and `ses` now
   treat `NA` as "NA" (needed with change in `nchar(NA)` in base R)
 * [#85](https://github.com/brodieG/diffobj/issues/85) Improved alignment of
