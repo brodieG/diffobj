@@ -9,7 +9,6 @@ rdsf <- function(x)
   file.path(getwd(), "helper", "atomic", sprintf("%s.rds", x))
 
 test_that("Basic Tests", {
-  browser()
   expect_equal_to_reference(as.character(diffPrint(chr.1, chr.2)), rdsf(100))
   expect_equal_to_reference(
     as.character(diffPrint(chr.1, chr.2, mode="unified")), rdsf(200)
@@ -163,4 +162,25 @@ test_that("Simple word diffs", {
   a <- c("x", "a", "b", "c", "d", "z")
   b <- c("z", "b", "c", "d", "e", "x")
   expect_equal_to_reference(as.character(diffPrint(a, b)), rdsf(3100))
+})
+test_that("Alignment edge cases", {
+  expect_equal_to_reference(
+    as.character(diffPrint(20:50, 30:62)), rdsf(3200)
+  )
+  # below is off; should be aligning matching context line, part of the problem
+  # might be that we're doing the realignment without thinking about what the
+  # other hunk has.
+  #
+  # Possible encode each line as hunk#:diff/mix/cont
+
+  # expect_equal_to_reference(
+  #   as.character(diffPrint(20:50, 35:62)), rdsf(3300)
+  # )
+
+  # another interesting example where the existing algo seems to lead to a
+  # reasonable outcome
+
+  expect_equal_to_reference(
+    as.character(diffPrint(c(1:24,35:45), c(1:8, 17:45))), rdsf(3400)
+  )
 })

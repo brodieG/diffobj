@@ -354,7 +354,8 @@ word_to_line_map <- function(
   tar.lines.f2 <- tar.lines.f
   cur.lines.f2 <- cur.lines.f
 
-  # add padding vector as close to middle of inpput vector as possible
+  # add padding vector as close to middle of input vector as possible, except
+  # in special cases (only one short line, or first or last hunks)
 
   pad_in_middle <- function(vec, pad)
     c(
@@ -373,7 +374,11 @@ word_to_line_map <- function(
 
       pad <- rep(NA, length(long) - length(short))
 
-      short <- if(h.cont[[i]] || length(short) != 1L) {
+      short.pad <- if(i == 1L && length(tar.lines.f) > 1L) {
+        c(pad, short)
+      } else if (i == length(tar.lines.f)) {
+        c(short, pad)
+      } else if(h.cont[[i]] || length(short) != 1L) {
         pad_in_middle(short, pad)
       } else {
         if(
@@ -382,7 +387,8 @@ word_to_line_map <- function(
           c(pad, short)
         } else c(short, pad)
       }
-      if(tar.long) cur.lines.f2[[i]] <- short else tar.lines.f2[[i]] <- short
+      if(tar.long) cur.lines.f2[[i]] <- short.pad
+      else tar.lines.f2[[i]] <- short.pad
   } }
   # Augment the input vectors by the blanks we added; these blanks are
   # represented by NAs in our index vector so should be easy to do

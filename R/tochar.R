@@ -21,11 +21,18 @@ NULL
 # Compute the ranges of a hunk group based on atomic hunk ids
 #
 # rng.o is a matrix where each column represents `c(tar.rng, cur.rng)`
-# and rng.o has the original untrimmed values
+# and rng.o has the original untrimmed values (ACTUALLY, not clear this is
+# what we are doing currently, seems like we're passing the post context
+# assesment hunks)
+#
+# fill indicates which lines where fill lines and should not be picked to
+# represent the start or end point of a range (these are added by the atomic
+# word diff)
 
-find_rng <- function(ids, rng.o) {
+find_rng <- function(ids, rng.o, fill) {
+  # first row of rng.o is the start of the hunk
   with.rng <- ids[which(rng.o[1L, ids] > 0L)]
-  if(!length(with.rng)) {
+  rng <- if(!length(with.rng)) {
     # Find previous earliest originally existing item we want to insert
     # after; note we need to look at the non-trimmed ranges, and we include
     # the first context atomic hunk in the group as a potential match
