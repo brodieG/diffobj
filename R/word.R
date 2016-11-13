@@ -143,59 +143,21 @@ reassign_lines2 <- function(lines, cont, hunk.diff) {
 word_to_line_map <- function(
   hunks, tar.dat, cur.dat, tar.ends, cur.ends, tar.ind, cur.ind
 ) {
-# diff/mixed lines from different hunks can't mix
-# context only match with context only or mixed if mixed (but order matters)
-# maximize context overlap
-#
-# categorized by:
-#
-# * mixed start
-# * mixed end
-# * diff only
-# * context only
-#
-# Label by hunk
-#
-# Merge hunks that touch within a line or are within one line of each other, but
-# what if they are within that distance in tar but not in cur (or vice versa)?
-# The what-if shouldn't really be possible since any context separating two
-# hunks should be the same length for both.  It is possible though to have two
-# hunks that are one or two lines apart depending on frame shift, so this could
-# be an issue.
-#
-# Seems like we need a similar padding mechanism for diffs, but one that
-# possibly allows context lines to fill in the first and last as well if those
-# are mixed?  So first start by lining up diffs, and trying to make them the
-# same size by adding partial context lines if those exist on either side?  But
-# what if doing so causes us to merge two diffs?
-#
-# Collect all mixed or diffs into matched groups between tar/cur
-#
-# Allocate context only lines
-# * if only one context-only line:
-#     * if context hunk is last hunk, then allocate to previous
-#     * if context hunk is first hunk, then to next
-#     * if a full diff line in next, allocate to prev
-#     * if a full diff line in prev, allocate to next
-#     * allocate to hunk where end/start line has fewest mismatches
-# * if more than one context only line
-#     * if context hunk is last hunk, then allocate all to previous
-#     * if context hunk is first hunk, then allocate all to next
-#     * otherwise allocate "half" to first and other "half" to last
-#
-# Adjust for differences in diff hunk sizes
-# * Diffs hunks should always start on same line
-#
-# Add padding empty context lines to get hunks to line up with each other:
-# * count how many context lines between each diff hunk for both tar and cur,
-#   and add the extra padding to the shorter one
-#
-# For each hunk, we need to identify what lines it contains, and whether the
-# lines are contained in full or not
-#
-# If a diff hunk is empty for tar/cur, and the corresponding cur/tar hunk
-# does not begin/end at beginning of line, then must add lines containing
-# adjoining elements to the diff
+  # Once we've done all the replication and disambiguation, we need to make sure
+  # diff hunks have the same number of lines.  Start mix lines or start/end mix
+  # lines should go at beginning (this includes full "context" lines where there
+  # is an insertion or deletion in middle. End mix lines should go at end.
+  #
+  # To do this we need to track whether a line is end mix (as otherwise every
+  # other line goes at beginning)
+  #
+
+  # For each hunk, we need to identify what lines it contains, and whether the
+  # lines are contained in full or not
+  #
+  # If a diff hunk is empty for tar/cur, and the corresponding cur/tar hunk
+  # does not begin/end at beginning of line, then must add lines containing
+  # adjoining elements to the diff
 
   find_word_line <- function(h.i, pos, ends.a, ends.b, hunks) {
     inds_pos <- function(h) c(h$A, h$B)[c(h$A, h$B) > 0L]
@@ -242,12 +204,51 @@ word_to_line_map <- function(
   tar.lines <- lapply(h.seq, find_word_line, TRUE, tar.ends, cur.ends, hunks)
   cur.lines <- lapply(h.seq, find_word_line, FALSE, cur.ends, tar.ends, hunks)
 
+  # which hunks are context hunks?
+
+  h.cont <- vapply(hunks, "[[", logical(1L), "context")
+
+  # Compute what indices are in each lines; we are going to use this to
+  # categorize what time of line this is; some of this might be duplicative with
+  # what we did earlier, but that was so long ago I don't want to get back into
+  # it
+
+  tar.idx <- Map(seq, c(1L, head(tar.ends, -1L) + 1L), tar.ends, by=1L)
+  cur.idx <- Map(seq, c(1L, head(cur.ends, -1L) + 1L), cur.ends, by=1L)
+
+  tar.diff <- unlist(
+    lapply(hunks[!h.cont], function(x) with(x, abs(c(A, B))[c(A, B) > 0]))
+  )
+  cur.diff <- unlist(
+    lapply(hunks[!h.cont], function(x) with(x, abs(c(A, B))[c(A, B) < 0]))
+  )
+  # identify whether a line starts with context, ends with context, neither, or
+  # both
+
+  context_type <- function(idx, diffs) {
+    idx.in <- idx %in% diffs
+    if(!length(idx)) {  # arbitrarily assign this case to both
+      "both"
+    } else {
+      if(head(idx.in, 1L) && tail(idx.in, 1L)) {
+        "neither"
+      } else if(head(idx.in, 1L)) {
+        "ends"
+      } else if(tail(idx.in, 1L)) {
+        "starts"
+      } else {
+        "both"
+      }
+    }
+  }
+  tar.end.mix <- vapply(tar.idx, context_type, character(1L), diffs=tar.diff)
+  cur.end.mix <- vapply(cur.idx, context_type, character(1L), diffs=cur.diff)
+
   # Handle cases where line is shared by multiple hunks; also need to know which
   # hunks contain only lines that are fully different (and by extension, are
   # themselves fully different) as these don't need to have a line from the
   # opposite object brought in for alignment
 
-  h.cont <- vapply(hunks, "[[", logical(1L), "context")
   diff.inds <- unlist(lapply(hunks[!h.cont], "[",  c("A", "B")))
   if(is.null(diff.inds)) diff.inds <- integer()
   tar.inds.d <- diff.inds[diff.inds > 0]
@@ -255,10 +256,6 @@ word_to_line_map <- function(
 
   tar.tot.diff.l <- find_full_diff_line(tar.dat, tar.ends, tar.inds.d)
   cur.tot.diff.l <- find_full_diff_line(cur.dat, cur.ends, cur.inds.d)
-
-  hunk_diff <- function(vec, tot.diffs) length(vec) && all(vec %in% tot.diffs)
-  tar.tot.diff.h <- vapply(tar.lines, hunk_diff, logical(1L), tar.tot.diff.l)
-  cur.tot.diff.h <- vapply(cur.lines, hunk_diff, logical(1L), cur.tot.diff.l)
 
   # Remove duplicated line references
 
@@ -326,6 +323,12 @@ word_to_line_map <- function(
   tar.lines.f <- tar.lines.p
   cur.lines.f <- cur.lines.p
 
+  # lines that are all diffs
+
+  hunk_diff <- function(vec, tot.diffs) length(vec) && all(vec %in% tot.diffs)
+  tar.tot.diff.h <- vapply(tar.lines, hunk_diff, logical(1L), tar.tot.diff.l)
+  cur.tot.diff.h <- vapply(cur.lines, hunk_diff, logical(1L), cur.tot.diff.l)
+
   for(i in seq_along(h.cont)) {
     if(!h.cont[[i]]) {
       t.i <- tar.lines.f[[i]]
@@ -337,33 +340,52 @@ word_to_line_map <- function(
       }
     }
   }
-  # Now need to make sure that the context hunks are actually the same length
-  # which need not be the case on a line basis.  To do so we must insert
-  # blanks in the match hunks if they are unequal length.  We also need to
-  # adjust the original character vectors so they have those blanks show up.
+  # We now need to make sure that every hunk is the same length
 
-  fill_cont <- function(cont, len, i, max.i) {
-    len.c <- length(cont)
-    len.diff <- len - len.c
-    NAs <- rep(NA, len.diff)
-    if(i == 1L && len.c < 2L)           # spaces in front
-      c(NAs, cont)
-    else if(i == max.i || len.c < 2L)   # spaces in end
-      c(cont, NAs)
-    else {                      # spaces in middle
-      c(head(cont, floor(len.c / 2)), NAs, tail(cont, -floor(len.c / 2)))
+  if(
+    length(tar.lines.f) != length(cur.lines.f) ||
+    length(tar.lines.f) != length(h.cont)
+  )
+    stop(
+      "Logic error: mismatched hunk sizes when aligning words to lines; ",
+      "contact maintainer."
+    )
+
+  tar.lines.f2 <- tar.lines.f
+  cur.lines.f2 <- cur.lines.f
+
+  # add padding vector as close to middle of inpput vector as possible
+
+  pad_in_middle <- function(vec, pad)
+    c(
+      head(vec, ceiling(length(vec) / 2)),
+      pad,
+      tail(vec, floor(length(vec) / 2))
+    )
+
+  for(i in seq_along(tar.lines.f)) {
+    if(length(tar.lines.f[[i]]) != length(cur.lines.f[[i]])) {
+      tar.long <- length(tar.lines.f[[i]]) > length(cur.lines.f[[i]])
+      long <- if(tar.long) tar.lines.f[[i]] else cur.lines.f[[i]]
+      short <- if(!tar.long) tar.lines.f[[i]] else cur.lines.f[[i]]
+      long.type <- if(tar.long) tar.end.mix[long] else cur.end.mix[long]
+      short.type <- if(!tar.long) tar.end.mix[short] else cur.end.mix[short]
+
+      pad <- rep(NA, length(long) - length(short))
+
+      short <- if(h.cont[[i]] || length(short) != 1L) {
+        pad_in_middle(short, pad)
+      } else {
+        if(
+          short.type == "starts" || long.type[[1L]] %in% c("starts", "both")
+        ) {
+          c(short, pad)
+        } else {
+          c(pad, short)
+        }
+      }
+      if(tar.long) cur.lines.f2[[i]] <- short else tar.lines.f2[[i]] <- short
   } }
-  h.c <- length(h.cont)
-  for(i in seq.int(h.c)) {
-    if(h.cont[[i]]) {
-      t.len <- length(tar.lines.f[[i]])
-      c.len <- length(cur.lines.f[[i]])
-      len.diff <- abs(t.len - c.len)
-      if(t.len > c.len) {
-        cur.lines.f[[i]] <- fill_cont(cur.lines.f[[i]], t.len, i, h.c)
-      } else if (t.len < c.len){
-        tar.lines.f[[i]] <- fill_cont(tar.lines.f[[i]], c.len, i, h.c)
-  } } }
   # Augment the input vectors by the blanks we added; these blanks are
   # represented by NAs in our index vector so should be easy to do
 
@@ -389,17 +411,17 @@ word_to_line_map <- function(
     }
     dat
   }
-  tar.dat <- augment(tar.dat, tar.lines.f, tar.ind)
-  cur.dat <- augment(cur.dat, cur.lines.f, cur.ind)
+  tar.dat <- augment(tar.dat, tar.lines.f2, tar.ind)
+  cur.dat <- augment(cur.dat, cur.lines.f2, cur.ind)
 
   # Also need to augment the indices so we can re-insert properly; we subvert
   # the fill logic since that will make sure
 
   tar.ind.a <-
-    augment(list(fill=!logical(length(tar.ind))), tar.lines.f, tar.ind)
+    augment(list(fill=!logical(length(tar.ind))), tar.lines.f2, tar.ind)
   tar.ind.a.l <- unname(unlist(tar.ind.a))
   cur.ind.a <-
-    augment(list(fill=!logical(length(cur.ind))), cur.lines.f, cur.ind)
+    augment(list(fill=!logical(length(cur.ind))), cur.lines.f2, cur.ind)
   cur.ind.a.l <- unname(unlist(cur.ind.a))
 
   # Generate the final vectors to do the diffs on; these should be unique
@@ -407,11 +429,11 @@ word_to_line_map <- function(
   # mismatches
 
   hunk_match <- function(i, l) rep(h.cont[i], length(l[[i]]))
-  tar.match <- unlist(lapply(seq_along(h.cont), hunk_match, l=tar.lines.f))
-  cur.match <- unlist(lapply(seq_along(h.cont), hunk_match, l=cur.lines.f))
+  tar.match <- unlist(lapply(seq_along(h.cont), hunk_match, l=tar.lines.f2))
+  cur.match <- unlist(lapply(seq_along(h.cont), hunk_match, l=cur.lines.f2))
 
   pos.nums <- sum(tar.match)
-  if(pos.nums != length(unlist(cur.lines.f[h.cont]))) {
+  if(pos.nums != length(unlist(cur.lines.f2[h.cont]))) {
     # nocov start
     stop("Logic Error: pos nums incorrect; contact maintainer")
     # nocov end

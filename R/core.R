@@ -434,7 +434,6 @@ line_diff <- function(
       stop("Logic Error, row headers must be sequential; contact maintainer.")
       # nocov end
     }
-
     # Only do this for the portion of the data that actually matches up with
     # the atomic row headers (NOTE: need to check what happens with named
     # vectors without row headers)
