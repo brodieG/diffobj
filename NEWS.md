@@ -4,12 +4,14 @@
 
 * [#87](https://github.com/brodieG/diffobj/issues/87) `diffobj` is now GPL (>=2)
   instead of GPL-3.
-* More robust handling of external `diff*` methods and of how `diffObj` calls
-  `diffStr` and `diffPrint`
 * [#81](https://github.com/brodieG/diffobj/issues/81) Better handling of mixed
   UTF-8 / ASCII strings, reported by [jennybc](https://github.com/jennybc)
+* [#88](https://github.com/brodieG/diffobj/issues/88), correctly handle trimming
+  when empty lists are involved, reported by [wch](https://github.com/wch)
 * [#82](https://github.com/brodieG/diffobj/issues/82) `diffChr` and `ses` now
   treat `NA` as "NA" (needed with change in `nchar(NA)` in base R)
+* [#85](https://github.com/brodieG/diffobj/issues/85) Improved alignment of
+  unwrapped atomic vector diffs
 * [#83](https://github.com/brodieG/diffobj/issues/83) Improve pager auto
   detection (note now ANSI output is only allowed by default if terminal
   supports ANSI colors and the system pager is `less`, see `?Pager` for details)
@@ -20,10 +22,10 @@
 * [#84](https://github.com/brodieG/diffobj/issues/84), simplify how to call
   `diffChr` for improved performance, including "optimization" of
   `convert.hz.whitespace`.
-* [#88](https://github.com/brodieG/diffobj/issues/88), correctly handle trimming
-  when empty lists are involved, reported by [wch](https://github.com/wch)
 * [#64](https://github.com/brodieG/diffobj/issues/64), fix line limit in corner
   case
+* More robust handling of external `diff*` methods and of how `diffObj` calls
+  `diffStr` and `diffPrint`
 
 ## v0.1.5
 

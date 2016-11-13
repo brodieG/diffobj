@@ -300,9 +300,11 @@ make_hh <- function(h.g, mode, tar.dat, cur.dat, ranges.orig) {
   # possible fill lines added to the data
 
   h.ids.nh <- h.ids[!h.head]
-  tar.rng <- find_rng(h.ids.nh, ranges.orig[1:2, , drop=FALSE])
+
+  tar.rng <- find_rng(h.ids.nh, ranges.orig[1:2, , drop=FALSE], tar.dat$fill)
   tar.rng.f <- cumsum(!tar.dat$fill)[tar.rng]
-  cur.rng <- find_rng(h.ids.nh, ranges.orig[3:4, , drop=FALSE])
+
+  cur.rng <- find_rng(h.ids.nh, ranges.orig[3:4, , drop=FALSE], cur.dat$fill)
   cur.rng.f <- cumsum(!cur.dat$fill)[cur.rng]
 
   hh.a <- paste0(rng_as_chr(tar.rng.f))
@@ -434,7 +436,6 @@ line_diff <- function(
       stop("Logic Error, row headers must be sequential; contact maintainer.")
       # nocov end
     }
-
     # Only do this for the portion of the data that actually matches up with
     # the atomic row headers (NOTE: need to check what happens with named
     # vectors without row headers)
@@ -559,9 +560,30 @@ line_diff <- function(
     hunks.flat, function(h.a) c(h.a$tar.rng.trim, h.a$cur.rng.trim),
     integer(4L)
   )
+  # compute ranges excluding fill lines
+  rng_non_fill <- function(rng, fill) {
+    if(!rng[[1L]]) rng else {
+      rng.seq <- seq(rng[[1L]], rng[[2L]], by=1L)
+      seq.not.fill <- rng.seq[!rng.seq %in% fill]
+      if(!length(seq.not.fill)) {
+        integer(2L)
+      } else {
+        range(seq.not.fill)
+  } } }
   ranges.orig <- vapply(
-    hunks.flat, function(h.a) c(h.a$tar.rng.sub, h.a$cur.rng.sub), integer(4L)
+    hunks.flat, function(h.a) {
+      with(
+        h.a, c(
+          rng_non_fill(tar.rng.sub, which(tar.dat$fill)),
+          rng_non_fill(cur.rng.sub, which(cur.dat$fill))
+      ) )
+    },
+    integer(4L)
   )
+  # We need a version of ranges that adjust for the fill lines that are counted
+  # in the ranges but don't represent actual lines of output.  This does mean
+  # that adjusted ranges are not necessarily contiguous
+
   hunk.heads <-
     lapply(hunk.grps, make_hh, etc@mode, tar.dat, cur.dat, ranges.orig)
   h.h.chars <- nchar(chr_trim(unlist(hunk.heads), etc@line.width))
