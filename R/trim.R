@@ -318,7 +318,8 @@ strip_list_rh <- function(x, obj) {
       # Something went wrong here, so return as is?
       x
     } else {
-      # Use `trimPrint` to get indices, and trim back to stuff without row header
+      # Use `trimPrint` to get indices, and trim back to stuff without row
+      # header
 
       if(offset) {
         hd <- dat[[1L]]
