@@ -642,8 +642,11 @@ body(diff_obj) <- quote({
     !res.print@trim.dat$lines[[1L]]
   ) {
     res.print
-  # Calculate the trade offs between the two options
+  } else if (diff.l.p <= console_lines() / 2) {
+    # Always use print if print output is reasonable size
+    res.print
   } else {
+  # Calculate the trade offs between the two options
     s.score <- diff.s / diff.l.s * diff.line.ratio.s
     p.score <- diff.p / diff.l.p * diff.line.ratio.p
     if(p.score >= s.score) res.print else res.str
