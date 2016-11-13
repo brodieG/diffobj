@@ -12,16 +12,23 @@ TRUE or FALSE
 \description{
 If \code{getOption(pager)} is set to the default value, checks whether
 \code{Sys.getenv("PAGER")} appears to be \code{less} by trying to run the
-pager with the \dQuote{version} flag and confirming that the file name is
-also \code{less}.  If \code{getOption(pager)} is not the default value, then
-checks whether it points to the \code{less} program.
+pager with the \dQuote{version} and parsing the output.  If
+\code{getOption(pager)} is not the default value, then checks whether it
+points to the \code{less} program by the same mechanism.
 }
 \details{
-In some systems \code{more} is just a copy of \code{less}, but because in
-those cases the binary does not appear to always respond to the
-\code{$LESS} environment variable it is treated as if it is not \code{less}.
+Some systems may have \code{less} pagers installed that do not respond to the
+\code{$LESS} environment variable.  For example, \code{more} on at least some
+versions of OS X is \code{less}, but does not actually respond to
+\code{$LESS}.  If such as pager is the system pager you will likely end up
+seeing gibberish in the pager.  If this is your use case you will need to
+set-up a custom pager configuration object that sets the correct system
+variables (see \code{\link{Pager}}).
 }
 \examples{
 pager_is_less()
+}
+\seealso{
+\code{\link{Pager}}
 }
 

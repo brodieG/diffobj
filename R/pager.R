@@ -30,8 +30,8 @@
 #'
 #' For OS X and *nix systems where \code{less} is the pager and the
 #' terminal supports ANSI escape sequences, output is colored with ANSI escape
-#' sequences.  If the output exceeds one screen height (as estimated by
-#' \code{\link{console_lines}}) in size it is sent to the pager.
+#' sequences.  If the output exceeds one screen height in size (as estimated by
+#' \code{\link{console_lines}}) it is sent to the pager.
 #'
 #' If the terminal does not support ANSI escape sequences, or if the system
 #' pager is not \code{less} as detected by \code{\link{pager_is_less}}, then the
@@ -96,8 +96,8 @@
 #' sequences as intended.  On OS X \code{more} is a faux-alias to \code{less} of
 #' sorts, except it does not appear to read the \code{$LESS} system variable.
 #' Should you configure your system pager to be the \code{more} version of
-#' \code{less}, \code{\link{pager_is_less}} will be tricked into thinking you are
-#' using a \dQuote{normal} version of \code{less} and you will likely end up
+#' \code{less}, \code{\link{pager_is_less}} will be tricked into thinking you
+#' are using a \dQuote{normal} version of \code{less} and you will likely end up
 #' seeing gibberish in the pager.  If this is your use case you will need to
 #' set-up a custom pager configuration object that sets the correct system
 #' variables.
