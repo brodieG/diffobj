@@ -37,7 +37,11 @@ attr(.word.diff.atom, "match.length") <- -1L
 # cont: is a logical vector of same length as lines denoting whether a
 #   particular value in lines is context or diff
 # hunk.diff: logical vector denoting if for the other object the hunk contains
-#   only differences
+#   only differences (seemingly not used in the most recent algorithm)
+#
+# What do we do about lines that are fully context?  These are flexible in as
+# much as we can put them anyplace between the two diff hunks.  We are trying to
+# maximize overlapping context elements.
 
 reassign_lines2 <- function(lines, cont, hunk.diff) {
   # Find out what lines show up as duplicated
@@ -139,9 +143,59 @@ reassign_lines2 <- function(lines, cont, hunk.diff) {
 word_to_line_map <- function(
   hunks, tar.dat, cur.dat, tar.ends, cur.ends, tar.ind, cur.ind
 ) {
-  # If a diff hunk is empty for tar/cur, and the corresponding cur/tar hunk
-  # does not begin/end at beginning of line, then must add lines containing
-  # adjoining elements to the diff
+# diff/mixed lines from different hunks can't mix
+# context only match with context only or mixed if mixed (but order matters)
+# maximize context overlap
+#
+# categorized by:
+#
+# * mixed start
+# * mixed end
+# * diff only
+# * context only
+#
+# Label by hunk
+#
+# Merge hunks that touch within a line or are within one line of each other, but
+# what if they are within that distance in tar but not in cur (or vice versa)?
+# The what-if shouldn't really be possible since any context separating two
+# hunks should be the same length for both.  It is possible though to have two
+# hunks that are one or two lines apart depending on frame shift, so this could
+# be an issue.
+#
+# Seems like we need a similar padding mechanism for diffs, but one that
+# possibly allows context lines to fill in the first and last as well if those
+# are mixed?  So first start by lining up diffs, and trying to make them the
+# same size by adding partial context lines if those exist on either side?  But
+# what if doing so causes us to merge two diffs?
+#
+# Collect all mixed or diffs into matched groups between tar/cur
+#
+# Allocate context only lines
+# * if only one context-only line:
+#     * if context hunk is last hunk, then allocate to previous
+#     * if context hunk is first hunk, then to next
+#     * if a full diff line in next, allocate to prev
+#     * if a full diff line in prev, allocate to next
+#     * allocate to hunk where end/start line has fewest mismatches
+# * if more than one context only line
+#     * if context hunk is last hunk, then allocate all to previous
+#     * if context hunk is first hunk, then allocate all to next
+#     * otherwise allocate "half" to first and other "half" to last
+#
+# Adjust for differences in diff hunk sizes
+# * Diffs hunks should always start on same line
+#
+# Add padding empty context lines to get hunks to line up with each other:
+# * count how many context lines between each diff hunk for both tar and cur,
+#   and add the extra padding to the shorter one
+#
+# For each hunk, we need to identify what lines it contains, and whether the
+# lines are contained in full or not
+#
+# If a diff hunk is empty for tar/cur, and the corresponding cur/tar hunk
+# does not begin/end at beginning of line, then must add lines containing
+# adjoining elements to the diff
 
   find_word_line <- function(h.i, pos, ends.a, ends.b, hunks) {
     inds_pos <- function(h) c(h$A, h$B)[c(h$A, h$B) > 0L]
