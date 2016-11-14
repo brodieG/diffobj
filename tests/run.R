@@ -50,14 +50,14 @@ local({                                         # so we can use `on.exit`
         # "core",
         # "diffChr",
         # "diffDeparse",
-        "diffObj",
+        # "diffObj",
         # "diffPrint",
         # "diffStr",
         # "file",
-        # "guide",
+        "guide",
         # "html",
         # "limit",
-        "methods"
+        # "methods",
         # "misc",
         # "pager",
         # "rdiff",
@@ -66,7 +66,7 @@ local({                                         # so we can use `on.exit`
         # "subset",
         # "summary",
         # "text",
-        # "trim",
+        "trim"
         # "warning"
       ), collapse="|"
     )
