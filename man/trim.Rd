@@ -92,8 +92,15 @@ You can modify how text is trimmed by providing your own functions to the
 \code{trim*} methods for your objects.  Note that the return value for these
 functions is the start and end columns of the text that should be
 \emph{kept} and used in the diff.
+
+As with guides, trimming is on a best efforts basis and may fail with
+\dQuote{pathological} display representations.  Since the diff still works
+even with failed trimming this is considered an acceptable compromise.
+Trimming is more likely to fail with nested recursive structures.
 }
 \note{
-\code{obj.as.chr} will be post \code{strip_hz_control}
+\code{obj.as.chr} will be as processed by
+  \code{\link{strip_hz_control}} and as such will not be identical to the
+  captured output if it contains tabs, newlines, or carriage returns.
 }
 

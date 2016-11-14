@@ -225,3 +225,12 @@ test_that("custom trim fun", {
   expect_equal_to_reference(trim.err, rdsf(200))
 })
 
+test_that("s4", {
+  setClass("DOTrimTest", slots=c(a="numeric", b="list", c="matrix"))
+  obj <- new(
+    "DOTrimTest", a=1:40, b=list(a=1, letters, NULL), c=matrix(1:9, 3)
+  )
+  expect_equal_to_reference(
+    diffobj:::strip_s4_rh(capture.output(obj), obj), rdsf(300)
+  )
+})

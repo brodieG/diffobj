@@ -2,45 +2,46 @@
 
 ## v0.1.6
 
-* [#87](https://github.com/brodieG/diffobj/issues/87) `diffobj` is now GPL (>=2)
+* [#87](https://github.com/brodieG/diffobj/issues/87): `diffobj` is now GPL (>=2)
   instead of GPL-3.
-* [#81](https://github.com/brodieG/diffobj/issues/81) Better handling of mixed
+* [#81](https://github.com/brodieG/diffobj/issues/81): Better handling of mixed
   UTF-8 / ASCII strings, reported by [jennybc](https://github.com/jennybc)
-* [#88](https://github.com/brodieG/diffobj/issues/88), correctly handle trimming
+* [#88](https://github.com/brodieG/diffobj/issues/88): correctly handle trimming
   when empty lists are involved, reported by [wch](https://github.com/wch)
-* [#77](https://github.com/brodieG/diffobj/issues/77) `diffObj` now favors
+* [#77](https://github.com/brodieG/diffobj/issues/77): `diffObj` now favors
   dispatching to `diffPrint` unless `diffPrint` output is large
-* [#82](https://github.com/brodieG/diffobj/issues/82) `diffChr` and `ses` now
+* [#82](https://github.com/brodieG/diffobj/issues/82): `diffChr` and `ses` now
   treat `NA` as "NA" (needed with change in `nchar(NA)` in base R)
-* [#85](https://github.com/brodieG/diffobj/issues/85) Improved alignment of
+* [#85](https://github.com/brodieG/diffobj/issues/85): Improved alignment of
   unwrapped atomic vector diffs
-* [#83](https://github.com/brodieG/diffobj/issues/83) Improve pager auto
+* [#83](https://github.com/brodieG/diffobj/issues/83): Improve pager auto
   detection (note now ANSI output is only allowed by default if terminal
   supports ANSI colors and the system pager is `less`, see `?Pager` for details)
-* [#80](https://github.com/brodieG/diffobj/issues/80),
-  [#45](https://github.com/brodieG/diffobj/issues/45), basic implementation of
-  S4 guidelines (full resolution eventually with
+* [#92](https://github.com/brodieG/diffobj/issues/92),
+  [#80](https://github.com/brodieG/diffobj/issues/80),
+  [#45](https://github.com/brodieG/diffobj/issues/45): basic implementation of
+  S4 guidelines and trimming (full resolution eventually with
   [#33](https://github.com/brodieG/diffobj/issues/33))
-* [#84](https://github.com/brodieG/diffobj/issues/84), simplify how to call
+* [#84](https://github.com/brodieG/diffobj/issues/84): simplify how to call
   `diffChr` for improved performance, including "optimization" of
   `convert.hz.whitespace`.
-* [#64](https://github.com/brodieG/diffobj/issues/64), fix line limit in corner
+* [#64](https://github.com/brodieG/diffobj/issues/64): fix line limit in corner
   case
 * More robust handling of external `diff*` methods and of how `diffObj` calls
   `diffStr` and `diffPrint`
 
 ## v0.1.5
 
-* [#71](https://github.com/brodieG/diffobj/issues/71) Buggy diffs b/w data
+* [#71](https://github.com/brodieG/diffobj/issues/71): Buggy diffs b/w data
   frames when one has sequential row numbers and the other does not, loosely
   related to [#38](https://github.com/brodieG/diffobj/issues/38)
-* [#69](https://github.com/brodieG/diffobj/issues/69) Improve performance on
+* [#69](https://github.com/brodieG/diffobj/issues/69): Improve performance on
   outputs with large print/show output, and other assorted minor optimizations
-* [#72](https://github.com/brodieG/diffobj/issues/72) Warn when `style`
+* [#72](https://github.com/brodieG/diffobj/issues/72): Warn when `style`
   parameter overrides other user supplied parameters
-* [#70](https://github.com/brodieG/diffobj/issues/70) Improve word contrast in YB
+* [#70](https://github.com/brodieG/diffobj/issues/70): Improve word contrast in YB
   HTML mode
-* [#63](https://github.com/brodieG/diffobj/issues/63) Show `all.equal` output
+* [#63](https://github.com/brodieG/diffobj/issues/63): Show `all.equal` output
   when objects are not `all.equal` but there are no visible differences
 * Add [Mean Relative
   Indifference](http://htmlpreview.github.io/?https://raw.githubusercontent.com/brodieG/diffobj/master/inst/doc/metacomp.html)
@@ -48,17 +49,17 @@
 
 ## v0.1.4
 
-* [#67](https://github.com/brodieG/diffobj/issues/67) Fix CRAN Binaries
+* [#67](https://github.com/brodieG/diffobj/issues/67): Fix CRAN Binaries
 * Clarified that C code is heavily modified and incompatible with original
   `libmba` implementation
 
 ## v0.1.3
 
 * First version on CRAN
-* [#51](https://github.com/brodieG/diffobj/issues/51) use RStudio viewport to display HTML diffs when running in RStudio, as per [Noam Ross](https://twitter.com/noamross/status/760115813559009280)
-* [#54](https://github.com/brodieG/diffobj/issues/54), [#55](https://github.com/brodieG/diffobj/issues/55), scale HTML output to viewport width (see `?Style`)
-* [#53](https://github.com/brodieG/diffobj/issues/53), default term colors computed on run instead of on package load
-* [#56](https://github.com/brodieG/diffobj/issues/56), disable wrap for HTML output
+* [#51](https://github.com/brodieG/diffobj/issues/51): use RStudio viewport to display HTML diffs when running in RStudio, as per [Noam Ross](https://twitter.com/noamross/status/760115813559009280)
+* [#54](https://github.com/brodieG/diffobj/issues/54): [#55](https://github.com/brodieG/diffobj/issues/55), scale HTML output to viewport width (see `?Style`)
+* [#53](https://github.com/brodieG/diffobj/issues/53): default term colors computed on run instead of on package load
+* [#56](https://github.com/brodieG/diffobj/issues/56): disable wrap for HTML output
 * HTML output now captured with default width 80 since there is no explicit relationship between HTML viewport width and `getOption("width")`
 * The `style` parameter now accepts lists to use as instantiation arguments for `Style` objects (see `?Style`)
 * Fix subtle rendering and formatting application flaws
