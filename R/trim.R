@@ -342,6 +342,35 @@ strip_list_rh <- function(x, obj) {
     }
   }
 }
+# Very similar logic to lists
+
+strip_s4_rh <- function(x, obj) {
+  stopifnot(isS4(obj))
+
+  if(!length(slotNames(obj))) {
+    # Nothing to do here
+    x
+  } else {
+    # Split output into each list component
+
+    s4.h <- detect_s4_guides(x, obj)
+    dat <- split_by_guides(x, s4.h, drop.leading=FALSE)
+    elements <- lapply(slotNames(obj), slot, object=obj)
+
+    dat.trim <- Map(trimPrint, elements, dat)
+    dat.w.o.rh <- unlist(
+      Map(
+        function(chr, ind) substr(chr, ind[, 1], ind[, 2]), dat, dat.trim
+    ) )
+    if(length(dat.w.o.rh) + length(s4.h) == length(x)) {
+      res <- character(length(x))
+      res[s4.h] <- x[s4.h]
+      res[!seq_along(res) %in% s4.h] <- dat.w.o.rh
+      res
+    } else {
+      x
+  } }
+}
 #' Methods to Remove Unsemantic Text Prior to Diff
 #'
 #' \code{diff*} methods, in particular \code{diffPrint}, modify the text
@@ -386,6 +415,11 @@ strip_list_rh <- function(x, obj) {
 #' functions is the start and end columns of the text that should be
 #' \emph{kept} and used in the diff.
 #'
+#' As with guides, trimming is on a best efforts basis and may fail with
+#' \dQuote{pathological} display representations.  Since the diff still works
+#' even with failed trimming this is considered an acceptable compromise.
+#' Trimming is more likely to fail with nested recursive structures.
+#'
 #' @note \code{obj.as.chr} will be post \code{strip_hz_control}
 #' @rdname trim
 #' @name trim
@@ -424,6 +458,8 @@ setMethod(
       strip_atomic_rh(obj.as.chr)
     } else if(is.list(obj) && !is.object(obj)) {
       strip_list_rh(obj.as.chr, obj)
+    } else if(isS4(obj) && is_default_show_obj(obj)) {
+      strip_s4_rh(obj.as.chr, obj)
     } else obj.as.chr
 
     trim_sub(obj.as.chr, stripped)
