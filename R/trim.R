@@ -373,11 +373,12 @@ strip_s4_rh <- function(x, obj) {
 }
 #' Methods to Remove Unsemantic Text Prior to Diff
 #'
-#' \code{diff*} methods, in particular \code{diffPrint}, modify the text
-#' representation of an object prior to running the diff to reduce the incidence
-#' of spurious mismatches caused by unsemantic differences.  For example, we
-#' look to remove matrix row indices and atomic vector indices (i.e. the
-#' \samp{[1,]} or \samp{[1]} strings at the beginning of each display line).
+#' \code{\link[=diffPrint]{diff*}} methods, in particular \code{diffPrint},
+#' modify the text representation of an object prior to running the diff to
+#' reduce the incidence of spurious mismatches caused by unsemantic differences.
+#' For example, we look to remove matrix row indices and atomic vector indices
+#' (i.e. the \samp{[1,]} or \samp{[1]} strings at the beginning of each display
+#' line).
 #'
 #' Consider: \preformatted{
 #' > matrix(10:12)
