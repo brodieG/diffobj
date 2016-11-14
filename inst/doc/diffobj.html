@@ -153,6 +153,7 @@ b[<span class="kw">c</span>(<span class="dv">18</span>, <span class="dv">44</spa
 </div>
 <p>Here <code>b</code> has an extra line so <code>diffobj</code> adds an empty line to <code>a</code> to maintain the alignment for subsequent matching lines. This additional line is marked with a tilde in the gutter and is shown in a different color to indicate it is not part of the original text.</p>
 <p>If you look closely at the next matching line you will notice that the <code>a</code> and <code>b</code> values are not exactly the same. The row indices are different, but <code>diffobj</code> excludes row indices from the diff so that rows that are identical otherwise are shown as matching. <code>diffobj</code> indicates this is happening by showing the portions of a line that are ignored in the diff in grey.</p>
+<p>See <code>?guides</code> and <code>?trim</code> for details and limitations on guideline detection and non-semantic meta data trimming.</p>
 </div>
 <div id="atomic-vectors" class="section level3">
 <h3>Atomic Vectors</h3>
