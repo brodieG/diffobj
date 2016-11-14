@@ -15,7 +15,7 @@ strip_hz_control(txt, stops = 8L)
 Removes tabs, newlines, and carriage returns and manipulates the text so that
 it looks the renders the same as it did with those horizontal control
 characters embedded.  This function is used when the
-\code{`convert.hz.white.space} parameter to the
+\code{convert.hz.white.space} parameter to the
 \code{\link[=diffPrint]{diff*}} methods is active.  The term \dQuote{strip}
 is a misnomer that remains for legacy reasons and lazyness.
 }

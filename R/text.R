@@ -298,7 +298,7 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
 #' Removes tabs, newlines, and carriage returns and manipulates the text so that
 #' it looks the renders the same as it did with those horizontal control
 #' characters embedded.  This function is used when the
-#' \code{`convert.hz.white.space} parameter to the
+#' \code{convert.hz.white.space} parameter to the
 #' \code{\link[=diffPrint]{diff*}} methods is active.  The term \dQuote{strip}
 #' is a misnomer that remains for legacy reasons and lazyness.
 #'
