@@ -21,6 +21,14 @@ for debugging or for other applications that understand that particular
 format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}
 for how to interpret the symbols.
 }
+\details{
+\code{ses} will be much faster than any of the
+\code{\link[=diffPrint]{diff*}} methods, particularly for large inputs with
+limited numbers of differences.
+
+NAs are treated as the string \dQuote{NA}.  Non-character inputs are coerced
+to character.
+}
 \examples{
 ses(letters[1:3], letters[2:4])
 }

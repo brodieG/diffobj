@@ -20,11 +20,24 @@ test_that("simple diffobj", {
   expect_equal_to_reference(as.character(diffObj(mdl1, mdl2)), rdsf(400))
 })
 test_that("fits or doesn't", {
+  # Note, the first test used to favor str until we handicapped print
   expect_equal(
     diffObj(matrix(1:20, ncol=2), matrix(2:21, ncol=2), line.limit=5)@capt.mode,
-    "str"
+    "print"
   )
   # test kinda slow, would be better to have one with smaller objects with print
   # methods
   expect_equal(diffObj(mdl1, mdl2, line.limit=5)@capt.mode, "print")
 })
+
+# Random exmaples to think through `diffObj` output
+
+diffObj(
+  pairlist("`logical(2L)` should be length 2 (is 3)"),
+  pairlist("be length 2 (is 3)")
+)
+
+diffObj(
+  pairlist("`matrix(integer(), nrow = 3)` should be matrix (is list)", "`list(character(1L), 1L)[[2]]` should be type \"integer-like\" (is \"character\")"),
+  pairlist("be class \"matrix\" (is \"list\")", "be type \"integer-like\" (is \"character\") at index [[2]]")
+)

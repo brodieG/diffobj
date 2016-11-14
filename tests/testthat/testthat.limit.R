@@ -1,4 +1,4 @@
-context("mis")
+context("limits")
 
 if(!identical(basename(getwd()), "testthat"))
   stop("Working dir does not appear to be /testthat, is ", getwd())
@@ -92,6 +92,17 @@ test_that("Cause errors", {
   expect_error(diffChr(letters, LETTERS, line.limit=1:3), "vector of length")
 })
 
+test_that("Vanishing header", {
+  # issue 64
+  expect_equal_to_reference(
+    as.character(
+      diffChr(
+        letters, letters[-13], context=auto_context(0, 10), line.limit=1L,
+        pager="off"
+    ) ),
+    rdsf(1300)
+  )
+})
 
 
 

@@ -75,7 +75,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 
 <p>Most R object comparison functions are good at telling you that objects are different, but less so at conveying <em>how</em> they are different. I wrote <code>diffobj</code> to provide an “aha, that’s how they are different” comparison. In this vignette I will compare <code>diffPrint</code> to <code>all.equal</code> and to <code>testthat::compare</code>.</p>
-<p>Disclaimer: I picked the examples here to showcase <code>diffobj</code> capabilities, not to carry out a fair and balanced comparison of the functions. Nonetheless, I hope you will find the examples realistic and representative of common situations where comparison of R objects is useful.</p>
+<p>Disclaimer: I picked the examples here to showcase <code>diffobj</code> capabilities, not to carry out a fair and balanced comparison of these comparison functions. Nonetheless, I hope you will find the examples representative of common situations where comparison of R objects is useful.</p>
 <div id="vectors" class="section level2">
 <h2>Vectors</h2>
 <p>I defined four pairs of numeric vectors for us to compare. I purposefully hid the variable definitions to simulate a comparison of unknown objects.</p>
@@ -83,7 +83,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h3>Stage 1</h3>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">all.equal</span>(A1, B1)</code></pre></div>
 <pre><code>## [1] &quot;Mean relative difference: 0.1&quot;</code></pre>
-<p>The objects are different… At this point I would normally print both <code>A1</code> and <code>B1</code> to try to figure out how that difference came about. The <code>all.equal</code> output is unhelpful in this respect.</p>
+<p>The objects are different… At this point I would normally print both <code>A1</code> and <code>B1</code> to try to figure out how that difference came about since the “mean relative difference” is unhelpful.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">testthat::<span class="kw">compare</span>(A1, B1)</code></pre></div>
 <pre><code>## 1/10 mismatches
 ## [10] 10 - 11 == -1</code></pre>
@@ -109,7 +109,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 ## [8] 8 -  7 ==   1
 ## [9] 9 -  8 ==   1
 ## ...</code></pre>
-<p>If you look closely you will see that despite a reported 20/20 differences, the two vectors are actually similar, at least in the part of output that is not truncated. With <code>diffPrint</code> it is obvious that <code>B2</code> is the same as <code>A2</code>, except that the last value has been moved to the first position:</p>
+<p>If you look closely you will see that despite a reported 20/20 differences, the two vectors are actually similar, at least in the part visible part of the output. With <code>diffPrint</code> it is obvious that <code>B2</code> and is the same as <code>A2</code>, except that the last value has been moved to the first position:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">diffPrint</span>(A2, B2)</code></pre></div>
 <div class="diffobj_container light yb">
 <pre><div class="row"><div class="line banner"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="word delete">A2</span></div></div></div></div><div class="line banner"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="word insert">B2</span></div></div></div></div></div><div class="row"><div class="line"><div class="header">@@ 1,2 @@</div></div><div class="line"><div class="header">@@ 1,2 @@</div></div></div><div class="row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim"> [1] </span> 1  2  3  4  5  6  7  8  9 10 11<span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim"> [1] </span><span class="word insert">20</span>  1  2  3  4  5  6  7  8  9 10<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim">[12] </span>12 13 14 15 16 17 18 19 <span class="word delete">20</span><span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim">[12] </span>11 12 13 14 15 16 17 18 19<span class="trim"></span></div></div></div></div></div></pre>
@@ -168,7 +168,7 @@ B4 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">1e4<
 <div id="parting-thoughts" class="section level2">
 <h2>Parting Thoughts</h2>
 <p>Another candidate comparison function is <code>compare::compare</code>. I omitted it from this vignette because it focuses more on similarities than on differences. Additionally, <code>testthat::compare</code> and <code>compare::compare</code> <code>print</code> methods conflict so they cannot be used together.</p>
-<p>For a more thorough exploration of <code>diffobj</code> function features please see the <a href="diffobj.html">primary <code>diffobj</code> vignette</a>.</p>
+<p>For a more thorough exploration of <code>diffobj</code> methods and their features please see the <a href="diffobj.html">primary <code>diffobj</code> vignette</a>.</p>
 </div>
 
 

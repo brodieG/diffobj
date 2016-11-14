@@ -92,21 +92,23 @@ details and limitations.  Also offers the same advanced usage as the
 \code{brightness} parameter.}
 
 \item{word.diff}{TRUE (default) or FALSE, whether to run a secondary word
-diff on the in-hunk differences.  For atomic vectors this could
-make the diff \emph{slower} (see the \code{unwrap.atomic} parameter).}
+diff on the in-hunk differences.  For atomic vectors setting this to
+FALSE could make the diff \emph{slower} (see the \code{unwrap.atomic}
+parameter).  For other uses, particularly with \code{\link{diffChr}}
+setting this to FALSE can substantially improve performance.}
 
 \item{pager}{one of \dQuote{auto} (default), \dQuote{on},
 \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
 pager is used to display the diff output.  If \dQuote{on} will use the
 pager associated with the \code{\link{Style}} specified via the
-\code{\link{style}} parameters.  If \dQuote{auto} will behave
-like \dQuote{on} but only if in interactive mode.  If the pager is
-enabled, default behavior is to pipe output to \code{\link{file.show}} if
-output is taller than the estimated terminal height and your terminal
-supports ANSI escape sequences.  If the terminal does not support ANSI
-escape sequences, the default is to attempt to pipe to the IDE viewer or
-web browser.  See \code{\link{Pager}}, \code{\link{view_or_browse}},
-\code{\link{Style}}, and \code{\link{PaletteOfStyles}} for more details.}
+\code{\link{style}} parameters.  The default behavior is to use a pager if
+either the R console does not support ANSI colors, or if the output of the
+\code{diff*} methods would be taller than one screen.  If the system pager
+is not known to support ANSI colors then we will try to display the output
+in HTML with the IDE viewer if available or with the web browser if not.
+See \code{\link{Pager}}, \code{\link{view_or_browse}}, \code{\link{Style}},
+and \code{\link{PaletteOfStyles}} for more details and for instructions on
+how to modify the default behavior.}
 
 \item{guides}{TRUE (default), FALSE, or a function that accepts at least two
 arguments and requires no more than two arguments.  Guides
@@ -243,9 +245,16 @@ allow ANSI colors, or any other number to disallow them.  This only
 impacts output format selection when \code{style} and \code{format} are
 both set to \dQuote{auto}.}
 
-\item{tar.banner}{character(1L) or NULL, text to display ahead of the diff
-section representing the target output.  If NULL will be
-inferred from \code{target} and \code{current} expressions.}
+\item{tar.banner}{character(1L), language, or NULL, used to generate the
+text to display ahead of the diff section representing the target output.
+If NULL will use the deparsed \code{target} expression, if language, will
+use the language as it would the \code{target} expression, if
+character(1L), will use the string with no modifications.  The language
+mode is provided because \code{diffStr} modifies the expression prior to
+display (e.g. by wrapping it in a call to \code{str}).  Note that it is
+possible in some cases that the substituted value of \code{target} actually
+is character(1L), but if you provide a character(1L) value here it will be
+assumed you intend to use that value literally.}
 
 \item{cur.banner}{character(1L) like \code{tar.banner}, but for
 \code{current}}
@@ -293,6 +302,7 @@ diffPrint(letters, letters[-5], pager="off")
 \seealso{
 \code{\link{diffObj}}, \code{\link{diffStr}},
   \code{\link{diffChr}} to compare character vectors directly,
-  \code{\link{diffDeparse}} to compare deparsed objects
+  \code{\link{diffDeparse}} to compare deparsed objects, \code{\link{ses}}
+  for a minimal and fast diff @param target the reference object
 }
 

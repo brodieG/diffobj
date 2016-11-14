@@ -1,5 +1,6 @@
 library(diffobj)
 
+context("text")
 test_that("simple wrap", {
   txt1 <- c(
     "humpty dumpty sat on a wall and had a big fall",
@@ -83,6 +84,12 @@ test_that("strip hz whitespace", {
       c("hellothere\rHELLO", "000\r12345678\rabcdef\rABC")
     ),
     c("HELLOthere", "ABCdef78")
+  )
+  # newlines
+
+  expect_equal(
+    diffobj:::strip_hz_control(c("a", "", "\n", "a\nb")),
+    c("a", "", "", "a", "b")
   )
   # with colors
 

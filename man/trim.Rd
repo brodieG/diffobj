@@ -50,11 +50,12 @@ a \code{length(obj.as.chr)} row and 2 column integer matrix with the
   string to run diffs on.
 }
 \description{
-\code{diff*} methods, in particular \code{diffPrint}, modify the text
-representation of an object prior to running the diff to reduce the incidence
-of spurious mismatches caused by unsemantic differences.  For example, we
-look to remove matrix row indices and atomic vector indices (i.e. the
-\samp{[1]} or \samp{[1,]} strings at the beginning of each display line).
+\code{\link[=diffPrint]{diff*}} methods, in particular \code{diffPrint},
+modify the text representation of an object prior to running the diff to
+reduce the incidence of spurious mismatches caused by unsemantic differences.
+For example, we look to remove matrix row indices and atomic vector indices
+(i.e. the \samp{[1,]} or \samp{[1]} strings at the beginning of each display
+line).
 }
 \details{
 Consider: \preformatted{
@@ -84,7 +85,7 @@ Currently only \code{trimPrint} and \code{trimStr} do anything meaningful.
 \code{trimPrint} removes row index headers provided that they are of the
 default un-named variety.  If you add row names, or if numeric row indices
 are not ascending from 1, they will not be stripped as those have meaning.
-\code{trimStr} removes the \samp{..$} and \samp{..-} tokens
+\code{trimStr} removes the \samp{..$}, \samp{..-}, and \samp{..@} tokens
 to minimize spurious matches.
 
 You can modify how text is trimmed by providing your own functions to the
@@ -92,8 +93,15 @@ You can modify how text is trimmed by providing your own functions to the
 \code{trim*} methods for your objects.  Note that the return value for these
 functions is the start and end columns of the text that should be
 \emph{kept} and used in the diff.
+
+As with guides, trimming is on a best efforts basis and may fail with
+\dQuote{pathological} display representations.  Since the diff still works
+even with failed trimming this is considered an acceptable compromise.
+Trimming is more likely to fail with nested recursive structures.
 }
 \note{
-\code{obj.as.chr} will be post \code{strip_hz_control}
+\code{obj.as.chr} will be as processed by
+  \code{\link{strip_hz_control}} and as such will not be identical to the
+  captured output if it contains tabs, newlines, or carriage returns.
 }
 

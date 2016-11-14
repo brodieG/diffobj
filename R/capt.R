@@ -1,9 +1,10 @@
-# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
+#
+# This file is part of "diffobj - Diffs for R Objects"
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
@@ -11,7 +12,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
+# Go to <https://www.r-project.org/Licenses/GPL-2> for a copy of the license.
 
 # Capture output of print/show/str; unfortunately doesn't have superb handling
 # of errors during print/show call, though hopefully these are rare
@@ -149,7 +150,8 @@ capt_str <- function(target, current, etc, err, extra){
     max.level.pos <- length(str.match)
     max.level.supplied <- FALSE
   }
-  # Was wrap specified in strict width mode?
+  # Was wrap specified in strict width mode?  Not sure this is correct any more;
+  # should probably be looking at extra args.
 
   wrap <- FALSE
   if("strict.width" %in% names(str.match)) {
@@ -293,6 +295,9 @@ capt_chr <- function(target, current, etc, err, extra){
     do.call(as.character, c(list(target), extra)) else target
   cur.capt <- if(!is.character(current))
     do.call(as.character, c(list(current), extra)) else current
+
+  if(anyNA(tar.capt)) tar.capt[is.na(tar.capt)] <- "NA"
+  if(anyNA(cur.capt)) cur.capt[is.na(cur.capt)] <- "NA"
 
   etc <- set_mode(etc, tar.capt, cur.capt)
   if(isTRUE(etc@guides)) etc@guides <- guidesChr

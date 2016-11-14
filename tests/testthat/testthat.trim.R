@@ -1,6 +1,10 @@
-library(testthat)
-
 context("trim")
+
+if(!identical(basename(getwd()), "testthat"))
+  stop("Working dir does not appear to be /testthat, is ", getwd())
+
+rdsf <- function(x)
+  file.path(getwd(), "helper", "trim", sprintf("%s.rds", x))
 
 .mx.base <- matrix(
   c(
@@ -175,6 +179,58 @@ test_that("List", {
     diffobj:::strip_list_rh(l1.c, l1),
     c("[[1]]", "     [,1] [,2]", "   1    3", "   2    4", "", "$b", "$b$abc", "\"a\" \"b\" \"c\" \"d\" \"e\" \"f\" \"g\" \"h\" \"i\" \"j\" \"k\" \"l\" \"m\" \"n\" \"o\" \"p\" \"q\" \"r\" \"s\"", "\"t\" \"u\" \"v\" \"w\" \"x\" \"y\" \"z\" \"A\" \"B\" \"C\" \"D\" \"E\" \"F\" \"G\" \"H\" \"I\" \"J\" \"K\" \"L\"", "\"M\" \"N\" \"O\" \"P\" \"Q\" \"R\" \"S\" \"T\" \"U\" \"V\" \"W\" \"X\" \"Y\" \"Z\"", "", "$b[[2]]", "$b[[2]][[1]]", "     [,1] [,2]", "   4    2", "   3    1", "", "", "")
   )
+
+  a <- list(list())
+  aa <- list(list(), "a")
+  b <- list("a", list())
+  c <- list(list("a"), "b")
+  d <- list("a", "b", "c")
+
+  expect_identical(
+    diffobj:::strip_list_rh(capture.output(d), d),
+    c("[[1]]", "\"a\"", "", "[[2]]", "\"b\"", "", "[[3]]", "\"c\"", "")
+  )
+  expect_identical(
+    diffobj:::strip_list_rh(capture.output(a), a),
+    c("[[1]]", "list()", "")
+  )
+  expect_identical(
+    diffobj:::strip_list_rh(capture.output(aa), aa),
+    c("[[1]]", "list()", "", "[[2]]", "\"a\"", "")
+  )
+  expect_identical(
+    diffobj:::strip_list_rh(capture.output(b), b),
+    c("[[1]]", "\"a\"", "", "[[2]]", "list()", "")
+  )
+  expect_identical(
+    diffobj:::strip_list_rh(capture.output(c), c),
+    c("[[1]]", "[[1]][[1]]", "\"a\"", "", "", "[[2]]", "\"b\"", "")
+  )
+
+})
+test_that("custom trim fun", {
+  a <- matrix(100:102)
+  b <- matrix(101:103)
+  fun1 <- function(x, y) cbind(rep(1L, 4), rep(5L, 4))
+
+  expect_equal_to_reference(as.character(diffPrint(a, b, trim=fun1)), rdsf(100))
+  expect_warning(
+    capture.output(
+      trim.err <-
+        as.character(diffPrint(a, b, trim=function(x, y) stop("boom"))),
+      type="message"
+    ),
+    "If you did not specify a `trim`"
+  )
+  expect_equal_to_reference(trim.err, rdsf(200))
 })
 
-
+test_that("s4", {
+  setClass("DOTrimTest", slots=c(a="numeric", b="list", c="matrix"))
+  obj <- new(
+    "DOTrimTest", a=1:40, b=list(a=1, letters, NULL), c=matrix(1:9, 3)
+  )
+  expect_equal_to_reference(
+    diffobj:::strip_s4_rh(capture.output(obj), obj), rdsf(300)
+  )
+})

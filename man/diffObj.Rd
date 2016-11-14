@@ -35,6 +35,7 @@ with(mtcars, diffObj(lm(mpg ~ hp)$qr, lm(mpg ~ disp)$qr, pager="off"))
 \code{\link{diffPrint}} for details on the \code{diff*} methods,
   \code{\link{diffStr}},
   \code{\link{diffChr}} to compare character vectors directly
-  \code{\link{diffDeparse}} to compare deparsed objects
+  \code{\link{diffDeparse}} to compare deparsed objects,
+  \code{\link{ses}} for a minimal and fast diff
 }
 

@@ -10,11 +10,25 @@ pager_is_less()
 TRUE or FALSE
 }
 \description{
-Checks system \code{PAGER} variable and that \code{PAGER_PATH} is pointed
-at \dQuote{R_HOME/bin/pager}.  This is an approximation and may return
-false positives or negatives depending on your system.
+If \code{getOption(pager)} is set to the default value, checks whether
+\code{Sys.getenv("PAGER")} appears to be \code{less} by trying to run the
+pager with the \dQuote{version} and parsing the output.  If
+\code{getOption(pager)} is not the default value, then checks whether it
+points to the \code{less} program by the same mechanism.
+}
+\details{
+Some systems may have \code{less} pagers installed that do not respond to the
+\code{$LESS} environment variable.  For example, \code{more} on at least some
+versions of OS X is \code{less}, but does not actually respond to
+\code{$LESS}.  If such as pager is the system pager you will likely end up
+seeing gibberish in the pager.  If this is your use case you will need to
+set-up a custom pager configuration object that sets the correct system
+variables (see \code{\link{Pager}}).
 }
 \examples{
 pager_is_less()
+}
+\seealso{
+\code{\link{Pager}}
 }
 

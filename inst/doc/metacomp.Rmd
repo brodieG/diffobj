@@ -23,8 +23,8 @@ objects are different, but less so at conveying _how_ they are
 different.  I wrote `diffobj` to provide an "aha, that's how they are different" comparison.  In this vignette I will compare `diffPrint` to `all.equal` and to `testthat::compare`.
 
 Disclaimer: I picked the examples here to showcase `diffobj` capabilities, not
-to carry out a fair and balanced comparison of the functions.  Nonetheless, I
-hope you will find the examples realistic and representative of common
+to carry out a fair and balanced comparison of these comparison functions.
+Nonetheless, I hope you will find the examples representative of common
 situations where comparison of R objects is useful.
 
 ## Vectors
@@ -47,8 +47,8 @@ all.equal(A1, B1)
 ```
 
 The objects are different...  At this point I would normally print both `A1` and
-`B1` to try to figure out how that difference came about.  The `all.equal`
-output is unhelpful in this respect.
+`B1` to try to figure out how that difference came about since the "mean
+relative difference" is unhelpful.
 
 ```{r}
 testthat::compare(A1, B1)
@@ -72,8 +72,8 @@ testthat::compare(A2, B2)
 ```
 
 If you look closely you will see that despite a reported 20/20 differences, the
-two vectors are actually similar, at least in the part of output that is not
-truncated.  With `diffPrint` it is obvious that `B2` is the same as `A2`, except
+two vectors are actually similar, at least in the part visible part of the
+output. With `diffPrint` it is obvious that `B2` and is the same as `A2`, except
 that the last value has been moved to the first position:
 
 ```{r, results="asis"}
@@ -143,8 +143,7 @@ this vignette because it focuses more on similarities than on differences.
 Additionally, `testthat::compare` and `compare::compare` `print` methods
 conflict so they cannot be used together.
 
-For a more thorough exploration of `diffobj` function features please see the
-[primary `diffobj` vignette](diffobj.html).
+For a more thorough exploration of `diffobj` methods and their features please see the [primary `diffobj` vignette](diffobj.html).
 
 ```{r, echo=FALSE}
 options(old.opt)

@@ -62,3 +62,23 @@ test_that("lines", {
   Sys.unsetenv("LINES")
   expect_equal(console_lines(), 48L)
 })
+
+test_that("get_funs", {
+  expect_identical(
+    diffobj:::get_fun(quote(diffobj::diffPrint), .BaseNamespaceEnv),
+    diffobj::diffPrint
+  )
+  expect_identical(
+    diffobj:::get_fun(quote(diffobj:::diffPrint), .BaseNamespaceEnv),
+    diffobj::diffPrint
+  )
+  expect_identical(
+    diffobj:::get_fun(quote(diffPrint), getNamespace("diffobj")),
+    diffobj::diffPrint
+  )
+  expect_warning(
+    gf <- diffobj:::get_fun(quote(notAFunction), getNamespace("diffobj")),
+    "Unable to find function"
+  )
+  expect_identical(gf, NULL)
+})

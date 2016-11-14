@@ -1,9 +1,10 @@
-# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
+#
+# This file is part of "diffobj - Diffs for R Objects"
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
@@ -11,8 +12,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
-
+# Go to <https://www.r-project.org/Licenses/GPL-2> for a copy of the license.
 
 #' Diffs for R Objects
 #'
@@ -153,6 +153,10 @@ make_diff_fun <- function(capt_fun) {
 #' methods do.
 #'
 #' @export
+#' @seealso \code{\link{diffObj}}, \code{\link{diffStr}},
+#'   \code{\link{diffChr}} to compare character vectors directly,
+#'   \code{\link{diffDeparse}} to compare deparsed objects, \code{\link{ses}}
+#'   for a minimal and fast diff @param target the reference object
 #' @param target the reference object
 #' @param current the object being compared to \code{target}
 #' @param mode character(1L), one of:
@@ -211,20 +215,22 @@ make_diff_fun <- function(capt_fun) {
 #'   details and limitations.  Also offers the same advanced usage as the
 #'   \code{brightness} parameter.
 #' @param word.diff TRUE (default) or FALSE, whether to run a secondary word
-#'   diff on the in-hunk differences.  For atomic vectors this could
-#'   make the diff \emph{slower} (see the \code{unwrap.atomic} parameter).
+#'   diff on the in-hunk differences.  For atomic vectors setting this to
+#'   FALSE could make the diff \emph{slower} (see the \code{unwrap.atomic}
+#'   parameter).  For other uses, particularly with \code{\link{diffChr}}
+#'   setting this to FALSE can substantially improve performance.
 #' @param pager one of \dQuote{auto} (default), \dQuote{on},
 #'   \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
 #'   pager is used to display the diff output.  If \dQuote{on} will use the
 #'   pager associated with the \code{\link{Style}} specified via the
-#'   \code{\link{style}} parameters.  If \dQuote{auto} will behave
-#'   like \dQuote{on} but only if in interactive mode.  If the pager is
-#'   enabled, default behavior is to pipe output to \code{\link{file.show}} if
-#'   output is taller than the estimated terminal height and your terminal
-#'   supports ANSI escape sequences.  If the terminal does not support ANSI
-#'   escape sequences, the default is to attempt to pipe to the IDE viewer or
-#'   web browser.  See \code{\link{Pager}}, \code{\link{view_or_browse}},
-#'   \code{\link{Style}}, and \code{\link{PaletteOfStyles}} for more details.
+#'   \code{\link{style}} parameters.  The default behavior is to use a pager if
+#'   either the R console does not support ANSI colors, or if the output of the
+#'   \code{diff*} methods would be taller than one screen.  If the system pager
+#'   is not known to support ANSI colors then we will try to display the output
+#'   in HTML with the IDE viewer if available or with the web browser if not.
+#'   See \code{\link{Pager}}, \code{\link{view_or_browse}}, \code{\link{Style}},
+#'   and \code{\link{PaletteOfStyles}} for more details and for instructions on
+#'   how to modify the default behavior.
 #' @param guides TRUE (default), FALSE, or a function that accepts at least two
 #'   arguments and requires no more than two arguments.  Guides
 #'   are additional context lines that are not strictly part of a hunk, but
@@ -343,18 +349,22 @@ make_diff_fun <- function(capt_fun) {
 #'   allow ANSI colors, or any other number to disallow them.  This only
 #'   impacts output format selection when \code{style} and \code{format} are
 #'   both set to \dQuote{auto}.
-#' @param tar.banner character(1L) or NULL, text to display ahead of the diff
-#'   section representing the target output.  If NULL will be
-#'   inferred from \code{target} and \code{current} expressions.
+#' @param tar.banner character(1L), language, or NULL, used to generate the
+#'   text to display ahead of the diff section representing the target output.
+#'   If NULL will use the deparsed \code{target} expression, if language, will
+#'   use the language as it would the \code{target} expression, if
+#'   character(1L), will use the string with no modifications.  The language
+#'   mode is provided because \code{diffStr} modifies the expression prior to
+#'   display (e.g. by wrapping it in a call to \code{str}).  Note that it is
+#'   possible in some cases that the substituted value of \code{target} actually
+#'   is character(1L), but if you provide a character(1L) value here it will be
+#'   assumed you intend to use that value literally.
 #' @param cur.banner character(1L) like \code{tar.banner}, but for
 #'   \code{current}
 #' @param extra list additional arguments to pass on to the functions used to
 #'   create text representation of the objects to diff (e.g. \code{print},
 #'   \code{str}, etc.)
 #' @param ... unused, for compatibility of methods with generics
-#' @seealso \code{\link{diffObj}}, \code{\link{diffStr}},
-#'   \code{\link{diffChr}} to compare character vectors directly,
-#'   \code{\link{diffDeparse}} to compare deparsed objects
 #' @return a \code{Diff} object; this object has a \code{show}
 #'   method that will display the diff to screen or pager, as well as
 #'   \code{summary}, \code{any}, and \code{as.character} methods.
@@ -394,7 +404,8 @@ setMethod("diffPrint", signature=c("ANY", "ANY"), make_diff_fun(capt_print))
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
 #'   \code{\link{diffObj}}, \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly,
-#'   \code{\link{diffDeparse}} to compare deparsed objects
+#'   \code{\link{diffDeparse}} to compare deparsed objects,
+#'   \code{\link{ses}} for a minimal and fast diff
 #' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @rdname diffStr
 #' @export
@@ -412,12 +423,14 @@ setMethod("diffStr", signature=c("ANY", "ANY"), make_diff_fun(capt_str))
 #'
 #' Will perform the diff on the actual string values of the character vectors
 #' instead of capturing the printed screen output. Each vector element is
-#' treated as a line of text.
+#' treated as a line of text.  NA elements are treated as the string
+#' \dQuote{NA}.  Non character inputs are coerced to character.
 #'
 #' @inheritParams diffPrint
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
 #'   \code{\link{diffObj}}, \code{\link{diffStr}},
-#'   \code{\link{diffDeparse}} to compare deparsed objects
+#'   \code{\link{diffDeparse}} to compare deparsed objects,
+#'   \code{\link{ses}} for a minimal and fast diff
 #' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @export
 #' @rdname diffChr
@@ -441,7 +454,8 @@ setMethod("diffChr", signature=c("ANY", "ANY"), make_diff_fun(capt_chr))
 #' @inheritParams diffPrint
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
 #'   \code{\link{diffObj}}, \code{\link{diffStr}},
-#'   \code{\link{diffChr}} to compare character vectors directly
+#'   \code{\link{diffChr}} to compare character vectors directly,
+#'   \code{\link{ses}} for a minimal and fast diff
 #' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @export
 #' @rdname diffDeparse
@@ -468,7 +482,8 @@ setMethod("diffDeparse", signature=c("ANY", "ANY"), make_diff_fun(capt_deparse))
 #' @inheritParams diffPrint
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
 #'   \code{\link{diffObj}}, \code{\link{diffStr}},
-#'   \code{\link{diffChr}} to compare character vectors directly
+#'   \code{\link{diffChr}} to compare character vectors directly,
+#'   \code{\link{ses}} for a minimal and fast diff
 #' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @export
 #' @rdname diffFile
@@ -503,7 +518,8 @@ setMethod("diffFile", signature=c("ANY", "ANY"), make_diff_fun(capt_file))
 #' @inheritParams diffPrint
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
 #'   \code{\link{diffObj}}, \code{\link{diffStr}},
-#'   \code{\link{diffChr}} to compare character vectors directly
+#'   \code{\link{diffChr}} to compare character vectors directly,
+#'   \code{\link{ses}} for a minimal and fast diff
 #' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @export
 #' @rdname diffCsv
@@ -540,7 +556,8 @@ setMethod("diffCsv", signature=c("ANY", "ANY"), make_diff_fun(capt_csv))
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} methods,
 #'   \code{\link{diffStr}},
 #'   \code{\link{diffChr}} to compare character vectors directly
-#'   \code{\link{diffDeparse}} to compare deparsed objects
+#'   \code{\link{diffDeparse}} to compare deparsed objects,
+#'   \code{\link{ses}} for a minimal and fast diff
 #' @return a \code{Diff} object; see \code{\link{diffPrint}}.
 #' @export
 #' @examples
@@ -555,20 +572,41 @@ body(diff_obj) <- quote({
   if(length(extra))
     stop("Argument `extra` must be empty in `diffObj`.")
 
-  frame # force frame so that `par_frame` called in this context
-  call.raw <- extract_call(sys.calls(), frame)$call
-  call.raw[["frame"]] <- frame
-  call.str <- call.print <- call.raw
-  call.str[[1L]] <- quote(diffStr)
+  # frame # force frame so that `par_frame` called in this context
+
+  # Need to generate calls inside a new child environment so that we do not
+  # pollute the environment and create potential conflicts with ... args
+  # used to run this inside a `local` call, but issues cropped up with the
+  # advent of JIT, and can't recall why just storing arguments at first
+  # was a problem
+
+  args <- as.list(environment())
+  call.dat <- extract_call(sys.calls(), frame)
+  err <- make_err_fun(call.dat$call)
+
+  if(is.null(args$tar.banner)) args$tar.banner <- call("quote", call.dat$tar)
+  if(is.null(args$cur.banner)) args$cur.banner <- call("quote", call.dat$cur)
+
+  call.print <- as.call(c(list(quote(diffobj::diffPrint)), args))
+  call.str <- as.call(c(list(quote(diffobj::diffStr)), args))
   call.str[["extra"]] <- list(max.level="auto")
-  call.print[[1L]] <- quote(diffPrint)
+  res.print <- try(eval(call.print, frame), silent=TRUE)
+  res.str <- try(eval(call.str, frame), silent=TRUE)
+
+  if(inherits(res.str, "try-error"))
+    err(
+      "Error in calling `diffStr`: ",
+      conditionMessage(attr(res.str, "condition"))
+    )
+  if(inherits(res.print, "try-error"))
+    err(
+      "Error in calling `diffPrint`: ",
+      conditionMessage(attr(res.print, "condition"))
+    )
 
   # Run both the print and str versions, and then decide which to use based
   # on some weighting of various factors including how many lines needed to be
   # omitted vs. how many differences were reported
-
-  res.print <- eval(call.print, frame)
-  res.str <- eval(call.str, frame)
 
   diff.p <- count_diff_hunks(res.print@diffs)
   diff.s <- count_diff_hunks(res.str@diffs)
@@ -604,8 +642,11 @@ body(diff_obj) <- quote({
     !res.print@trim.dat$lines[[1L]]
   ) {
     res.print
-  # Calculate the trade offs between the two options
+  } else if (diff.l.p <= console_lines() / 2) {
+    # Always use print if print output is reasonable size
+    res.print
   } else {
+  # Calculate the trade offs between the two options
     s.score <- diff.s / diff.l.s * diff.line.ratio.s
     p.score <- diff.p / diff.l.p * diff.line.ratio.p
     if(p.score >= s.score) res.print else res.str

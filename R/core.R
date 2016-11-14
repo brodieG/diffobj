@@ -1,9 +1,10 @@
-# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
+#
+# This file is part of "diffobj - Diffs for R Objects"
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
@@ -11,7 +12,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
+# Go to <https://www.r-project.org/Licenses/GPL-2> for a copy of the license.
 
 #' @include s4.R
 
@@ -61,7 +62,7 @@ setMethod("as.character", "MyersMbaSes",
         } else if (ins) {
           paste0(d$last.a[[1L]], "a", ses_rng(ins.off, ins))
         } else {
-          stop("Logic Error: unexpected edit type; contact maintainer.")
+          stop("Logic Error: unexpected edit type; contact maintainer.") # nocov
         }
       },
       character(1L)
@@ -138,6 +139,13 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}
 #' for how to interpret the symbols.
 #'
+#' \code{ses} will be much faster than any of the
+#' \code{\link[=diffPrint]{diff*}} methods, particularly for large inputs with
+#' limited numbers of differences.
+#'
+#' NAs are treated as the string \dQuote{NA}.  Non-character inputs are coerced
+#' to character.
+#'
 #' @export
 #' @param a character
 #' @param b character
@@ -145,7 +153,21 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' @examples
 #' ses(letters[1:3], letters[2:4])
 
-ses <- function(a, b) as.character(diff_myers(a, b))
+ses <- function(a, b) {
+  if(!is.character(a)) {
+    a <- try(as.character(a))
+    if(inherits(a, "try-error"))
+      stop("Argument `a` is not character and could not be coerced to such")
+  }
+  if(!is.character(b)) {
+    b <- try(as.character(b))
+    if(inherits(b, "try-error"))
+      stop("Argument `b` is not character and could not be coerced to such")
+  }
+  if(anyNA(a)) a[is.na(a)] <- "NA"
+  if(anyNA(b)) b[is.na(b)] <- "NA"
+  as.character(diff_myers(a, b))
+}
 
 #' Diff two character vectors
 #'
@@ -279,9 +301,11 @@ make_hh <- function(h.g, mode, tar.dat, cur.dat, ranges.orig) {
   # possible fill lines added to the data
 
   h.ids.nh <- h.ids[!h.head]
-  tar.rng <- find_rng(h.ids.nh, ranges.orig[1:2, , drop=FALSE])
+
+  tar.rng <- find_rng(h.ids.nh, ranges.orig[1:2, , drop=FALSE], tar.dat$fill)
   tar.rng.f <- cumsum(!tar.dat$fill)[tar.rng]
-  cur.rng <- find_rng(h.ids.nh, ranges.orig[3:4, , drop=FALSE])
+
+  cur.rng <- find_rng(h.ids.nh, ranges.orig[3:4, , drop=FALSE], cur.dat$fill)
   cur.rng.f <- cumsum(!cur.dat$fill)[cur.rng]
 
   hh.a <- paste0(rng_as_chr(tar.rng.f))
@@ -291,7 +315,19 @@ make_hh <- function(h.g, mode, tar.dat, cur.dat, ranges.orig) {
     sprintf("@@ %s / %s @@", hh.a, hh.b)
   }
 }
+# Do not allow `useBytes=TRUE` if there are any matches with `useBytes=FALSE`
+#
+# Clean up word.ind to avoid issues where we have mixed UTF-8 and non
+# UTF-8 strings in different hunks, and gregexpr is trying to optimize
+# buy using useBytes=TRUE in ASCII only strings without knowing that in a
+# different hunk there are UTF-8 strings
 
+fix_word_ind <- function(x) {
+  matches <- vapply(x, function(y) length(y) > 1L || y != -1L, logical(1L))
+  useBytes <- vapply(x, function(y) isTRUE(attr(y, "useBytes")), logical(1L))
+  if(!all(useBytes[matches])) x <- lapply(x, `attr<-`, "useBytes", NULL)
+  x
+}
 # Variation on `char_diff` used for the overall diff where we don't need
 # to worry about overhead from creating the `Diff` object
 
@@ -401,7 +437,6 @@ line_diff <- function(
       stop("Logic Error, row headers must be sequential; contact maintainer.")
       # nocov end
     }
-
     # Only do this for the portion of the data that actually matches up with
     # the atomic row headers (NOTE: need to check what happens with named
     # vectors without row headers)
@@ -477,28 +512,34 @@ line_diff <- function(
     tar.dat$tok.rat <- tok_ratio_compute(tar.dat$word.ind)
     cur.dat$tok.rat <- tok_ratio_compute(cur.dat$word.ind)
 
-    tar.dat$eq <- `regmatches<-`(tar.dat$trim, tar.dat$word.ind, value="")
-    cur.dat$eq <- `regmatches<-`(cur.dat$trim, cur.dat$word.ind, value="")
+    # Deal with mixed UTF/plain strings
+
+    tar.dat$word.ind <- fix_word_ind(tar.dat$word.ind)
+    cur.dat$word.ind <- fix_word_ind(cur.dat$word.ind)
+
+    # Remove different words to make equal strings
+
+    tar.dat$eq <- with(tar.dat, `regmatches<-`(trim, word.ind, value=""))
+    cur.dat$eq <- with(cur.dat, `regmatches<-`(trim, word.ind, value=""))
   }
   # Instantiate result
 
   hunk.grps.raw <- group_hunks(
     hunks.flat, etc=etc, tar.capt=tar.dat$raw, cur.capt=cur.dat$raw
   )
-  # Recompute line limit accounting for banner len
-
   gutter.dat <- etc@gutter
-  banner.len <- banner_len(etc@mode)
   max.w <- etc@text.width
 
-  line.limit <- etc@line.limit
-  line.limit.a <- if(line.limit[[1L]] >= 0L)
-    pmax(integer(2L), line.limit - banner.len) else line.limit
-  etc@line.limit <- line.limit.a
+  # Recompute line limit accounting for banner len, needed for correct trim
 
-  # Trim hunks to the extented needed to make sure we fit in lines
+  etc.group <- etc
+  if(etc.group@line.limit[[1L]] >= 0L) {
+    etc.group@line.limit <-
+      pmax(integer(2L), etc@line.limit - banner_len(etc@mode))
+  }
+  # Trim hunks to the extent needed to make sure we fit in lines
 
-  hunk.grps <- trim_hunks(hunk.grps.raw, etc, tar.dat$raw, cur.dat$raw)
+  hunk.grps <- trim_hunks(hunk.grps.raw, etc.group, tar.dat$raw, cur.dat$raw)
   hunks.flat <- unlist(hunk.grps, recursive=FALSE)
 
   # Compact to width of widest element, so retrieve all char values; also
@@ -520,9 +561,30 @@ line_diff <- function(
     hunks.flat, function(h.a) c(h.a$tar.rng.trim, h.a$cur.rng.trim),
     integer(4L)
   )
+  # compute ranges excluding fill lines
+  rng_non_fill <- function(rng, fill) {
+    if(!rng[[1L]]) rng else {
+      rng.seq <- seq(rng[[1L]], rng[[2L]], by=1L)
+      seq.not.fill <- rng.seq[!rng.seq %in% fill]
+      if(!length(seq.not.fill)) {
+        integer(2L)
+      } else {
+        range(seq.not.fill)
+  } } }
   ranges.orig <- vapply(
-    hunks.flat, function(h.a) c(h.a$tar.rng.sub, h.a$cur.rng.sub), integer(4L)
+    hunks.flat, function(h.a) {
+      with(
+        h.a, c(
+          rng_non_fill(tar.rng.sub, which(tar.dat$fill)),
+          rng_non_fill(cur.rng.sub, which(cur.dat$fill))
+      ) )
+    },
+    integer(4L)
   )
+  # We need a version of ranges that adjust for the fill lines that are counted
+  # in the ranges but don't represent actual lines of output.  This does mean
+  # that adjusted ranges are not necessarily contiguous
+
   hunk.heads <-
     lapply(hunk.grps, make_hh, etc@mode, tar.dat, cur.dat, ranges.orig)
   h.h.chars <- nchar(chr_trim(unlist(hunk.heads), etc@line.width))

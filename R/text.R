@@ -1,9 +1,10 @@
-# diffobj - Diffs for R Objects
 # Copyright (C) 2016  Brodie Gaslam
+#
+# This file is part of "diffobj - Diffs for R Objects"
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
@@ -11,7 +12,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# Go to <https://www.r-project.org/Licenses/GPL-3> for a copy of the license.
+# Go to <https://www.r-project.org/Licenses/GPL-2> for a copy of the license.
 
 # borrowed from crayon, will lobby to get it exported
 
@@ -292,32 +293,57 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
     unlist(txt.fin)
   }
 }
+#' Replace Horizontal Spacing Control Characters
+#'
+#' Removes tabs, newlines, and carriage returns and manipulates the text so that
+#' it looks the renders the same as it did with those horizontal control
+#' characters embedded.  This function is used when the
+#' \code{convert.hz.white.space} parameter to the
+#' \code{\link[=diffPrint]{diff*}} methods is active.  The term \dQuote{strip}
+#' is a misnomer that remains for legacy reasons and lazyness.
+#'
+#' This is an internal function with exposed documentation because it is
+#' referenced in an external function's documentation.
+#'
+#' @keywords internal
+#' @param txt character to covert
+#' @param stops integer, what tab stops to use
+
 strip_hz_control <- function(txt, stops=8L) {
   # stopifnot(
   #   is.character(txt), !anyNA(txt),
   #   is.integer(stops), length(stops) >= 1L, !anyNA(stops), all(stops > 0L)
   # )
-  txt.l <- strsplit(txt, "\n")
-  txt.zero <- !vapply(txt.l, length, integer(1L))
-  txt.l[txt.zero] <- ""  # strsplit turns "" into character(0L)
-  txt <- unlist(txt.l)
 
-  use.ansi <- crayon_hascolor()
-  has.ansi <- grepl(ansi_regex, txt, perl=TRUE) & use.ansi
-  w.ansi <- which(has.ansi)
-  wo.ansi <- which(!has.ansi)
+  # for speed in case no special chars, just skip; obviously this adds a penalty
+  # for other cases but it is small
 
-  # since for the time being the crayon funs are a bit slow, only us them on
-  # strings that are known to have ansi escape sequences
+  if(!any(grepl("\n|\t|\r", txt, perl=TRUE))) {
+    txt
+  } else {
+    if(length(has.n <- grep("\n", txt, fixed=TRUE))) {
+      txt.l <- as.list(txt)
+      txt.l.n <- strsplit(txt[has.n], "\n")
+      txt.l[has.n] <- txt.l.n
+      txt <- unlist(txt.l)
+    }
+    use.ansi <- crayon_hascolor()
+    has.ansi <- grepl(ansi_regex, txt, perl=TRUE) & use.ansi
+    w.ansi <- which(has.ansi)
+    wo.ansi <- which(!has.ansi)
 
-  res <- character(length(txt))
-  res[w.ansi] <- strip_hz_c_int(
-    txt[w.ansi], stops, use.ansi, crayon_nchar, crayon_substr, crayon_split
-  )
-  res[wo.ansi] <- strip_hz_c_int(
-    txt[wo.ansi], stops, use.ansi, nchar, substr, strsplit
-  )
-  res
+    # since for the time being the crayon funs are a bit slow, only us them on
+    # strings that are known to have ansi escape sequences
+
+    res <- character(length(txt))
+    res[w.ansi] <- strip_hz_c_int(
+      txt[w.ansi], stops, use.ansi, crayon_nchar, crayon_substr, crayon_split
+    )
+    res[wo.ansi] <- strip_hz_c_int(
+      txt[wo.ansi], stops, use.ansi, nchar, substr, strsplit
+    )
+    res
+  }
 }
 # Normalize strings so whitespace differences don't show up as differences
 

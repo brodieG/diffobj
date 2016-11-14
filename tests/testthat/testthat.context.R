@@ -13,6 +13,10 @@ test_that("interesting context values", {
     rdsf(100)
   )
   expect_equal_to_reference(
+    as.character(diffChr(chr.9, chr.10, context=-1L)),
+    rdsf(150)
+  )
+  expect_equal_to_reference(
     as.character(diffChr(chr.9, chr.10, context="auto")),
     rdsf(200)
   )
