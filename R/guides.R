@@ -227,31 +227,39 @@ detect_array_guides <- function(txt, dim.n) {
       dim.guide.fin else integer(0L)
   } else integer(0L)
 }
+# Utility fun to determin whether an object would be shown with the default show
+# method
+
+is_default_show_obj <- function(obj) {
+  stopifnot(isS4(obj))
+  s.m <- selectMethod("show", class(obj))
+  identical(
+    class(s.m),
+    structure("derivedDefaultMethod", package = "methods")
+  )
+}
 # Basic S4 guide detection, does not handle nesting or anything fancy like that
 # and could easily be fooled
 
 detect_s4_guides <- function(txt, obj) {
   stopifnot(isS4(obj))
-  s.m <- selectMethod("show", class(obj))
 
   # Only try to do this if relying on default S4 show method
 
-  if(
-    identical(
-      class(s.m),
-      structure("derivedDefaultMethod", package = "methods"))
-  ) {
+  if(is_default_show_obj(obj)) {
+    # this could be an issue if they start using curly quotes or whatever...
     guides <- c(
       sprintf("An object of class \"%s\"", class(obj)),
       sprintf("Slot \"%s\":", slotNames(obj))
     )
-    guides.match <- match(guides, txt)
-    guides.found <- guides.match[!is.na(guides.match)]
-    if(
-      length(guides.found) == length(guides) && all(diff(guides.match) > 0L)
-    ) {
-      guides.found
-    } else integer()
+    guides.loc <- which(txt %in% guides)
+    guides.txt <- txt[guides.loc]
+
+    if(!identical(guides, guides.txt)) {
+      integer()
+    } else {
+      guides.loc
+    }
   } else integer()
 }
 #' Generic Methods to Implement Flexible Guide Line Computations
