@@ -99,6 +99,8 @@ even with failed trimming this is considered an acceptable compromise.
 Trimming is more likely to fail with nested recursive structures.
 }
 \note{
-\code{obj.as.chr} will be post \code{strip_hz_control}
+\code{obj.as.chr} will be as processed by
+  \code{\link{strip_hz_control}} and as such will not be identical to the
+  captured output if it contains tabs, newlines, or carriage returns.
 }
 

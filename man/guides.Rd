@@ -101,7 +101,7 @@ methods for them (see examples), though if your objects are S3 you will need
 to use \code{\link{setOldClass}} as the \code{guides*} generics are S4.
 }
 \note{
-the mechanism for identifying guides will almost certainly change in
+The mechanism for identifying guides will almost certainly change in
   the future to allow for better handling of nested guides, so if you do
   implement custom guideline methods do so with the understanding that they
   will likely be deprecated in one of the future releases.
