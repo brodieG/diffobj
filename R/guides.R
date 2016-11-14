@@ -295,14 +295,21 @@ detect_s4_guides <- function(txt, obj) {
 #' character representation thereof.
 #'
 #' The default method for \code{guidesPrint} has special handling for 2D
-#' objects (e.g. data frames, matrices), arrays, time series, tables, and lists.
+#' objects (e.g. data frames, matrices), arrays, time series, tables, lists, and
+#' S4 objects that use the default \code{show} method.  Guide finding is on a
+#' best efforts basis and may fail if your objects contain \dQuote{pathological}
+#' display representations.  Since the diff will still work with failed
+#' \code{guides} finding we consider this an acceptable compromise.  Guide
+#' finding is more likely to fail with nested recursive structures.
+#'
+#' \code{guidesStr} highlights top level objects.  The default methods for the
+#' other \code{guide*} generics do not do anything and exist only as a mechanism
+#' for providing custom guide line methods.
+#'
 #' If you dislike the default handling you can also define your own methods for
 #' matrices, arrays, etc., or alternatively you can pass a guide finding
 #' function directly via the \code{guides} parameter to the \code{diff*}
-#' methods.  The default method for \code{guidesStr} highlights top level
-#' objects.  The default methods for the other \code{guide*} methods
-#' do not do anything and exist only as a mechanism for providing custom guide
-#' line methods.
+#' methods.
 #'
 #' If you have classed objects with special patterns you can define your own
 #' methods for them (see examples), though if your objects are S3 you will need
