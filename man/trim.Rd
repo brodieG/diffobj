@@ -50,11 +50,12 @@ a \code{length(obj.as.chr)} row and 2 column integer matrix with the
   string to run diffs on.
 }
 \description{
-\code{diff*} methods, in particular \code{diffPrint}, modify the text
-representation of an object prior to running the diff to reduce the incidence
-of spurious mismatches caused by unsemantic differences.  For example, we
-look to remove matrix row indices and atomic vector indices (i.e. the
-\samp{[1,]} or \samp{[1]} strings at the beginning of each display line).
+\code{\link[=diffPrint]{diff*}} methods, in particular \code{diffPrint},
+modify the text representation of an object prior to running the diff to
+reduce the incidence of spurious mismatches caused by unsemantic differences.
+For example, we look to remove matrix row indices and atomic vector indices
+(i.e. the \samp{[1,]} or \samp{[1]} strings at the beginning of each display
+line).
 }
 \details{
 Consider: \preformatted{

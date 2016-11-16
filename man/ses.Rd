@@ -26,7 +26,8 @@ for how to interpret the symbols.
 \code{\link[=diffPrint]{diff*}} methods, particularly for large inputs with
 limited numbers of differences.
 
-NAs are treated as the string \dQuote{NA}.
+NAs are treated as the string \dQuote{NA}.  Non-character inputs are coerced
+to character.
 }
 \examples{
 ses(letters[1:3], letters[2:4])

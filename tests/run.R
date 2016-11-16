@@ -19,7 +19,8 @@ local({                                         # so we can use `on.exit`
       diffobj.format="ansi8", # force ANSI colors
       diffobj.color.mode="yb",# force yb
       diffobj.pager="off",    # run tests without pager
-      width=80L
+      width=80L,
+      encoding="UTF-8"        # so Gabor's name renders properly on win...
     )
   )
   old.opts <- options(c(diffobj_set_def_opts(), all.opts))
@@ -42,32 +43,32 @@ local({                                         # so we can use `on.exit`
     "testthat",
     filter=paste0(                              # so we can run subset of files
       c(
-        # "atomic",
-        # "banner",
-        # "capture",
-        # "check",
-        # "context",
-        # "core",
-        # "diffChr",
-        # "diffDeparse",
-        # "diffObj",
-        # "diffPrint",
-        # "diffStr",
-        # "file",
+        "atomic",
+        "banner",
+        "capture",
+        "check",
+        "context",
+        "core",
+        "diffChr",
+        "diffDeparse",
+        "diffObj",
+        "diffPrint",
+        "diffStr",
+        "file",
         "guide",
-        # "html",
-        # "limit",
-        # "methods",
-        # "misc",
-        # "pager",
-        # "rdiff",
-        # "s4",
-        # "style",
-        # "subset",
-        # "summary",
-        # "text",
-        "trim"
-        # "warning"
+        "html",
+        "limit",
+        "methods",
+        "misc",
+        "pager",
+        "rdiff",
+        "s4",
+        "style",
+        "subset",
+        "summary",
+        "text",
+        "trim",
+        "warning"
       ), collapse="|"
     )
   )

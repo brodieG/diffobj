@@ -295,10 +295,12 @@ word_to_line_map <- function(
     length(tar.lines.f) != length(cur.lines.f) ||
     length(tar.lines.f) != length(h.cont)
   )
+    # nocov start
     stop(
       "Logic error: mismatched hunk sizes when aligning words to lines; ",
       "contact maintainer."
     )
+    # nocov end
 
   tar.lines.f2 <- tar.lines.f
   cur.lines.f2 <- cur.lines.f

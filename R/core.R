@@ -143,7 +143,8 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' \code{\link[=diffPrint]{diff*}} methods, particularly for large inputs with
 #' limited numbers of differences.
 #'
-#' NAs are treated as the string \dQuote{NA}.
+#' NAs are treated as the string \dQuote{NA}.  Non-character inputs are coerced
+#' to character.
 #'
 #' @export
 #' @param a character

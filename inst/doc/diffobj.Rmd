@@ -81,7 +81,7 @@ Here `b` has an extra line so `diffobj` adds an empty line to `a` to maintain th
 If you look closely at the next matching line you will notice that the `a` and `b` values are not exactly the same.  The row indices are different, but `diffobj` excludes row indices from the diff so that rows that are identical otherwise are shown as matching.  `diffobj` indicates this is happening by showing the portions of a line that are ignored in the diff in grey.
 
 See `?guides` and `?trim` for details and limitations on guideline detection and
-non-semantic meta data trimming.
+unsemantic meta data trimming.
 
 ### Atomic Vectors
 
