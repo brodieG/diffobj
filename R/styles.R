@@ -426,6 +426,10 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #'   the console
 #' @param pad TRUE or FALSE, whether text should be right padded
 #' @param pager what type of \code{\link{Pager}} to use
+#' @param nchar.fun function to use to count characters; intended mostly for
+#'   internal use
+#' @param wrap TRUE or FALSE, whether text should be hard wrapped at
+#'   \code{disp.width}
 #' @param na.sub what character value to substitute for NA elements; NA elements
 #'   are generated when lining up side by side diffs by adding padding rows; by
 #'   default the text styles replace these with a blank character string, and
@@ -434,6 +438,9 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' @param blank sub what character value to replace blanks with; needed in
 #'   particular for HTML rendering (uses \code{"&nbsp;"}) to prevent lines from
 #'   collapsing
+#' @param disp.width how many columns the text representation of the objects to
+#'   diff is allowed to take up before it is hard wrapped (assuming \code{wrap}
+#'   is TRUE).  See param \code{disp.width} for \code{\link{diffPrint}}.
 #' @param finalizer function that accepts at least two parameters and requires
 #'   no more than two parameters, will receive as the first parameter the
 #'   the object to render (either a \code{Diff} or a \code{DiffSummary}
@@ -444,6 +451,11 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #'   be displayed in a browser.  The object themselves are passed along to
 #'   provide information about the paging device and other contextual data to
 #'   the function.
+#' @param html.output (\code{StyleHtml} objects only) one of:
+#'   \itemize{
+#'     \dQuote{"auto"}: Pick an html output mode based on 
+#'     \dQuote{"page"}: Include all HTML/CSS/JS required to render the diff
+#'   }
 #' @param escape.html.entities (\code{StyleHtml} objects only) TRUE (default)
 #'   or FALSE, whether to escape HTML entities in the input
 #' @param scale (\code{StyleHtml} objects only) TRUE (default) or FALSE,
