@@ -453,16 +453,19 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #'   the function.
 #' @param html.output (\code{StyleHtml} objects only) one of:
 #'   \itemize{
-#'     \dQuote{page}: Include all HTML/CSS/JS required to create a
-#'       stand-alone JS page.
-#'     \dQuote{diff.w.style}: The CSS and HTML, but without any of the outer
-#'       tags that would make it a proper HTML page (i.e. no \code{<html>} tags
-#'       or the like) and without the JS.
-#'     \dQuote{diff.only}: Like \dQuote{diff.w.style}, but without the CSS
-#'     \dQuote{auto}: Pick one of the above based on \code{Pager}, will chose
-#'       \dQuote{page} if the pager is of type \code{PagerBrowser} (as in that
-#'       case the output is destined to be displayed in a browser like device),
-#'       or \dQuote{diff.only} if it is not.
+#'     \item \dQuote{page}: Include all HTML/CSS/JS required to create a
+#'       stand-alone web page with the diff.
+#'     \item \dQuote{diff.w.style}: The CSS and HTML, but without any of the
+#'       outer tags that would make it a proper HTML page (i.e. no 
+#'       \code{<html>/<head>} tags or the like) and without the JS; note that
+#'       technically this is illegal HTML since we have \code{<style>} tags
+#'       floating outside of \code{<head>} tags, but it seems to work in most
+#'       browsers.
+#'     \item \dQuote{diff.only}: Like \dQuote{diff.w.style}, but without the CSS
+#'     \item \dQuote{auto}: Pick one of the above based on \code{Pager}, will
+#'        chose \dQuote{page} if the pager is of type \code{PagerBrowser} (as in
+#'        that case the output is destined to be displayed in a browser like
+#'        device), or \dQuote{diff.only} if it is not.
 #'   }
 #' @param escape.html.entities (\code{StyleHtml} objects only) TRUE (default)
 #'   or FALSE, whether to escape HTML entities in the input
