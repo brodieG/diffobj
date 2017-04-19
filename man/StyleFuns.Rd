@@ -2,8 +2,8 @@
 % Please edit documentation in R/styles.R
 \docType{class}
 \name{StyleFuns-class}
-\alias{StyleFuns}
 \alias{StyleFuns-class}
+\alias{StyleFuns}
 \title{Functions Used for Styling Diff Components}
 \arguments{
 \item{container}{function used primarily by HTML styles to generate an
@@ -84,4 +84,3 @@ the slots are set to class \dQuote{ANY} to allow classed functions
 \seealso{
 \code{\link{Style}}
 }
-

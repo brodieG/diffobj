@@ -49,4 +49,3 @@ These methods are implemented by storing the chosen indices in the
 \code{Diff} object and using them to subset the \code{as.character} output.
 This mechanism explains the seemingly odd behavior documented above.
 }
-

@@ -3,19 +3,20 @@
 \docType{methods}
 \name{guides}
 \alias{guides}
-\alias{guidesChr}
+\alias{guidesPrint,}
+\alias{guidesStr,}
 \alias{guidesChr,}
+\alias{guidesDeparse}
+\alias{guidesPrint}
+\alias{guidesPrint,ANY,character-method}
+\alias{guidesStr}
+\alias{guidesStr,ANY,character-method}
+\alias{guidesChr}
 \alias{guidesChr,ANY,character-method}
 \alias{guidesDeparse}
 \alias{guidesDeparse,ANY,character-method}
 \alias{guidesFile}
 \alias{guidesFile,ANY,character-method}
-\alias{guidesPrint}
-\alias{guidesPrint,}
-\alias{guidesPrint,ANY,character-method}
-\alias{guidesStr}
-\alias{guidesStr,}
-\alias{guidesStr,ANY,character-method}
 \title{Generic Methods to Implement Flexible Guide Line Computations}
 \usage{
 guidesPrint(obj, obj.as.chr)
@@ -120,4 +121,3 @@ setMethod("guidesPrint", c("zulu", "character"),
     else integer(0L)
 } )
 }
-

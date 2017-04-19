@@ -22,4 +22,3 @@ Wraps \code{fun} in a function that runs \code{fun} and then issues a
 \code{readline} prompt to prevent further R code evaluation until user
 presses a key.
 }
-

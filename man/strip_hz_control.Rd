@@ -24,4 +24,3 @@ This is an internal function with exposed documentation because it is
 referenced in an external function's documentation.
 }
 \keyword{internal}
-

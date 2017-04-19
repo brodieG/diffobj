@@ -25,4 +25,3 @@ Determine if Diff Object Has Differences
 any(diffChr(letters, letters))
 any(diffChr(letters, letters[-c(1, 5, 8)]))
 }
-

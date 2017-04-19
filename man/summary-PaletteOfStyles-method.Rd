@@ -20,4 +20,3 @@ summary(PaletteOfStyles())
 \description{
 Display a Summarized Version of a PaletteOfStyles
 }
-

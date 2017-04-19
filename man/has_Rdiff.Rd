@@ -17,4 +17,3 @@ diff utility is not available.  Intended primarily for testing purposes.
 \examples{
 has_Rdiff()
 }
-

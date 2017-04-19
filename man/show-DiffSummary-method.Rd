@@ -19,4 +19,3 @@ show(
 \description{
 Display DiffSummary Objects
 }
-
