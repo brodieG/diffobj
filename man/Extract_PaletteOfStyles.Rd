@@ -2,8 +2,8 @@
 % Please edit documentation in R/styles.R
 \docType{methods}
 \name{[<-,PaletteOfStyles-method}
-\alias{[,PaletteOfStyles,ANY,ANY,ANY-method}
 \alias{[<-,PaletteOfStyles-method}
+\alias{[,PaletteOfStyles,ANY,ANY,ANY-method}
 \alias{[[,PaletteOfStyles-method}
 \title{Extract/Replace a Style Class or Object from PaletteOfStyles}
 \usage{
@@ -50,4 +50,3 @@ pal["ansi256", "light", "rgb"] <- list(StyleAnsi8NeutralRgb())
 \code{\link{diffPrint}} for explanations of \code{format},
   \code{brightness}, and \code{color.mode}
 }
-

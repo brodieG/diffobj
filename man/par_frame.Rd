@@ -29,4 +29,3 @@ names.  This method could potentially be tricked if you implement custom
 issue two identical sequential calls before calling \code{callNextMethod}.
 Failure in this case means the wrong \code{frame} will be returned.
 }
-

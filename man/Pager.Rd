@@ -3,16 +3,17 @@
 \docType{class}
 \name{Pager}
 \alias{Pager}
-\alias{PagerBrowser}
-\alias{PagerOff}
 \alias{PagerOff,}
-\alias{PagerOff-class}
-\alias{PagerSystem}
 \alias{PagerSystem,}
-\alias{PagerSystem-class}
-\alias{PagerSystemLess}
 \alias{PagerSystemLess,}
+\alias{PagerBrowser}
+\alias{PagerOff-class}
+\alias{PagerOff}
+\alias{PagerSystem-class}
+\alias{PagerSystem}
 \alias{PagerSystemLess-class}
+\alias{PagerSystemLess}
+\alias{PagerBrowser}
 \title{Objects for Specifying Pager Settings}
 \usage{
 PagerOff(...)
@@ -179,6 +180,7 @@ a function that pauses evaluation such as \code{\link{make_blocking}}, as
 otherwise the temporary file that contains the diff may be deleted before
 the pager has a chance to read it.
 }
+
 \examples{
 ## We `dontrun` these examples as they involve pagers that should only be run
 ## in interactive mode
@@ -218,4 +220,3 @@ diffChr(1:200, 180:300, pager=page.conf)
 \seealso{
 \code{\link{Style}}, \code{\link{pager_is_less}}
 }
-

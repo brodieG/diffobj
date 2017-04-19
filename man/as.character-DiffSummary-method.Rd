@@ -24,4 +24,3 @@ as.character(
   summary(diffChr(letters, letters[-c(5, 15)], format="raw", pager="off"))
 )
 }
-

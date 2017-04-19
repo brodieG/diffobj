@@ -453,8 +453,16 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #'   the function.
 #' @param html.output (\code{StyleHtml} objects only) one of:
 #'   \itemize{
-#'     \dQuote{"auto"}: Pick an html output mode based on 
-#'     \dQuote{"page"}: Include all HTML/CSS/JS required to render the diff
+#'     \dQuote{page}: Include all HTML/CSS/JS required to create a
+#'       stand-alone JS page.
+#'     \dQuote{diff.w.style}: The CSS and HTML, but without any of the outer
+#'       tags that would make it a proper HTML page (i.e. no \code{<html>} tags
+#'       or the like) and without the JS.
+#'     \dQuote{diff.only}: Like \dQuote{diff.w.style}, but without the CSS
+#'     \dQuote{auto}: Pick one of the above based on \code{Pager}, will chose
+#'       \dQuote{page} if the pager is of type \code{PagerBrowser} (as in that
+#'       case the output is destined to be displayed in a browser like device),
+#'       or \dQuote{diff.only} if it is not.
 #'   }
 #' @param escape.html.entities (\code{StyleHtml} objects only) TRUE (default)
 #'   or FALSE, whether to escape HTML entities in the input

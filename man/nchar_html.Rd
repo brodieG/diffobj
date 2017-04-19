@@ -21,4 +21,3 @@ HTML output is intended to be displayed inside \code{<PRE>} tags.
 \examples{
 nchar_html("<a href='http:www.domain.com'>hello</a>")
 }
-

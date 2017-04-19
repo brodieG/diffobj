@@ -282,4 +282,3 @@ diffChr(LETTERS[1:5], LETTERS[2:6], pager="off")
   \code{\link{diffDeparse}} to compare deparsed objects,
   \code{\link{ses}} for a minimal and fast diff
 }
-

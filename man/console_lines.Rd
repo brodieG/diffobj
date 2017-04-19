@@ -16,4 +16,3 @@ Returns the value of the \code{LINES} system variable if it is reasonable,
 \examples{
 console_lines()
 }
-

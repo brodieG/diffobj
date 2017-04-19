@@ -22,4 +22,3 @@ Generate a character representation of Shortest Edit Sequence
 \code{\link{ses}}
 }
 \keyword{internal}
-

@@ -16,4 +16,3 @@ the \dQuote{diffobj.} prefix}
 \examples{
 gdo("format")
 }
-

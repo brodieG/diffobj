@@ -32,4 +32,3 @@ character output prior to output to device.  Used primarily by styles that
 output to HTML to properly configure HTML page structure, including injecting
 JS, CSS, etc..
 }
-

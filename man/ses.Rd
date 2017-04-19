@@ -32,4 +32,3 @@ to character.
 \examples{
 ses(letters[1:3], letters[2:4])
 }
-

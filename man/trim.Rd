@@ -3,20 +3,21 @@
 \docType{methods}
 \name{trim}
 \alias{trim}
-\alias{trimChr}
+\alias{trimPrint,}
+\alias{trimStr,}
 \alias{trimChr,}
+\alias{trimDeparse,}
+\alias{trimFile}
+\alias{trimPrint}
+\alias{trimPrint,ANY,character-method}
+\alias{trimStr}
+\alias{trimStr,ANY,character-method}
+\alias{trimChr}
 \alias{trimChr,ANY,character-method}
 \alias{trimDeparse}
-\alias{trimDeparse,}
 \alias{trimDeparse,ANY,character-method}
 \alias{trimFile}
 \alias{trimFile,ANY,character-method}
-\alias{trimPrint}
-\alias{trimPrint,}
-\alias{trimPrint,ANY,character-method}
-\alias{trimStr}
-\alias{trimStr,}
-\alias{trimStr,ANY,character-method}
 \title{Methods to Remove Unsemantic Text Prior to Diff}
 \usage{
 trimPrint(obj, obj.as.chr)
@@ -104,4 +105,3 @@ Trimming is more likely to fail with nested recursive structures.
   \code{\link{strip_hz_control}} and as such will not be identical to the
   captured output if it contains tabs, newlines, or carriage returns.
 }
-
