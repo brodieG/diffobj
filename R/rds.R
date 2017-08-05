@@ -18,7 +18,10 @@
 
 get_rds <- function(x) {
   tryCatch(
-    if(is.chr.1L(x) && file_test("-f", x) || inherits(x, "connection")) {
+    if(
+      (is.chr.1L(x) && Encoding(x) != "bytes" && file_test("-f", x)) ||
+      inherits(x, "connection")
+    ) {
       suppressWarnings(readRDS(x))
     } else x,
     error=function(e) x
