@@ -238,7 +238,8 @@ test_that("Encoding Issues", {
   )
   expect_equal(new, ref)
 
-  # issue 106
+  # issue 106, this used to fail when trying to check for an RDS with a bytes
+  # encoded file name
 
   bytes <- "\x81"
   Encoding(bytes) <- "bytes"
