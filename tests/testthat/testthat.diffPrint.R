@@ -212,7 +212,7 @@ test_that("covr workaround", {
   # jhester
   diffobj:::make_diff_fun()
 })
-test_that("UTF-8 chars", {
+test_that("Encoding Issues", {
   # issue81, mixed UTF-8 ASCII
 
   a <- "Gábor Csárdi"
@@ -237,5 +237,11 @@ test_that("UTF-8 chars", {
     len = 8L
   )
   expect_equal(new, ref)
+
+  # issue 106
+
+  bytes <- "\x81"
+  Encoding(bytes) <- "bytes"
+  expect_true(!any(diffPrint(bytes, bytes)))
 })
 
