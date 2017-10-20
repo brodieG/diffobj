@@ -1,5 +1,9 @@
 # diffobj
 
+## v0.1.7
+
+* Fix tests for next `testthat` release.
+
 ## v0.1.6
 
 * [#87](https://github.com/brodieG/diffobj/issues/87): `diffobj` is now GPL (>=2)
