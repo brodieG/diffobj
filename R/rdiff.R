@@ -129,6 +129,7 @@ Rdiff_run <- function(from, to, nullPointers, silent, minimal) {
 #'
 #' @export
 #' @return TRUE or FALSE
+#' @param test.with function to test for diff presence with, typically Rdiff
 #' @examples
 #' has_Rdiff()
 
