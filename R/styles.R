@@ -456,7 +456,7 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #'     \item \dQuote{page}: Include all HTML/CSS/JS required to create a
 #'       stand-alone web page with the diff.
 #'     \item \dQuote{diff.w.style}: The CSS and HTML, but without any of the
-#'       outer tags that would make it a proper HTML page (i.e. no 
+#'       outer tags that would make it a proper HTML page (i.e. no
 #'       \code{<html>/<head>} tags or the like) and without the JS; note that
 #'       technically this is illegal HTML since we have \code{<style>} tags
 #'       floating outside of \code{<head>} tags, but it seems to work in most
@@ -661,12 +661,6 @@ StyleAnsi256LightRgb <- setClass(
       )
 ) ) )
 
-darkGray <- crayon::make_style(
-  rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
-)
-darkGrayBg <- crayon::make_style(
-  rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE, colors=256
-)
 #' @export StyleAnsi256LightYb
 #' @exportClass StyleAnsi256LightYb
 #' @rdname Style
@@ -738,10 +732,39 @@ StyleAnsi256DarkRgb <- setClass(
       gutter.delete.ctd=crayon::make_style(
         rgb(2, 0, 0, maxColorValue=5), colors=256
       ),
-      gutter.guide=darkGray, gutter.guide.ctd=darkGray, line.guide=darkGray,
-      gutter.fill=darkGray, gutter.fill.ctd=darkGray, text.fill=darkGrayBg,
-      gutter.context.sep=darkGray, gutter.context.sep.ctd=darkGray,
-      context.sep=darkGray, meta=darkGray, trim=darkGray
+      gutter.guide=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      gutter.guide.ctd=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      line.guide=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      gutter.fill=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      gutter.fill.ctd=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      text.fill=crayon::make_style(
+        rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE, colors=256
+      ),
+      gutter.context.sep=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      gutter.context.sep.ctd=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      context.sep=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      meta=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      trim=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      )
 ) ) )
 #' @export StyleAnsi256DarkYb
 #' @exportClass StyleAnsi256DarkYb
@@ -778,10 +801,39 @@ StyleAnsi256DarkYb <- setClass(
       header=crayon::make_style(
         rgb(0, 3, 3, maxColorValue=5), colors=256
       ),
-      gutter.guide=darkGray, gutter.guide.ctd=darkGray, line.guide=darkGray,
-      gutter.fill=darkGray, gutter.fill.ctd=darkGray, text.fill=darkGrayBg,
-      gutter.context.sep=darkGray, gutter.context.sep.ctd=darkGray,
-      context.sep=darkGray, meta=darkGray, trim=darkGray
+      gutter.guide=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      gutter.guide.ctd=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      line.guide=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      gutter.fill=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      gutter.fill.ctd=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      text.fill=crayon::make_style(
+        rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE, colors=256
+      ),
+      gutter.context.sep=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      gutter.context.sep.ctd=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      context.sep=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      meta=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      trim=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      )
 ) ) )
 #' Return Location of Default HTML Support Files
 #'
