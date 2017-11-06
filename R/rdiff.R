@@ -129,10 +129,11 @@ Rdiff_run <- function(from, to, nullPointers, silent, minimal) {
 #'
 #' @export
 #' @return TRUE or FALSE
+#' @param test.with function to test for diff presence with, typically Rdiff
 #' @examples
 #' has_Rdiff()
 
-has_Rdiff <- function() {
+has_Rdiff <- function(test.with=tools::Rdiff) {
   f.a <- tempfile()
   f.b <- tempfile()
   on.exit(unlink(c(f.a, f.b)))
@@ -140,7 +141,7 @@ has_Rdiff <- function() {
   writeLines(LETTERS, f.b)
   tryCatch(
     {
-      Rdiff(
+      test.with(
         from=f.a, to=f.b, useDiff=TRUE, Log=TRUE, nullPointers=FALSE
       )
       TRUE

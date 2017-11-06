@@ -1,5 +1,15 @@
 # diffobj
 
+## v0.1.7
+
+* Fix tests for next `testthat` release.
+* [#107](https://github.com/brodieG/diffobj/issues/107): Diffs on quoted
+  language
+* [#108](https://github.com/brodieG/diffobj/issues/108): Problems caused by
+  copying `crayon` functions
+  ([@seulki-choi](https://stackoverflow.com/users/7788015/seulki-choi),
+  @gaborcsardi)
+
 ## v0.1.6
 
 * [#87](https://github.com/brodieG/diffobj/issues/87): `diffobj` is now GPL (>=2)

@@ -245,4 +245,19 @@ test_that("Encoding Issues", {
   Encoding(bytes) <- "bytes"
   expect_true(!any(diffPrint(bytes, bytes)))
 })
-
+test_that("Quoted Objects", {
+  expect_equal(
+    as.character(diffPrint(quote(zz + 1), quote(zz + 3))),
+    structure(
+      c("\033[33m<\033[39m \033[33mquote(..\033[39m  \033[34m>\033[39m \033[34mquote(..\033[39m", "\033[36m@@ 1 @@   \033[39m  \033[36m@@ 1 @@   \033[39m", "\033[33m<\033[39m \033[90m\033[39mzz + \033[33m1\033[39m\033[90m\033[39m    \033[34m>\033[39m \033[90m\033[39mzz + \033[34m3\033[39m\033[90m\033[39m  "
+      ), len = 3L
+    )
+  )
+  expect_equal(
+    as.character(diffPrint(quote(x), quote(y))),
+    structure(
+      c("\033[33m<\033[39m \033[33mquote(x)\033[39m  \033[34m>\033[39m \033[34mquote(y)\033[39m", "\033[36m@@ 1 @@   \033[39m  \033[36m@@ 1 @@   \033[39m", "\033[33m<\033[39m \033[90m\033[39m\033[33mx\033[39m\033[90m\033[39m         \033[34m>\033[39m \033[90m\033[39m\033[34my\033[39m\033[90m\033[39m       "),
+      len = 3L
+    )
+  )
+})
