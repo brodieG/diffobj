@@ -65,7 +65,9 @@ split_by_guides <- function(txt, guides, drop.leading=TRUE) {
 
 detect_2d_guides <- function(txt) {
   stopifnot(is.character(txt))
-  space.rows <- grepl("^\\s+\\S+", txt)
+  # not ideal b/c we have to handle data frames, data tables, tibbles, and in
+  # particular because data.tables are left aligned
+  space.rows <- !grepl("^\\S+|^\\s+[0-9]+:", txt)
   head.row <- min(which(space.rows))
   first.row <- min(which(!space.rows & seq_along(space.rows) > head.row))
   last.row <- max(which(!space.rows))
