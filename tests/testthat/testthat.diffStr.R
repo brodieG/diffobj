@@ -70,3 +70,16 @@ test_that("No visible differences", {
     as.character(diffStr(1:100, c(1:99, 101L))), rdsf(1100)
   )
 })
+test_that("Quoted Objects", {
+  expect_equal(
+    as.character(diffStr(quote(zz + 1), quote(zz + 3))),
+    structure(
+      c("\033[33m<\033[39m \033[33mstr(quote(zz +..\033[39m  \033[34m>\033[39m \033[34mstr(quote(zz +..\033[39m", "\033[36m@@ 1 @@           \033[39m  \033[36m@@ 1 @@           \033[39m", "\033[33m<\033[39m \033[90m\033[39m language zz + \033[33m1\033[39m\033[90m\033[39m  \033[34m>\033[39m \033[90m\033[39m language zz + \033[34m3\033[39m\033[90m\033[39m"
+      ), len = 3L
+  ) )
+
+  expect_equal(
+    as.character(diffStr(quote(x), quote(y))),
+    structure(c("\033[33m<\033[39m \033[33mstr(quo..\033[39m  \033[34m>\033[39m \033[34mstr(quo..\033[39m", "\033[36m@@ 1 @@    \033[39m  \033[36m@@ 1 @@    \033[39m", "\033[33m<\033[39m \033[90m\033[39m symbol \033[33mx\033[39m\033[90m\033[39m  \033[34m>\033[39m \033[90m\033[39m symbol \033[34my\033[39m\033[90m\033[39m"), len = 3L)
+  )
+})
