@@ -69,13 +69,16 @@ capt_print <- function(target, current, etc, err, extra){
   if(length(dots)) {
     if(!is.null(etc@tar.exp)) tar.call[[2L]] <- etc@tar.exp
     if(!is.null(etc@cur.exp)) cur.call[[2L]] <- etc@cur.exp
-    tar.call[[2L]] <- etc@tar.exp
-    cur.call[[2L]] <- etc@cur.exp
     etc@tar.banner <- deparse(tar.call)[[1L]]
     etc@cur.banner <- deparse(cur.call)[[1L]]
   }
-  if(!is.null(target)) tar.call[[2L]] <- target
-  if(!is.null(current)) cur.call[[2L]] <- current
+  tar.call.q <- if(is.call(target) || is.symbol(target))
+    call("quote", target) else target
+  cur.call.q <- if(is.call(current) || is.symbol(current))
+    call("quote", current) else current
+
+  if(!is.null(target)) tar.call[[2L]] <- tar.call.q
+  if(!is.null(current)) cur.call[[2L]] <- cur.call.q
 
   # If dimensioned object, and in auto-mode, switch to side by side if stuff is
   # narrow enough to fit
