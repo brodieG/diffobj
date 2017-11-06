@@ -172,8 +172,14 @@ capt_str <- function(target, current, etc, err, extra){
   # tar.exp/cur.exp, so instead run call with actual object
 
   tar.call <- cur.call <- str.match
-  if(!is.null(target)) tar.call[[2L]] <- target
-  if(!is.null(current)) cur.call[[2L]] <- current
+
+  tar.call.q <- if(is.call(target) || is.symbol(target))
+    call("quote", target) else target
+  cur.call.q <- if(is.call(current) || is.symbol(current))
+    call("quote", current) else current
+
+  if(!is.null(target)) tar.call[[2L]] <- tar.call.q
+  if(!is.null(current)) cur.call[[2L]] <- cur.call.q
 
   # Run str
 
