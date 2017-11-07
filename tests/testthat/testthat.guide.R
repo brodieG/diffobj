@@ -9,15 +9,6 @@ rdsf <- function(x)
 test_that("detect_2d_guides", {
    iris.dply <- c("Source: local data frame [150 x 5]", "Groups: Species [3]", "", "   Sepal.Length Sepal.Width", "          (dbl)       (dbl)", "1           5.1         3.5", "2           4.9         3.0", "3           4.7         3.2", "4           4.6         3.1", "5           5.0         3.6", "6           5.4         3.9", "7           4.6         3.4", "8           5.0         3.4", "9           4.4         2.9", "10          4.9         3.1", "..          ...         ...", "Variables not shown: Petal.Length", "  (dbl), Petal.Width (dbl), Species", "  (fctr)")
    expect_equal(diffobj:::detect_2d_guides(iris.dply), 4:5)
-   old.opt <- options(width=40)
-   on.exit(options(old.opt))
-   expect_equal(diffobj:::detect_2d_guides(capture.output(iris)), c(1, 152))
-   expect_equal(
-     diffobj:::detect_2d_guides(capture.output(USAccDeaths)), c(1, 8, 15)
-   )
-   # Time series
-   expect_equal(diffobj:::detect_2d_guides(capture.output(UKgas)), 1)
-
    # data table, but only if available
 
    DT1 <- try(data.table::data.table(a=1:10), silent=TRUE)
@@ -36,17 +27,35 @@ test_that("detect_2d_guides", {
    # tibble, but only if available
 
    TB1 <- try(tibble::tibble(a=1:10), silent=TRUE)
-   if(!inherits(DT1, "try-error")) {
+   if(!inherits(TB1, "try-error")) {
      TB2 <- TB1
-     TB2[5,"a"] <- 99
+     TB2[5,"a"] <- 99L
 
      expect_equal(
-       as.character(diffPrint(DT1, DT2, context=1)),
-       structure(c("\033[33m<\033[39m \033[33mTB1\033[39m                 \033[34m>\033[39m \033[34mTB2\033[39m               ", "\033[36m@@ 2,3 @@           \033[39m  \033[36m@@ 2,3 @@           \033[39m", "\033[90m\033[90m~\033[90m \033[90m\033[90m# A tibble: 10 x 1\033[90m\033[90m\033[39m  \033[90m\033[90m~\033[90m \033[90m\033[90m# A tibble: 10 x 1\033[90m\033[90m\033[39m", "  \033[90m\033[39m       a\033[90m\033[39m              \033[90m\033[39m       a\033[90m\033[39m          ", "\033[33m<\033[39m \033[90m\033[39m   \033[33m<int>\033[39m\033[90m\033[39m            \033[34m>\033[39m \033[90m\033[39m   \033[34m<dbl>\033[39m\033[90m\033[39m          ", 
-"  \033[90m 1 \033[39m    1\033[90m\033[39m              \033[90m 1 \033[39m    1\033[90m\033[39m          ", "\033[36m@@ 7,3 @@           \033[39m  \033[36m@@ 7,3 @@           \033[39m", "  \033[90m 4 \033[39m    4\033[90m\033[39m              \033[90m 4 \033[39m    4\033[90m\033[39m          ", "\033[33m<\033[39m \033[90m 5 \033[39m    \033[33m5\033[39m\033[90m\033[39m            \033[34m>\033[39m \033[90m 5 \033[39m   \033[34m99\033[39m\033[90m\033[39m          ", "  \033[90m 6 \033[39m    6\033[90m\033[39m              \033[90m 6 \033[39m    6\033[90m\033[39m          "
-), len = 10L)
+       as.character(diffPrint(TB1, TB2, context=1)),
+       structure(
+         c(
+           "\033[33m<\033[39m \033[33mTB1\033[39m        \033[34m>\033[39m \033[34mTB2\033[39m      ", 
+           "\033[36m@@ 7,3 @@  \033[39m  \033[36m@@ 7,3 @@  \033[39m",
+           "\033[90m\033[90m~\033[90m \033[90m\033[90m       a\033[90m\033[90m \033[39m  \033[90m\033[90m~\033[90m \033[90m\033[90m       a\033[90m\033[90m \033[39m",
+           "\033[90m\033[90m~\033[90m \033[90m\033[90m   <int>\033[90m\033[90m \033[39m  \033[90m\033[90m~\033[90m \033[90m\033[90m   <int>\033[90m\033[90m \033[39m",
+           "  \033[90m 4 \033[39m    4\033[90m\033[39m     \033[90m 4 \033[39m    4\033[90m\033[39m ",
+           "\033[33m<\033[39m \033[90m 5 \033[39m    \033[33m5\033[39m\033[90m\033[39m   \033[34m>\033[39m \033[90m 5 \033[39m   \033[34m99\033[39m\033[90m\033[39m ", 
+           "  \033[90m 6 \033[39m    6\033[90m\033[39m     \033[90m 6 \033[39m    6\033[90m\033[39m "
+        ), len = 7L
+      )
     )
   }
+  # Narrow width
+
+  old.opt <- options(width=40)
+  on.exit(options(old.opt))
+  expect_equal(diffobj:::detect_2d_guides(capture.output(iris)), c(1, 152))
+  expect_equal(
+    diffobj:::detect_2d_guides(capture.output(USAccDeaths)), c(1, 8, 15)
+  )
+  # Time series
+  expect_equal(diffobj:::detect_2d_guides(capture.output(UKgas)), 1)
 })
 test_that("detect_list_guides", {
   l.1 <- list(1, 1:3, matrix(1:3, 1))
