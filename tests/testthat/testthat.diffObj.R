@@ -27,7 +27,9 @@ test_that("fits or doesn't", {
   )
   # test kinda slow, would be better to have one with smaller objects with print
   # methods
-  expect_equal(diffObj(mdl1, mdl2, line.limit=5)@capt.mode, "print")
+
+  expect_equal(diffObj(mdl1, mdl2, line.limit=15)@capt.mode, "print")
+  expect_equal(diffObj(1:1000, 1000:1, line.limit=5)@capt.mode, "str")
 })
 
 # Random exmaples to think through `diffObj` output
