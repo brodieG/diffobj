@@ -62,6 +62,10 @@ split_by_guides <- function(txt, guides, drop.leading=TRUE) {
 # note due to ts use, can't use rownames, colnames, etc.
 #
 # Should be raw data stripped of ANSI characters
+#
+# Also, right now we're overloading a bunch of different formats (data.table,
+# data.frame, etc.  Probably would be better to separate the regexes into
+# different functions and keep the wrapping logic in here).
 
 detect_2d_guides <- function(txt) {
   stopifnot(is.character(txt))
@@ -76,7 +80,8 @@ detect_2d_guides <- function(txt) {
 
     first.space <- min(first.spaces)
     space.rows <-
-      !grepl("^\\S+|^\\s+[0-9]+", txt) & seq_along(txt) >= first.space
+      !grepl("^\\S+|^\\s+[0-9]+|^\\s+---\\s*$", txt) &
+      seq_along(txt) >= first.space
 
     head.row <- min(which(space.rows))
     first.row <- min(which(!space.rows & seq_along(space.rows) > head.row))
@@ -98,9 +103,10 @@ detect_2d_guides <- function(txt) {
       # print gets truncated; should allow last in sequence to have fewer rows,
       # but we don't do that yet...
 
+      seq.diffs <- abs(apply(seq.dat, 1L, diff))
       valid.rep <- max(
         which(
-          cumsum(colSums(cbind(integer(2L), abs(apply(seq.dat, 1L, diff))))) == 0L
+          cumsum(colSums(cbind(integer(2L), seq.diffs))) == 0L
         ),
         0L
       )
