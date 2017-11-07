@@ -65,40 +65,52 @@ split_by_guides <- function(txt, guides, drop.leading=TRUE) {
 
 detect_2d_guides <- function(txt) {
   stopifnot(is.character(txt))
-  space.rows <- grepl("^\\s+\\S+", txt)
-  head.row <- min(which(space.rows))
-  first.row <- min(which(!space.rows & seq_along(space.rows) > head.row))
-  last.row <- max(which(!space.rows))
+  # Start by looking for first row that leads spaces, this should be the
+  # beginning of the actual data, typically the column headers. This ways we can
+  # skip the meta data in tibbles and the like
 
-  # Between first.row and last.row, look for repeating sequences of head rows
-  # and non head rows; should have the same number of each for each block in
-  # a wrapped 2d object
+  res <- integer(0L)
+  first.spaces <- grep("^\\s+\\S+", txt)
+  if(length(first.spaces)) {
+    # Now look for data
 
-  res <- if(last.row > head.row) {
-    space.bw <- space.rows[head.row:last.row]
-    seq.dat <- vapply(
-      split(space.bw, cumsum(c(TRUE, diff(space.bw) == 1L))),
-      FUN=function(x) c(sum(x), sum(!x)),
-      integer(2L)
-    )
-    # Which of the sets of true and false head rows have the same repeating
-    # sequence as the first?  One thing to think about is what happens when
-    # print gets truncated; should allow last in sequence to have fewer rows,
-    # but we don't do that yet...
+    first.space <- min(first.spaces)
+    space.rows <-
+      !grepl("^\\S+|^\\s+[0-9]+", txt) & seq_along(txt) >= first.space
 
-    valid.rep <- max(
-      which(
-        cumsum(colSums(cbind(integer(2L), abs(apply(seq.dat, 1L, diff))))) == 0L
-      ),
-      0L
-    )
-    if(valid.rep) {
-      which(
-        rep(rep(c(TRUE, FALSE), valid.rep), seq.dat[seq_len(valid.rep * 2L)])
-      ) + head.row - 1L
-    } else integer(0L)
-  } else integer(0L)
+    head.row <- min(which(space.rows))
+    first.row <- min(which(!space.rows & seq_along(space.rows) > head.row))
+    last.row <- max(which(!space.rows))
 
+    # Between first.row and last.row, look for repeating sequences of head rows
+    # and non head rows; should have the same number of each for each block in
+    # a wrapped 2d object
+
+    res <- if(last.row > head.row) {
+      space.bw <- space.rows[head.row:last.row]
+      seq.dat <- vapply(
+        split(space.bw, cumsum(c(TRUE, diff(space.bw) == 1L))),
+        FUN=function(x) c(sum(x), sum(!x)),
+        integer(2L)
+      )
+      # Which of the sets of true and false head rows have the same repeating
+      # sequence as the first?  One thing to think about is what happens when
+      # print gets truncated; should allow last in sequence to have fewer rows,
+      # but we don't do that yet...
+
+      valid.rep <- max(
+        which(
+          cumsum(colSums(cbind(integer(2L), abs(apply(seq.dat, 1L, diff))))) == 0L
+        ),
+        0L
+      )
+      if(valid.rep) {
+        res <- which(
+          rep(rep(c(TRUE, FALSE), valid.rep), seq.dat[seq_len(valid.rep * 2L)])
+        ) + head.row - 1L
+      }
+    }
+  }
   res
 }
 # Definitely approximate matching, we are lazy in matching the `$` versions

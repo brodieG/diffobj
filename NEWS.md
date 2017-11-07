@@ -10,6 +10,8 @@
   ([@seulki-choi](https://stackoverflow.com/users/7788015/seulki-choi),
   @gaborcsardi)
 * [#100](https://github.com/brodieG/diffobj/issues/100): R_useDynamicSymbols
+* [#97](https://github.com/brodieG/diffobj/issues/97): 2D Guidelines fixes for
+  data.table, tibble
 * [#105](https://github.com/brodieG/diffobj/issues/105): Copyright tweaks
 
 ## v0.1.6
