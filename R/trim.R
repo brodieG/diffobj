@@ -1,4 +1,4 @@
-# Copyright (C) 2016  Brodie Gaslam
+# Copyright (C) 2017  Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -152,6 +152,9 @@ wtr_help <- function(x, pat) {
       0L
     )
     match.valid <- if(match.break) {
+      # actually very difficult to test this; need a df like structure that is
+      # wrapped and has some irregularity that crops up later, and we're not
+      # actually able to generate these with vanilla structures
       head(match.blocks, match.break - 1L)
     } else match.blocks
 
@@ -348,8 +351,8 @@ strip_s4_rh <- function(x, obj) {
   stopifnot(isS4(obj))
 
   if(!length(slotNames(obj))) {
-    # Nothing to do here
-    x
+    # Not possible to have object without slots (would be virtual class)
+    stop("Internal Error: s4 object w/o slots; contact maintainer") # nocov
   } else {
     # Split output into each list component
 
@@ -368,7 +371,12 @@ strip_s4_rh <- function(x, obj) {
       res[!seq_along(res) %in% s4.h] <- dat.w.o.rh
       res
     } else {
+      # This should not happen, only a warning because operating without trimed
+      # S4 guides is not a huge eissue
+      # nocov start
+      warning('Unable to detect S4 object guides.')
       x
+      # nocov end
   } }
 }
 #' Methods to Remove Unsemantic Text Prior to Diff

@@ -2,8 +2,8 @@
 % Please edit documentation in R/styles.R
 \docType{class}
 \name{PaletteOfStyles-class}
-\alias{PaletteOfStyles}
 \alias{PaletteOfStyles-class}
+\alias{PaletteOfStyles}
 \title{Class for Tracking Default Styles by Style Type}
 \description{
 Provides a mechanism for specifying a style based on the style properties
@@ -96,6 +96,7 @@ to allow for styles that would render in \code{grid} graphics, you could
 generate a default list with a \dQuote{"grid"} value appended to the values
 of the \code{format} dimension.
 }
+
 \examples{
 \dontrun{
 ## Look at all "ansi256" styles (assumes compatible terminal)
@@ -121,4 +122,3 @@ diffPrint(
 options(diffobj.palette=defs)
 }
 }
-

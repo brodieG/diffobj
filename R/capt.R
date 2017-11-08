@@ -1,4 +1,4 @@
-# Copyright (C) 2016  Brodie Gaslam
+# Copyright (C) 2017  Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -69,13 +69,16 @@ capt_print <- function(target, current, etc, err, extra){
   if(length(dots)) {
     if(!is.null(etc@tar.exp)) tar.call[[2L]] <- etc@tar.exp
     if(!is.null(etc@cur.exp)) cur.call[[2L]] <- etc@cur.exp
-    tar.call[[2L]] <- etc@tar.exp
-    cur.call[[2L]] <- etc@cur.exp
     etc@tar.banner <- deparse(tar.call)[[1L]]
     etc@cur.banner <- deparse(cur.call)[[1L]]
   }
-  if(!is.null(target)) tar.call[[2L]] <- target
-  if(!is.null(current)) cur.call[[2L]] <- current
+  tar.call.q <- if(is.call(target) || is.symbol(target))
+    call("quote", target) else target
+  cur.call.q <- if(is.call(current) || is.symbol(current))
+    call("quote", current) else current
+
+  if(!is.null(target)) tar.call[[2L]] <- tar.call.q
+  if(!is.null(current)) cur.call[[2L]] <- cur.call.q
 
   # If dimensioned object, and in auto-mode, switch to side by side if stuff is
   # narrow enough to fit
@@ -169,8 +172,14 @@ capt_str <- function(target, current, etc, err, extra){
   # tar.exp/cur.exp, so instead run call with actual object
 
   tar.call <- cur.call <- str.match
-  if(!is.null(target)) tar.call[[2L]] <- target
-  if(!is.null(current)) cur.call[[2L]] <- current
+
+  tar.call.q <- if(is.call(target) || is.symbol(target))
+    call("quote", target) else target
+  cur.call.q <- if(is.call(current) || is.symbol(current))
+    call("quote", current) else current
+
+  if(!is.null(target)) tar.call[[2L]] <- tar.call.q
+  if(!is.null(current)) cur.call[[2L]] <- cur.call.q
 
   # Run str
 
@@ -292,9 +301,9 @@ capt_str <- function(target, current, etc, err, extra){
 }
 capt_chr <- function(target, current, etc, err, extra){
   tar.capt <- if(!is.character(target))
-    do.call(as.character, c(list(target), extra)) else target
+    do.call(as.character, c(list(target), extra), quote=TRUE) else target
   cur.capt <- if(!is.character(current))
-    do.call(as.character, c(list(current), extra)) else current
+    do.call(as.character, c(list(current), extra), quote=TRUE) else current
 
   if(anyNA(tar.capt)) tar.capt[is.na(tar.capt)] <- "NA"
   if(anyNA(cur.capt)) cur.capt[is.na(cur.capt)] <- "NA"
@@ -312,8 +321,8 @@ capt_chr <- function(target, current, etc, err, extra){
 }
 capt_deparse <- function(target, current, etc, err, extra){
   dep.try <- try({
-    tar.capt <- do.call(deparse, c(list(target), extra))
-    cur.capt <- do.call(deparse, c(list(current), extra))
+    tar.capt <- do.call(deparse, c(list(target), extra), quote=TRUE)
+    cur.capt <- do.call(deparse, c(list(current), extra), quote=TRUE)
   })
   if(inherits(dep.try, "try-error"))
     err("Error attempting to deparse object(s)")
@@ -330,9 +339,9 @@ capt_deparse <- function(target, current, etc, err, extra){
   diff.out
 }
 capt_file <- function(target, current, etc, err, extra) {
-  tar.capt <- try(do.call(readLines, c(list(target), extra)))
+  tar.capt <- try(do.call(readLines, c(list(target), extra), quote=TRUE))
   if(inherits(tar.capt, "try-error")) err("Unable to read `target` file.")
-  cur.capt <- try(do.call(readLines, c(list(current), extra)))
+  cur.capt <- try(do.call(readLines, c(list(current), extra), quote=TRUE))
   if(inherits(cur.capt, "try-error")) err("Unable to read `current` file.")
 
   etc <- set_mode(etc, tar.capt, cur.capt)
@@ -347,11 +356,11 @@ capt_file <- function(target, current, etc, err, extra) {
   diff.out
 }
 capt_csv <- function(target, current, etc, err, extra){
-  tar.df <- try(do.call(read.csv, c(list(target), extra)))
+  tar.df <- try(do.call(read.csv, c(list(target), extra), quote=TRUE))
   if(inherits(tar.df, "try-error")) err("Unable to read `target` file.")
   if(!is.data.frame(tar.df))
     err("`target` file did not produce a data frame when read")
-  cur.df <- try(do.call(read.csv, c(list(current), extra)))
+  cur.df <- try(do.call(read.csv, c(list(current), extra), quote=TRUE))
   if(inherits(cur.df, "try-error")) err("Unable to read `current` file.")
   if(!is.data.frame(cur.df))
     err("`current` file did not produce a data frame when read")

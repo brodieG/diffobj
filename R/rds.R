@@ -1,4 +1,4 @@
-# Copyright (C) 2016  Brodie Gaslam
+# Copyright (C) 2017  Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -17,7 +17,13 @@
 # Check Whether Input Could Be Reference to RDS File and Load if it Is
 
 get_rds <- function(x) {
-  if(is.chr.1L(x) && file_test("-f", x) || inherits(x, "connection")) {
-    tryCatch(suppressWarnings(readRDS(x)), error=function(e) x)
-  } else x
+  tryCatch(
+    if(
+      (is.chr.1L(x) && Encoding(x) != "bytes" && file_test("-f", x)) ||
+      inherits(x, "connection")
+    ) {
+      suppressWarnings(readRDS(x))
+    } else x,
+    error=function(e) x
+  )
 }

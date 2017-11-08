@@ -3,14 +3,8 @@ library(diffobj)
 context("Rdiff")
 
 test_that("diff util detection", {
-  with_mock(
-    `tools::Rdiff`=function(...) warning("test warning"),
-    expect_false(has_Rdiff())
-  )
-  with_mock(
-    `tools::Rdiff`=function(...) NULL,
-    expect_true(has_Rdiff())
-  )
+  expect_false(has_Rdiff(function(...) warning("test warning")))
+  expect_true(has_Rdiff(function(...) NULL))
 })
 # Only run tests on machines that are likely to have diff utility
  

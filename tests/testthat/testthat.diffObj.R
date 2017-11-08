@@ -23,11 +23,15 @@ test_that("fits or doesn't", {
   # Note, the first test used to favor str until we handicapped print
   expect_equal(
     diffObj(matrix(1:20, ncol=2), matrix(2:21, ncol=2), line.limit=5)@capt.mode,
-    "print"
+    "str"
   )
   # test kinda slow, would be better to have one with smaller objects with print
   # methods
-  expect_equal(diffObj(mdl1, mdl2, line.limit=5)@capt.mode, "print")
+
+  expect_equal(
+    diffObj(mdl1, mdl2, line.limit=15, mode='unified')@capt.mode, "print"
+  )
+  expect_equal(diffObj(1:1000, 1000:1, line.limit=5)@capt.mode, "str")
 })
 
 # Random exmaples to think through `diffObj` output

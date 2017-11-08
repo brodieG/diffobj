@@ -290,4 +290,3 @@ with(mtcars, diffStr(lm(mpg ~ hp)$qr, lm(mpg ~ disp)$qr, pager="off"))
   \code{\link{diffDeparse}} to compare deparsed objects,
   \code{\link{ses}} for a minimal and fast diff
 }
-

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016  Brodie Gaslam
+ * Copyright (C) 2017  Brodie Gaslam
  *
  * This file is part of "diffobj - Diffs for R Objects"
  *
@@ -28,4 +28,6 @@ R_CallMethodDef callMethods[] = {
 void R_init_diffobj(DllInfo *info)
 {
   R_registerRoutines(info, NULL, callMethods, NULL, NULL);
+  R_useDynamicSymbols(info, FALSE);
+  R_forceSymbols(info, TRUE);
 }

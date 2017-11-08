@@ -2,8 +2,8 @@
 % Please edit documentation in R/s4.R
 \docType{class}
 \name{AlignThreshold-class}
-\alias{AlignThreshold}
 \alias{AlignThreshold-class}
+\alias{AlignThreshold}
 \title{Controls How Lines Within a Diff Hunk Are Aligned}
 \description{
 Controls How Lines Within a Diff Hunk Are Aligned
@@ -25,6 +25,7 @@ count alpha numeric characters only.  Helps reduce spurious alignment
 caused by meta character sequences such as \dQuote{[[1]]} that would
 otherwise meet the \code{min.chars} limit}
 }}
+
 \examples{
 a1 <- AlignThreshold(threshold=0)
 a2 <- AlignThreshold(threshold=1)
@@ -38,4 +39,3 @@ diffChr(c("a b c", "d e f"), "D e f", align=a1, pager="off")
 ## Override with min.chars, so now they align
 diffChr(c("a b c", "d e f"), "D e f", align=a3, pager="off")
 }
-

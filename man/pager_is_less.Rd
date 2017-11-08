@@ -31,4 +31,3 @@ pager_is_less()
 \seealso{
 \code{\link{Pager}}
 }
-

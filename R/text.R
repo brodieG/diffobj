@@ -1,4 +1,4 @@
-# Copyright (C) 2016  Brodie Gaslam
+# Copyright (C) 2017  Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -19,15 +19,6 @@
 ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
                      "(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])",
                      "|\\x{001b}[A-M]")
-
-# Remap crayon funs so they show up in profiling
-
-crayon_nchar <- crayon::col_nchar
-crayon_substr <- crayon::col_substr
-crayon_style <- crayon::style
-crayon_hascolor <- crayon::has_color
-crayon_split <- crayon::col_strsplit
-crayon_strip <- crayon::strip_style
 
 # Function to split a character vector by newlines; handles some special cases
 
@@ -177,10 +168,10 @@ pad_end <- function(x, pad, use.ansi) {
 # the net real estate account for mode, padding, etc.
 
 nlines <- function(txt, disp.width, mode) {
-  use.ansi <- crayon_hascolor()
+  use.ansi <- crayon::has_color()
   # stopifnot(is.character(txt), all(!is.na(txt)))
   capt.width <- calc_width_pad(disp.width, mode)
-  if(use.ansi) txt <- crayon_strip(txt)
+  if(use.ansi) txt <- crayon::strip_style(txt)
   pmax(1L, as.integer(ceiling(nchar(txt) / capt.width)))
 }
 # Gets rid of tabs and carriage returns
@@ -327,7 +318,7 @@ strip_hz_control <- function(txt, stops=8L) {
       txt.l[has.n] <- txt.l.n
       txt <- unlist(txt.l)
     }
-    use.ansi <- crayon_hascolor()
+    use.ansi <- crayon::has_color()
     has.ansi <- grepl(ansi_regex, txt, perl=TRUE) & use.ansi
     w.ansi <- which(has.ansi)
     wo.ansi <- which(!has.ansi)
@@ -337,7 +328,8 @@ strip_hz_control <- function(txt, stops=8L) {
 
     res <- character(length(txt))
     res[w.ansi] <- strip_hz_c_int(
-      txt[w.ansi], stops, use.ansi, crayon_nchar, crayon_substr, crayon_split
+      txt[w.ansi], stops, use.ansi, crayon::col_nchar,
+      crayon::col_substr, crayon::col_strsplit
     )
     res[wo.ansi] <- strip_hz_c_int(
       txt[wo.ansi], stops, use.ansi, nchar, substr, strsplit
@@ -360,9 +352,9 @@ chr_trim <- function(text, width) {
   )
 }
 rpad <- function(text, width, pad.chr=" ") {
-  use.ansi <- crayon_hascolor()
+  use.ansi <- crayon::has_color()
   stopifnot(is.character(pad.chr), length(pad.chr) == 1L, nchar(pad.chr) == 1L)
-  nchar_fun <- if(use.ansi) crayon_nchar else nchar
+  nchar_fun <- if(use.ansi) crayon::col_nchar else nchar
   pad.count <- width - nchar_fun(text)
   pad.count[pad.count < 0L] <- 0L
   pad.chrs <- vapply(
@@ -400,7 +392,7 @@ wrap <- function(txt, width, pad=FALSE) {
   # a vector of character positions after which we should split our character
   # vector
 
-  use.ansi <- crayon_hascolor()
+  use.ansi <- crayon::has_color()
   has.na <- is.na(txt)
   has.chars <- nzchar(txt) & !has.na
   w.chars <- which(has.chars)
@@ -418,7 +410,7 @@ wrap <- function(txt, width, pad=FALSE) {
   res.l[has.na] <- NA_character_
   res.l[wo.chars] <- ""
   res.l[w.chars][w.ansi] <-
-    wrap_int(txt.sub[w.ansi], width, crayon_substr, crayon_nchar)
+    wrap_int(txt.sub[w.ansi], width, crayon::col_substr, crayon::col_nchar)
   res.l[w.chars][wo.ansi] <-
     wrap_int(txt.sub[wo.ansi], width, substr, nchar)
 

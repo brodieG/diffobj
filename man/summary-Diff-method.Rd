@@ -39,4 +39,3 @@ to the longest such sequence in the map by more than \code{scale.threshold}.
 Since length 1 sequences cannot be further compressed \code{scale.threshold}
 does not apply to them.
 }
-

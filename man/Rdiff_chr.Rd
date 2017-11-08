@@ -53,4 +53,3 @@ These functions will try to use the system \code{diff} utility. This
 \seealso{
 \code{\link{ses}}, \code{\link[=diffPrint]{diff*}}
 }
-
