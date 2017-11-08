@@ -35,7 +35,7 @@ browseVignettes("diffobj")
 * CRAN maintainers, for patiently shepherding packages onto CRAN and maintaining
   the repository, and Uwe Ligges in particular for maintaining
   [Winbuilder](http://win-builder.r-project.org/).
-* Eugene W. Myers' for the Diff algorithm.
+* Eugene W. Myers for the Diff algorithm.
 * Michael B Allen for the original C implementation of the Myers' Diff
   algorithm.
 * [Jim Hester](https://github.com/jimhester) because
