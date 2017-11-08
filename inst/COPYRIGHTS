@@ -1,4 +1,4 @@
-The C implementation of the Myer's Diff Algorithm with Linear Space Refinement was originally written by Michael B. Allen with the following license and copyright:
+The C implementation of the Myers' Diff Algorithm with Linear Space Refinement was originally written by Michael B. Allen with the following license and copyright:
 
   diff - compute a shortest edit script (SES) given two sequences
   Copyright (C) 2004 Michael B. Allen <mba2000 ioplex.com>
