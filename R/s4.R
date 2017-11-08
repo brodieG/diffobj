@@ -348,7 +348,11 @@ setClass("Diff",
           deparse(names(object@trim.dat))[1]
       ) )
     if(not.comp.1)
-      return("slot `trim.dat` has non-integer components")
+      return(
+        paste0(
+          "slot `trim.dat` has non-integer components ",
+          deparse(vapply(object@trim.dat, typeof, character(1L)))[1]
+      ) )
     if(not.comp.2)
       return("slot `trim.dat` has components of length != 2")
 
