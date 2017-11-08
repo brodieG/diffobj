@@ -321,15 +321,6 @@ ses(v1, v2)
 
 This will be 10-20x faster than `diffChr`, at the cost of less useful output.
 
-## Acknowledgements
-
-* R Core for creating and publishing R, a wonderful programming language
-* Eugene Myers for the diff algorithm
-* Michael B. Allen for implementing it in C
-* Gábor Csárdi for adding a whole new dimension to the R terminal experience with the `crayon` package
-* Jim Hester for `covr`, and also for unwittingly sowing the seed that sprouted into this package
-* Hadley Wickham for the `devtools` and `testthat` packages
-
 ```{r, echo=FALSE}
 options(old.opt)
 ```

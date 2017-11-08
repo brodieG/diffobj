@@ -14,7 +14,9 @@
   data.table, tibble
 * [#96](https://github.com/brodieG/diffobj/issues/96): Warnings when comparing
   large data tables.
-* [#105](https://github.com/brodieG/diffobj/issues/105): Copyright tweaks
+* [#94](https://github.com/brodieG/diffobj/issues/94): Guide detection problems
+  in nested lists.
+* [#105](https://github.com/brodieG/diffobj/issues/105): Copyright tweaks.
 
 ## v0.1.6
 
