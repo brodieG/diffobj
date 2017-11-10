@@ -1,5 +1,23 @@
 # diffobj
 
+## v0.1.7
+
+* Fix tests for next `testthat` release.
+* [#107](https://github.com/brodieG/diffobj/issues/107): Diffs on quoted
+  language
+* [#108](https://github.com/brodieG/diffobj/issues/108): Problems caused by
+  copying `crayon` functions
+  ([@seulki-choi](https://stackoverflow.com/users/7788015/seulki-choi),
+  @gaborcsardi)
+* [#100](https://github.com/brodieG/diffobj/issues/100): R_useDynamicSymbols
+* [#97](https://github.com/brodieG/diffobj/issues/97): 2D Guidelines fixes for
+  data.table, tibble
+* [#96](https://github.com/brodieG/diffobj/issues/96): Warnings when comparing
+  large data tables.
+* [#94](https://github.com/brodieG/diffobj/issues/94): Guide detection problems
+  in nested lists.
+* [#105](https://github.com/brodieG/diffobj/issues/105): Copyright tweaks.
+
 ## v0.1.6
 
 * [#87](https://github.com/brodieG/diffobj/issues/87): `diffobj` is now GPL (>=2)
@@ -63,7 +81,7 @@
 * HTML output now captured with default width 80 since there is no explicit relationship between HTML viewport width and `getOption("width")`
 * The `style` parameter now accepts lists to use as instantiation arguments for `Style` objects (see `?Style`)
 * Fix subtle rendering and formatting application flaws
-* Switch Travis shields to SVG per [Gábor Csárdi](https://github.com/gaborcsardi/diffobj/commit/710251f2cd663bfdadcab9aea6a37f9eb4a87599)
+* Switch Travis shields to SVG per Gábor Csárdi
 * Improve in-hunk alignment of partially matching lines
 * Compile with `-pedantic`, fix related warnings [Arun](http://stackoverflow.com/users/559784/arun)
 * Improved coverage and more robust testing

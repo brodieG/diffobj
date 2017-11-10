@@ -1,4 +1,4 @@
-The C implementation of the Myer's Diff Algorithm with Linear Space Refinement was originally written by Michael B. Allen with the following license and copyright:
+The C implementation of the Myers' Diff Algorithm with Linear Space Refinement was originally written by Michael B. Allen with the following license and copyright:
 
   diff - compute a shortest edit script (SES) given two sequences
   Copyright (C) 2004 Michael B. Allen <mba2000 ioplex.com>
@@ -10,8 +10,8 @@ The original source code is available at:
 
 The adapted and heavily modified code is available in src/diff.c, src/diff.h.  See those files for additional details.
 
-This package is released under the GPL-3 license:
+This package is released under the GPL (>= 2) or greater license:
 
   diffobj - Compare R Objects with a Diff
-  Copyright (C) 2016  Brodie Gaslam
-  License: GPL-3
+  Copyright (C) 2017  Brodie Gaslam
+  License: GPL (>= 2)

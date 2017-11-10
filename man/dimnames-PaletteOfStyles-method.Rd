@@ -17,4 +17,3 @@ dimnames(PaletteOfStyles())
 \description{
 Retrieve Dimnames for PaletteOfStyles Objects
 }
-

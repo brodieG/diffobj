@@ -1,4 +1,4 @@
-# Copyright (C) 2016  Brodie Gaslam
+# Copyright (C) 2017  Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -426,6 +426,10 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #'   the console
 #' @param pad TRUE or FALSE, whether text should be right padded
 #' @param pager what type of \code{\link{Pager}} to use
+#' @param nchar.fun function to use to count characters; intended mostly for
+#'   internal use
+#' @param wrap TRUE or FALSE, whether text should be hard wrapped at
+#'   \code{disp.width}
 #' @param na.sub what character value to substitute for NA elements; NA elements
 #'   are generated when lining up side by side diffs by adding padding rows; by
 #'   default the text styles replace these with a blank character string, and
@@ -434,6 +438,9 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' @param blank sub what character value to replace blanks with; needed in
 #'   particular for HTML rendering (uses \code{"&nbsp;"}) to prevent lines from
 #'   collapsing
+#' @param disp.width how many columns the text representation of the objects to
+#'   diff is allowed to take up before it is hard wrapped (assuming \code{wrap}
+#'   is TRUE).  See param \code{disp.width} for \code{\link{diffPrint}}.
 #' @param finalizer function that accepts at least two parameters and requires
 #'   no more than two parameters, will receive as the first parameter the
 #'   the object to render (either a \code{Diff} or a \code{DiffSummary}
@@ -444,6 +451,22 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #'   be displayed in a browser.  The object themselves are passed along to
 #'   provide information about the paging device and other contextual data to
 #'   the function.
+#' @param html.output (\code{StyleHtml} objects only) one of:
+#'   \itemize{
+#'     \item \dQuote{page}: Include all HTML/CSS/JS required to create a
+#'       stand-alone web page with the diff.
+#'     \item \dQuote{diff.w.style}: The CSS and HTML, but without any of the
+#'       outer tags that would make it a proper HTML page (i.e. no
+#'       \code{<html>/<head>} tags or the like) and without the JS; note that
+#'       technically this is illegal HTML since we have \code{<style>} tags
+#'       floating outside of \code{<head>} tags, but it seems to work in most
+#'       browsers.
+#'     \item \dQuote{diff.only}: Like \dQuote{diff.w.style}, but without the CSS
+#'     \item \dQuote{auto}: Pick one of the above based on \code{Pager}, will
+#'        chose \dQuote{page} if the pager is of type \code{PagerBrowser} (as in
+#'        that case the output is destined to be displayed in a browser like
+#'        device), or \dQuote{diff.only} if it is not.
+#'   }
 #' @param escape.html.entities (\code{StyleHtml} objects only) TRUE (default)
 #'   or FALSE, whether to escape HTML entities in the input
 #' @param scale (\code{StyleHtml} objects only) TRUE (default) or FALSE,
@@ -638,12 +661,6 @@ StyleAnsi256LightRgb <- setClass(
       )
 ) ) )
 
-darkGray <- crayon::make_style(
-  rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
-)
-darkGrayBg <- crayon::make_style(
-  rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE, colors=256
-)
 #' @export StyleAnsi256LightYb
 #' @exportClass StyleAnsi256LightYb
 #' @rdname Style
@@ -715,10 +732,39 @@ StyleAnsi256DarkRgb <- setClass(
       gutter.delete.ctd=crayon::make_style(
         rgb(2, 0, 0, maxColorValue=5), colors=256
       ),
-      gutter.guide=darkGray, gutter.guide.ctd=darkGray, line.guide=darkGray,
-      gutter.fill=darkGray, gutter.fill.ctd=darkGray, text.fill=darkGrayBg,
-      gutter.context.sep=darkGray, gutter.context.sep.ctd=darkGray,
-      context.sep=darkGray, meta=darkGray, trim=darkGray
+      gutter.guide=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      gutter.guide.ctd=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      line.guide=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      gutter.fill=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      gutter.fill.ctd=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      text.fill=crayon::make_style(
+        rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE, colors=256
+      ),
+      gutter.context.sep=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      gutter.context.sep.ctd=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      context.sep=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      meta=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      trim=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      )
 ) ) )
 #' @export StyleAnsi256DarkYb
 #' @exportClass StyleAnsi256DarkYb
@@ -755,10 +801,39 @@ StyleAnsi256DarkYb <- setClass(
       header=crayon::make_style(
         rgb(0, 3, 3, maxColorValue=5), colors=256
       ),
-      gutter.guide=darkGray, gutter.guide.ctd=darkGray, line.guide=darkGray,
-      gutter.fill=darkGray, gutter.fill.ctd=darkGray, text.fill=darkGrayBg,
-      gutter.context.sep=darkGray, gutter.context.sep.ctd=darkGray,
-      context.sep=darkGray, meta=darkGray, trim=darkGray
+      gutter.guide=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      gutter.guide.ctd=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      line.guide=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      gutter.fill=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      gutter.fill.ctd=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      text.fill=crayon::make_style(
+        rgb(2, 2, 2, maxColorValue=23), bg=TRUE, grey=TRUE, colors=256
+      ),
+      gutter.context.sep=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      gutter.context.sep.ctd=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      context.sep=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      meta=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      ),
+      trim=crayon::make_style(
+        rgb(13, 13, 13, maxColorValue=23), grey=TRUE, colors=256
+      )
 ) ) )
 #' Return Location of Default HTML Support Files
 #'

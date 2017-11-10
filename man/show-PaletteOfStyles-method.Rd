@@ -16,4 +16,3 @@ NULL, invisibly
 \description{
 Display a PaletteOfStyles
 }
-

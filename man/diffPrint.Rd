@@ -305,4 +305,3 @@ diffPrint(letters, letters[-5], pager="off")
   \code{\link{diffDeparse}} to compare deparsed objects, \code{\link{ses}}
   for a minimal and fast diff @param target the reference object
 }
-

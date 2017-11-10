@@ -27,4 +27,3 @@ light or expect sub-optimal rendering).
 \examples{
 show(StyleAnsi256LightYb())  # assumes ANSI colors supported
 }
-

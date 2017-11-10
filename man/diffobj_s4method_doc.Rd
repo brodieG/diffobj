@@ -2,9 +2,9 @@
 % Please edit documentation in R/s4.R, R/core.R, R/tochar.R
 \docType{methods}
 \name{diffobj_s4method_doc}
-\alias{as.character,Diff-method}
 \alias{diffobj_s4method_doc}
 \alias{show,MyersMbaSes-method}
+\alias{as.character,Diff-method}
 \title{Dummy Doc File for S4 Methods with Existing Generics}
 \usage{
 \S4method{show}{MyersMbaSes}(object)
@@ -15,4 +15,3 @@
 Dummy Doc File for S4 Methods with Existing Generics
 }
 \keyword{internal}
-

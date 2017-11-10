@@ -281,4 +281,3 @@ diffDeparse(matrix(1:9, 3), 1:9, pager="off")
   \code{\link{diffChr}} to compare character vectors directly,
   \code{\link{ses}} for a minimal and fast diff
 }
-

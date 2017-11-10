@@ -2,8 +2,8 @@
 % Please edit documentation in R/styles.R
 \docType{class}
 \name{StyleText-class}
-\alias{StyleText}
 \alias{StyleText-class}
+\alias{StyleText}
 \title{Character Tokens Used in Diffs}
 \arguments{
 \item{gutter.insert}{character(1L) text to use as visual cue to indicate
@@ -44,4 +44,3 @@ insertions (\code{<} and \code{>} by default).
 \seealso{
 \code{\link{Style}}
 }
-

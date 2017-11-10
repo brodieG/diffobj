@@ -18,4 +18,3 @@ Use \code{getOption("viewer")} to view HTML output if it is available as
 per \href{https://support.rstudio.com/hc/en-us/articles/202133558-Extending-RStudio-with-the-Viewer-Pane}{RStudio}. Fallback to \code{\link{browseURL}}
 if not available.
 }
-

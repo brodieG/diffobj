@@ -24,4 +24,3 @@ Displays the data required to generate the shortest edit path for comparison
 between two strings.
 }
 \keyword{internal}
-

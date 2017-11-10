@@ -223,6 +223,13 @@ test_that("custom trim fun", {
     "If you did not specify a `trim`"
   )
   expect_equal_to_reference(trim.err, rdsf(200))
+
+  # purposefully bad trim fun
+
+  expect_error(
+    diffPrint(1:100, 2:100, trim=function(x, y) TRUE),
+    "method return value must be a two "
+  )
 })
 
 test_that("s4", {

@@ -1,4 +1,4 @@
-# Copyright (C) 2016  Brodie Gaslam
+# Copyright (C) 2017  Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -329,13 +329,33 @@ setClass("Diff",
       ! object@capt.mode %in% c("print", "str", "chr", "deparse", "file")
     )
       return("slot `capt.mode` must be either \"print\" or \"str\"")
-    if(
-      !is.list(object@trim.dat) || length(object@trim.dat) != 3L ||
-      !identical(names(object@trim.dat), c("lines", "hunks", "diffs")) ||
-      !all(vapply(object@trim.dat, is.integer, logical(1L))) ||
-      !all(vapply(object@trim.dat, length, integer(1L)) == 2L)
-    )
-      return("slot `trim.dat` in incorrect format")
+
+    not.list.3 <- !is.list(object@trim.dat) || length(object@trim.dat) != 3L
+    not.names <- !identical(names(object@trim.dat), c("lines", "hunks", "diffs"))
+    not.comp.1 <- !all(vapply(object@trim.dat, is.integer, logical(1L)))
+    not.comp.2 <- !all(vapply(object@trim.dat, length, integer(1L)) == 2L)
+
+    if(not.list.3)
+      return(
+        paste0(
+          "slot `trim.dat` is not a length 3 list (", typeof(object@trim.dat),
+          ", ", length(object@trim.dat)
+      ) )
+    if(not.names)
+      return(
+        paste0(
+          "slot `trim.dat` has wrong names",
+          deparse(names(object@trim.dat))[1]
+      ) )
+    if(not.comp.1)
+      return(
+        paste0(
+          "slot `trim.dat` has non-integer components ",
+          deparse(vapply(object@trim.dat, typeof, character(1L)))[1]
+      ) )
+    if(not.comp.2)
+      return("slot `trim.dat` has components of length != 2")
+
     ## too expensive computationally
     # if(!isTRUE(tar.dat.val <- valid_dat(object@tar.dat)))
     #   return(paste0("slot `tar.dat` not valid: ", tar.dat.val))

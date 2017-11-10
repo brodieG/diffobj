@@ -31,4 +31,3 @@ A failover result is provided in the case where max diffs allowed is
 exceeded.  Ability to provide custom comparison functions is removed.
 }
 \keyword{internal}
-

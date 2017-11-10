@@ -2,30 +2,30 @@
 % Please edit documentation in R/styles.R
 \docType{class}
 \name{Style-class}
-\alias{Style}
 \alias{Style-class}
-\alias{StyleAnsi}
-\alias{StyleAnsi-class}
-\alias{StyleAnsi256DarkRgb}
-\alias{StyleAnsi256DarkRgb-class}
-\alias{StyleAnsi256DarkYb}
-\alias{StyleAnsi256DarkYb-class}
-\alias{StyleAnsi256LightRgb}
-\alias{StyleAnsi256LightRgb-class}
-\alias{StyleAnsi256LightYb}
-\alias{StyleAnsi256LightYb-class}
-\alias{StyleAnsi8NeutralRgb}
-\alias{StyleAnsi8NeutralRgb-class}
-\alias{StyleAnsi8NeutralYb}
-\alias{StyleAnsi8NeutralYb-class}
-\alias{StyleHtml}
-\alias{StyleHtml-class}
-\alias{StyleHtmlLightRgb}
-\alias{StyleHtmlLightRgb-class}
-\alias{StyleHtmlLightYb}
-\alias{StyleHtmlLightYb-class}
-\alias{StyleRaw}
+\alias{Style}
 \alias{StyleRaw-class}
+\alias{StyleRaw}
+\alias{StyleAnsi-class}
+\alias{StyleAnsi}
+\alias{StyleAnsi8NeutralRgb-class}
+\alias{StyleAnsi8NeutralRgb}
+\alias{StyleAnsi8NeutralYb-class}
+\alias{StyleAnsi8NeutralYb}
+\alias{StyleAnsi256LightRgb-class}
+\alias{StyleAnsi256LightRgb}
+\alias{StyleAnsi256LightYb-class}
+\alias{StyleAnsi256LightYb}
+\alias{StyleAnsi256DarkRgb-class}
+\alias{StyleAnsi256DarkRgb}
+\alias{StyleAnsi256DarkYb-class}
+\alias{StyleAnsi256DarkYb}
+\alias{StyleHtml-class}
+\alias{StyleHtml}
+\alias{StyleHtmlLightRgb-class}
+\alias{StyleHtmlLightRgb}
+\alias{StyleHtmlLightYb-class}
+\alias{StyleHtmlLightYb}
 \title{Customize Appearance of Diff}
 \arguments{
 \item{funs}{a \code{\link{StyleFuns}} object that contains all the functions
@@ -44,6 +44,12 @@ the console}
 
 \item{pager}{what type of \code{\link{Pager}} to use}
 
+\item{nchar.fun}{function to use to count characters; intended mostly for
+internal use}
+
+\item{wrap}{TRUE or FALSE, whether text should be hard wrapped at
+\code{disp.width}}
+
 \item{na.sub}{what character value to substitute for NA elements; NA elements
 are generated when lining up side by side diffs by adding padding rows; by
 default the text styles replace these with a blank character string, and
@@ -53,6 +59,10 @@ with}
 \item{blank}{sub what character value to replace blanks with; needed in
 particular for HTML rendering (uses \code{"&nbsp;"}) to prevent lines from
 collapsing}
+
+\item{disp.width}{how many columns the text representation of the objects to
+diff is allowed to take up before it is hard wrapped (assuming \code{wrap}
+is TRUE).  See param \code{disp.width} for \code{\link{diffPrint}}.}
 
 \item{finalizer}{function that accepts at least two parameters and requires
 no more than two parameters, will receive as the first parameter the
@@ -64,6 +74,23 @@ objects use it to generate HTML headers if the \code{Diff} is destined to
 be displayed in a browser.  The object themselves are passed along to
 provide information about the paging device and other contextual data to
 the function.}
+
+\item{html.output}{(\code{StyleHtml} objects only) one of:
+\itemize{
+  \item \dQuote{page}: Include all HTML/CSS/JS required to create a
+    stand-alone web page with the diff.
+  \item \dQuote{diff.w.style}: The CSS and HTML, but without any of the
+    outer tags that would make it a proper HTML page (i.e. no 
+    \code{<html>/<head>} tags or the like) and without the JS; note that
+    technically this is illegal HTML since we have \code{<style>} tags
+    floating outside of \code{<head>} tags, but it seems to work in most
+    browsers.
+  \item \dQuote{diff.only}: Like \dQuote{diff.w.style}, but without the CSS
+  \item \dQuote{auto}: Pick one of the above based on \code{Pager}, will
+     chose \dQuote{page} if the pager is of type \code{PagerBrowser} (as in
+     that case the output is destined to be displayed in a browser like
+     device), or \dQuote{diff.only} if it is not.
+}}
 
 \item{escape.html.entities}{(\code{StyleHtml} objects only) TRUE (default)
 or FALSE, whether to escape HTML entities in the input}
@@ -257,6 +284,7 @@ graphics.  Note however that we have not tested such extensions and it is
 possible there is some embedded code that will misbehave with such a new
 class.
 }
+
 \examples{
 \dontrun{
 ## Create a new style based on existing style by changing
@@ -289,4 +317,3 @@ as.character(
   diffPrint(1:5, 2:6, format="html", style=list(html.output="diff.only"))
 )
 }
-

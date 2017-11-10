@@ -1,4 +1,4 @@
-# Copyright (C) 2016  Brodie Gaslam
+# Copyright (C) 2017  Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -603,6 +603,6 @@ line_diff <- function(
   new(
     "Diff", diffs=hunk.grps, target=target, current=current,
     hit.diffs.max=!warn, tar.dat=tar.dat, cur.dat=cur.dat, etc=etc,
-    hunk.heads=hunk.heads
+    hunk.heads=hunk.heads, trim.dat=attr(hunk.grps, 'meta')
   )
 }

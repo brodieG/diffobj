@@ -1,4 +1,4 @@
-# Copyright (C) 2016  Brodie Gaslam
+# Copyright (C) 2017  Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -638,9 +638,9 @@ trim_hunks <- function(hunk.grps, etc, tar.raw, cur.raw) {
   }
   diffs.trim <- count_diffs(hunk.grps)
   attr(hunk.grps, "meta") <- list(
-    lines=c(lines.omitted, lines.total),
-    hunks=c(hunk.grps.omitted, hunk.grps.count),
-    diffs=c(diffs.orig - diffs.trim, diffs.orig)
+    lines=as.integer(c(lines.omitted, lines.total)),
+    hunks=as.integer(c(hunk.grps.omitted, hunk.grps.count)),
+    diffs=as.integer(c(diffs.orig - diffs.trim, diffs.orig))
   )
   hunk.grps
 }

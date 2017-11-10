@@ -4,7 +4,7 @@
  * implementation is not compatible with the original one.  See next
  * comment blocks for original copyright and license information.
  *
- * Copyright (C) 2016  Brodie Gaslam
+ * Copyright (C) 2017  Brodie Gaslam
  *
  * This file is part of "diffobj - Diffs for R Objects"
  *
@@ -85,6 +85,14 @@
 
 #define FV(k) _v(ctx, (k), 0)
 #define RV(k) _v(ctx, (k), 1)
+
+// We can't reach some branches through tests so they are untested, they may not
+// be reachable so we mark them as no-cov; we really should figure the logic out
+// to make sure they are unreachable, but don't have time for that now.
+
+static const char * err_msg_ubrnch =
+  "Internal Error: reached theoretically unreachable branch %d, contact maintainer.";
+
 /* we've abandonned the use of varray for both ses and buf, instead we
  * pre-allocate both the edit script and the buffer to the maximum possible size
  */
@@ -176,7 +184,10 @@ int _comp_chr(SEXP a, int aidx, SEXP b, int bidx) {
   int blen = XLENGTH(b);
   int comp;
   if(aidx >= alen && bidx >= blen) {
+    // nocov start
+    error(err_msg_ubrnch, 1);
     comp = 1;
+    // nocov end
   } else if(aidx >= alen || bidx >= blen) {
     comp = 0;
   } else comp = STRING_ELT(a, aidx) == STRING_ELT(b, bidx);
@@ -219,7 +230,10 @@ _find_faux_snake(
   }
   /* didn't find a path so use origin */
   if(x_max_f < 0) {
+    // nocov start
+    error(err_msg_ubrnch, 2);
     x_f = y_f = k_f = 0;
+    // nocov end
   } else {
     k_f = k_max_f;
     x_f = x_max_f;
@@ -262,11 +276,14 @@ _find_faux_snake(
   if(x_max_r >= n) {
     x_r = n; y_r = m;
   } else {
+    // nocov start
+    error(err_msg_ubrnch, 3);
     x_r = x_max_r;
     /* not 100% sure about this one; seems like k_max_r is relative to the
      * bottom right origin, so maybe this should be x_r - k_max_r - delta?
      */
     y_r = x_r - k_max_r - delta;
+    // nocov end
   }
   /*
    * attempt to connect the two paths we found.  We need to store this
@@ -301,8 +318,11 @@ _find_faux_snake(
         x_sn <= x_r && y_sn <= y_r &&
         _comp_chr(a, aoff + x_sn, b, boff + y_sn)
     ) {
+      // nocov start
+      error(err_msg_ubrnch, 4);
       x_sn++; y_sn++;
       *(faux_snake_tmp + steps) = DIFF_MATCH;
+      // nocov end
     } else if (x_sn < x_r && (step_dir || y_sn >= y_r)) {
       x_sn++;
       diffs++;
@@ -485,7 +505,12 @@ _edit_faux(struct _ctx *ctx, diff_op * faux_snake, int aoff, int boff) {
   diff_op op;
   while((op = *(faux_snake + i++)) != DIFF_NULL) {
     switch (op) {
-      case DIFF_MATCH: boff++;  /* note no break here */
+      case DIFF_MATCH: {
+        // nocov start
+        error(err_msg_ubrnch, 5);
+        boff++;  /* note no break here */
+        // nocov end
+      }
       case DIFF_DELETE: off = aoff++;
         break;
       case DIFF_INSERT: off = boff++;
@@ -547,7 +572,10 @@ _ses(
       );
       // nocov end
     } else if (ctx->ses == NULL) {
+      // nocov start
+      error(err_msg_ubrnch, 6);
       return d;
+      // nocov end
     } else if (d > 1) {
       /* in this case we have something along the lines of (note the non-
        * diagonal bits are just non-diagonal, we're making no claims about
@@ -563,7 +591,9 @@ _ses(
       /* Beginning stub */
 
       if (_ses(a, aoff, ms.x, b, boff, ms.y, ctx) == -1) {
-        error("Logic error: failed trying to run ses; contact maintainer.");  // nocov
+        // nocov start
+        error("Logic error: failed trying to run ses; contact maintainer.");
+        // nocov end
       }
       /* Now record middle snake
        *
@@ -591,7 +621,9 @@ _ses(
       n -= ms.u;
       m -= ms.v;
       if (_ses(a, aoff, n, b, boff, m, ctx) == -1) {
-        error("Logic error: failed trying to run ses 2; contact maintainer.");  // nocov
+        // nocov start
+        error("Logic error: failed trying to run ses 2; contact maintainer.");
+        // nocov end
       }
     } else {
       int x = ms.x;
@@ -629,7 +661,12 @@ _ses(
         }
       } else {
         // Should never get here since this should be a D 2 case
-        error("Very special case n %d m %d aoff %d boff %d u %d\n", n, m, aoff, boff, ms.u);  // nocov
+        // nocov start
+        error(
+          "Very special case n %d m %d aoff %d boff %d u %d\n", n, m,
+          aoff, boff, ms.u
+        );
+        // nocov end
       }
     }
   }

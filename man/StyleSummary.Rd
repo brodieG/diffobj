@@ -2,10 +2,10 @@
 % Please edit documentation in R/styles.R
 \docType{class}
 \name{StyleSummary-class}
-\alias{StyleSummary}
 \alias{StyleSummary-class}
-\alias{StyleSummaryHtml}
+\alias{StyleSummary}
 \alias{StyleSummaryHtml-class}
+\alias{StyleSummaryHtml}
 \title{Styling Information for Summaries}
 \description{
 Styling Information for Summaries

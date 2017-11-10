@@ -86,10 +86,9 @@ test_that("Setting LESS var", {
 
 test_that("viewer vs browser", {
   viewer <- function(x) "viewer"
-  old.viewer <- options(viewer=viewer)
-  on.exit(options(old.viewer))
+  old.external <- options(viewer=viewer, browser=function(url) "browser")
+  on.exit(options(old.external))
   with_mock(
-    "utils::browseURL"=function(url) "browser",
     "diffobj::make_blocking"=identity, {
       pager <- PagerBrowser()
       expect_equal(pager@pager("blah"), "viewer")

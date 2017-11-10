@@ -285,4 +285,3 @@ diffFile(f1, f2)
   \code{\link{diffChr}} to compare character vectors directly,
   \code{\link{ses}} for a minimal and fast diff
 }
-

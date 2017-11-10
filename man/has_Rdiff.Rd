@@ -4,7 +4,10 @@
 \alias{has_Rdiff}
 \title{Attempt to Detect Whether diff Utility is Available}
 \usage{
-has_Rdiff()
+has_Rdiff(test.with = tools::Rdiff)
+}
+\arguments{
+\item{test.with}{function to test for diff presence with, typically Rdiff}
 }
 \value{
 TRUE or FALSE
@@ -17,4 +20,3 @@ diff utility is not available.  Intended primarily for testing purposes.
 \examples{
 has_Rdiff()
 }
-
