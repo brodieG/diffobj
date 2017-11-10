@@ -1,5 +1,6 @@
-This is a minor release with bugfixes and assorted
-enhancements.
+This is a minor release to resolve failures under
+the upcoming version of testthat along with some
+bugfixes.
 
 ## R CMD check --as-cran
 
@@ -10,15 +11,17 @@ Completes with 'Status: OK'
 I have tested this package against the following
 environments:
 
-* Travis Ubuntu 12.04.5 LTS
-    * R devel (2016-11-14 r71659)
-    * R version 3.3.1 (2016-06-21)
-    * R version 3.2.5 (2016-04-14)
-* Winbuilder
-    * R devel (2016-08-30 r71176)
-    * R version 3.3.2 (2016-10-31)
-    * Locally on Mac OS 10.9.5
-    * R version 3.3.1 (2016-06-21)
+* Travis Ubuntu 14.04.5 LTS
+    * R devel (2017-11-09 r73695)
+    * R version 3.4.2 (2017-01-27)
+    * R version 3.3.3 (2017-01-27)
+    * 
 
-Additionally, I have tested the winbuilder binaries
-on a different windows system.
+* Winbuilder
+    * R devel (2017-09-12 r73242)
+      https://win-builder.r-project.org/aje9VqoO07xe
+    * R version 3.4.2 (2017-09-28)
+      https://win-builder.r-project.org/jDW6ba36b7no
+  * Locally Mac OS 10.12.6
+    * R Version 3.4.1 (2017-06-30)
+
