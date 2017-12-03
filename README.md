@@ -20,15 +20,8 @@ This package is available on [CRAN](https://cran.r-project.org/package=diffobj).
 
 ```
 install.packages("diffobj")
-vignette("diffobj", package="diffobj")
+browseVignettes("diffobj")
 ```
-
-## Development
-
-Go to [Github](https://github.com/brodieG/diffobj) to report issues or if you
-are interested in development versions of this package.  The `master` branch is
-considered stable.  If you want to submit a PR please do so against the
-`development` branch.
 
 ## Related Software
 
@@ -36,4 +29,31 @@ considered stable.  If you want to submit a PR please do so against the
 * [Daff](https://cran.r-project.org/package=daff) diff, patch and merge for data.frames
 * [GNU diff](https://www.gnu.org/software/diffutils)
 
+## Acknowledgements
+
+* R Core for developing and maintaining such a wonderful language.
+* CRAN maintainers, for patiently shepherding packages onto CRAN and maintaining
+  the repository, and Uwe Ligges in particular for maintaining
+  [Winbuilder](http://win-builder.r-project.org/).
+* Eugene W. Myers for the Diff algorithm.
+* Michael B Allen for the original C implementation of the Myers' Diff
+  algorithm.
+* [Jim Hester](https://github.com/jimhester) because
+  [covr](https://cran.r-project.org/package=covr) rocks.
+* [Dirk Eddelbuettel](https://github.com/eddelbuettel) and [Carl
+  Boettiger](https://github.com/cboettig) for the
+  [rocker](https://github.com/rocker-org/rocker) project, and [Gábor
+  Csárdi](https://github.com/gaborcsardi) and the
+  [R-consortium](https://www.r-consortium.org/) for
+  [Rhub](https://github.com/r-hub), without which testing bugs on R-devel and
+  other platforms would be a nightmare.
+* Tomas Kalibera for [rchk](https://github.com/kalibera/rchk) and rcnst to help
+  detect errors in compiled code.
+* Hadley Wickham for [devtools](https://cran.r-project.org/package=devtools) and
+  [roxygen2](https://cran.r-project.org/package=roxygen2).
+* [Yihui Xie](https://github.com/yihui) for
+  [knitr](https://cran.r-project.org/package=knitr) and  [J.J.
+  Allaire](https://github.com/jjallaire) etal for
+  [rmarkdown](https://cran.r-project.org/package=rmarkdown), and by extension
+  John MacFarlane for [pandoc](http://pandoc.org/).
 

@@ -6,7 +6,7 @@ output:
     function(...) rmarkdown::html_vignette(..., md_extensions="-markdown_in_html_blocks", css=c(file.path(system.file(package="diffobj"), "css", "diffobj.css"), "styles.css"))
 
 vignette: >
-  %\VignetteIndexEntry{diffobj}
+  %\VignetteIndexEntry{Comparison Functions}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 
