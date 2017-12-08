@@ -33,9 +33,9 @@ test_that("trim_str", {
       diffobj:::str_levels(str.txt.w, wrap=TRUE),
       c(0L, 1L, 2L, 1L, 1L, 2L, 2L, 3L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
         1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
-        2L, 2L)
+        2L, 2L
       )
-    }
+    )
   }
   # cat(
   #   paste(
