@@ -14,7 +14,9 @@ test_that("trim_str", {
   str.txt <- capture.output(str(obj))
   str.txt.w <- capture.output(str(obj, width=30L, strict.width="wrap"))
 
-  if(getRversion() < '3.5.0') {
+  if(
+    getRversion() >= '3.5.0' && as.numeric(R.Version()[['svn rev']]) >= 73780
+  ) {
     expect_equal(
       diffobj:::str_levels(str.txt, wrap=FALSE),
 
