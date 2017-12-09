@@ -1,5 +1,10 @@
 # diffobj
 
+## v0.1.8
+
+* [#113](https://github.com/brodieG/diffobj/issues/113): Adapt tests to new
+  `str` return values ([Martin Mächler](https://github.com/mmaechler)).
+
 ## v0.1.7
 
 * Fix tests for next `testthat` release.
