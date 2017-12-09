@@ -75,6 +75,7 @@ detect_2d_guides <- function(txt) {
 
   res <- integer(0L)
   first.spaces <- grep("^\\s+\\S+", txt)
+
   if(length(first.spaces)) {
     # Now look for data
 
@@ -83,40 +84,41 @@ detect_2d_guides <- function(txt) {
       !grepl("^\\S+|^\\s+[0-9]+|^\\s+---\\s*$", txt) &
       seq_along(txt) >= first.space
 
-    head.row <- min(which(space.rows))
-    first.row <- min(which(!space.rows & seq_along(space.rows) > head.row))
-    last.row <- max(which(!space.rows))
+    if(!any(space.rows) || all(space.rows)) {
+      if(length(space.rows)) res <- 1L
+    } else {
+      head.row <- min(which(space.rows))
+      first.row <- min(which(!space.rows & seq_along(space.rows) > head.row))
+      last.row <- max(which(!space.rows))
 
-    # Between first.row and last.row, look for repeating sequences of head rows
-    # and non head rows; should have the same number of each for each block in
-    # a wrapped 2d object
+      # Between first.row and last.row, look for repeating sequences of head rows
+      # and non head rows; should have the same number of each for each block in
+      # a wrapped 2d object
 
-    res <- if(last.row > head.row) {
-      space.bw <- space.rows[head.row:last.row]
-      seq.dat <- vapply(
-        split(space.bw, cumsum(c(TRUE, diff(space.bw) == 1L))),
-        FUN=function(x) c(sum(x), sum(!x)),
-        integer(2L)
-      )
-      # Which of the sets of true and false head rows have the same repeating
-      # sequence as the first?  One thing to think about is what happens when
-      # print gets truncated; should allow last in sequence to have fewer rows,
-      # but we don't do that yet...
+      if(last.row > head.row) {
+        space.bw <- space.rows[head.row:last.row]
+        seq.dat <- vapply(
+          split(space.bw, cumsum(c(TRUE, diff(space.bw) == 1L))),
+          FUN=function(x) c(sum(x), sum(!x)),
+          integer(2L)
+        )
+        # Which of the sets of true and false head rows have the same repeating
+        # sequence as the first?  One thing to think about is what happens when
+        # print gets truncated; should allow last in sequence to have fewer rows,
+        # but we don't do that yet...
 
-      seq.diffs <- abs(apply(seq.dat, 1L, diff))
-      valid.rep <- max(
-        which(
-          cumsum(colSums(cbind(integer(2L), seq.diffs))) == 0L
-        ),
-        0L
-      )
-      if(valid.rep) {
-        res <- which(
-          rep(rep(c(TRUE, FALSE), valid.rep), seq.dat[seq_len(valid.rep * 2L)])
-        ) + head.row - 1L
-      }
-    }
-  }
+        seq.diffs <- abs(apply(seq.dat, 1L, diff))
+        valid.rep <- max(
+          which(
+            cumsum(colSums(cbind(integer(2L), seq.diffs))) == 0L
+          ),
+          0L
+        )
+        if(valid.rep) {
+          res <- which(
+            rep(rep(c(TRUE, FALSE), valid.rep), seq.dat[seq_len(valid.rep * 2L)])
+          ) + head.row - 1L
+  } } } }
   res
 }
 # Definitely approximate matching, we are lazy in matching the `$` versions
@@ -448,9 +450,6 @@ setMethod("guidesFile", c("ANY", "character"),
 
 apply_guides <- function(obj, obj.as.chr, guide_fun) {
   guide <- try(guide_fun(obj, obj.as.chr))
-  msg.extra <- paste0(
-    "If you did not define custom `guides*` methods contact maintainer."
-  )
   msg.extra <- paste0(
     "If you did not specify a `guides` function or define custom `guides*` ",
     "methods contact maintainer (see `?guides`).  Proceeding without guides."
