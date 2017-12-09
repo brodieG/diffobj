@@ -19,16 +19,6 @@ test_that("trim_str", {
   ) {
     expect_equal(
       diffobj:::str_levels(str.txt, wrap=FALSE),
-
-      c(0L, 1L, 3L, 1L, 2L, 4L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L,  5L, 2L)
-    )
-    expect_equal(
-      diffobj:::str_levels(str.txt.w, wrap=TRUE),
-      c(0L, 1L, 1L, 3L, 1L, 1L, 2L, 2L, 4L, 4L, 1L, 1L, 1L, 1L, 1L,  1L, 1L, 1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L,  5L, 5L, 2L, 2L)
-    )
-  } else {
-    expect_equal(
-      diffobj:::str_levels(str.txt, wrap=FALSE),
       c(0L, 1L, 2L, 1L, 2L, 3L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L, 5L, 2L)
     )
     expect_equal(
@@ -37,6 +27,16 @@ test_that("trim_str", {
         1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
         2L, 2L
       )
+    )
+  } else {
+    expect_equal(
+      diffobj:::str_levels(str.txt, wrap=FALSE),
+
+      c(0L, 1L, 3L, 1L, 2L, 4L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L,  5L, 2L)
+    )
+    expect_equal(
+      diffobj:::str_levels(str.txt.w, wrap=TRUE),
+      c(0L, 1L, 1L, 3L, 1L, 1L, 2L, 2L, 4L, 4L, 1L, 1L, 1L, 1L, 1L,  1L, 1L, 1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L,  5L, 5L, 2L, 2L)
     )
   }
   # cat(
