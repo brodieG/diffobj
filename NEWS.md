@@ -2,6 +2,8 @@
 
 ## v0.1.8
 
+* [#111](https://github.com/brodieG/diffobj/issues/111): Fixed guides with
+  `row.names=FALSE` ([Henrik Bengtsson](https://github.com/HenrikBengtsson)).
 * [#113](https://github.com/brodieG/diffobj/issues/113): Adapt tests to new
   `str` return values ([Martin Mächler](https://github.com/mmaechler)).
 
