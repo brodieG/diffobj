@@ -1,5 +1,14 @@
 # diffobj
 
+## v0.1.8
+
+* [#111](https://github.com/brodieG/diffobj/issues/111): Fixed guides with
+  `row.names=FALSE` (thank you @[Henrik
+  Bengtsson](https://github.com/HenrikBengtsson)).
+* [#113](https://github.com/brodieG/diffobj/issues/113): Adapt tests to new
+  `str` return values (thank you @[Martin
+  Mächler](https://github.com/mmaechler)).
+
 ## v0.1.7
 
 * Fix tests for next `testthat` release.

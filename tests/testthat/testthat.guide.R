@@ -72,6 +72,15 @@ test_that("detect_2d_guides", {
   )
   # Time series
   expect_equal(diffobj:::detect_2d_guides(capture.output(UKgas)), 1)
+  # no row.names (#111)
+
+  df1 <- capture.output(print(data.frame(a=1:3), row.names=FALSE))
+  expect_warning(no.rn.guide <- diffobj:::detect_2d_guides(df1), NA)
+  expect_equal(no.rn.guide, 1L)
+
+  df2 <- capture.output(print(data.frame(x="A"), row.names=FALSE))
+  expect_warning(no.rn.guide.2 <- diffobj:::detect_2d_guides(df2), NA)
+  expect_equal(no.rn.guide.2, 1L)
 })
 test_that("detect_list_guides", {
   l.1 <- list(1, 1:3, matrix(1:3, 1))

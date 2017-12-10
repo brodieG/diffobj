@@ -10,16 +10,35 @@ test_that("trim_str", {
     d=long.string,
     e=list(1, structure(2, zz=list(a=1, b=list("a", ls=long.string))), e=letters)
   )
+  # conditional because of issue113
   str.txt <- capture.output(str(obj))
-  expect_equal(
-    diffobj:::str_levels(str.txt, wrap=FALSE),
-    c(0L, 1L, 3L, 1L, 2L, 4L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L,  5L, 2L)
-  )
   str.txt.w <- capture.output(str(obj, width=30L, strict.width="wrap"))
-  expect_equal(
-    diffobj:::str_levels(str.txt.w, wrap=TRUE),
-    c(0L, 1L, 1L, 3L, 1L, 1L, 2L, 2L, 4L, 4L, 1L, 1L, 1L, 1L, 1L,  1L, 1L, 1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L,  5L, 5L, 2L, 2L)
-  )
+
+  if(
+    getRversion() >= '3.5.0' && as.numeric(R.Version()[['svn rev']]) >= 73780
+  ) {
+    expect_equal(
+      diffobj:::str_levels(str.txt, wrap=FALSE),
+      c(0L, 1L, 2L, 1L, 2L, 3L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L, 5L, 2L)
+    )
+    expect_equal(
+      diffobj:::str_levels(str.txt.w, wrap=TRUE),
+      c(0L, 1L, 2L, 1L, 1L, 2L, 2L, 3L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
+        1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
+        2L, 2L
+      )
+    )
+  } else {
+    expect_equal(
+      diffobj:::str_levels(str.txt, wrap=FALSE),
+
+      c(0L, 1L, 3L, 1L, 2L, 4L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L,  5L, 2L)
+    )
+    expect_equal(
+      diffobj:::str_levels(str.txt.w, wrap=TRUE),
+      c(0L, 1L, 1L, 3L, 1L, 1L, 2L, 2L, 4L, 4L, 1L, 1L, 1L, 1L, 1L,  1L, 1L, 1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L,  5L, 5L, 2L, 2L)
+    )
+  }
   # cat(
   #   paste(
   #     format(substr(str.txt.w, 1, 20)), diffobj:::str_levels(str.txt.w, TRUE),
