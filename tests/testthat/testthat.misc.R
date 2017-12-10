@@ -14,17 +14,9 @@ test_that("trim_str", {
   str.txt <- capture.output(str(obj))
   str.txt.w <- capture.output(str(obj, width=30L, strict.width="wrap"))
 
-  if(getRversion() < '3.5.0') {
-    expect_equal(
-      diffobj:::str_levels(str.txt, wrap=FALSE),
-
-      c(0L, 1L, 3L, 1L, 2L, 4L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L,  5L, 2L)
-    )
-    expect_equal(
-      diffobj:::str_levels(str.txt.w, wrap=TRUE),
-      c(0L, 1L, 1L, 3L, 1L, 1L, 2L, 2L, 4L, 4L, 1L, 1L, 1L, 1L, 1L,  1L, 1L, 1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L,  5L, 5L, 2L, 2L)
-    )
-  } else {
+  if(
+    getRversion() >= '3.5.0' && as.numeric(R.Version()[['svn rev']]) >= 73780
+  ) {
     expect_equal(
       diffobj:::str_levels(str.txt, wrap=FALSE),
       c(0L, 1L, 2L, 1L, 2L, 3L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L, 5L, 2L)
@@ -35,6 +27,16 @@ test_that("trim_str", {
         1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
         2L, 2L
       )
+    )
+  } else {
+    expect_equal(
+      diffobj:::str_levels(str.txt, wrap=FALSE),
+
+      c(0L, 1L, 3L, 1L, 2L, 4L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L,  5L, 2L)
+    )
+    expect_equal(
+      diffobj:::str_levels(str.txt.w, wrap=TRUE),
+      c(0L, 1L, 1L, 3L, 1L, 1L, 2L, 2L, 4L, 4L, 1L, 1L, 1L, 1L, 1L,  1L, 1L, 1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L,  5L, 5L, 2L, 2L)
     )
   }
   # cat(
