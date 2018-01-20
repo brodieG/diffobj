@@ -61,8 +61,6 @@ split_by_guides <- function(txt, guides, drop.leading=TRUE) {
 #
 # note due to ts use, can't use rownames, colnames, etc.
 #
-# Should be raw data stripped of ANSI characters
-#
 # Also, right now we're overloading a bunch of different formats (data.table,
 # data.frame, etc.  Probably would be better to separate the regexes into
 # different functions and keep the wrapping logic in here).
@@ -74,6 +72,7 @@ detect_2d_guides <- function(txt) {
   # skip the meta data in tibbles and the like
 
   res <- integer(0L)
+  if(any(crayon::has_style(txt))) txt <- crayon::strip_style(txt)
   first.spaces <- grep("^\\s+\\S+", txt)
 
   if(length(first.spaces)) {
