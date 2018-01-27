@@ -213,10 +213,14 @@ test_that("covr workaround", {
   diffobj:::make_diff_fun()
 })
 test_that("Encoding Issues", {
-  # issue81, mixed UTF-8 ASCII
+  # issue81, mixed UTF-8 ASCII, encoding a-acute in hex to avoid cross platform
+  # issues
 
-  a <- "Gábor Csárdi"
+  a <- "G\xc3\xa1bor Cs\xc3\xa1rdi"
   b <- sprintf("%s wow", a)
+  Encoding(a) <- 'UTF-8'
+  Encoding(b) <- 'UTF-8'
+
   # No error
   expect_error(
     new <-as.character(diffPrint(list(hell=a, b=NULL), list(hell=b, b=list()))),
@@ -229,13 +233,14 @@ test_that("Encoding Issues", {
     c("\033[33m<\033[39m \033[33mlist(hell = a, b = N..\033[39m  \033[34m>\033[39m \033[34mlist(hell = b, b = l..\033[39m",
       "\033[36m@@ 1,6 @@               \033[39m  \033[36m@@ 1,6 @@               \033[39m",
       "  \033[90m\033[39m$hell\033[90m\033[39m                     \033[90m\033[39m$hell\033[90m\033[39m                 ",
-      "\033[33m<\033[39m \033[90m[1] \033[39m\033[33m\"Gábor Csárdi\"\033[39m\033[90m\033[39m      \033[34m>\033[39m \033[90m[1] \033[39m\033[34m\"Gábor Csárdi wow\"\033[39m\033[90m\033[39m",
+      "\033[33m<\033[39m \033[90m[1] \033[39m\033[33m\"G\xc3\xa1bor Cs\xc3\xa1rdi\"\033[39m\033[90m\033[39m      \033[34m>\033[39m \033[90m[1] \033[39m\033[34m\"G\xc3\xa1bor Cs\xc3\xa1rdi wow\"\033[39m\033[90m\033[39m",
       "                                                  ", "  \033[90m\033[39m$b\033[90m\033[39m                        \033[90m\033[39m$b\033[90m\033[39m                    ",
       "\033[33m<\033[39m \033[90m\033[39m\033[33mNULL\033[39m\033[90m\033[39m                    \033[34m>\033[39m \033[90m\033[39m\033[34mlist\033[39m\033[34m()\033[39m\033[90m\033[39m                ",
       "                                                  "
     ),
     len = 8L
   )
+  Encoding(ref) <- 'UTF-8'
   expect_equal(new, ref)
 
   # issue 106, this used to fail when trying to check for an RDS with a bytes
