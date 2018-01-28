@@ -1,5 +1,9 @@
 # diffobj
 
+## v0.1.9
+
+* Fix test failures caused by changes in tibble output
+
 ## v0.1.8
 
 * [#111](https://github.com/brodieG/diffobj/issues/111): Fixed guides with
