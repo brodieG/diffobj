@@ -1,7 +1,6 @@
 # Run tests
 
 library(testthat)
-library(covr)
 library(diffobj)
 
 local({                                         # so we can use `on.exit`

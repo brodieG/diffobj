@@ -8,12 +8,14 @@ sudo: false
 
 cache: packages
 
+r_packages:
+  - covr
+
 branches:
   only:
     - master
     - development
     - rc
-    - rdevel
 
 after_success:
   - Rscript covr.R
