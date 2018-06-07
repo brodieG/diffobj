@@ -31,13 +31,6 @@ local({                                         # so we can use `on.exit`
   )
   old.opts <- c(old.opts, no.null.opt.list)
 
-  # covr options have no effect here; just recorded so we can use them ahead
-  # of calling package_coverage() when running tests manually
-  if(FALSE) {
-    options(covr.exclude_start="(?://|#)[[:space:]]*nocov[[:space:]]*start")
-    options(covr.exclude_end="(?://|#)[[:space:]]*nocov[[:space:]]*end")
-    options(covr.exclude_pattern="(?://|#)[[:space:]]*nocov")
-  }
   on.exit(options(old.opts))
   test.res <- test_dir(
     "testthat",
@@ -60,6 +53,7 @@ local({                                         # so we can use `on.exit`
         "limit",
         "methods",
         "misc",
+        "notcran",
         "pager",
         "rdiff",
         "s4",
