@@ -276,14 +276,11 @@ _find_faux_snake(
   if(x_max_r >= n) {
     x_r = n; y_r = m;
   } else {
-    // nocov start
-    error(err_msg_ubrnch, 3);
     x_r = x_max_r;
     /* not 100% sure about this one; seems like k_max_r is relative to the
      * bottom right origin, so maybe this should be x_r - k_max_r - delta?
      */
     y_r = x_r - k_max_r - delta;
-    // nocov end
   }
   /*
    * attempt to connect the two paths we found.  We need to store this
