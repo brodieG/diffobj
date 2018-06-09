@@ -53,6 +53,10 @@ browseVignettes("diffobj")
   Allaire](https://github.com/jjallaire) etal for
   [rmarkdown](https://cran.r-project.org/package=rmarkdown), and by extension
   John MacFarlane for [pandoc](http://pandoc.org/).
+* Olaf Mersmann for
+  [microbenchmark](https://cran.r-project.org/package=microbenchmark), because
+  microsecond matter, and [Joshua Ulrich](https://github.com/joshuaulrich) for
+  making it lightweight and maintaining it.
 * [Tomas Kalibera](https://github.com/kalibera) for
   [rchk](https://github.com/kalibera/rchk) and the accompanying vagrant image,
   and rcnst to help detect errors in compiled code.
