@@ -149,11 +149,12 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' @export
 #' @param a character
 #' @param b character
+#' @inheritParams diffPrint
 #' @return character
 #' @examples
 #' ses(letters[1:3], letters[2:4])
 
-ses <- function(a, b) {
+ses <- function(a, b, max.diffs=gdo("max.diffs")) {
   if(!is.character(a)) {
     a <- try(as.character(a))
     if(inherits(a, "try-error"))
@@ -164,9 +165,11 @@ ses <- function(a, b) {
     if(inherits(b, "try-error"))
       stop("Argument `b` is not character and could not be coerced to such")
   }
+  if(is.numeric(max.diffs)) max.diffs <- as.integer(max.diffs)
+  if(!is.int.1L(max.diffs)) stop("Argument `max.diffs` must be scalar integer.")
   if(anyNA(a)) a[is.na(a)] <- "NA"
   if(anyNA(b)) b[is.na(b)] <- "NA"
-  as.character(diff_myers(a, b))
+  as.character(diff_myers(a, b, max.diffs))
 }
 
 #' Diff two character vectors
