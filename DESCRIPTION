@@ -14,7 +14,7 @@ Authors@R: c(
     role=c("ctb", "cph"),
     comment="Original C implementation of Myers Diff Algorithm"))
 Depends:
-    R (>= 3.1.0)
+    R (>= 3.2.0)
 License: GPL (>= 2)
 LazyData: true
 URL: https://github.com/brodieG/diffobj
