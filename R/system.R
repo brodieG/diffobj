@@ -39,6 +39,7 @@ NULL
   diffobj.hunk.limit=-1L,
   diffobj.mode="auto",
   diffobj.silent=FALSE,
+  diffobj.warn=TRUE,
   diffobj.max.diffs=50000L,
   diffobj.align=NULL,           # NULL == AlignThreshold()
   diffobj.align.threshold=0.25,
