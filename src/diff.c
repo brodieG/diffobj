@@ -315,11 +315,8 @@ _find_faux_snake(
         x_sn <= x_r && y_sn <= y_r &&
         _comp_chr(a, aoff + x_sn, b, boff + y_sn)
     ) {
-      // nocov start
-      error(err_msg_ubrnch, 4);
       x_sn++; y_sn++;
       *(faux_snake_tmp + steps) = DIFF_MATCH;
-      // nocov end
     } else if (x_sn < x_r && (step_dir || y_sn >= y_r)) {
       x_sn++;
       diffs++;
@@ -503,8 +500,6 @@ _edit_faux(struct _ctx *ctx, diff_op * faux_snake, int aoff, int boff) {
   while((op = *(faux_snake + i++)) != DIFF_NULL) {
     switch (op) {
       case DIFF_MATCH: {
-        // nocov start
-        error(err_msg_ubrnch, 5);
         boff++;  /* note no break here */
         // nocov end
       }
