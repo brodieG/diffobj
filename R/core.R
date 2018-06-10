@@ -150,6 +150,7 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' @param a character
 #' @param b character
 #' @inheritParams diffPrint
+#' @param warn TRUE (default) or FALSE whether to warn if we hit `max.diffs`.
 #' @return character
 #' @examples
 #' ses(letters[1:3], letters[2:4])

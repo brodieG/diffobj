@@ -4,7 +4,7 @@
 \alias{diff_myers}
 \title{Diff two character vectors}
 \usage{
-diff_myers(a, b, max.diffs = 0L)
+diff_myers(a, b, max.diffs = 0L, warn = FALSE)
 }
 \arguments{
 \item{a}{character}
@@ -13,6 +13,8 @@ diff_myers(a, b, max.diffs = 0L)
 
 \item{max.diffs}{integer(1L) how many differences before giving up; set to
 zero to allow as many as there are}
+
+\item{warn}{TRUE or FALSE, whether to warn if we hit `max.diffs`.}
 }
 \value{
 list

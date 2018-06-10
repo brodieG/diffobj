@@ -80,7 +80,7 @@ the function.}
   \item \dQuote{page}: Include all HTML/CSS/JS required to create a
     stand-alone web page with the diff.
   \item \dQuote{diff.w.style}: The CSS and HTML, but without any of the
-    outer tags that would make it a proper HTML page (i.e. no 
+    outer tags that would make it a proper HTML page (i.e. no
     \code{<html>/<head>} tags or the like) and without the JS; note that
     technically this is illegal HTML since we have \code{<style>} tags
     floating outside of \code{<head>} tags, but it seems to work in most
