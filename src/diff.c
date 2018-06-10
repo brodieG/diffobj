@@ -501,7 +501,6 @@ _edit_faux(struct _ctx *ctx, diff_op * faux_snake, int aoff, int boff) {
     switch (op) {
       case DIFF_MATCH: {
         boff++;  /* note no break here */
-        // nocov end
       }
       case DIFF_DELETE: off = aoff++;
         break;
@@ -525,6 +524,7 @@ _ses(
   struct middle_snake ms;
   int d;
 
+  //Rprintf("m: %d n: %d\n", m, n);
   if (n == 0) {
     _edit(ctx, DIFF_INSERT, boff, m);
     d = m;
@@ -557,6 +557,7 @@ _ses(
     // **faux_snake = *fsp;
 
     d = _find_middle_snake(a, aoff, n, b, boff, m, ctx, &ms, &faux_snake);
+    //Rprintf("d: %d\n", d);
     if (d == -1) {
       // nocov start
       error(
@@ -622,7 +623,9 @@ _ses(
       int u = ms.u;
 
       /* There are only 4 base cases when the
-       * edit distance is 1.
+       * edit distance is 1.  Having a hard time finding cases that trigger the
+       * x == u, possibly because the algo eats leading matches, although
+       * apparently we do achieve it somewhere in the test suite.
        *
        * n > m   m > n
        *
@@ -635,6 +638,7 @@ _ses(
        *     -       |
        */
 
+      //Rprintf("x: %d u: %d y: %d v: %d\n",  ms.x, ms.u, ms.y, ms.v);
       if (m > n) {
         if (x == u) {
           _edit(ctx, DIFF_MATCH, aoff, n);

@@ -19,6 +19,36 @@ test_that("basic", {
     ses(c("e", "d", "a", "b", "c"), letters[c(1:5, 1:5, 1:5)]),
     c("0a1,4", "1a6,8", "2a10", "5a14,15")
   )
+  # edit distance = 1
+
+
+})
+test_that("trigger edit distance 1 branches", {
+  expect_equal(ses("a", c("a", "b")), "1a2")
+  expect_equal(ses(c("a", "b"), "a"), "2d1")
+  expect_equal(ses("c", c("b", "c")), "0a1")
+  expect_equal(ses(c("b", "c"), "c"), "1d0")
+
+  expect_equal(ses("a", character()), "1d0")
+  expect_equal(ses(character(), "a"), "0a1")
+  expect_equal(ses(character(), character()), character())
+
+  ## this is from the atomic tests, haven't dug into why they actually trigger
+  ## the desired branches, but it is fairly complex
+  set.seed(2)
+  w1 <- sample(
+    c(
+    "carrot", "cat", "cake", "eat", "rabbit", "holes", "the", "a", "pasta",
+    "boom", "noon", "sky", "hat", "blah", "paris", "dog", "snake"
+    ), 25, replace=TRUE
+  )
+  w4 <- w3 <- w2 <- w1
+  w2[sample(seq_along(w1), 5)] <- LETTERS[1:5]
+  w3 <- w1[8:15]
+  w4 <- c(w1[1:5], toupper(w1[1:5]), w1[6:15], toupper(w1[1:5]))
+
+  expect_equal(ses(w1, w4), c("5a6,10", "15,21d19", "23,25c21,25"))
+
 })
 test_that("longer strings", {
 
@@ -41,7 +71,7 @@ test_that("max diffs", {
     "Exceeded `max.diffs`"
   )
   expect_equal(
-    ses(letters[1:10], LETTERS[1:10], max.diffs=5, warn=FALSE)
+    ses(letters[1:10], LETTERS[1:10], max.diffs=5, warn=FALSE),
     "1,10c1,10"
   )
   expect_equal(
