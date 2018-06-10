@@ -19,47 +19,444 @@
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
-div.sourceCode { overflow-x: auto; }
-table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
-  margin: 0; padding: 0; vertical-align: baseline; border: none; }
-table.sourceCode { width: 100%; line-height: 100%; }
-td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
-td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code > span.dt { color: #902000; } /* DataType */
-code > span.dv { color: #40a070; } /* DecVal */
-code > span.bn { color: #40a070; } /* BaseN */
-code > span.fl { color: #40a070; } /* Float */
-code > span.ch { color: #4070a0; } /* Char */
-code > span.st { color: #4070a0; } /* String */
-code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code > span.ot { color: #007020; } /* Other */
-code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code > span.fu { color: #06287e; } /* Function */
-code > span.er { color: #ff0000; font-weight: bold; } /* Error */
-code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-code > span.cn { color: #880000; } /* Constant */
-code > span.sc { color: #4070a0; } /* SpecialChar */
-code > span.vs { color: #4070a0; } /* VerbatimString */
-code > span.ss { color: #bb6688; } /* SpecialString */
-code > span.im { } /* Import */
-code > span.va { color: #19177c; } /* Variable */
-code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code > span.op { color: #666666; } /* Operator */
-code > span.bu { } /* BuiltIn */
-code > span.ex { } /* Extension */
-code > span.pp { color: #bc7a00; } /* Preprocessor */
-code > span.at { color: #7d9029; } /* Attribute */
-code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; position: absolute; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; }
+pre.numberSource a.sourceLine:empty
+  { position: absolute; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: absolute; left: -5em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
 
-<link href="data:text/css;charset=utf-8,%0A%0ADIV%2Ediffobj%5Fcontainer%20PRE%20%7B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%0Amargin%3A%200%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Erow%20%7B%0Awidth%3A%20100%25%3B%0Afont%2Dfamily%3A%20monospace%3B%0Adisplay%3A%20table%3B%0Atable%2Dlayout%3A%20fixed%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Eline%20%7B%0Awidth%3A%20auto%3B%0Adisplay%3A%20table%2Dcell%3B%0Aoverflow%3A%20hidden%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Eline%3EDIV%20%7B%0Awidth%3A%20100%25%3B%0Adisplay%3A%20table%3B%0Atable%2Dlayout%3A%20auto%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Eline%2Ebanner%3EDIV%20%7B%0Adisplay%3A%20table%3B%0Atable%2Dlayout%3A%20auto%3B%20%0A%7D%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Etext%20%7B%0Adisplay%3A%20table%2Dcell%3B%0Awidth%3A%20100%25%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Egutter%20%7B%0Adisplay%3A%20table%2Dcell%3B%0Apadding%3A%200%200%2E2em%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Egutter%20DIV%20%7B%0Adisplay%3A%20table%2Dcell%3B%0A%7D%0A%23diffobj%5Fcontent%5Fmeta%20DIV%2Ediffobj%5Fcontainer%20DIV%2Erow%20%7B%0Awidth%3A%20auto%3B%0A%7D%0A%23diffobj%5Fbanner%5Fmeta%20DIV%2Ediffobj%5Fcontainer%20DIV%2Eline%2Ebanner%3EDIV%20%7B%0Atable%2Dlayout%3A%20auto%3B%0A%7D%0A%23diffobj%5Fouter%20%7B%0Aoverflow%3A%20hidden%3B%0A%7D%0A%20DIV%2Ediffobj%5Fcontainer%20DIV%2Esummary%20DIV%2Emap%20%7B%0Aword%2Dwrap%3A%20break%2Dword%3B%0Apadding%2Dleft%3A%201em%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Esummary%20DIV%2Edetail%20%7B%0Apadding%2Dleft%3A%201em%3B%0A%7D%0A%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Eline%2Ebanner%20%7B%0Afont%2Dsize%3A%201%2E2em%3B%0Afont%2Dweight%3A%20bold%3B%0Aoverflow%3A%20hidden%3B%0A%7D%0A%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Eline%2Ebanner%20DIV%2Etext%20DIV%7B%0Awhite%2Dspace%3A%20nowrap%3B%0Aoverflow%3A%20hidden%3B%0Atext%2Doverflow%3A%20ellipsis%3B%0Awidth%3A%20100%25%3B%20%0A%7D%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Egutter%2C%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Eguide%2C%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Efill%2C%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Econtext%5Fsep%2C%0ADIV%2Ediffobj%5Fcontainer%20SPAN%2Etrim%20%7B%0Acolor%3A%20%23999%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Eheader%20%7B%0Afont%2Dsize%3A%201%2E1em%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Etext%3EDIV%2Ematch%2C%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Etext%3EDIV%2Eguide%20%7B%0Abackground%2Dcolor%3A%20%23ffffff%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Etext%3EDIV%2Efill%20%7B%0Abackground%2Dcolor%3A%20transparent%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Etext%3EDIV%20%7B%0Apadding%2Dright%3A%203px%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Etext%3EDIV%20%7B%0Aborder%2Dleft%3A%201px%20solid%20%23888888%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Eline%20%7B%0Abackground%2Dcolor%3A%20%23eeeeee%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Etext%3EDIV%2C%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Eheader%20%7B%0Apadding%2Dleft%3A%200%2E5em%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Eline%3EDIV%2Ematch%2C%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Eline%3EDIV%2Efill%2C%0ADIV%2Ediffobj%5Fcontainer%20DIV%2Eline%3EDIV%2Eguide%20%7B%0Aborder%2Dleft%3A%201px%20solid%20%23888888%3B%0A%7D%0A%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Ergb%20SPAN%2Eword%2Einsert%2C%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Ergb%20DIV%2Eline%3EDIV%2Einsert%20%7B%0Abackground%2Dcolor%3A%20%23a6f3a6%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Ergb%20SPAN%2Eword%2Edelete%2C%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Ergb%20DIV%2Eline%3EDIV%2Edelete%20%7B%0Abackground%2Dcolor%3A%20%23f8c2c2%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Ergb%20DIV%2Etext%3EDIV%2Einsert%20%7B%0Abackground%2Dcolor%3A%20%23efffef%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Ergb%20DIV%2Etext%3EDIV%2Einsert%2C%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Ergb%20DIV%2Eline%3EDIV%2Einsert%20%7B%0Aborder%2Dleft%3A%201px%20solid%20%2333bb33%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Ergb%20DIV%2Etext%3EDIV%2Edelete%20%7B%0Abackground%2Dcolor%3A%20%23ffefef%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Ergb%20DIV%2Etext%3EDIV%2Edelete%2C%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Ergb%20DIV%2Eline%3EDIV%2Edelete%20%7B%0Aborder%2Dleft%3A%201px%20solid%20%23cc6666%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Ergb%20DIV%2Eheader%20%7B%0Abackground%2Dcolor%3A%20%23e0e6fa%3B%0Aborder%2Dleft%3A%201px%20solid%20%239894b6%3B%0A%7D%0A%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Eyb%20SPAN%2Eword%2Einsert%2C%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Eyb%20DIV%2Eline%3EDIV%2Einsert%20%7B%0Abackground%2Dcolor%3A%20%23c0cfff%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Eyb%20SPAN%2Eword%2Edelete%2C%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Eyb%20DIV%2Eline%3EDIV%2Edelete%20%7B%0Abackground%2Dcolor%3A%20%23e7e780%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Eyb%20DIV%2Etext%3EDIV%2Einsert%20%7B%0Abackground%2Dcolor%3A%20%23efefff%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Eyb%20DIV%2Etext%3EDIV%2Einsert%2C%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Eyb%20DIV%2Eline%3EDIV%2Einsert%20%7B%0Aborder%2Dleft%3A%201px%20solid%20%233333bb%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Eyb%20DIV%2Etext%3EDIV%2Edelete%20%7B%0Abackground%2Dcolor%3A%20%23fefee5%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Eyb%20DIV%2Etext%3EDIV%2Edelete%2C%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Eyb%20DIV%2Eline%3EDIV%2Edelete%20%7B%0Aborder%2Dleft%3A%201px%20solid%20%23aaaa55%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Eyb%20DIV%2Eheader%20%7B%0Abackground%2Dcolor%3A%20%23afafaf%3B%0Aborder%2Dleft%3A%201px%20solid%20%23e3e3e3%3B%0Acolor%3A%20%23e9e9e9%3B%0A%7D%0ADIV%2Ediffobj%5Fcontainer%2Elight%2Eyb%20DIV%2Eline%20%7B%0Abackground%2Dcolor%3A%20%23eeeeee%3B%0A%7D%0A" rel="stylesheet" type="text/css" />
-<link href="data:text/css;charset=utf-8,%0Abody%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E5%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0A%0Apadding%3A%204px%3B%0Awidth%3A%20100%25%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%201em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Ah3%2Esubtitle%20%7B%0Amargin%2Dtop%3A%20%2D23px%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23EEE%3B%0Acolor%3A%20%23333%3B%0A%0A%7D%0Apre%20%7B%0Aborder%3A%202px%20solid%20%23EEE%3B%0Aoverflow%3A%20auto%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%0Amargin%3A%205px%200px%3B%0Apadding%3A%205px%2010px%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Acolor%3A%20%23353%3B%0A%0A%7D%0Adiv%2EsourceCode%20pre%2C%20div%2EsourceCode%20code%20%7B%0Abackground%2Dcolor%3A%20%23FAFAFA%3B%0A%7D%0Adiv%2EsourceCode%20pre%7B%0A%0A%7D%0Adiv%2EsourceCode%20%2B%20pre%2C%0Adiv%2EsourceCode%20%2B%20div%2Ediffobj%5Fcontainer%20%7B%0Amargin%2Dtop%3A%20%2D5px%3B%0A%7D%0Adiv%2Ediffobj%5Fcontainer%20pre%7B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%2C%20h1%20%3E%20code%2C%20h2%20%3E%20code%2C%20h3%20%3E%20code%2C%0Ah4%20%3E%20code%2C%20h5%20%3E%20code%2C%20h6%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0Aline%2Dheight%3A%201%3B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Apadding%2Dbottom%3A%203px%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0Aborder%2Dbottom%3A%201px%20solid%20%23999%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23999%3B%0Apadding%2Dtop%3A%205px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Apadding%2Dtop%3A%205px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0A%0Acolor%3A%20%23777%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah4%2Eauthor%2C%20h4%2Edate%20%7Bdisplay%3A%20none%3B%7D%0Ah5%2C%20h6%20%7B%0A%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%232255dd%3B%0Afont%2Dweight%3A%20bold%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+<style type="text/css">
+
+DIV.diffobj_container PRE {
+white-space: pre-wrap;
+margin: 0;
+}
+DIV.diffobj_container DIV.row {
+width: 100%;
+font-family: monospace;
+display: table;
+table-layout: fixed;
+}
+DIV.diffobj_container DIV.line {
+width: auto;
+display: table-cell;
+overflow: hidden;
+}
+DIV.diffobj_container DIV.line>DIV {
+width: 100%;
+display: table;
+table-layout: auto;
+}
+DIV.diffobj_container DIV.line.banner>DIV {
+display: table;
+table-layout: auto; 
+}
+DIV.diffobj_container DIV.text {
+display: table-cell;
+width: 100%;
+}
+DIV.diffobj_container DIV.gutter {
+display: table-cell;
+padding: 0 0.2em;
+}
+DIV.diffobj_container DIV.gutter DIV {
+display: table-cell;
+}
+#diffobj_content_meta DIV.diffobj_container DIV.row {
+width: auto;
+}
+#diffobj_banner_meta DIV.diffobj_container DIV.line.banner>DIV {
+table-layout: auto;
+}
+#diffobj_outer {
+overflow: hidden;
+}
+ DIV.diffobj_container DIV.summary DIV.map {
+word-wrap: break-word;
+padding-left: 1em;
+}
+DIV.diffobj_container DIV.summary DIV.detail {
+padding-left: 1em;
+}
+
+DIV.diffobj_container DIV.line.banner {
+font-size: 1.2em;
+font-weight: bold;
+overflow: hidden;
+}
+
+DIV.diffobj_container DIV.line.banner DIV.text DIV{
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+width: 100%; 
+}
+DIV.diffobj_container DIV.gutter,
+DIV.diffobj_container DIV.guide,
+DIV.diffobj_container DIV.fill,
+DIV.diffobj_container DIV.context_sep,
+DIV.diffobj_container SPAN.trim {
+color: #999;
+}
+DIV.diffobj_container DIV.header {
+font-size: 1.1em;
+}
+DIV.diffobj_container DIV.text>DIV.match,
+DIV.diffobj_container DIV.text>DIV.guide {
+background-color: #ffffff;
+}
+DIV.diffobj_container DIV.text>DIV.fill {
+background-color: transparent;
+}
+DIV.diffobj_container DIV.text>DIV {
+padding-right: 3px;
+}
+DIV.diffobj_container DIV.text>DIV {
+border-left: 1px solid #888888;
+}
+DIV.diffobj_container DIV.line {
+background-color: #eeeeee;
+}
+DIV.diffobj_container DIV.text>DIV,
+DIV.diffobj_container DIV.header {
+padding-left: 0.5em;
+}
+DIV.diffobj_container DIV.line>DIV.match,
+DIV.diffobj_container DIV.line>DIV.fill,
+DIV.diffobj_container DIV.line>DIV.guide {
+border-left: 1px solid #888888;
+}
+
+DIV.diffobj_container.light.rgb SPAN.word.insert,
+DIV.diffobj_container.light.rgb DIV.line>DIV.insert {
+background-color: #a6f3a6;
+}
+DIV.diffobj_container.light.rgb SPAN.word.delete,
+DIV.diffobj_container.light.rgb DIV.line>DIV.delete {
+background-color: #f8c2c2;
+}
+DIV.diffobj_container.light.rgb DIV.text>DIV.insert {
+background-color: #efffef;
+}
+DIV.diffobj_container.light.rgb DIV.text>DIV.insert,
+DIV.diffobj_container.light.rgb DIV.line>DIV.insert {
+border-left: 1px solid #33bb33;
+}
+DIV.diffobj_container.light.rgb DIV.text>DIV.delete {
+background-color: #ffefef;
+}
+DIV.diffobj_container.light.rgb DIV.text>DIV.delete,
+DIV.diffobj_container.light.rgb DIV.line>DIV.delete {
+border-left: 1px solid #cc6666;
+}
+DIV.diffobj_container.light.rgb DIV.header {
+background-color: #e0e6fa;
+border-left: 1px solid #9894b6;
+}
+
+DIV.diffobj_container.light.yb SPAN.word.insert,
+DIV.diffobj_container.light.yb DIV.line>DIV.insert {
+background-color: #c0cfff;
+}
+DIV.diffobj_container.light.yb SPAN.word.delete,
+DIV.diffobj_container.light.yb DIV.line>DIV.delete {
+background-color: #e7e780;
+}
+DIV.diffobj_container.light.yb DIV.text>DIV.insert {
+background-color: #efefff;
+}
+DIV.diffobj_container.light.yb DIV.text>DIV.insert,
+DIV.diffobj_container.light.yb DIV.line>DIV.insert {
+border-left: 1px solid #3333bb;
+}
+DIV.diffobj_container.light.yb DIV.text>DIV.delete {
+background-color: #fefee5;
+}
+DIV.diffobj_container.light.yb DIV.text>DIV.delete,
+DIV.diffobj_container.light.yb DIV.line>DIV.delete {
+border-left: 1px solid #aaaa55;
+}
+DIV.diffobj_container.light.yb DIV.header {
+background-color: #afafaf;
+border-left: 1px solid #e3e3e3;
+color: #e9e9e9;
+}
+DIV.diffobj_container.light.yb DIV.line {
+background-color: #eeeeee;
+}
+</style>
+<style type="text/css">
+body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.5;
+}
+#header {
+text-align: center;
+}
+#TOC {
+clear: both;
+
+padding: 4px;
+width: 100%;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 1em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+h3.subtitle {
+margin-top: -23px;
+}
+pre, code {
+background-color: #EEE;
+color: #333;
+
+}
+pre {
+border: 2px solid #EEE;
+overflow: auto;
+white-space: pre-wrap; 
+
+margin: 5px 0px;
+padding: 5px 10px;
+font-size: 85%;
+}
+pre:not([class]) {
+color: #353;
+
+}
+div.sourceCode pre, div.sourceCode code {
+background-color: #FAFAFA;
+}
+div.sourceCode pre{
+
+}
+div.sourceCode + pre,
+div.sourceCode + div.diffobj_container {
+margin-top: -5px;
+}
+div.diffobj_container pre{
+line-height: 1.3;
+}
+
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+}
+p > code, li > code, h1 > code, h2 > code, h3 > code,
+h4 > code, h5 > code, h6 > code {
+padding: 2px 0px;
+line-height: 1;
+font-weight: bold;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+padding-bottom: 3px;
+font-size: 35px;
+line-height: 40px;
+border-bottom: 1px solid #999;
+}
+h2 {
+border-bottom: 1px solid #999;
+padding-top: 5px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+padding-top: 5px;
+font-size: 120%;
+}
+h4 {
+
+color: #777;
+font-size: 105%;
+}
+h4.author, h4.date {display: none;}
+h5, h6 {
+
+font-size: 105%;
+}
+a {
+color: #2255dd;
+font-weight: bold;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
 
 </head>
 
@@ -108,12 +505,12 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p><code>diffobj</code> uses the same comparison mechanism used by <code>git diff</code> and <code>diff</code> to highlight differences between <em>rendered</em> R objects:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(diffobj)
-a &lt;-<span class="st"> </span>b &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">1</span>:<span class="dv">100</span>, <span class="dt">ncol=</span><span class="dv">2</span>)
-a &lt;-<span class="st"> </span>a[-<span class="dv">20</span>,]
-b &lt;-<span class="st"> </span>b[-<span class="dv">45</span>,]
-b[<span class="kw">c</span>(<span class="dv">18</span>, <span class="dv">44</span>)] &lt;-<span class="st"> </span><span class="dv">999</span>
-<span class="kw">diffPrint</span>(<span class="dt">target=</span>a, <span class="dt">current=</span>b)</code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">library</span>(diffobj)</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">a &lt;-<span class="st"> </span>b &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">100</span>, <span class="dt">ncol=</span><span class="dv">2</span>)</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">a &lt;-<span class="st"> </span>a[<span class="op">-</span><span class="dv">20</span>,]</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">b &lt;-<span class="st"> </span>b[<span class="op">-</span><span class="dv">45</span>,]</a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">b[<span class="kw">c</span>(<span class="dv">18</span>, <span class="dv">44</span>)] &lt;-<span class="st"> </span><span class="dv">999</span></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="kw">diffPrint</span>(<span class="dt">target=</span>a, <span class="dt">current=</span>b)</a></code></pre></div>
 <div class="diffobj_container light yb">
 <pre><div class="row"><div class="line banner"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="word delete">a</span></div></div></div></div><div class="line banner"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="word insert">b</span></div></div></div></div></div><div class="row"><div class="line"><div class="header">@@ 17,6 @@</div></div><div class="line"><div class="header">@@ 17,7 @@</div></div></div><div class="row"><div class="line"><div class="guide"><div class="gutter"><div class="guide">~</div><div class="pad"> </div></div><div class="text"><div class="guide"><span class="trim"></span>      [,1] [,2]<span class="trim"></span></div></div></div></div><div class="line"><div class="guide"><div class="gutter"><div class="guide">~</div><div class="pad"> </div></div><div class="text"><div class="guide"><span class="trim"></span>      [,1] [,2]<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[16,] </span>  16   66<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[16,] </span>  16   66<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[17,] </span>  17   67<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[17,] </span>  17   67<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim">[18,] </span>  <span class="word delete">18</span>   68<span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim">[18,] </span> <span class="word insert">999</span>   68<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[19,] </span>  19   69<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[19,] </span>  19   69<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="fill"><div class="gutter"><div class="fill">~</div><div class="pad"> </div></div><div class="text"><div class="fill"></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim">[20,] </span>  <span class="word insert">20</span>   <span class="word insert">70</span><span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[20,] </span>  21   71<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[21,] </span>  21   71<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[21,] </span>  22   72<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[22,] </span>  22   72<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="header">@@ 42,6 @@</div></div><div class="line"><div class="header">@@ 43,5 @@</div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[41,] </span>  42   92<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[42,] </span>  42   92<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[42,] </span>  43   93<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[43,] </span>  43   93<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim">[43,] </span>  <span class="word delete">44</span>   94<span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim">[44,] </span> <span class="word insert">999</span>   94<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim">[44,] </span>  <span class="word delete">45</span>   <span class="word delete">95</span><span class="trim"></span></div></div></div></div><div class="line"><div class="fill"><div class="gutter"><div class="fill">~</div><div class="pad"> </div></div><div class="text"><div class="fill"></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[45,] </span>  46   96<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[45,] </span>  46   96<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[46,] </span>  47   97<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[46,] </span>  47   97<span class="trim"></span></div></div></div></div></div></pre>
 </div>
@@ -157,9 +554,9 @@ b[<span class="kw">c</span>(<span class="dv">18</span>, <span class="dv">44</spa
 <div id="atomic-vectors" class="section level3">
 <h3>Atomic Vectors</h3>
 <p>Since R can display multiple elements in an atomic vector on the same line, and <code>diffPrint</code> is fundamentally a line diff, we use specialized logic when diffing atomic vectors. Consider:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">state.abb2 &lt;-<span class="st"> </span>state.abb[-<span class="dv">16</span>]
-state.abb2[<span class="dv">37</span>] &lt;-<span class="st"> &quot;Pennsylvania&quot;</span>
-<span class="kw">diffPrint</span>(state.abb, state.abb2)</code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">state.abb2 &lt;-<span class="st"> </span>state.abb[<span class="op">-</span><span class="dv">16</span>]</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">state.abb2[<span class="dv">37</span>] &lt;-<span class="st"> &quot;Pennsylvania&quot;</span></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="kw">diffPrint</span>(state.abb, state.abb2)</a></code></pre></div>
 <div class="diffobj_container light yb">
 <pre><div class="row"><div class="line banner"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="word delete">state.abb</span></div></div></div></div><div class="line banner"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="word insert">state.abb2</span></div></div></div></div></div><div class="row"><div class="line"><div class="header">@@ 1,5 @@</div></div><div class="line"><div class="header">@@ 6,5 @@</div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim"> [1] </span>&quot;AL&quot; &quot;AK&quot; &quot;AZ&quot; &quot;AR&quot; &quot;CA&quot; &quot;CO&quot;<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[11] </span>&quot;HI&quot;           &quot;ID&quot;          <span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim"> [7] </span>&quot;CT&quot; &quot;DE&quot; &quot;FL&quot; &quot;GA&quot; &quot;HI&quot; &quot;ID&quot;<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[13] </span>&quot;IL&quot;           &quot;IN&quot;          <span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim">[13] </span>&quot;IL&quot; &quot;IN&quot; &quot;IA&quot; <span class="word delete">&quot;KS&quot;</span> &quot;KY&quot; &quot;LA&quot;<span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim">[15] </span>&quot;IA&quot;           &quot;KY&quot;          <span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[19] </span>&quot;ME&quot; &quot;MD&quot; &quot;MA&quot; &quot;MI&quot; &quot;MN&quot; &quot;MS&quot;<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[17] </span>&quot;LA&quot;           &quot;ME&quot;          <span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[25] </span>&quot;MO&quot; &quot;MT&quot; &quot;NE&quot; &quot;NV&quot; &quot;NH&quot; &quot;NJ&quot;<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[19] </span>&quot;MD&quot;           &quot;MA&quot;          <span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="header">@@ 6,4 @@</div></div><div class="line"><div class="header">@@ 17,5 @@</div></div></div><div class="row"><div class="line"><div class="fill"><div class="gutter"><div class="fill">~</div><div class="pad"> </div></div><div class="text"><div class="fill"> </div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[33] </span>&quot;ND&quot;           &quot;OH&quot;          <span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[31] </span>&quot;NM&quot; &quot;NY&quot; &quot;NC&quot; &quot;ND&quot; &quot;OH&quot; &quot;OK&quot;<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[35] </span>&quot;OK&quot;           &quot;OR&quot;          <span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim">[37] </span>&quot;OR&quot; <span class="word delete">&quot;PA&quot;</span> &quot;RI&quot; &quot;SC&quot; &quot;SD&quot; &quot;TN&quot;<span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim">[37] </span><span class="word insert">&quot;Pennsylvania&quot;</span> &quot;RI&quot;          <span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[43] </span>&quot;TX&quot; &quot;UT&quot; &quot;VT&quot; &quot;VA&quot; &quot;WA&quot; &quot;WV&quot;<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[39] </span>&quot;SC&quot;           &quot;SD&quot;          <span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[49] </span>&quot;WI&quot; &quot;WY&quot;<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">[41] </span>&quot;TN&quot;           &quot;TX&quot;          <span class="trim"></span></div></div></div></div></div></pre>
 </div>
@@ -187,9 +584,9 @@ state.abb2[<span class="dv">37</span>] &lt;-<span class="st"> &quot;Pennsylvania
 <div id="compare-structure-with-diffstr" class="section level3">
 <h3>Compare Structure with <code>diffStr</code></h3>
 <p>For complex objects it is often useful to compare structures:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mdl1 &lt;-<span class="st"> </span><span class="kw">lm</span>(Sepal.Length ~<span class="st"> </span>Sepal.Width, iris)
-mdl2 &lt;-<span class="st"> </span><span class="kw">lm</span>(Sepal.Length ~<span class="st"> </span>Sepal.Width +<span class="st"> </span>Species, iris)
-<span class="kw">diffStr</span>(mdl1$qr, mdl2$qr, <span class="dt">line.limit=</span><span class="dv">15</span>)</code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">mdl1 &lt;-<span class="st"> </span><span class="kw">lm</span>(Sepal.Length <span class="op">~</span><span class="st"> </span>Sepal.Width, iris)</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">mdl2 &lt;-<span class="st"> </span><span class="kw">lm</span>(Sepal.Length <span class="op">~</span><span class="st"> </span>Sepal.Width <span class="op">+</span><span class="st"> </span>Species, iris)</a>
+<a class="sourceLine" id="cb3-3" data-line-number="3"><span class="kw">diffStr</span>(mdl1<span class="op">$</span>qr, mdl2<span class="op">$</span>qr, <span class="dt">line.limit=</span><span class="dv">15</span>)</a></code></pre></div>
 <div class="diffobj_container light yb">
 <pre><div class="row"><div class="line banner"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="word delete">str(mdl1$qr, max.level = 2L)</span></div></div></div></div><div class="line banner"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="word insert">str(mdl2$qr, max.level = 2L)</span></div></div></div></div></div><div class="row"><div class="line"><div class="header">@@ 1,9 @@</div></div><div class="line"><div class="header">@@ 1,10 @@</div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim"></span>List of 5<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim"></span>List of 5<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim"> $ </span>qr   : num [1:150, <span class="word delete">1:2]</span> -12.2474 0.0816 0.0816 0.0816 0.0816 ...<span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim"> $ </span>qr   : num [1:150, <span class="word insert">1:4]</span> -12.2474 0.0816 0.0816 0.0816 0.0816 ...<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">  ..- </span>attr(*, &quot;dimnames&quot;)=List of 2<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim">  ..- </span>attr(*, &quot;dimnames&quot;)=List of 2<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim">  ..- </span>attr(*, &quot;assign&quot;)= int <span class="word delete">[1:2]</span> 0 1<span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim">  ..- </span>attr(*, &quot;assign&quot;)= int <span class="word insert">[1:4]</span> 0 <span class="word insert">1</span> <span class="word insert">2</span> <span class="word insert">2</span><span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="fill"><div class="gutter"><div class="fill">~</div><div class="pad"> </div></div><div class="text"><div class="fill"></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim">  ..- </span><span class="word insert">attr</span><span class="word insert">(*,</span> <span class="word insert">&quot;contrasts&quot;</span><span class="word insert">)=List</span> <span class="word insert">of</span> 1<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim"> $ </span>qraux: num <span class="word delete">[1:2]</span> 1.08 1.02<span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim"> $ </span>qraux: num <span class="word insert">[1:4]</span> 1.08 1.02 <span class="word insert">1.05</span> <span class="word insert">1.11</span><span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim"> $ </span>pivot: int <span class="word delete">[1:2]</span> 1 2<span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim"> $ </span>pivot: int <span class="word insert">[1:4]</span> 1 2 <span class="word insert">3</span> <span class="word insert">4</span><span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim"> $ </span>tol  : num 1e-07<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim"> $ </span>tol  : num 1e-07<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim"> $ </span>rank : int <span class="word delete">2</span><span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim"> $ </span>rank : int <span class="word insert">4</span><span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim"> - </span>attr(*, &quot;class&quot;)= chr &quot;qr&quot;<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim"> - </span>attr(*, &quot;class&quot;)= chr &quot;qr&quot;<span class="trim"></span></div></div></div></div></div>3 differences are hidden by our use of `max.level`</pre>
 </div>
@@ -198,7 +595,7 @@ mdl2 &lt;-<span class="st"> </span><span class="kw">lm</span>(Sepal.Length ~<spa
 <div id="compare-vectors-elements-with-diffchr" class="section level3">
 <h3>Compare Vectors Elements with <code>diffChr</code></h3>
 <p>Sometimes it is useful to do a direct element by element comparison:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">diffChr</span>(letters[<span class="dv">1</span>:<span class="dv">3</span>], <span class="kw">c</span>(<span class="st">&quot;a&quot;</span>, <span class="st">&quot;B&quot;</span>, <span class="st">&quot;c&quot;</span>))</code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="kw">diffChr</span>(letters[<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>], <span class="kw">c</span>(<span class="st">&quot;a&quot;</span>, <span class="st">&quot;B&quot;</span>, <span class="st">&quot;c&quot;</span>))</a></code></pre></div>
 <div class="diffobj_container light yb">
 <pre><div class="row"><div class="line banner"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="word delete">letters[1:3]</span></div></div></div></div><div class="line banner"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="word insert">c(&quot;a&quot;, &quot;B&quot;, &quot;c&quot;)</span></div></div></div></div></div><div class="row"><div class="line"><div class="header">@@ 1,3 @@</div></div><div class="line"><div class="header">@@ 1,3 @@</div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim"></span>a<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim"></span>a<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim"></span><span class="word delete">b</span><span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim"></span><span class="word insert">B</span><span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim"></span>c<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim"></span>c<span class="trim"></span></div></div></div></div></div></pre>
 </div>
@@ -211,11 +608,11 @@ mdl2 &lt;-<span class="st"> </span><span class="kw">lm</span>(Sepal.Length ~<spa
 <div id="return-value" class="section level3">
 <h3>Return Value</h3>
 <p>All the <code>diff*</code> methods return a <code>Diff</code> S4 object. It has a <code>show</code> method which is responsible for rendering the <code>Diff</code> and displaying it to the screen. Because of this you can compute and render diffs in two steps:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">diffPrint</span>(letters, LETTERS)
-x   <span class="co"># or equivalently: `show(x)`</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">x &lt;-<span class="st"> </span><span class="kw">diffPrint</span>(letters, LETTERS)</a>
+<a class="sourceLine" id="cb5-2" data-line-number="2">x   <span class="co"># or equivalently: `show(x)`</span></a></code></pre></div>
 <p>This may cause the diff to render funny if you change screen widths, etc., between the two steps.</p>
 <p>There are also <code>summary</code>, <code>any</code>, and <code>as.character</code> methods. The <code>summary</code> method provides a high level overview of where the differences are, which can be helpful for large diffs:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(<span class="kw">diffStr</span>(mdl1, mdl2))</code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="kw">summary</span>(<span class="kw">diffStr</span>(mdl1, mdl2))</a></code></pre></div>
 <div class="diffobj_container light yb">
 <pre><div class="summary"><div class="body">Found differences in 12 hunks:<div class="detail">45 insertions, 39 deletions, 18 matches (lines)</div><br />Diff map (line:char scale is 1:1 for single chars, 1-2:1 for char seqs):</div><div class="map"><span class="word delete">D</span><span class="word delete">D</span><span class="word delete">D</span><span class="word insert">I</span><span class="word insert">I</span><span class="word insert">I</span>.<span class="word delete">D</span><span class="word delete">D</span><span class="word delete">D</span><span class="word insert">I</span><span class="word insert">I</span><span class="word insert">I</span>.<span class="word delete">D</span><span class="word insert">I</span>.<span class="word delete">D</span><span class="word insert">I</span>..<span class="word delete">D</span><span class="word delete">D</span><span class="word delete">D</span><span class="word insert">I</span><span class="word insert">I</span><span class="word insert">I</span><span class="word insert">I</span><span class="word insert">I</span>.<span class="word delete">D</span><span class="word insert">I</span>.<span class="word delete">D</span><span class="word delete">D</span><span class="word delete">D</span><span class="word delete">D</span><span class="word delete">D</span><span class="word insert">I</span><span class="word insert">I</span><span class="word insert">I</span><span class="word insert">I</span><span class="word insert">I</span><span class="word insert">I</span><span class="word insert">I</span>.<span class="word delete">D</span><span class="word delete">D</span><span class="word delete">D</span><span class="word insert">I</span><span class="word insert">I</span><span class="word insert">I</span>..<span class="word delete">D</span><span class="word delete">D</span><span class="word delete">D</span><span class="word insert">I</span><span class="word insert">I</span><span class="word insert">I</span>..<span class="word delete">D</span><span class="word delete">D</span><span class="word insert">I</span><span class="word insert">I</span><span class="word insert">I</span>.<span class="word delete">D</span><span class="word delete">D</span><span class="word delete">D</span><span class="word insert">I</span><span class="word insert">I</span><span class="word insert">I</span>..<span class="word delete">D</span><span class="word delete">D</span><span class="word insert">I</span><span class="word insert">I</span>.</div></div></pre>
 </div>
@@ -232,9 +629,9 @@ x   <span class="co"># or equivalently: `show(x)`</span></code></pre></div>
 <div id="display-mode" class="section level3">
 <h3>Display Mode</h3>
 <p>There are three built-in display modes that are similar to those found in GNU <code>diff</code>: “sidebyside”, “unified”, and “context”. For example, by varying the <code>mode</code> parameter with:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>y &lt;-<span class="st"> </span>letters[<span class="dv">24</span>:<span class="dv">26</span>]
-y[<span class="dv">2</span>] &lt;-<span class="st"> &quot;GREMLINS&quot;</span>
-<span class="kw">diffChr</span>(x, y)</code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">x &lt;-<span class="st"> </span>y &lt;-<span class="st"> </span>letters[<span class="dv">24</span><span class="op">:</span><span class="dv">26</span>]</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2">y[<span class="dv">2</span>] &lt;-<span class="st"> &quot;GREMLINS&quot;</span></a>
+<a class="sourceLine" id="cb7-3" data-line-number="3"><span class="kw">diffChr</span>(x, y)</a></code></pre></div>
 <p>we get:</p>
 <table>
 <tr><th>mode=&quot;sidebyside&quot;<th>mode=&quot;unified&quot;<th>mode=&quot;context&quot;
@@ -251,7 +648,7 @@ y[<span class="dv">2</span>] &lt;-<span class="st"> &quot;GREMLINS&quot;</span>
 <div id="color-mode" class="section level3">
 <h3>Color Mode</h3>
 <p>The default color mode uses yellow and blue to symbolize deletions and insertions for accessibility to dichromats. If you prefer the more traditional color mode you can specify <code>color.mode=&quot;rgb&quot;</code> in the parameter list, or use <code>options(diffobj.color.mode=&quot;rgb&quot;)</code>:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">diffChr</span>(x, y, <span class="dt">color.mode=</span><span class="st">&quot;rgb&quot;</span>)</code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="kw">diffChr</span>(x, y, <span class="dt">color.mode=</span><span class="st">&quot;rgb&quot;</span>)</a></code></pre></div>
 <div class="diffobj_container light rgb">
 <pre><div class="row"><div class="line banner"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="word delete">x</span></div></div></div></div><div class="line banner"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="word insert">y</span></div></div></div></div></div><div class="row"><div class="line"><div class="header">@@ 1,3 @@</div></div><div class="line"><div class="header">@@ 1,3 @@</div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim"></span>x<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim"></span>x<span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim"></span><span class="word delete">y</span><span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim"></span><span class="word insert">GREMLINS</span><span class="trim"></span></div></div></div></div></div><div class="row"><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim"></span>z<span class="trim"></span></div></div></div></div><div class="line"><div class="match"><div class="gutter"><div class="match"> </div><div class="pad"> </div></div><div class="text"><div class="match"><span class="trim"></span>z<span class="trim"></span></div></div></div></div></div></pre>
 </div>
@@ -311,17 +708,17 @@ y[<span class="dv">2</span>] &lt;-<span class="st"> &quot;GREMLINS&quot;</span>
 <h3>Capture and Processing</h3>
 <p>Capture of inputs for <code>diffPrint</code> and <code>diffStr</code>, and processing of output for all <code>diff*</code> methods will account for most of the execution time unless you have large numbers of differences. This input and output processing scales mostly linearly with the input size.</p>
 <p>You can improve performance somewhat by using <code>diffChr</code> since that skips the capture part, and by turning off <code>word.diff</code>:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">v1 &lt;-<span class="st"> </span><span class="dv">1</span>:<span class="fl">5e4</span>
-v2 &lt;-<span class="st"> </span>v1[-<span class="kw">sample</span>(v1, <span class="dv">100</span>)]
-<span class="kw">diffChr</span>(v1, v2, <span class="dt">word.diff=</span><span class="ot">FALSE</span>)</code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">v1 &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="fl">5e4</span></a>
+<a class="sourceLine" id="cb9-2" data-line-number="2">v2 &lt;-<span class="st"> </span>v1[<span class="op">-</span><span class="kw">sample</span>(v1, <span class="dv">100</span>)]</a>
+<a class="sourceLine" id="cb9-3" data-line-number="3"><span class="kw">diffChr</span>(v1, v2, <span class="dt">word.diff=</span><span class="ot">FALSE</span>)</a></code></pre></div>
 <p>will be ~2x as fast as:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">diffPrint</span>(v1, v2)</code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="kw">diffPrint</span>(v1, v2)</a></code></pre></div>
 <p><em>Note</em>: turning off <code>word.diff</code> when using <code>diffPrint</code> with unnamed atomic vectors can actually <em>slow down</em> the diff because there may well be fewer element by element differences than line differences as displayed. For example, when comparing <code>1:1e6</code> to <code>2:1e6</code> there is only one element difference, but every line as displayed is different because of the shift. Using <code>word.diff=TRUE</code> (and <code>unwrap.atomic=TRUE</code>) allows <code>diffPrint</code> to compare element by element rather than line by line. <code>diffChr</code> always compares element by element.</p>
 </div>
 <div id="minimal-diff" class="section level3">
 <h3>Minimal Diff</h3>
 <p>If you are looking for the fastest possible diff you can use <code>ses</code> and completely bypass most input and output processing. Inputs will be coerced to character if they are not character.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ses</span>(v1, v2)</code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="kw">ses</span>(v1, v2)</a></code></pre></div>
 <p>This will be 10-20x faster than <code>diffChr</code>, at the cost of less useful output.</p>
 </div>
 </div>

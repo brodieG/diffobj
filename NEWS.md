@@ -1,5 +1,11 @@
 # diffobj
 
+## v0.1.10
+
+* Comply with CRAN directive to remove references to packages not in
+  depends/imports/suggests in tests (these were run optionally before).
+* Fix bugs in corner case handling when we hit `max.diffs`.
+
 ## v0.1.9
 
 * Fix test failures caused by changes in tibble output

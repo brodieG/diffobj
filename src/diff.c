@@ -276,14 +276,11 @@ _find_faux_snake(
   if(x_max_r >= n) {
     x_r = n; y_r = m;
   } else {
-    // nocov start
-    error(err_msg_ubrnch, 3);
     x_r = x_max_r;
     /* not 100% sure about this one; seems like k_max_r is relative to the
      * bottom right origin, so maybe this should be x_r - k_max_r - delta?
      */
     y_r = x_r - k_max_r - delta;
-    // nocov end
   }
   /*
    * attempt to connect the two paths we found.  We need to store this
@@ -318,11 +315,8 @@ _find_faux_snake(
         x_sn <= x_r && y_sn <= y_r &&
         _comp_chr(a, aoff + x_sn, b, boff + y_sn)
     ) {
-      // nocov start
-      error(err_msg_ubrnch, 4);
       x_sn++; y_sn++;
       *(faux_snake_tmp + steps) = DIFF_MATCH;
-      // nocov end
     } else if (x_sn < x_r && (step_dir || y_sn >= y_r)) {
       x_sn++;
       diffs++;
@@ -506,10 +500,7 @@ _edit_faux(struct _ctx *ctx, diff_op * faux_snake, int aoff, int boff) {
   while((op = *(faux_snake + i++)) != DIFF_NULL) {
     switch (op) {
       case DIFF_MATCH: {
-        // nocov start
-        error(err_msg_ubrnch, 5);
         boff++;  /* note no break here */
-        // nocov end
       }
       case DIFF_DELETE: off = aoff++;
         break;
@@ -533,6 +524,7 @@ _ses(
   struct middle_snake ms;
   int d;
 
+  //Rprintf("m: %d n: %d\n", m, n);
   if (n == 0) {
     _edit(ctx, DIFF_INSERT, boff, m);
     d = m;
@@ -565,6 +557,7 @@ _ses(
     // **faux_snake = *fsp;
 
     d = _find_middle_snake(a, aoff, n, b, boff, m, ctx, &ms, &faux_snake);
+    //Rprintf("d: %d\n", d);
     if (d == -1) {
       // nocov start
       error(
@@ -630,7 +623,9 @@ _ses(
       int u = ms.u;
 
       /* There are only 4 base cases when the
-       * edit distance is 1.
+       * edit distance is 1.  Having a hard time finding cases that trigger the
+       * x == u, possibly because the algo eats leading matches, although
+       * apparently we do achieve it somewhere in the test suite.
        *
        * n > m   m > n
        *
@@ -643,6 +638,7 @@ _ses(
        *     -       |
        */
 
+      //Rprintf("x: %d u: %d y: %d v: %d\n",  ms.x, ms.u, ms.y, ms.v);
       if (m > n) {
         if (x == u) {
           _edit(ctx, DIFF_MATCH, aoff, n);
