@@ -149,11 +149,13 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' @export
 #' @param a character
 #' @param b character
+#' @inheritParams diffPrint
+#' @param warn TRUE (default) or FALSE whether to warn if we hit `max.diffs`.
 #' @return character
 #' @examples
 #' ses(letters[1:3], letters[2:4])
 
-ses <- function(a, b) {
+ses <- function(a, b, max.diffs=gdo("max.diffs"), warn=gdo("warn")) {
   if(!is.character(a)) {
     a <- try(as.character(a))
     if(inherits(a, "try-error"))
@@ -164,9 +166,12 @@ ses <- function(a, b) {
     if(inherits(b, "try-error"))
       stop("Argument `b` is not character and could not be coerced to such")
   }
+  if(is.numeric(max.diffs)) max.diffs <- as.integer(max.diffs)
+  if(!is.int.1L(max.diffs)) stop("Argument `max.diffs` must be scalar integer.")
+  if(!is.TF(warn)) stop("Argument `warn` must be TRUE or FALSE.")
   if(anyNA(a)) a[is.na(a)] <- "NA"
   if(anyNA(b)) b[is.na(b)] <- "NA"
-  as.character(diff_myers(a, b))
+  as.character(diff_myers(a, b, max.diffs=max.diffs, warn=warn))
 }
 
 #' Diff two character vectors
@@ -188,12 +193,14 @@ ses <- function(a, b) {
 #' @param b character
 #' @param max.diffs integer(1L) how many differences before giving up; set to
 #'   zero to allow as many as there are
+#' @param warn TRUE or FALSE, whether to warn if we hit `max.diffs`.
 #' @return list
 #' @useDynLib diffobj, .registration=TRUE, .fixes="DIFFOBJ_"
 
-diff_myers <- function(a, b, max.diffs=0L) {
+diff_myers <- function(a, b, max.diffs=0L, warn=FALSE) {
   stopifnot(
-    is.character(a), is.character(b), all(!is.na(c(a, b))), is.int.1L(max.diffs)
+    is.character(a), is.character(b), all(!is.na(c(a, b))), is.int.1L(max.diffs),
+    is.TF(warn)
   )
   res <- .Call(DIFFOBJ_diffobj, a, b, max.diffs)
   res <- setNames(res, c("type", "length", "offset", "diffs"))
@@ -206,6 +213,12 @@ diff_myers <- function(a, b, max.diffs=0L) {
       "Logic Error: unable to instantiate shortest edit script object; contact ",
       "maintainer."
     )
+  if(isTRUE(warn) && res$diffs < 0) {
+    warning(
+      "Exceeded `max.diffs`: ", abs(res$diffs), " vs ", max.diffs, " allowed. ",
+      "Diff is probably suboptimal."
+    )
+  }
   res.s4
 }
 # Print Method for Shortest Edit Path
@@ -269,7 +282,8 @@ char_diff <- function(x, y, context=-1L, etc, diff.mode, warn) {
     isTRUE(warn) || identical(warn, FALSE)
   )
   max.diffs <- etc@max.diffs
-  diff <- diff_myers(x, y, max.diffs)  # probably shouldn't generate S4
+  # probably shouldn't generate S4, but easier...
+  diff <- diff_myers(x, y, max.diffs, warn=FALSE)
 
   hunks <- as.hunks(diff, etc=etc)
   hit.diffs.max <- FALSE

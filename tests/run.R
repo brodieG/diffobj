@@ -1,7 +1,6 @@
 # Run tests
 
 library(testthat)
-library(covr)
 library(diffobj)
 
 local({                                         # so we can use `on.exit`
@@ -57,6 +56,7 @@ local({                                         # so we can use `on.exit`
         "pager",
         "rdiff",
         "s4",
+        "ses",
         "style",
         "subset",
         "summary",
