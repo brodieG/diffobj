@@ -303,9 +303,13 @@ flatten_list <- function(l)
     do.call(c, lapply(l, flatten_list)) else list(l)
 
 trimws2 <- function(x, which=c("both", "left", "right")) {
-  if(!is.character(which) || !isTRUE(which %in% c("both", "left", "right")))
+  if(
+    !is.character(which) ||
+    !isTRUE(which[[1]] %in% c("both", "left", "right"))
+  )
     stop("Argument which is wrong")
-  switch(which,
+
+  switch(which[[1]],
     both=gsub("^[\t\r\n]*|[\t\r\n]*$", "", x),
     left=gsub("^[\t\r\n]*", "", x),
     right=gsub("^[\t\r\n]*$", "", x)
