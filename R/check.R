@@ -20,6 +20,8 @@ is.less_flags <-
 # for checking the limits, if successful returns an integer(2L) vector,
 # otherwise a character vector to sprintf as an error
 
+#' @include pager.R
+
 check_limit <- function(limit) {
   if(
     !is.numeric(limit) || any(is.na(limit)) ||

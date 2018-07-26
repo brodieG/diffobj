@@ -3,8 +3,8 @@ Type: Package
 Title: Diffs for R Objects
 Description: Generate a colorized diff of two R objects for an intuitive
     visualization of their differences.
-Version: 0.1.10
-Date: 2018-06-06
+Version: 0.1.10.9000
+Date: 2018-07-24
 Authors@R: c(
     person(
     "Brodie", "Gaslam", email="brodie.gaslam@yahoo.com",
@@ -14,7 +14,7 @@ Authors@R: c(
     role=c("ctb", "cph"),
     comment="Original C implementation of Myers Diff Algorithm"))
 Depends:
-    R (>= 3.2.0)
+    R (>= 3.1.0)
 License: GPL (>= 2)
 LazyData: true
 URL: https://github.com/brodieG/diffobj
@@ -27,8 +27,8 @@ Suggests:
     testthat
 Collate:
     'capt.R'
-    'check.R'
     'pager.R'
+    'check.R'
     'finalizer.R'
     'misc.R'
     'html.R'
