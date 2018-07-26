@@ -101,3 +101,10 @@ test_that("get_funs", {
   )
   expect_identical(gf, NULL)
 })
+test_that("trimws2", {
+  expect_equal(diffobj:::trimws2("hello world"),  "hello world")
+  expect_equal(diffobj:::trimws2("  hello world"),  "hello world")
+  expect_equal(diffobj:::trimws2("  hello world  "),  "hello world")
+  expect_equal(diffobj:::trimws2("  hello world  ", 'left'), "hello world  ")
+  expect_equal(diffobj:::trimws2("  hello world  ", 'right'), "  hello world")
+})
