@@ -16,6 +16,7 @@
 
 #' @include html.R
 #' @include finalizer.R
+#' @include pager.R
 
 NULL
 
@@ -955,11 +956,15 @@ setMethod("initialize", "StyleHtml",
   function(
     .Object, css=getOption("diffobj.html.css"),
     js=getOption("diffobj.html.js"),
-    html.output=getOption("diffobj.html.output"),
+    html.output=getOption("diffobj.html.output", default='auto'),
     escape.html.entities=getOption("diffobj.html.escape.html.entities"),
-    scale=getOption("diffobj.html.scale"),
+    scale=getOption("diffobj.html.scale", default=TRUE),
     ...
   ) {
+    # Had some problems with R 3.1 where it appears that the initialize methods
+    # are triggered on load, but before `.onLoad` is called, and as such options
+    # are not available.  This is why we have this logic here.
+
     if(is.null(css)) css <- diffobj_css()
     if(is.null(js)) js <- diffobj_js()
 
