@@ -312,7 +312,7 @@ trimws2 <- function(x, which=c("both", "left", "right")) {
   switch(which[[1]],
     both=gsub("^[ \t\r\n]*|[ \t\r\n]*$", "", x),
     left=gsub("^[ \t\r\n]*", "", x),
-    right=gsub("^[ \t\r\n]*$", "", x)
+    right=gsub("[ \t\r\n]*$", "", x)
   )
 }
 
