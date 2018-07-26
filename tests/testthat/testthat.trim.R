@@ -214,16 +214,17 @@ test_that("custom trim fun", {
   fun1 <- function(x, y) cbind(rep(1L, 4), rep(5L, 4))
 
   expect_equal_to_reference(as.character(diffPrint(a, b, trim=fun1)), rdsf(100))
-  expect_warning(
-    capture.output(
-      trim.err <-
-        as.character(diffPrint(a, b, trim=function(x, y) stop("boom"))),
-      type="message"
-    ),
-    "If you did not specify a `trim`"
-  )
-  expect_equal_to_reference(trim.err, rdsf(200))
-
+  if(getRversion() >= "3.2") {
+    expect_warning(
+      capture.output(
+        trim.err <-
+          as.character(diffPrint(a, b, trim=function(x, y) stop("boom"))),
+        type="message"
+      ),
+      "If you did not specify a `trim`"
+    )
+    expect_equal_to_reference(trim.err, rdsf(200))
+  }
   # purposefully bad trim fun
 
   expect_error(

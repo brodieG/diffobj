@@ -315,5 +315,6 @@ trimws2 <- function(x, which=c("both", "left", "right")) {
     right=gsub("[ \t\r\n]*$", "", x)
   )
 }
+# this gets overwritten in .onLoad if needed (i.e. R version < 3.2)
 
-trimws <- if(getRversion() < "3.2.0") trimws2 else base::trimws
+trimws <- NULL

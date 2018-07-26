@@ -14,8 +14,10 @@ test_that("Force unified", {
   par.env <- new.env()
   local(
     envir=par.env, {
-    setClass("testdiffobj", slots=c(a="integer"), where=par.env)
-
+    suppressWarnings(
+      setClass(
+        "testdiffobj", slots=c(a="integer"), where=par.env
+    ) )
     # First check that we do actually output in side by side mode
 
     expect_equal_to_reference(

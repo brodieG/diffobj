@@ -1,4 +1,5 @@
 ## ---- echo=FALSE---------------------------------------------------------
+library(diffobj)
 old.opt <- options(
   diffobj.disp.width=80, diffobj.pager="off", diffobj.format="html"
 )
