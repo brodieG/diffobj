@@ -122,11 +122,21 @@ capt_str <- function(target, current, etc, err, extra){
   if("object" %in% names(dots))
     err("You may not specify `object` as part of `extra`")
 
-  str.match <- try(
-    match.call(
-      str_tpl,
-      call=as.call(c(list(quote(str), object=NULL), dots)), envir=etc@frame
-  ) )
+  if(getRversion() < "3.2.0") {
+    # nocov start
+    str.match <- try(
+      match.call(
+        str_tpl,
+        call=as.call(c(list(quote(str), object=NULL), dots))
+    ) )
+    # nocov end
+  } else {
+    str.match <- try(
+      match.call(
+        str_tpl,
+        call=as.call(c(list(quote(str), object=NULL), dots)), envir=etc@frame
+    ) )
+  }
   if(inherits(str.match, "try-error"))
     err("Unable to compose `str` call")
 
