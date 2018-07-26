@@ -1,5 +1,10 @@
 # diffobj
 
+## v0.1.11
+
+* [#123](https://github.com/brodieG/diffobj/issues/123): Compatibility with R3.1
+  (@krlmlr)
+
 ## v0.1.10
 
 * Comply with CRAN directive to remove references to packages not in
