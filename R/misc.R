@@ -301,3 +301,19 @@ has_non_def_formals <- function(arg.list) {
 flatten_list <- function(l)
   if(is.list(l) && !is.object(l) && length(l))
     do.call(c, lapply(l, flatten_list)) else list(l)
+
+trimws2 <- function(x, which=c("both", "left", "right")) {
+  if(
+    !is.character(which) ||
+    !isTRUE(which[[1]] %in% c("both", "left", "right"))
+  )
+    stop("Argument which is wrong")
+
+  switch(which[[1]],
+    both=gsub("^[ \t\r\n]*|[ \t\r\n]*$", "", x),
+    left=gsub("^[ \t\r\n]*", "", x),
+    right=gsub("[ \t\r\n]*$", "", x)
+  )
+}
+
+trimws <- if(getRversion() < "3.2.0") trimws2 else base::trimws
