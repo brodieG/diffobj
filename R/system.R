@@ -74,6 +74,7 @@ NULL
 
   existing.opts <- options()
   options(.default.opts[setdiff(names(.default.opts), names(existing.opts))])
+  trimws <<- if(getRversion() < "3.2.0") trimws2 else base::trimws
 }
 #' Remove DLLs when package is unloaded
 
