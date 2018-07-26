@@ -4,6 +4,8 @@
 
 * [#123](https://github.com/brodieG/diffobj/issues/123): Compatibility with R3.1
   (@krlmlr)
+* [#115](https://github.com/brodieG/diffobj/issues/115): Declare HTML page diff
+  encoding/charset as UTF-8 (@artemklevtsov)
 
 ## v0.1.10
 
