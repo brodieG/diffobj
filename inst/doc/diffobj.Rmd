@@ -6,7 +6,7 @@ output:
         toc: true
 
 vignette: >
-  %\VignetteIndexEntry{diffobj}
+  %\VignetteIndexEntry{Introduction to Diffobj}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 
