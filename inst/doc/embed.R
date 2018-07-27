@@ -1,4 +1,5 @@
 ## ----results='asis'------------------------------------------------------
+library(diffobj)
 cat(
   as.character(
     diffPrint(

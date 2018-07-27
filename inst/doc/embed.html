@@ -500,13 +500,14 @@ cat(                                 # output to screen
 ) ) )
 ```</code></pre>
 <p>Here we use this same code as an actual markdown R code block:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw">cat</span>(</a>
-<a class="sourceLine" id="cb3-2" data-line-number="2">  <span class="kw">as.character</span>(</a>
-<a class="sourceLine" id="cb3-3" data-line-number="3">    <span class="kw">diffPrint</span>(</a>
-<a class="sourceLine" id="cb3-4" data-line-number="4">      <span class="dv">1</span><span class="op">:</span><span class="dv">5</span>, <span class="dv">2</span><span class="op">:</span><span class="dv">6</span>,</a>
-<a class="sourceLine" id="cb3-5" data-line-number="5">      <span class="dt">format=</span><span class="st">&quot;html&quot;</span>,</a>
-<a class="sourceLine" id="cb3-6" data-line-number="6">      <span class="dt">style=</span><span class="kw">list</span>(<span class="dt">html.output=</span><span class="st">&quot;diff.w.style&quot;</span>)</a>
-<a class="sourceLine" id="cb3-7" data-line-number="7">) ) )</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw">library</span>(diffobj)</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="kw">cat</span>(</a>
+<a class="sourceLine" id="cb3-3" data-line-number="3">  <span class="kw">as.character</span>(</a>
+<a class="sourceLine" id="cb3-4" data-line-number="4">    <span class="kw">diffPrint</span>(</a>
+<a class="sourceLine" id="cb3-5" data-line-number="5">      <span class="dv">1</span><span class="op">:</span><span class="dv">5</span>, <span class="dv">2</span><span class="op">:</span><span class="dv">6</span>,</a>
+<a class="sourceLine" id="cb3-6" data-line-number="6">      <span class="dt">format=</span><span class="st">&quot;html&quot;</span>,</a>
+<a class="sourceLine" id="cb3-7" data-line-number="7">      <span class="dt">style=</span><span class="kw">list</span>(<span class="dt">html.output=</span><span class="st">&quot;diff.w.style&quot;</span>)</a>
+<a class="sourceLine" id="cb3-8" data-line-number="8">) ) )</a></code></pre></div>
 <style type="text/css">
 /* Structural CSS ------------------------------------------------------------*/
 /*
