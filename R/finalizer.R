@@ -67,10 +67,14 @@ setMethod("finalizeHtml", c("ANY"),
     if(html.output == "diff.w.style") {
       tpl <- "%s%s"
     } else if (html.output == "page") {
+      x.chr <- enc2utf8(x.chr)
+      charset <-
+        '<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>'
       tpl <- sprintf("
         <!DOCTYPE html>
         <html>
           <head>
+            %s\n
             %%s\n
           </head>
           <body>
@@ -78,6 +82,7 @@ setMethod("finalizeHtml", c("ANY"),
             <script type='text/javascript'>\n%s\n</script>
           </body>
         </html>",
+        charset,
         js
       )
     } else if (html.output == "diff.only") {
