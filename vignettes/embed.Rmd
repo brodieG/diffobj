@@ -15,23 +15,8 @@ vignette: >
 
 ## Basic Requirements
 
-This is a slightly simplified version of the YAML I use for this R Markdown
-document.
-
-<a name='yaml'></a>
-```
----
-title: "Embed Diffs in R Markdown"
-author: "Brodie Gaslam"
-output:
-    rmarkdown::html_vignette
----
-```
-
-Depending on what mechanism you are using to render your Rmd documents into
-HTML, you may or may not need to specify the YAML.
-
-Additionally, any R chunks should include the `results='asis'` option, e.g.:
+Any R chunks that produce diffs should include the `results='asis'` option,
+e.g.:
 
     ```{r results='asis'}
     # R code here
@@ -74,7 +59,8 @@ code over and over.
 ## A Cleaner Option
 
 A better option is to provide the CSS directly by modifying the `output`
-portion of the [YAML](#yaml):
+portion of the [YAML
+header](https://bookdown.org/yihui/rmarkdown/r-package-vignette.html):
 
 ```
 ---
@@ -85,8 +71,8 @@ output:
 ---
 ```
 
-Although you may want to do the following to preserve the vignette or whatever
-other CSS you wish to use in combination with `diffobj`'s:
+In reality you will probably want to specify multiple CSS files, including the
+original `rmarkdown` one:
 
 ```
 ---
@@ -118,17 +104,23 @@ work as expected.
 
 Almost all `diffobj` parameters can be specified via options:
 
-```{r results='asis'}
+```{r eval=FALSE}
+options(
+  diffobj.format="html",
+  diffobj.style=list(html.output="diff.only")
+)
+```
+```{r echo=FALSE}
 old.opts <- options(
   diffobj.format="html",
-  diffobj.style=list(html.output="diff.only")   # notice this changed
+  diffobj.style=list(html.output="diff.only")
 )
+```
+Then you can just run the diff as normal:
+```{r results='asis'}
 cat(as.character(diffPrint(1:5, 2:6)))
 ```
 ```{r echo=FALSE}
 options(old.opts)
 ```
-
-## An Alternative
-
 
