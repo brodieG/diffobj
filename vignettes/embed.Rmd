@@ -13,6 +13,9 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
+```{r echo=FALSE}
+library(diffobj)
+```
 ## Basic Requirements
 
 Any R chunks that produce diffs should include the `results='asis'` option,
