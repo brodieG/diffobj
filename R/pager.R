@@ -352,7 +352,7 @@ PagerBrowser <- function(
 
 use_pager <- function(pager, len) {
   if(!is(pager, "Pager"))
-    stop("Logic Error: expecting `Pager` arg; contact maintainer.")
+    stop("Logic Error: expecting `Pager` arg; contact maintainer.") # nocov
   if(!is(pager, "PagerOff")) {
     threshold <- if(pager@threshold < 0L) {
       console_lines()
