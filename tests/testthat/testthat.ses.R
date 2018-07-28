@@ -90,3 +90,7 @@ test_that("max diffs", {
     c("2,5c2,5", "9c9")
   )
 })
+test_that("errors", {
+  expect_error(ses('a', 'b', max.diffs='hello'), "must be scalar integer")
+  expect_error(ses('a', 'b', warn='hello'), "must be TRUE or FALSE")
+})

@@ -137,8 +137,8 @@ constructor functions:
 }
 \emph{Important}: Make sure you instantiate the pager objects with the
 constructor functions (e.g. \code{PagerSystemLess(...)} not
-\code{new('PagerSystemLess', ...)} rather than with \code{new} as otherwise
-they will not be properly configured.
+\code{new('PagerSystemLess', ...)} as otherwise they will not be properly
+configured.
 
 The default configuration for \code{PagerSystem} and \code{PagerSystemLess}
 leads to output being sent to the pager if it exceeds the estimated window

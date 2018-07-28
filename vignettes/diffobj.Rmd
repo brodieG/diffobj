@@ -6,13 +6,14 @@ output:
         toc: true
 
 vignette: >
-  %\VignetteIndexEntry{diffobj}
+  %\VignetteIndexEntry{Introduction to Diffobj}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 
 ---
 
 ```{r, echo=FALSE}
+library(diffobj)
 old.opt <- options(
   diffobj.disp.width=80, diffobj.pager="off", diffobj.format="html"
 )
@@ -22,7 +23,6 @@ old.opt <- options(
 `diffobj` uses the same comparison mechanism used by `git diff` and `diff` to highlight differences between _rendered_ R objects:
 
 ```{r, results="asis"}
-library(diffobj)
 a <- b <- matrix(1:100, ncol=2)
 a <- a[-20,]
 b <- b[-45,]

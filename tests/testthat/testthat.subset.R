@@ -27,5 +27,7 @@ test_that("subset errors", {
   expect_error(head(diff, 1, 2), "does not support arguments")
   expect_error(head(diff, NA), "must be integer")
   expect_error(head(diff, 1:3), "must be integer")
+  expect_error(tail(diff, 1:3), "must be integer")
+  expect_error(tail(diff, 1, 2), "does not support arguments")
 })
 
