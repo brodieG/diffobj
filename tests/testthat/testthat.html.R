@@ -71,6 +71,9 @@ test_that("Tag funs", {
   )
   span_a <- span_f()
   expect_equal(span_a(c("a", "b")), c("<span>a</span>", "<span>b</span>"))
+
+  expect_error(div_a(TRUE), "must be character")
+  expect_equal(div_a(character()),character())
 })
 
 test_that("nchar", {
