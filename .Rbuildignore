@@ -11,4 +11,5 @@
 ^scratch\.R
 ^README\.Rmd
 ^README\.html
+.*\.tar\.gz^
 notcran

@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Brodie Gaslam
+# Copyright (C) 2018  Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -54,7 +54,7 @@ align_split <- function(v, m) {
   m.all[!m.all] <- -match.len - 1L  # trailing zeros
   m.fin <- ifelse(m.all < 0, -m.all * 2 - 1, m.all * 2)
   if(any(diff(m.fin) < 0L))
-    stop("Logic Error: non monotonic alignments; contact maintainer")
+    stop("Logic Error: non monotonic alignments; contact maintainer") # nocov
   res <- replicate(res.len, character(0L), simplify=FALSE)
   res[unique(m.fin)] <- unname(split(v, m.fin))
   res
@@ -145,7 +145,9 @@ align_eq <- function(A, B, x, context) {
     B.chunks <- align_split(B.fin, align.b)
   }
   if(length(A.chunks) != length(B.chunks))
+    # nocov start
     stop("Logic Error: aligned chunks unequal length; contact maintainer.")
+    # nocov end
 
   list(A=A.chunks, B=B.chunks, A.fill=A.fill, B.fill=B.fill)
 }
@@ -237,10 +239,12 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
                 txt.len <- chrs[i] + txt.len
                 tab.stop <- head(which(stop.vec > txt.len), 1L)
                 if(!length(tab.stop))
+                  # nocov start
                   stop(
                     "Logic Error: failed trying to find tab stop; contact ",
                     "maintainer"
                   )
+                  # nocov end
                 tab.len <- stop.vec[tab.stop]
                 pads[i] <- paste0(rep(" ", tab.len - txt.len), collapse="")
                 txt.len <- tab.len
@@ -386,7 +390,9 @@ wrap_int <- function(txt, width, sub_fun, nc_fun) {
 }
 wrap <- function(txt, width, pad=FALSE) {
   if(length(grep("\n", txt, fixed=TRUE)))
+    # nocov start
     stop("Logic error: wrap input contains newlines; contact maintainer.")
+    # nocov end
 
   # If there are ansi escape sequences, account for them; either way, create
   # a vector of character positions after which we should split our character

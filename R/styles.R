@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Brodie Gaslam
+# Copyright (C) 2018  Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -16,6 +16,7 @@
 
 #' @include html.R
 #' @include finalizer.R
+#' @include pager.R
 
 NULL
 
@@ -454,7 +455,9 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' @param html.output (\code{StyleHtml} objects only) one of:
 #'   \itemize{
 #'     \item \dQuote{page}: Include all HTML/CSS/JS required to create a
-#'       stand-alone web page with the diff.
+#'       stand-alone web page with the diff; in this mode the diff string will
+#'       be re-encoded with \code{\link{enc2utf8}} and the HTML page encoding
+#'       will be declared as UTF-8.
 #'     \item \dQuote{diff.w.style}: The CSS and HTML, but without any of the
 #'       outer tags that would make it a proper HTML page (i.e. no
 #'       \code{<html>/<head>} tags or the like) and without the JS; note that
@@ -955,11 +958,15 @@ setMethod("initialize", "StyleHtml",
   function(
     .Object, css=getOption("diffobj.html.css"),
     js=getOption("diffobj.html.js"),
-    html.output=getOption("diffobj.html.output"),
+    html.output=getOption("diffobj.html.output", default='auto'),
     escape.html.entities=getOption("diffobj.html.escape.html.entities"),
-    scale=getOption("diffobj.html.scale"),
+    scale=getOption("diffobj.html.scale", default=TRUE),
     ...
   ) {
+    # Had some problems with R 3.1 where it appears that the initialize methods
+    # are triggered on load, but before `.onLoad` is called, and as such options
+    # are not available.  This is why we have this logic here.
+
     if(is.null(css)) css <- diffobj_css()
     if(is.null(js)) js <- diffobj_js()
 

@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Brodie Gaslam
+# Copyright (C) 2018  Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -209,10 +209,12 @@ diff_myers <- function(a, b, max.diffs=0L, warn=FALSE) {
   res$offset <- res$offset + 1L  # C 0-indexing originally
   res.s4 <- try(do.call("new", c(list("MyersMbaSes", a=a, b=b), res)))
   if(inherits(res.s4, "try-error"))
+    # nocov start
     stop(
       "Logic Error: unable to instantiate shortest edit script object; contact ",
       "maintainer."
     )
+    # nocov end
   if(isTRUE(warn) && res$diffs < 0) {
     warning(
       "Exceeded `max.diffs`: ", abs(res$diffs), " vs ", max.diffs, " allowed. ",
@@ -349,9 +351,11 @@ line_diff <- function(
   target, current, tar.capt, cur.capt, context, etc, warn=TRUE, strip=TRUE
 ) {
   if(!is.valid.guide.fun(etc@guides))
+    # nocov start
     stop(
       "Logic Error: guides are not a valid guide function; contact maintainer"
     )
+    # nocov end
   etc@guide.lines <-
     make_guides(target, tar.capt, current, cur.capt, etc@guides)
 

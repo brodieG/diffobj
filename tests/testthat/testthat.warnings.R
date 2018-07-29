@@ -21,11 +21,13 @@ test_that("Max diffs", {
 })
 test_that("Overriden formals", {
   expect_warning(
-    diffChr(letters, LETTERS, style=StyleRaw(), form="ansi8"),
+    diffChr(letters, LETTERS, style=StyleRaw(), format="ansi8"),
     "Provided `style` argument will override the provided `format` argument"
   )
   expect_warning(
-    diffChr(letters, LETTERS, style=StyleRaw(), form="ansi8", color.mode="rgb"),
+    diffChr(
+      letters, LETTERS, style=StyleRaw(), format="ansi8", color.mode="rgb"
+    ),
     "Provided `style` .* `format` and `color.mode` arguments"
   )
 })

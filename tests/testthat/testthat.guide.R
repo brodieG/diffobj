@@ -215,13 +215,15 @@ test_that("custom guide fun", {
   expect_equal_to_reference(
     as.character(diffPrint(a, b, guides=fun1)), rdsf(100)
   )
-  expect_warning(
-    capture.output(
-      trim.err <-
-        as.character(diffPrint(a, b, guides=function(x, y) stop("boom"))),
-      type="message"
-    ),
-    "If you did not specify a `guides`"
-  )
-  expect_equal_to_reference(trim.err, rdsf(200))
+  if(getRversion() >= "3.2") {
+    expect_warning(
+      capture.output(
+        trim.err <-
+          as.character(diffPrint(a, b, guides=function(x, y) stop("boom"))),
+        type="message"
+      ),
+      "If you did not specify a `guides`"
+    )
+    expect_equal_to_reference(trim.err, rdsf(200))
+  }
 })

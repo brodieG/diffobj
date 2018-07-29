@@ -90,3 +90,37 @@ test_that("max diffs", {
     c("2,5c2,5", "9c9")
   )
 })
+test_that("corner cases?", {
+  expect_equal(ses(letters[1:4], letters[1:3]), "4d3")
+  expect_equal(ses(letters[1:3], letters[1:4]), "3a4")
+})
+test_that("errors", {
+  expect_error(ses('a', 'b', max.diffs='hello'), "must be scalar integer")
+  expect_error(ses('a', 'b', warn='hello'), "must be TRUE or FALSE")
+})
+
+# We want to have a test file that fully covers the C code in order to run
+# valgrind with just that one.  We were unable to isolate simple diffs that
+# triggered all the code, but we were able to do it with the below in addition
+# to the above.
+
+test_that("Repeat tests for full coverage in SES file", {
+  # From test.diffStr.R
+  # formula display changed
+  if(R.Version()$major >= 3 && R.Version()$minor >= "3.1") {
+    rdsf1 <- function(x)
+      file.path(getwd(), "helper", "diffStr", sprintf("%s.rds", x))
+    expect_equal_to_reference(
+      as.character(
+        diffStr(mdl1, mdl2, extra=list(strict.width="wrap"), line.limit=30)
+      ),
+      rdsf1(500)
+    )
+  }
+  # from testthat.warnings.R
+
+  A3 <- c("a b c", "d e f A B C D", "g h i", "f")
+  B3 <- c("a b c", "xd e f E Q L S", "g h i", "q")
+
+  expect_warning(diffChr(A3, B3, max.diffs=2), "Exceeded diff")
+})

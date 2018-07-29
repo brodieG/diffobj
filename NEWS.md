@@ -1,5 +1,14 @@
 # diffobj
 
+## v0.1.11
+
+* [#123](https://github.com/brodieG/diffobj/issues/123): Compatibility with R3.1
+  (@krlmlr).
+* [#121](https://github.com/brodieG/diffobj/issues/121): Vignette describing how
+  to embed diffs in Rmd documents (@JBGruber).
+* [#115](https://github.com/brodieG/diffobj/issues/115): Declare HTML page diff
+  encoding/charset as UTF-8 (@artemklevtsov).
+
 ## v0.1.10
 
 * Comply with CRAN directive to remove references to packages not in

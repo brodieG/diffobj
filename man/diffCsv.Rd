@@ -65,7 +65,9 @@ calculation.}
     sequences
   \item \dQuote{ansi256}: like \dQuote{ansi8}, except using the full range
     of ANSI formatting options
-  \item \dQuote{html}: color and format using HTML markup
+  \item \dQuote{html}: color and format using HTML markup; the resulting
+    string is processed with \code{\link{enc2utf8}} when output as a full
+    web page (see docs for \code{html.output} under \code{\link{Style}}).
 }
 Defaults to \dQuote{auto}.  See \code{palette.of.styles} for details
 on customization, \code{\link{style}} for full control of output format.}

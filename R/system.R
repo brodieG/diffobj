@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Brodie Gaslam
+# Copyright (C) 2018  Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -59,6 +59,11 @@ NULL
   diffobj.html.escape.html.entities=TRUE,
   diffobj.html.js=NULL,         # NULL == diffobj_js()
   diffobj.html.css=NULL,        # NULL == diffobj_css()
+
+  # These next two also have defaults set in the `getOption` call in styles.R
+  # because of problems with R 3.1 where initialize methods are called on
+  # install
+
   diffobj.html.scale=TRUE,
   diffobj.html.output="auto"
 )
@@ -69,6 +74,7 @@ NULL
 
   existing.opts <- options()
   options(.default.opts[setdiff(names(.default.opts), names(existing.opts))])
+  trimws <<- if(getRversion() < "3.2.0") trimws2 else base::trimws
 }
 #' Remove DLLs when package is unloaded
 

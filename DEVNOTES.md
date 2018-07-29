@@ -1,3 +1,37 @@
+## Compiled Testing
+
+Run the 'ses' tests with valgrind.  They should have 100% coverage of the C
+code.
+
+We also tracked down these:
+
+```
+==204== Conditional jump or move depends on uninitialised value(s)
+==204==    at 0x41E87D7: ???
+==204==    by 0xBC983A7: ???
+==204==    by 0xBC983A7: ???
+==204==    by 0xBC983F9: ???
+==204==    by 0x1FFEFF046F: ???
+==204==    by 0x2F: ???
+```
+
+To this call:
+
+```
+debug: base::nchar(strip_style(x), ...)
+Browse[3]> strip_style(x)
+==204== Conditional jump or move depends on uninitialised value(s)
+==204==    at 0x41E87D7: ???
+==204==    by 0xC6C0E77: ???
+==204==    by 0xC6C0E77: ???
+==204==    by 0xC6C0E81: ???
+==204==    by 0x1FFEFF046F: ???
+==204==    by 0x2F: ???
+```
+
+Seems like something funny going on with the perl grep.
+
+That said, we were unable to reproduce by calling `gsub` directly.
 
 ## Optim Notes
 

@@ -78,7 +78,9 @@ the function.}
 \item{html.output}{(\code{StyleHtml} objects only) one of:
 \itemize{
   \item \dQuote{page}: Include all HTML/CSS/JS required to create a
-    stand-alone web page with the diff.
+    stand-alone web page with the diff; in this mode the diff string will
+    be re-encoded with \code{\link{enc2utf8}} and the HTML page encoding
+    will be declared as UTF-8.
   \item \dQuote{diff.w.style}: The CSS and HTML, but without any of the
     outer tags that would make it a proper HTML page (i.e. no
     \code{<html>/<head>} tags or the like) and without the JS; note that

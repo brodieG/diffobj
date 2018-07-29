@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Brodie Gaslam
+# Copyright (C) 2018  Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -27,9 +27,9 @@ rle_sub <- function(rle, ind) {
     as.integer(ind)
   } else if(is.logical(ind)) {
     which(ind)
-  } else stop("Logic Error: unexpected `ind` input")
+  } else stop("Logic Error: unexpected `ind` input") # nocov
   if(!all(ind) > 0 || !all(diff(ind) > 0))
-    stop("Logic Error: `ind` should be monotonically increasing")
+    stop("Logic Error: `ind` should be monotonically increasing")  # nocov
 
   len.cum <- cumsum(rle$lengths)
   all.ind <- Map(
@@ -58,7 +58,8 @@ c.factor <- function(..., recursive=FALSE) {
 # Pull out the names of the functions in a sys.call stack
 
 stack_funs <- function(s.c) {
-  if(!length(s.c)) stop("Logic Error: call stack empty; contact maintainer.")
+  if(!length(s.c)) 
+    stop("Logic Error: call stack empty; contact maintainer.") #nocov
   vapply(
     s.c, function(call) paste0(deparse(call), collapse="\n"), character(1L)
   )
@@ -301,3 +302,20 @@ has_non_def_formals <- function(arg.list) {
 flatten_list <- function(l)
   if(is.list(l) && !is.object(l) && length(l))
     do.call(c, lapply(l, flatten_list)) else list(l)
+
+trimws2 <- function(x, which=c("both", "left", "right")) {
+  if(
+    !is.character(which) ||
+    !isTRUE(which[[1]] %in% c("both", "left", "right"))
+  )
+    stop("Argument which is wrong")
+
+  switch(which[[1]],
+    both=gsub("^[ \t\r\n]*|[ \t\r\n]*$", "", x),
+    left=gsub("^[ \t\r\n]*", "", x),
+    right=gsub("[ \t\r\n]*$", "", x)
+  )
+}
+# this gets overwritten in .onLoad if needed (i.e. R version < 3.2)
+
+trimws <- NULL

@@ -53,3 +53,41 @@ test_that("valid_object", {
     "`palette.of.styles` is an invalid"
   )
 })
+test_that("brightness", {
+  expect_error(diffPrint(1:3, 3:6, brightness=NA), "must be character")
+  expect_error(diffPrint(1:3, 3:6, brightness="red"), "may only contain values")
+  expect_error(diffPrint(1:3, 3:6, brightness=c(raw='light')), "one empty name")
+  expect_error(
+    diffPrint(1:3, 3:6, brightness=c('light', 'dark')), "have names"
+  )
+})
+test_that("misc", {
+  expect_match(diffobj:::is.one.file.name(1), "must be character")
+  expect_error(diffPrint(1:3, 2:6, extra="hello"), "must be a list")
+  expect_error(diffPrint(1:3, 2:6, context=TRUE), "Argument `context` must")
+  expect_error(diffPrint(1:3, 2:6, mode=1), "must be character")
+  expect_error(diffPrint(1:3, 2:6, tab.stops=-1), "strictly positive")
+  expect_error(diffPrint(1:3, 2:6, hunk.limit='hello'), "integer vector")
+  expect_error(diffPrint(1:3, 2:6, guides='hello'), "or a function")
+  expect_error(
+    diffPrint(1:3, 2:6, guides=function(x, y, z) NULL), "cannot have any non"
+  )
+  expect_error(
+    diffPrint(1:3, 2:6, trim='hello'), "TRUE, FALSE, or a function"
+  )
+  expect_error(
+    diffPrint(1:3, 2:6, trim=function(x, y, z) NULL), "cannot have any non"
+  )
+  expect_error(diffPrint(1:3, 2:6, interactive='hello'), "must be TRUE or")
+  expect_error(diffPrint(1:3, 2:6, max.diffs=1:10), "must be integer")
+  expect_error(diffPrint(1:3, 2:6, tar.banner=1:10), "must be atomic")
+  expect_error(diffPrint(1:3, 2:6, style=1:10), "must be \"auto\", a")
+  expect_error(diffPrint(1:3, 2:6, pager=1:10), "must be one of")
+  expect_error(diffPrint(1:3, 2:6, format=1:10), "must be character")
+  expect_error(
+    diffPrint(1:3, 2:6, palette.of.styles=1:10),
+    "must be a `PaletteOfStyles`"
+  )
+
+})
+

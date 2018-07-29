@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Brodie Gaslam
+# Copyright (C) 2018  Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -61,54 +61,6 @@ auto_context <- function(
   if(!is.int.1L(max))
     stop("Argument `max` must be integer(1L) and not NA")
   new("AutoContext", min=as.integer(min), max=as.integer(max))
-}
-## Helper Function to Check if a File is Likely to be less Pager
-
-file_is_less <- function(x) {
-  if(is.chr.1L(x) && file_test("-x", x)) {
-    res <- tryCatch(
-      system2(x, "--version", stdout=TRUE, stderr=TRUE),
-      warning=function(e) NULL,
-      error=function(e) NULL
-    )
-    length(res) && grepl("^less \\d+", res[1L])
-  } else FALSE
-}
-pager_opt_default <- function(x=getOption("pager")) {
-  is.character(x) && !is.na(x[1L]) &&
-  normalizePath(x[1L], mustWork=FALSE) ==
-    normalizePath(file.path(R.home(), "bin", "pager"), mustWork=FALSE)
-}
-
-#' Check Whether System Has less as Pager
-#'
-#' If \code{getOption(pager)} is set to the default value, checks whether
-#' \code{Sys.getenv("PAGER")} appears to be \code{less} by trying to run the
-#' pager with the \dQuote{version} and parsing the output.  If
-#' \code{getOption(pager)} is not the default value, then checks whether it
-#' points to the \code{less} program by the same mechanism.
-#'
-#' Some systems may have \code{less} pagers installed that do not respond to the
-#' \code{$LESS} environment variable.  For example, \code{more} on at least some
-#' versions of OS X is \code{less}, but does not actually respond to
-#' \code{$LESS}.  If such as pager is the system pager you will likely end up
-#' seeing gibberish in the pager.  If this is your use case you will need to
-#' set-up a custom pager configuration object that sets the correct system
-#' variables (see \code{\link{Pager}}).
-#'
-#' @seealso \code{\link{Pager}}
-#' @return TRUE or FALSE
-#' @export
-#' @examples
-#' pager_is_less()
-
-pager_is_less <- function() {
-  pager.opt <- getOption("pager")
-  if(pager_opt_default(pager.opt)) {
-    file_is_less(Sys.getenv("PAGER"))
-  } else if (is.character(pager.opt)) {
-    file_is_less(head(pager.opt, 1L))
-  } else FALSE
 }
 # Changes the LESS system variable to make it compatible with ANSI escape
 # sequences

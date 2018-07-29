@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Brodie Gaslam
+# Copyright (C) 2018  Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -54,12 +54,24 @@ capture <- function(x, etc, err) {
 capt_print <- function(target, current, etc, err, extra){
   dots <- extra
   # What about S4?
-  print.match <- try(
-    match.call(
-      get("print", envir=etc@frame),
-      as.call(c(list(quote(print), x=NULL), dots)),
-      envir=etc@frame
-  ) )
+  if(getRversion() >= "3.2.0") {
+    print.match <- try(
+      match.call(
+        get("print", envir=etc@frame),
+        as.call(c(list(quote(print), x=NULL), dots)),
+        envir=etc@frame
+    ) )
+  } else {
+    # this may be sub-optimal, but match.call does not support the envir arg
+    # prior to this
+    # nocov start
+    print.match <- try(
+      match.call(
+        get("print", envir=etc@frame),
+        as.call(c(list(quote(print), x=NULL), dots))
+    ) )
+    # nocov end
+  }
   if(inherits(print.match, "try-error"))
     err("Unable to compose `print` call")
 
@@ -110,11 +122,21 @@ capt_str <- function(target, current, etc, err, extra){
   if("object" %in% names(dots))
     err("You may not specify `object` as part of `extra`")
 
-  str.match <- try(
-    match.call(
-      str_tpl,
-      call=as.call(c(list(quote(str), object=NULL), dots)), envir=etc@frame
-  ) )
+  if(getRversion() < "3.2.0") {
+    # nocov start
+    str.match <- try(
+      match.call(
+        str_tpl,
+        call=as.call(c(list(quote(str), object=NULL), dots))
+    ) )
+    # nocov end
+  } else {
+    str.match <- try(
+      match.call(
+        str_tpl,
+        call=as.call(c(list(quote(str), object=NULL), dots)), envir=etc@frame
+    ) )
+  }
   if(inherits(str.match, "try-error"))
     err("Unable to compose `str` call")
 

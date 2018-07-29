@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Brodie Gaslam
+# Copyright (C) 2018  Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -213,7 +213,9 @@ strip_table_rh <- function(x) {
   } else {
     pat <- attr(w, "pat")
     if(!is.chr.1L(pat))
+      # nocov start
       stop("Logic Error: unexpected row header pattern; contact maintainer.")
+      # nocov end
     x[w] <- sub(pat, "", x[w])
     x
   }
@@ -226,7 +228,7 @@ which_matrix_rh <- function(x, dim.names.x) {
   res <- integer(0L)
   if(length(guides)) {
     pieces <- split_by_guides(x, guides)
-    if(!length(pieces)) stop("Logic Error: no matrix pieces")
+    if(!length(pieces)) stop("Logic Error: no matrix pieces") # nocov
     # Get all rows matching the matrix row header so long as they are adjacent;
     # this is only really different if there is an attribute in the last piece
     pat.ind <- lapply(
@@ -541,20 +543,24 @@ setMethod("trimFile", c("ANY", "character"), trim_identity)
 
 trim_sub <- function(obj.as.chr, obj.stripped) {
   if(length(obj.as.chr) != length(obj.stripped))
+    # nocov start
     stop(
       "Logic Error: trimmed string does not have same number of elements as ",
       "original; contact maintainer"
     )
+    # nocov end
   stripped.chars <- nchar(obj.stripped)
   char.diff <- nchar(obj.as.chr) - stripped.chars
   sub.start <- char.diff + 1L
   sub.end <- sub.start - 1L + stripped.chars
 
   if(!all(substr(obj.as.chr, sub.start, sub.end) == obj.stripped))
+    # nocov start
     stop(
       "Logic Error: trimmed string is not a substring of orginal, ",
       "contact maintainer"
     )
+    # nocov end
   cbind(sub.start, sub.end)
 }
 # Re-insert the trimmed stuff back into the original string
