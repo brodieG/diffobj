@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Brodie Gaslam
+# Copyright (C) 2018  Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -182,7 +182,9 @@ setMethod("as.character", "DiffSummary",
           mp <- ceiling((hi.bound - lo.bound) / 2) + lo.bound
           safety <- safety - 1L
           if(safety < 0L)
+            # nocov start
             stop("Logic Error: likely infinite loop; contact maintainer.")
+            # nocov end
 
           # Need to scale down; we know we need at least one char per value
           diffs.nz.s <- pmax(
