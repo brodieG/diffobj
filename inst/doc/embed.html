@@ -92,7 +92,7 @@ DIV.diffobj_container PRE {
 white-space: pre-wrap;
 margin: 0;
 }
-DIV.diffobj_container DIV.row {
+DIV.diffobj_container DIV.diffobj-row {
 width: 100%;
 font-family: monospace;
 display: table;
@@ -123,7 +123,7 @@ padding: 0 0.2em;
 DIV.diffobj_container DIV.gutter DIV {
 display: table-cell;
 }
-#diffobj_content_meta DIV.diffobj_container DIV.row {
+#diffobj_content_meta DIV.diffobj_container DIV.diffobj-row {
 width: auto;
 }
 #diffobj_banner_meta DIV.diffobj_container DIV.line.banner>DIV {
@@ -519,7 +519,7 @@ DIV.diffobj_container PRE {
   white-space: pre-wrap;
   margin: 0;
 }
-DIV.diffobj_container DIV.row {
+DIV.diffobj_container DIV.diffobj-row {
   width: 100%;
   font-family: monospace;
   display: table;
@@ -550,7 +550,7 @@ DIV.diffobj_container DIV.gutter {
 DIV.diffobj_container DIV.gutter DIV {
   display: table-cell;
 }
-#diffobj_content_meta DIV.diffobj_container DIV.row {
+#diffobj_content_meta DIV.diffobj_container DIV.diffobj-row {
   width: auto;
 }
 #diffobj_banner_meta DIV.diffobj_container DIV.line.banner>DIV {
@@ -680,9 +680,9 @@ DIV.diffobj_container.light.yb DIV.line {
 }
 </style>
 <div class="diffobj_container light yb">
-<pre><div class="row"><div class="line banner"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="word delete">1:5</span></div></div></div></div><div class="line banner"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="word insert">2:6</span></div></div></div></div></div><div class="row"><div class="line"><div class="header">@@ 1 @@</div></div><div class="line"><div class="header">@@ 1 @@</div></div></div><div class="row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim">[1] </span><span class="word delete">1</span> 2 3 4 5<span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim">[1] </span>2 3 4 5 <span class="word insert">6</span><span class="trim"></span></div></div></div></div></div></pre>
+<pre><div class="diffobj-row"><div class="line banner"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="word delete">1:5</span></div></div></div></div><div class="line banner"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="word insert">2:6</span></div></div></div></div></div><div class="diffobj-row"><div class="line"><div class="header">@@ 1 @@</div></div><div class="line"><div class="header">@@ 1 @@</div></div></div><div class="diffobj-row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim">[1] </span><span class="word delete">1</span> 2 3 4 5<span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim">[1] </span>2 3 4 5 <span class="word insert">6</span><span class="trim"></span></div></div></div></div></div></pre>
 </div>
-<p>This is an ugly implementation because it produces illegal HTML. The styles are directly embedded in the body of the document, outside of the HEAD tags. Although this is illegal HTML, it seems to work in most browsers. Another problem is that every diff you use in your document will inject the same CSS code over and over.</p>
+<p>This is an ugly implementation because it produces illegal HTML. The styles are directly embedded in the body of the document, outside of the HEAD tags. Although this is illegal HTML, it seems to work in most bdiffobj-rowsers. Another problem is that every diff you use in your document will inject the same CSS code over and over.</p>
 </div>
 <div id="a-cleaner-option" class="section level2">
 <h2>A Cleaner Option</h2>
@@ -711,7 +711,7 @@ output:
 <a class="sourceLine" id="cb6-6" data-line-number="6">      <span class="dt">style=</span><span class="kw">list</span>(<span class="dt">html.output=</span><span class="st">&quot;diff.only&quot;</span>)   <span class="co"># notice this changed</span></a>
 <a class="sourceLine" id="cb6-7" data-line-number="7">) ) )</a></code></pre></div>
 <div class="diffobj_container light yb">
-<pre><div class="row"><div class="line banner"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="word delete">1:5</span></div></div></div></div><div class="line banner"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="word insert">2:6</span></div></div></div></div></div><div class="row"><div class="line"><div class="header">@@ 1 @@</div></div><div class="line"><div class="header">@@ 1 @@</div></div></div><div class="row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim">[1] </span><span class="word delete">1</span> 2 3 4 5<span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim">[1] </span>2 3 4 5 <span class="word insert">6</span><span class="trim"></span></div></div></div></div></div></pre>
+<pre><div class="diffobj-row"><div class="line banner"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="word delete">1:5</span></div></div></div></div><div class="line banner"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="word insert">2:6</span></div></div></div></div></div><div class="diffobj-row"><div class="line"><div class="header">@@ 1 @@</div></div><div class="line"><div class="header">@@ 1 @@</div></div></div><div class="diffobj-row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim">[1] </span><span class="word delete">1</span> 2 3 4 5<span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim">[1] </span>2 3 4 5 <span class="word insert">6</span><span class="trim"></span></div></div></div></div></div></pre>
 </div>
 <p>This will omit the CSS, but since we include it via the YAML everything should work as expected.</p>
 </div>
@@ -725,7 +725,7 @@ output:
 <p>Then you can just run the diff as normal:</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="kw">cat</span>(<span class="kw">as.character</span>(<span class="kw">diffPrint</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">5</span>, <span class="dv">2</span><span class="op">:</span><span class="dv">6</span>)))</a></code></pre></div>
 <div class="diffobj_container light yb">
-<pre><div class="row"><div class="line banner"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="word delete">1:5</span></div></div></div></div><div class="line banner"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="word insert">2:6</span></div></div></div></div></div><div class="row"><div class="line"><div class="header">@@ 1 @@</div></div><div class="line"><div class="header">@@ 1 @@</div></div></div><div class="row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim">[1] </span><span class="word delete">1</span> 2 3 4 5<span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim">[1] </span>2 3 4 5 <span class="word insert">6</span><span class="trim"></span></div></div></div></div></div></pre>
+<pre><div class="diffobj-row"><div class="line banner"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="word delete">1:5</span></div></div></div></div><div class="line banner"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="word insert">2:6</span></div></div></div></div></div><div class="diffobj-row"><div class="line"><div class="header">@@ 1 @@</div></div><div class="line"><div class="header">@@ 1 @@</div></div></div><div class="diffobj-row"><div class="line"><div class="delete"><div class="gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="text"><div class="delete"><span class="trim">[1] </span><span class="word delete">1</span> 2 3 4 5<span class="trim"></span></div></div></div></div><div class="line"><div class="insert"><div class="gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="text"><div class="insert"><span class="trim">[1] </span>2 3 4 5 <span class="word insert">6</span><span class="trim"></span></div></div></div></div></div></pre>
 </div>
 </div>
 
