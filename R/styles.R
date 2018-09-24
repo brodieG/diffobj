@@ -878,7 +878,7 @@ StyleHtml <- setClass(
   prototype=list(
     funs=StyleFuns(
       container=cont_f(),
-      row=div_f("row"),
+      row=div_f("diffobj-row"),
       banner.insert=div_f("insert"),
       banner.delete=div_f("delete"),
       banner=div_f("line banner"),
