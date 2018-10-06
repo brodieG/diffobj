@@ -86,7 +86,7 @@ cont_f <- function(class=character()) {
   function(x) {
     if(!is.character(x)) stop("Argument `x` must be character.")
     sprintf(
-      "<div class='diffobj_container%s'><pre>%s</pre></div>",
+      "<div class='diffobj-container%s'><pre>%s</pre></div>",
       if(length(class)) paste0(" ", class, collapse="") else "",
       paste0(x, collapse="")
     )
