@@ -3,8 +3,11 @@ title: "Mean Relative Indifference"
 subtitle: "A Comparison of R Comparison Functions"
 author: "Brodie Gaslam"
 output:
-    function(...) rmarkdown::html_vignette(..., md_extensions="-markdown_in_html_blocks", css=c(file.path(system.file(package="diffobj"), "css", "diffobj.css"), "styles.css"))
-
+    rmarkdown::html_vignette:
+        toc: true
+        css:
+          - !expr diffobj::diffobj_css()
+          - styles.css
 vignette: >
   %\VignetteIndexEntry{Comparison Functions}
   %\VignetteEngine{knitr::rmarkdown}

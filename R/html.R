@@ -29,7 +29,7 @@ NULL
 #' each element of a character vector.  \code{container_f} on the other hand
 #' produces a function will collapse a character vector into length 1, and only
 #' then applies the tags.  Additionally, \code{container_f} already comes with
-#' the \dQuote{diffobj_container} class specified.
+#' the \dQuote{diffobj-container} class specified.
 #'
 #' @note inputs are assumed to be valid class names or CSS styles.
 #'
@@ -86,7 +86,10 @@ cont_f <- function(class=character()) {
   function(x) {
     if(!is.character(x)) stop("Argument `x` must be character.")
     sprintf(
-      "<div class='diffobj-container%s'><pre>%s</pre></div>",
+      paste0(
+        "<div class='diffobj-container%s'><pre class='diffobj-content'>",
+        "%s</pre></div>"
+      ),
       if(length(class)) paste0(" ", class, collapse="") else "",
       paste0(x, collapse="")
     )
