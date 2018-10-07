@@ -13,7 +13,7 @@
 <meta name="author" content="Brodie Gaslam" />
 
 
-<title>Embed Diffs in R Markdown</title>
+<title>Embed Diffs in R Markdown Or Shiny</title>
 
 
 
@@ -88,7 +88,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <style type="text/css">
 
-DIV.diffobj-container PRE.diffobj-contents {
+DIV.diffobj-container PRE.diffobj-content {
 white-space: pre-wrap;
 margin: 0;
 }
@@ -465,30 +465,35 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">Embed Diffs in R Markdown</h1>
+<h1 class="title toc-ignore">Embed Diffs in R Markdown Or Shiny</h1>
 <h4 class="author"><em>Brodie Gaslam</em></h4>
 
 
 <div id="TOC">
 <ul>
+<li><a href="#rmarkdown">Rmarkdown</a><ul>
 <li><a href="#basic-requirements">Basic Requirements</a></li>
-<li><a href="#easy-but-ugly">Easy but Ugly</a></li>
-<li><a href="#a-cleaner-option">A Cleaner Option</a></li>
+<li><a href="#embedded-css">Embedded CSS</a></li>
+<li><a href="#external-css">External CSS</a></li>
 <li><a href="#use-options">Use Options</a></li>
+</ul></li>
+<li><a href="#shiny">Shiny</a></li>
 </ul>
 </div>
 
-<div id="basic-requirements" class="section level2">
-<h2>Basic Requirements</h2>
+<div id="rmarkdown" class="section level2">
+<h2>Rmarkdown</h2>
+<div id="basic-requirements" class="section level3">
+<h3>Basic Requirements</h3>
 <p>Any R chunks that produce diffs should include the <code>results='asis'</code> option, e.g.:</p>
-<pre><code>```{r results='asis'}
+<pre><code>```{r, comment=&quot;&quot;, results=&quot;asis&quot;}
 # R code here
 ```</code></pre>
 </div>
-<div id="easy-but-ugly" class="section level2">
-<h2>Easy but Ugly</h2>
+<div id="embedded-css" class="section level3">
+<h3>Embedded CSS</h3>
 <p>This is what a basic code block should look like:</p>
-<pre><code>```{r results='asis'}
+<pre><code>```{r, comment=&quot;&quot;, results=&quot;asis&quot;}
 cat(                                 # output to screen
   as.character(                      # convert to diff to character vector
     diffPrint(                       # run diff
@@ -514,7 +519,7 @@ cat(                                 # output to screen
  * cues provided by the current set-up are useful (line wraps, etc.)
  */
 
-DIV.diffobj-container PRE.diffobj-contents {
+DIV.diffobj-container PRE.diffobj-content {
   white-space: pre-wrap;
   margin: 0;
 }
@@ -683,8 +688,8 @@ DIV.diffobj-container.light.yb DIV.diffobj-line {
 </div>
 <p>This is an ugly implementation because it produces illegal HTML. The styles are directly embedded in the body of the document, outside of the HEAD tags. Although this is illegal HTML, it seems to work in most browsers. Another problem is that every diff you use in your document will inject the same CSS code over and over.</p>
 </div>
-<div id="a-cleaner-option" class="section level2">
-<h2>A Cleaner Option</h2>
+<div id="external-css" class="section level3">
+<h3>External CSS</h3>
 <p>A better option is to provide the CSS directly by modifying the <code>output</code> portion of the <a href="https://bookdown.org/yihui/rmarkdown/r-package-vignette.html">YAML header</a>:</p>
 <pre><code>---
 output:
@@ -714,8 +719,8 @@ output:
 </div>
 <p>This will omit the CSS, but since we include it via the YAML everything should work as expected.</p>
 </div>
-<div id="use-options" class="section level2">
-<h2>Use Options</h2>
+<div id="use-options" class="section level3">
+<h3>Use Options</h3>
 <p>Almost all <code>diffobj</code> parameters can be specified via options:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="kw">options</span>(</a>
 <a class="sourceLine" id="cb7-2" data-line-number="2">  <span class="dt">diffobj.format=</span><span class="st">&quot;html&quot;</span>,</a>
@@ -726,6 +731,38 @@ output:
 <div class="diffobj-container light yb">
 <pre class="diffobj-content"><div class="diffobj-row"><div class="diffobj-line banner"><div class="delete"><div class="diffobj-gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="diffobj-text"><div class="delete"><span class="diffobj-word delete">1:5</span></div></div></div></div><div class="diffobj-line banner"><div class="insert"><div class="diffobj-gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="diffobj-text"><div class="insert"><span class="diffobj-word insert">2:6</span></div></div></div></div></div><div class="diffobj-row"><div class="diffobj-line"><div class="diffobj-header">@@ 1 @@</div></div><div class="diffobj-line"><div class="diffobj-header">@@ 1 @@</div></div></div><div class="diffobj-row"><div class="diffobj-line"><div class="delete"><div class="diffobj-gutter"><div class="delete">&lt;</div><div class="pad"> </div></div><div class="diffobj-text"><div class="delete"><span class="diffobj-trim">[1] </span><span class="diffobj-word delete">1</span> 2 3 4 5<span class="diffobj-trim"></span></div></div></div></div><div class="diffobj-line"><div class="insert"><div class="diffobj-gutter"><div class="insert">&gt;</div><div class="pad"> </div></div><div class="diffobj-text"><div class="insert"><span class="diffobj-trim">[1] </span>2 3 4 5 <span class="diffobj-word insert">6</span><span class="diffobj-trim"></span></div></div></div></div></div></pre>
 </div>
+</div>
+</div>
+<div id="shiny" class="section level2">
+<h2>Shiny</h2>
+<p>Shiny usage is very similar to <code>rmarkdown</code>. In both cases we want to get <code>diffobj</code> to produce HTML output to embed in our document. If we are willing to embed the CSS with each diff, we can use:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="kw">library</span>(shiny)</a>
+<a class="sourceLine" id="cb9-2" data-line-number="2"><span class="kw">shinyApp</span>(</a>
+<a class="sourceLine" id="cb9-3" data-line-number="3">  <span class="dt">ui=</span><span class="kw">fluidPage</span>(<span class="kw">htmlOutput</span>(<span class="st">'diffobj_element'</span>)),</a>
+<a class="sourceLine" id="cb9-4" data-line-number="4">  <span class="dt">server=</span><span class="cf">function</span>(input, output) {</a>
+<a class="sourceLine" id="cb9-5" data-line-number="5">    output<span class="op">$</span>diffobj_element &lt;-<span class="st"> </span><span class="kw">renderUI</span>({</a>
+<a class="sourceLine" id="cb9-6" data-line-number="6">      <span class="kw">HTML</span>(</a>
+<a class="sourceLine" id="cb9-7" data-line-number="7">        <span class="kw">as.character</span>(</a>
+<a class="sourceLine" id="cb9-8" data-line-number="8">          <span class="kw">diffPrint</span>(</a>
+<a class="sourceLine" id="cb9-9" data-line-number="9">            <span class="dv">1</span><span class="op">:</span><span class="dv">5</span>, <span class="dv">2</span><span class="op">:</span><span class="dv">6</span>,</a>
+<a class="sourceLine" id="cb9-10" data-line-number="10">            <span class="dt">format=</span><span class="st">&quot;html&quot;</span>,</a>
+<a class="sourceLine" id="cb9-11" data-line-number="11">            <span class="dt">style=</span><span class="kw">list</span>(<span class="dt">html.output=</span><span class="st">&quot;diff.w.style&quot;</span>)</a>
+<a class="sourceLine" id="cb9-12" data-line-number="12">) ) )}) } )</a></code></pre></div>
+<p>If we have many diffs, it may be preferable to use options and external style sheet:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="kw">options</span>(</a>
+<a class="sourceLine" id="cb10-2" data-line-number="2">  <span class="dt">diffobj.format=</span><span class="st">&quot;html&quot;</span>,</a>
+<a class="sourceLine" id="cb10-3" data-line-number="3">  <span class="dt">diffobj.style=</span><span class="kw">list</span>(<span class="dt">html.output=</span><span class="st">&quot;diff.only&quot;</span>)</a>
+<a class="sourceLine" id="cb10-4" data-line-number="4">)</a>
+<a class="sourceLine" id="cb10-5" data-line-number="5"><span class="kw">shinyApp</span>(</a>
+<a class="sourceLine" id="cb10-6" data-line-number="6">  <span class="dt">ui=</span><span class="kw">fluidPage</span>(</a>
+<a class="sourceLine" id="cb10-7" data-line-number="7">    <span class="kw">includeCSS</span>(<span class="kw">diffobj_css</span>()),</a>
+<a class="sourceLine" id="cb10-8" data-line-number="8">    <span class="kw">htmlOutput</span>(<span class="st">'diffobj_element'</span>)</a>
+<a class="sourceLine" id="cb10-9" data-line-number="9">  ),</a>
+<a class="sourceLine" id="cb10-10" data-line-number="10">  <span class="dt">server=</span><span class="cf">function</span>(input, output) {</a>
+<a class="sourceLine" id="cb10-11" data-line-number="11">    output<span class="op">$</span>diffobj_element &lt;-<span class="st"> </span><span class="kw">renderUI</span>({</a>
+<a class="sourceLine" id="cb10-12" data-line-number="12">      <span class="kw">HTML</span>(<span class="kw">as.character</span>(<span class="kw">diffPrint</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">5</span>, <span class="dv">2</span><span class="op">:</span><span class="dv">6</span>,)))</a>
+<a class="sourceLine" id="cb10-13" data-line-number="13">}) } )</a></code></pre></div>
+<p>Unlike with our <a href="#external-css">rmarkdown example</a>, this CSS is included in the body of the HTML document instead of in the header, so it is technically illegal like in our <a href="#embedded-css">embedded css example</a>.</p>
 </div>
 
 
