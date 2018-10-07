@@ -5,8 +5,8 @@
 \alias{summary,Diff-method}
 \title{Summary Method for Diff Objects}
 \usage{
-\S4method{summary}{Diff}(object, scale.threshold = 0.1, max.lines = 50L,
-  width = getOption("width"), ...)
+\S4method{summary}{Diff}(object, scale.threshold = 0.1,
+  max.lines = 50L, width = getOption("width"), ...)
 }
 \arguments{
 \item{object}{at \code{Diff} object}
