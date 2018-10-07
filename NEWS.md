@@ -6,6 +6,8 @@
   with bootstrap (reported by @eckyu, debugged/fixed by @cpsievert).
 * [#126](https://github.com/brodieG/diffobj/issues/126): Add embedding diffs in
   Shiny to vignette.
+* [#118](https://github.com/brodieG/diffobj/issues/118): New option to preserve
+  temporary diff file output when using pager (see `?Pager`).
 
 ## v0.1.11
 
