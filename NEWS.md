@@ -1,9 +1,11 @@
 # diffobj
 
-## v0.1.11
+## v0.1.12
 
 * [#127](https://github.com/brodieG/diffobj/issues/127): Width CSS conflicts
   with bootstrap (reported by @eckyu, debugged/fixed by @cpsievert).
+* [#126](https://github.com/brodieG/diffobj/issues/126): Add embedding diffs in
+  Shiny to vignette.
 
 ## v0.1.11
 
