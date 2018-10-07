@@ -25,9 +25,9 @@ browseVignettes("diffobj")
 
 ## Related Software
 
-* [tools::Rdiff](https://stat.ethz.ch/R-manual/R-devel/library/tools/html/Rdiff.html)
-* [Daff](https://cran.r-project.org/package=daff) diff, patch and merge for data.frames
-* [GNU diff](https://www.gnu.org/software/diffutils)
+* [tools::Rdiff](https://stat.ethz.ch/R-manual/R-devel/library/tools/html/Rdiff.html).
+* [Daff](https://cran.r-project.org/package=daff) diff, patch and merge for data.frames.
+* [GNU diff](https://www.gnu.org/software/diffutils).
 
 ## Acknowledgements
 
@@ -35,6 +35,7 @@ browseVignettes("diffobj")
 * CRAN maintainers, for patiently shepherding packages onto CRAN and maintaining
   the repository, and Uwe Ligges in particular for maintaining
   [Winbuilder](http://win-builder.r-project.org/).
+* The users who have reported bugs and possible fixes (see NEWS.md).
 * [Jim Hester](https://github.com/jimhester) because
   [covr](https://cran.r-project.org/package=covr) rocks.
 * [Dirk Eddelbuettel](https://github.com/eddelbuettel) and [Carl
