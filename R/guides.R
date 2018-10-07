@@ -275,7 +275,7 @@ detect_s4_guides <- function(txt, obj) {
     guides.txt <- txt[guides.loc]
 
     if(!identical(guides, guides.txt)) {
-      integer()
+      integer()   # nocov really no way to test this, and harmless
     } else {
       guides.loc
     }
