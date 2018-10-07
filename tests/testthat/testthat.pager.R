@@ -38,6 +38,8 @@ test_that("System Pagers", {
   expect_warning(res <- pg.less@pager(), "VWF$")
   expect_equal(res, 42)
   expect_equal(less.orig, Sys.getenv("LESS"))
+  expect_equal(PagerSystemLess(pager=pager_mock)@flags, "R")
+  expect_error(PagerSystemLess(pager=pager_mock, flags=letters))
 })
 test_that("use_pager", {
   with_mock(
@@ -48,7 +50,6 @@ test_that("use_pager", {
     }
   )
 })
-
 test_that("Setting LESS var", {
   less.orig <- Sys.getenv("LESS")
   old.opt <- options(crayon.enabled=FALSE)  # problems with crayon and LESS
@@ -83,7 +84,6 @@ test_that("Setting LESS var", {
     expect_warning(diffobj:::set_less_var("V"), "Unable to set")
   )
 })
-
 test_that("viewer vs browser", {
   viewer <- function(x) "viewer"
   old.external <- options(viewer=viewer, browser=function(url) "browser")

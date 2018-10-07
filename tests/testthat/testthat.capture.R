@@ -14,3 +14,57 @@ test_that("capture width issues", {
   )
   expect_equal(nchar(res), c(40L, 40L, 36L))
 })
+test_that("errors in capture", {
+  etc <- new("Settings", style=StyleRaw())
+  expect_error(diffobj:::capture(stop('boom'), etc, function(...) stop(...)),
+    "Failed attempting.*boom"
+  )
+  print <- function() NULL
+  str <- function() NULL
+  etc@mode <- "auto"
+  etc@frame <- environment()
+  expect_error(
+    diffobj:::capt_print(1, 2, etc, function(...) stop(...), list()),
+    "Unable to compose"
+  )
+  expect_error(
+    diffobj:::capt_str(1, 2, etc, function(...) stop(...), list(object=1)),
+    "specify `object`"
+  )
+  expect_error(
+    diffobj:::capt_deparse(
+      stop('a'), stop('b'), etc,  function(...) stop(...), list()
+    ),
+    "attempting to deparse"
+  )
+  expect_error(
+    suppressWarnings(
+      diffobj:::capt_file(
+        tempfile(), tempfile(), etc,  function(...) stop(...), list()
+    ) ),
+    "`target`"
+  )
+  f <- tempfile()
+  on.exit(unlink(f), add=TRUE)
+  writeLines(letters, f)
+  expect_error(
+    suppressWarnings(
+      diffobj:::capt_file(f, tempfile(), etc,  function(...) stop(...), list())
+    ),
+    "`current`"
+  )
+  expect_error(
+    suppressWarnings(
+      diffobj:::capt_csv(
+        tempfile(), tempfile(), etc,  function(...) stop(...), list()
+    ) ),
+    "`target`"
+  )
+  expect_error(
+    suppressWarnings(
+      diffobj:::capt_csv(
+        f, tempfile(), etc,  function(...) stop(...), list()
+    ) ),
+    "`current`"
+  )
+})

@@ -37,6 +37,12 @@ test_that("Strict width", {
     )
   }
 })
+test_that("max.diffs", {
+  expect_warning(
+    diffStr(iris, mtcars, max.diff=2),
+    "Exceeded diff limit"
+  )
+})
 test_that("max.level", {
   expect_equal_to_reference(
     as.character(diffStr(mdl1[7], mdl2[7], extra=list(max.level="auto"))),
