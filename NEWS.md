@@ -2,6 +2,11 @@
 
 ## v0.1.11
 
+* [#127](https://github.com/brodieG/diffobj/issues/127): Width CSS conflicts
+  with bootstrap (reported by @eckyu, debugged/fixed by @cpsievert).
+
+## v0.1.11
+
 * [#123](https://github.com/brodieG/diffobj/issues/123): Compatibility with R3.1
   (@krlmlr).
 * [#121](https://github.com/brodieG/diffobj/issues/121): Vignette describing how

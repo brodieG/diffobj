@@ -2,9 +2,11 @@
 title: "diffobj - Diffs for R Objects"
 author: "Brodie Gaslam"
 output:
-    function(...) rmarkdown::html_vignette(..., md_extensions="-markdown_in_html_blocks", css=c(file.path(system.file(package="diffobj"), "css", "diffobj.css"), "styles.css")):
+    rmarkdown::html_vignette:
         toc: true
-
+        css:
+          - !expr diffobj::diffobj_css()
+          - styles.css
 vignette: >
   %\VignetteIndexEntry{Introduction to Diffobj}
   %\VignetteEngine{knitr::rmarkdown}
@@ -315,8 +317,8 @@ If you are looking for the fastest possible diff you can use `ses` and
 completely bypass most input and output processing.  Inputs will be coerced to
 character if they are not character.
 
-```{r, eval=FALSE}
-ses(v1, v2)
+```{r}
+ses(letters[1:5], letters[c(2:3, 5)])
 ```
 
 This will be 10-20x faster than `diffChr`, at the cost of less useful output.

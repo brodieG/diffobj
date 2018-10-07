@@ -11,6 +11,7 @@ vignette: >
   %\VignetteIndexEntry{Embed Diffs in R Markdown}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
+
 ---
 
 ```{r echo=FALSE}

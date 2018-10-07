@@ -240,7 +240,7 @@ StyleSummary <- setClass("StyleSummary",
 
 StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
   prototype=list(
-    container=function(x) div_f("summary")(paste0(x, collapse="")),
+    container=function(x) div_f("diffobj-summary")(paste0(x, collapse="")),
     body=div_f("body"),
     detail=div_f("detail"),
     map=div_f("map")
@@ -395,7 +395,7 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' uses \code{@funs@container <- cont_f("light", "rgb")}.  \code{cont_f} returns
 #' a function that accepts a character vector as an argument and returns
 #' that value wrapped in a \code{DIV} block with class
-#' \dQuote{"diffobj_container light rgb"}.  This allows the CSS style sheet to
+#' \dQuote{"diffobj-container light rgb"}.  This allows the CSS style sheet to
 #' target the \code{Diff} elements with the correct styles.
 #'
 #' @section Modifying Style Parameters Directly:
@@ -878,41 +878,41 @@ StyleHtml <- setClass(
   prototype=list(
     funs=StyleFuns(
       container=cont_f(),
-      row=div_f("row"),
+      row=div_f("diffobj-row"),
       banner.insert=div_f("insert"),
       banner.delete=div_f("delete"),
-      banner=div_f("line banner"),
+      banner=div_f("diffobj-line banner"),
       line.insert=div_f("insert"),
       line.delete=div_f("delete"),
-      line.match=div_f("match"),
-      line.guide=div_f("guide"),
-      line.fill=div_f("fill"),
-      line=div_f("line"),
+      line.match=div_f("diffobj-match"),
+      line.guide=div_f("diffobj-guide"),
+      line.fill=div_f("diffobj-fill"),
+      line=div_f("diffobj-line"),
       text.insert=div_f("insert"),
       text.delete=div_f("delete"),
-      text.match=div_f("match"),
-      text.guide=div_f("guide"),
-      text.fill=div_f("fill"),
-      text=div_f("text"),
+      text.match=div_f("diffobj-match"),
+      text.guide=div_f("diffobj-guide"),
+      text.fill=div_f("diffobj-fill"),
+      text=div_f("diffobj-text"),
       gutter.insert=div_f("insert"),
       gutter.delete=div_f("delete"),
-      gutter.match=div_f("match"),
-      gutter.guide=div_f("guide"),
-      gutter.fill=div_f("fill"),
+      gutter.match=div_f("diffobj-match"),
+      gutter.guide=div_f("diffobj-guide"),
+      gutter.fill=div_f("diffobj-fill"),
       gutter.pad=div_f("pad"),
       gutter.context.sep=div_f(c("context_sep", "ctd")),
       gutter.insert.ctd=div_f(c("insert", "ctd")),
       gutter.delete.ctd=div_f(c("delete", "ctd")),
-      gutter.match.ctd=div_f(c("match", "ctd")),
-      gutter.guide.ctd=div_f(c("guide", "ctd")),
-      gutter.fill.ctd=div_f(c("fill", "ctd")),
+      gutter.match.ctd=div_f(c("diffobj-match", "ctd")),
+      gutter.guide.ctd=div_f(c("diffobj-guide", "ctd")),
+      gutter.fill.ctd=div_f(c("diffobj-fill", "ctd")),
       gutter.context.sep.ctd=div_f(c("context_sep", "ctd")),
-      gutter=div_f("gutter"),
+      gutter=div_f("diffobj-gutter"),
       context.sep=div_f("context_sep"),
-      word.insert=span_f(c("word", "insert")),
-      word.delete=span_f(c("word", "delete")),
-      trim=span_f("trim"),
-      header=div_f(c("header"))
+      word.insert=span_f(c("diffobj-word", "insert")),
+      word.delete=span_f(c("diffobj-word", "delete")),
+      trim=span_f("diffobj-trim"),
+      header=div_f(c("diffobj-header"))
     ),
     text=StyleText(
       gutter.insert="&gt;",
