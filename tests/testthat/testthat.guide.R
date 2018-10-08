@@ -235,8 +235,8 @@ test_that("custom guide fun", {
     expect_equal_to_reference(trim.err, rdsf(200))
   }
   expect_error(
-    diffobj:::apply_guide(1:26, LETTERS, function(x, y) 35L),
-    "must produce a vecctor"
+    diffobj:::apply_guides(1:26, LETTERS, function(x, y) 35L),
+    "must produce an integer vector"
   )
 })
 test_that("errors", {
@@ -252,7 +252,7 @@ test_that("errors", {
 test_that("corner cases", {
   expect_equal(
     diffobj:::split_by_guides(letters, integer()),
-    list(letters, idx=seq_along(letters))
+    list(structure(letters, idx=seq_along(letters)))
   )
   expect_error(
     guidesStr(1:26, rep(NA_character_, 26)),
