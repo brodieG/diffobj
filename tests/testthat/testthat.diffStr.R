@@ -5,6 +5,8 @@ if(!identical(basename(getwd()), "testthat"))
 
 rdsf <- function(x)
   file.path(getwd(), "helper", "diffStr", sprintf("%s.rds", x))
+txtf <- function(x)
+  file.path(getwd(), "helper", "diffStr", sprintf("%s.txt", x))
 
 library(diffobj)
 
@@ -87,5 +89,11 @@ test_that("Quoted Objects", {
   expect_equal(
     as.character(diffStr(quote(x), quote(y))),
     structure(c("\033[33m<\033[39m \033[33mstr(quo..\033[39m  \033[34m>\033[39m \033[34mstr(quo..\033[39m", "\033[36m@@ 1 @@    \033[39m  \033[36m@@ 1 @@    \033[39m", "\033[33m<\033[39m \033[90m\033[39m symbol \033[33mx\033[39m\033[90m\033[39m  \033[34m>\033[39m \033[90m\033[39m symbol \033[34my\033[39m\033[90m\033[39m"), len = 3L)
+  )
+})
+test_that("Spaces with punctuation", {
+  expect_known_output(
+    show(diffStr(list(a=1), list(a=1, cabera=3), format='raw')),
+    txtf(100)
   )
 })
