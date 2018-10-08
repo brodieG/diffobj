@@ -35,6 +35,10 @@ test_that("Atomic", {
   expect_equal_to_reference(
     as.character(diffPrint(1:3, 2:6, trim=FALSE)), rdsf(50)
   )
+  # bad headers
+
+  bh <- c("[1] a b c", "[4] d e f", "[5] h")
+  expect_equal(diffobj:::which_atomic_rh(bh), integer())
 })
 test_that("Matrix", {
   mx1 <- mx2 <- matrix(1:3, 3)
@@ -129,6 +133,17 @@ test_that("Table", {
   expect_equal(
     c(diffobj:::which_table_rh(capture.output(head(Puromycin, 10L)))),
     2:11
+  )
+  # Bad wrap
+
+  bw <- c(
+    "    bad", "1   123", "2   456",
+    "    dab", "1   123", "2   456",
+    "    abd", "1   123")
+
+  expect_equal(
+    diffobj:::wtr_help(bw, diffobj:::.pat.tbl),
+    c(2L, 3L, 5L, 6L)
   )
 })
 test_that("Array", {

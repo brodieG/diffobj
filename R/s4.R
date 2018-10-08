@@ -417,8 +417,10 @@ show_w_pager <- function(txt, pager) {
   # Finalize and output
 
   if(use.pager) {
-    disp.f <- paste0(tempfile(), ".", pager@file.ext)
-    on.exit(add=TRUE, unlink(disp.f))
+    disp.f <- if(!is.na(pager@file.path)) pager@file.path
+    else paste0(tempfile(), ".", pager@file.ext)
+
+    if(!pager@file.keep) on.exit(add=TRUE, unlink(disp.f))
     writeLines(txt, disp.f)
     pager@pager(disp.f)
   } else {

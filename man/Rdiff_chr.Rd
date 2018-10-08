@@ -5,9 +5,11 @@
 \alias{Rdiff_obj}
 \title{Run Rdiff Directly on R Objects}
 \usage{
-Rdiff_chr(from, to, silent = FALSE, minimal = FALSE, nullPointers = TRUE)
+Rdiff_chr(from, to, silent = FALSE, minimal = FALSE,
+  nullPointers = TRUE)
 
-Rdiff_obj(from, to, silent = FALSE, minimal = FALSE, nullPointers = TRUE)
+Rdiff_obj(from, to, silent = FALSE, minimal = FALSE,
+  nullPointers = TRUE)
 }
 \arguments{
 \item{from}{character or object coercible to character for \code{Rdiff_chr},

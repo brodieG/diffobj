@@ -21,8 +21,8 @@ diffStr(target, current, ...)
   hunk.limit = gdo("hunk.limit"), align = gdo("align"),
   style = gdo("style"), palette.of.styles = gdo("palette"),
   frame = par_frame(), interactive = gdo("interactive"),
-  term.colors = gdo("term.colors"), tar.banner = NULL, cur.banner = NULL,
-  extra = list())
+  term.colors = gdo("term.colors"), tar.banner = NULL,
+  cur.banner = NULL, extra = list())
 }
 \arguments{
 \item{target}{the reference object}

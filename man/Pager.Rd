@@ -13,7 +13,6 @@
 \alias{PagerSystem}
 \alias{PagerSystemLess-class}
 \alias{PagerSystemLess}
-\alias{PagerBrowser}
 \title{Objects for Specifying Pager Settings}
 \usage{
 PagerOff(...)
@@ -27,18 +26,19 @@ PagerBrowser(pager = make_blocking(view_or_browse), threshold = 0L,
   file.ext = "html", ...)
 }
 \arguments{
-\item{...}{additional arguments to pass on to \code{new}, typically not used}
+\item{...}{additional arguments to pass on to \code{new}, typically not used.}
 
 \item{pager}{a function that accepts at least one parameter and does not
 require a parameter other than the first parameter.  This function will be
 called with a file name passed as the first argument.  The referenced file
-will contain the text of the diff.  This is a temporary file that will be
-deleted as soon as the pager function completes evaluation.
+will contain the text of the diff.  This is a normally temporary file that
+will be deleted as soon as the pager function completes evaluation.
 \code{PagerSystem} and \code{PagerSystemLess} use \code{\link{file.show}}
 by default, and \code{PagerBrowser} uses
 \code{make_blocking(view_or_browse)}.  Note that
 \code{\link{make_blocking}} ensures that the temporary file is not deleted
-before the pager can access it.}
+before the pager can access it.  You can also set `file.keep` to TRUE so
+the file persists.}
 
 \item{threshold}{integer(1L) number of lines of output that triggers the use
 of the pager; negative values lead to using
@@ -48,7 +48,7 @@ irrespective of how many lines the output has.}
 \item{file.ext}{character(1L) an extension to append to file name passed to
 \code{pager}, \emph{without} the period.  For example, \code{PagerBrowser}
 uses \dQuote{html} to cause \code{\link{browseURL}} to launch the web
-browser.}
+browser.  This parameter will be overridden if `file.path` is used.}
 
 \item{flags}{character(1L), only for \code{PagerSystemLess}, what flags to
 set with the \code{LESS} system environment variable.  By default the
@@ -63,6 +63,15 @@ slot directly it will not have any effect.}
 
 \item{ansi}{TRUE or FALSE, whether the pager supports ANSI escape
 sequences.}
+
+\item{file.keep}{TRUE or FALSE (default), whether to keep the temporary
+file the diff is written to.  Normally it is deleted right after the pager
+is invoked.  See `pager` parameter for potential issues with asynchronously
+loading pagers.}
+
+\item{file.path}{character(1L), if not NA the diff will be written to this
+location, ignoring the value of \code{file.ext}.  If NA_character_
+(default), a temporary file is used.}
 }
 \description{
 Modify use of pager behavior with pager configuration objects to use as the
@@ -215,6 +224,16 @@ diffChr(1:200, 180:300)
 page.fun <- make_blocking(browseURL)
 page.conf <- PagerSystem(pager=page.fun, file.ext="txt")
 diffChr(1:200, 180:300, pager=page.conf)
+
+## An alternative to a blocking pager is to disable the
+## auto-file deletion; here we also specify a file location
+## explicitly so we can recover the diff text.
+
+f <- paste0(tempfile(), ".html")
+pager.browser.2 <- PagerBrowser(browseURL, file.keep=TRUE, file.path=f)
+diffChr(1:5, 2:6, format='html', pager=pager.browser.2)
+tail(readLines(f))
+unlink(f)
 }
 }
 \seealso{
