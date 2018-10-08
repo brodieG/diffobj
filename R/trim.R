@@ -18,6 +18,7 @@
 
 .pat.atom <- "^\\s*\\[[1-9][0-9]*\\]\\s"
 .pat.mat <- "^\\s*\\[[1-9]+[0-9]*,\\]\\s"
+.pat.tbl <- "^\\s*[1-9]+[0-9]*:?\\s"       # dfs/tables colon for data.table
 .pat.attr <- "^attr\\(,\"(\\\\\"|[^\"])*\")$"
 
 # Find first attribute and drop everything after it
@@ -145,17 +146,14 @@ wtr_help <- function(x, pat) {
 
     # Only take matches they if alternate T/F
 
-    match.break <- max(
-      which(
-        match.blocks != rep(c(FALSE, TRUE), length.out=length(match.blocks))
-      ),
-      0L
-    )
-    match.valid <- if(match.break) {
+    match.break <-
+      match.blocks != rep(c(FALSE, TRUE), length.out=length(match.blocks))
+
+    match.valid <- if(any(match.break)) {
       # actually very difficult to test this; need a df like structure that is
       # wrapped and has some irregularity that crops up later, and we're not
       # actually able to generate these with vanilla structures
-      head(match.blocks, match.break - 1L)
+      head(match.blocks, min(which(match.break)) - 1L)
     } else match.blocks
 
     # Make sure that all interstitial blocks are same length and that they all
@@ -200,10 +198,8 @@ wtr_help <- function(x, pat) {
 }
 which_table_rh <- function(x) {
   stopifnot(is.character(x), !anyNA(x))
-  pat.2 <- "^\\s*[1-9]+[0-9]*:?\\s"       # dfs/tables colon for data.table
-
-  res <- wtr_help(x, pat.2)
-  if(length(res)) attr(res, "pat") <- pat.2
+  res <- wtr_help(x, .pat.tbl)
+  if(length(res)) attr(res, "pat") <- .pat.tbl
   res
 }
 strip_table_rh <- function(x) {
