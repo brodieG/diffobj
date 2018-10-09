@@ -397,16 +397,23 @@ line_diff <- function(
   }
   # Remove whitespace and CSI SGR if warranted
 
+  if(etc@ignore.sgr) {
+    if(has.style.1 <- any(crayon::has_style(tar.trim)))
+      tar.trim <- crayon::strip_style(tar.trim)
+    if(has.style.2 <- any(crayon::has_style(cur.trim)))
+      cur.trim <- crayon::strip_style(cur.trim)
+    if(has.style.1 || has.style.2)
+      etc@warn(
+        "`target` or `current` contained ANSI CSI SGR when rendered; these ",
+        "were stripped.  Use `ignore.sgr=FALSE` to preserve them in the diffs."
+      )
+  }
   tar.comp <- tar.trim
   cur.comp <- cur.trim
 
   if(etc@ignore.white.space) {
     tar.comp <- normalize_whitespace(tar.comp)
     cur.comp <- normalize_whitespace(cur.comp)
-  }
-  if(etc@ignore.white.space) {
-    tar.comp <- crayon::strip_style(tar.comp)
-    cur.comp <- crayon::strip_style(cur.comp)
   }
   # Word diff is done in three steps: create an empty template vector structured
   # as the result of a call to `gregexpr` without matches, if dealing with
