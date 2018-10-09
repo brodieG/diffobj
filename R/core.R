@@ -395,7 +395,7 @@ line_diff <- function(
     cur.trim <- cur.capt.p
     cur.trim.ind <- cbind(rep(1L, length(cur.capt.p)), nchar(cur.capt.p))
   }
-  # Remove whitespace if warranted
+  # Remove whitespace and CSI SGR if warranted
 
   tar.comp <- tar.trim
   cur.comp <- cur.trim
@@ -403,6 +403,10 @@ line_diff <- function(
   if(etc@ignore.white.space) {
     tar.comp <- normalize_whitespace(tar.comp)
     cur.comp <- normalize_whitespace(cur.comp)
+  }
+  if(etc@ignore.white.space) {
+    tar.comp <- crayon::strip_style(tar.comp)
+    cur.comp <- crayon::strip_style(cur.comp)
   }
   # Word diff is done in three steps: create an empty template vector structured
   # as the result of a call to `gregexpr` without matches, if dealing with

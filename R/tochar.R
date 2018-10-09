@@ -295,15 +295,16 @@ setMethod("as.character", "Diff",
       if(
         (
           ignore.white.space || x@etc@convert.hz.white.space ||
-          !identical(x@etc@trim, trim_identity)
+          !identical(x@etc@trim, trim_identity) || x@etc@ignore.sgr
         ) &&
         !isTRUE(all.equal(x@tar.dat$orig, x@cur.dat$orig)) &&
         isTRUE(all.equal(x@tar.dat$comp, x@cur.dat$comp))
       ) {
         paste0(
           msg, ", but there are some differences suppressed by ",
-          "`ignore.white.space`, `convert.hz.white.space`, and/or `trim`. ",
-          "Set all those arguments to FALSE to highlight the differences.",
+          "`ignore.white.space`, `convert.hz.white.space`, `ignore.sgr`, ",
+          "and/or `trim`. Set all those arguments to FALSE to highlight ",
+          "the differences.",
           collapse=""
         )
       } else if (!isTRUE(all.eq <- all.equal(x@target, x@current))) {

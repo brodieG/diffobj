@@ -28,6 +28,7 @@ NULL
   diffobj.context.auto.max=10L,
   diffobj.ignore.white.space=TRUE,
   diffobj.convert.hz.white.space=TRUE,
+  diffobj.ignore.sgr=NULL,
   diffobj.line.limit=-1L,
   diffobj.pager="auto",
   diffobj.pager.mode="threshold",

@@ -63,6 +63,7 @@ make_diff_fun <- function(capt_fun) {
     term.colors=gdo("term.colors"),
     tar.banner=NULL,
     cur.banner=NULL,
+    ignore.sgr=gdo("ignore.sgr"),
     extra=list()
   ) {
   # nocov end
@@ -82,7 +83,7 @@ make_diff_fun <- function(capt_fun) {
       frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides,
       rds=rds, trim=trim, word.diff=word.diff, unwrap.atomic=unwrap.atomic,
       extra=extra, interactive=interactive, term.colors=term.colors,
-      call.match=match.call()
+      ignore.sgr=ignore.sgr, call.match=match.call()
     )
     # If in rds mode, try to see if either target or current reference an RDS
 
@@ -363,6 +364,11 @@ make_diff_fun <- function(capt_fun) {
 #'   assumed you intend to use that value literally.
 #' @param cur.banner character(1L) like \code{tar.banner}, but for
 #'   \code{current}
+#' @param ignore.sgr TRUE or FALSE or NULL (default), whether to strip ANSI CSI
+#'   SGR sequences prior to comparison and for display of diff.  If NULL,
+#'   resolves to TRUE if `style` resolves to an ANSI formatted diff, and
+#'   FALSE otherwise.  This avoids a diff with existing ANSI SGR formatting
+#'   getting layered with additional ANSI SGR formatting.
 #' @param extra list additional arguments to pass on to the functions used to
 #'   create text representation of the objects to diff (e.g. \code{print},
 #'   \code{str}, etc.)

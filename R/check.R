@@ -145,7 +145,7 @@ check_args <- function(
   color.mode, pager, ignore.white.space, max.diffs, align, disp.width,
   hunk.limit, convert.hz.white.space, tab.stops, style, palette.of.styles,
   frame, tar.banner, cur.banner, guides, rds, trim, word.diff, unwrap.atomic,
-  extra, interactive, term.colors, call.match
+  extra, interactive, term.colors, ignore.sgr, call.match
 ) {
   err <- make_err_fun(call)
   warn <- make_warn_fun(call)
@@ -455,6 +455,10 @@ check_args <- function(
   }
   disp.width <- style@disp.width
 
+  # check ignore.sgr
+
+  if(is.null(ignore.sgr)) ignore.sgr <- is(style, "Ansi")
+
   # instantiate settings object
 
   etc <- new(
@@ -465,7 +469,7 @@ check_args <- function(
     tab.stops=tab.stops, style=style, frame=frame,
     tar.exp=tar.exp, cur.exp=cur.exp, guides=guides, tar.banner=tar.banner,
     cur.banner=cur.banner, trim=trim, word.diff=word.diff,
-    unwrap.atomic=unwrap.atomic
+    unwrap.atomic=unwrap.atomic, ignore.sgr=ignore.sgr
   )
   etc
 }
