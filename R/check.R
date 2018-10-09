@@ -447,7 +447,7 @@ check_args <- function(
     d.w <- getOption("width")
     if(!is.valid.width(d.w)) {
       # nocov start this should never happen
-      warning("`getOption(\"width\") returned an invalid width, using 80L")
+      warn("`getOption(\"width\") returned an invalid width, using 80L")
       d.w <- 80L
       # nocov end
     }
@@ -469,7 +469,8 @@ check_args <- function(
     tab.stops=tab.stops, style=style, frame=frame,
     tar.exp=tar.exp, cur.exp=cur.exp, guides=guides, tar.banner=tar.banner,
     cur.banner=cur.banner, trim=trim, word.diff=word.diff,
-    unwrap.atomic=unwrap.atomic, ignore.sgr=ignore.sgr
+    unwrap.atomic=unwrap.atomic, ignore.sgr=ignore.sgr,
+    err=err, warn=warn
   )
   etc
 }

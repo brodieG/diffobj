@@ -167,7 +167,9 @@ setClass("Settings",
     text.width="integer",
     line.width.half="integer",
     text.width.half="integer",
-    gutter="Gutter"
+    gutter="Gutter",
+    err="function",
+    warn="function"
   ),
   prototype=list(
     disp.width=0L, text.width=0L, line.width=0L,
@@ -175,7 +177,8 @@ setClass("Settings",
     guides=function(obj, obj.as.chr) integer(0L),
     trim=function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr)),
     ignore.white.space=TRUE, convert.hz.white.space=TRUE,
-    word.diff=TRUE, unwrap.atomic=TRUE, ignore.sgr=TRUE
+    word.diff=TRUE, unwrap.atomic=TRUE, ignore.sgr=TRUE,
+    err=stop, warn=warning
   ),
   validity=function(object){
     int.1L.and.pos <- c(
