@@ -319,3 +319,31 @@ trimws2 <- function(x, which=c("both", "left", "right")) {
 # this gets overwritten in .onLoad if needed (i.e. R version < 3.2)
 
 trimws <- NULL
+
+# Placeholders until we are able to use fansi versions
+
+substr2 <- function(x, start, stop) {
+  len.x <- length(x)
+  if(
+    (length(start) != 1L && length(start) != len.x) ||
+    (length(stop) != 1L && length(stop) != len.x)
+  )
+    stop("`start` and `stop` must be length 1 or the same length as `x`.")
+
+  res <- substr(x, start, stop)
+  has.ansi <- grep("\033[", x, fixed=TRUE)
+  if(length(has.ansi)) {
+    res[has.ansi] <- crayon::col_substr(
+      x[has.ansi],
+      if(length(start) != 1L) start[has.ansi] else start,
+      if(length(stop) != 1L) stop[has.ansi] else stop
+    )
+  }
+  res
+}
+strsplit2 <- function(x, ...) {
+  res <- strsplit(x, ...)
+  has.ansi <- grep("\033[", x, fixed=TRUE)
+  if(length(has.ansi)) res[has.ansi] <- crayon::col_strsplit(x[has.ansi], ...)
+  res
+}

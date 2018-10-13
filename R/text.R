@@ -25,7 +25,7 @@ ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
 split_new_line <- function(x) {
   y <- x
   y[!nzchar(x)] <- "\n"
-  unlist(strsplit(y, "\n"))
+  unlist(strsplit2(y, "\n"))
 }
 html_ent_sub <- function(x, style) {
   if(is(style, "StyleHtml") && style@escape.html.entities) {
@@ -193,7 +193,7 @@ strip_hz_c_int <- function(txt, stops, nc_fun, sub_fun, split_fun) {
           # add number of chars and number of tabs times max tab length
           sum(
             nc_fun(x) + (
-              vapply(strsplit(x, "\t"), length, integer(1L)) +
+              vapply(strsplit2(x, "\t"), length, integer(1L)) +
               grepl("\t$", x) - 1L
             ) * max.stop
           )
@@ -306,7 +306,7 @@ strip_hz_control <- function(txt, stops=8L) {
   } else {
     if(length(has.n <- grep("\n", txt, fixed=TRUE))) {
       txt.l <- as.list(txt)
-      txt.l.n <- strsplit(txt[has.n], "\n")
+      txt.l.n <- strsplit2(txt[has.n], "\n")
       txt.l[has.n] <- txt.l.n
       txt <- unlist(txt.l)
     }
@@ -317,14 +317,7 @@ strip_hz_control <- function(txt, stops=8L) {
     # since for the time being the crayon funs are a bit slow, only us them on
     # strings that are known to have ansi escape sequences
 
-    res <- character(length(txt))
-    res[w.ansi] <- strip_hz_c_int(
-      txt[w.ansi], stops, use.ansi, crayon::col_nchar,
-      crayon::col_substr, crayon::col_strsplit
-    )
-    res[wo.ansi] <- strip_hz_c_int(
-      txt[wo.ansi], stops, use.ansi, nchar, substr, strsplit
-    )
+    res <- strip_hz_c_int(txt, stops, crayon::col_nchar, substr2, strsplit2)
     res
   }
 }
@@ -339,7 +332,7 @@ chr_trim <- function(text, width) {
   stopifnot(all(width > 2L))
   ifelse(
     nchar(text) > width,
-    paste0(substr(text, 1L, width - 2L), ".."),
+    paste0(substr2(text, 1L, width - 2L), ".."),
     text
   )
 }
@@ -386,16 +379,12 @@ wrap <- function(txt, width, pad=FALSE) {
   # a vector of character positions after which we should split our character
   # vector
 
-  use.ansi <- crayon::has_color()
   has.na <- is.na(txt)
   has.chars <- nzchar(txt) & !has.na
   w.chars <- which(has.chars)
   wo.chars <- which(!has.chars & !has.na)
 
   txt.sub <- txt[has.chars]
-  w.ansi.log <- grepl(ansi_regex, txt.sub, perl=TRUE) & use.ansi
-  w.ansi <- which(w.ansi.log)
-  wo.ansi <- which(!w.ansi.log)
 
   # Wrap differently depending on whether contains ansi or not, exclude zero
   # length char elements
@@ -403,10 +392,7 @@ wrap <- function(txt, width, pad=FALSE) {
   res.l <- vector("list", length(txt))
   res.l[has.na] <- NA_character_
   res.l[wo.chars] <- ""
-  res.l[w.chars][w.ansi] <-
-    wrap_int(txt.sub[w.ansi], width, crayon::col_substr, crayon::col_nchar)
-  res.l[w.chars][wo.ansi] <-
-    wrap_int(txt.sub[wo.ansi], width, substr, nchar)
+  res.l[w.chars] <- wrap_int(txt.sub, width, substr2, crayon::col_nchar)
 
   # pad if requested
 
