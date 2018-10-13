@@ -407,8 +407,10 @@ hunk_len <- function(hunk.id, hunks, tar.capt, cur.capt, etc) {
   disp.width <- etc@disp.width
   mode <- etc@mode
   hunk <- hunks[[hunk.id]]
-  A.lines <- nlines(get_dat_raw(hunk$A, tar.capt, cur.capt), disp.width, mode)
-  B.lines <- nlines(get_dat_raw(hunk$B, tar.capt, cur.capt), disp.width, mode)
+  A.lines <-
+    nlines(get_dat_raw(hunk$A, tar.capt, cur.capt), disp.width, mode, etc)
+  B.lines <-
+    nlines(get_dat_raw(hunk$B, tar.capt, cur.capt), disp.width, mode, etc)
 
   # Depending on each mode, figure out how to set up the lines;
   # straightforward except for context where we need to account for the

@@ -64,6 +64,7 @@ make_diff_fun <- function(capt_fun) {
     tar.banner=NULL,
     cur.banner=NULL,
     ignore.sgr=gdo("ignore.sgr"),
+    sgr.supported=gdo("ignore.sgr"),
     extra=list()
   ) {
   # nocov end
@@ -83,7 +84,8 @@ make_diff_fun <- function(capt_fun) {
       frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides,
       rds=rds, trim=trim, word.diff=word.diff, unwrap.atomic=unwrap.atomic,
       extra=extra, interactive=interactive, term.colors=term.colors,
-      ignore.sgr=ignore.sgr, call.match=match.call()
+      ignore.sgr=ignore.sgr, sgr.supported=sgr.supported,
+      call.match=match.call()
     )
     # If in rds mode, try to see if either target or current reference an RDS
 

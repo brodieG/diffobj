@@ -363,9 +363,9 @@ line_diff <- function(
   # end up with mismatched lengths if we don't
 
   if(any(nzchar(tar.capt)))
-    tar.capt <- split_new_line(tar.capt, etc@sgr.supported)
+    tar.capt <- split_new_line(tar.capt, sgr.supported=etc@sgr.supported)
   if(any(nzchar(cur.capt)))
-    cur.capt <- split_new_line(cur.capt, etc@sgr.supported)
+    cur.capt <- split_new_line(cur.capt, sgr.supported=etc@sgr.supported)
 
   # Some debate as to whether we want to do this first, or last.  First has
   # many benefits so that everything is consistent, width calcs can work fine,
@@ -625,10 +625,12 @@ line_diff <- function(
   hunk.heads <-
     lapply(hunk.grps, make_hh, etc@mode, tar.dat, cur.dat, ranges.orig)
   h.h.chars <- nchar2(
-    chr_trim(unlist(hunk.heads), etc@line.width), sgr.supported=sgr.supported
+    chr_trim(
+      unlist(hunk.heads), etc@line.width, sgr.supported=etc@sgr.supported
+    ),
+    sgr.supported=etc@sgr.supported
   )
-
-  chr.size <- etc@style@nchar.fun(chr.dat)
+  chr.size <- nchar2(chr.dat, sgr.supported=etc@sgr.supported)
   max.col.w <- max(
     max(0L, chr.size, .min.width + gutter.dat@width), h.h.chars
   )

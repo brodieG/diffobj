@@ -25,7 +25,7 @@ ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
 split_new_line <- function(x, sgr.supported) {
   y <- x
   y[!nzchar(x)] <- "\n"
-  unlist(strsplit2(y, "\n", sgr.supported))
+  unlist(strsplit2(y, "\n", sgr.supported=sgr.supported))
 }
 html_ent_sub <- function(x, style) {
   if(is(style, "StyleHtml") && style@escape.html.entities) {
@@ -158,11 +158,14 @@ align_eq <- function(A, B, x, context) {
 
 nlines <- function(txt, disp.width, mode, etc) {
   # stopifnot(is.character(txt), all(!is.na(txt)))
+  capt.width <- calc_width_pad(disp.width, mode)
   pmax(
     1L,
     as.integer(
-      ceiling(nchar2(txt, sgr.supported=etc@sgr.supported) / capt.width)
-) ) }
+      ceiling(
+        nchar2(txt, sgr.supported=etc@sgr.supported
+        ) / capt.width
+) ) ) }
 # Gets rid of tabs and carriage returns
 #
 # Assumes each line is one screen line

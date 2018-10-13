@@ -335,7 +335,9 @@ setMethod("as.character", "Diff",
     )
     hunk.heads <- x@hunk.heads
     h.h.chars <- nchar2(
-      chr_trim(unlist(hunk.heads), x@etc@line.width),
+      chr_trim(
+        unlist(hunk.heads), x@etc@line.width, sgr.supported=sgr.supported
+      ),
       sgr.supported=sgr.supported
     )
     # Make the object banner and compute more detailed widths post trim
@@ -344,10 +346,12 @@ setMethod("as.character", "Diff",
       deparse(x@etc@tar.exp)[[1L]]
     cur.banner <- if(!is.null(x@etc@cur.banner)) x@etc@cur.banner else
       deparse(x@etc@cur.exp)[[1L]]
-    ban.A.trim <-
-      if(s@wrap) chr_trim(tar.banner, x@etc@text.width) else tar.banner
-    ban.B.trim <-
-      if(s@wrap) chr_trim(cur.banner, x@etc@text.width) else cur.banner
+    ban.A.trim <- if(s@wrap)
+        chr_trim(tar.banner, x@etc@text.width, sgr.supported=sgr.supported)
+      else tar.banner
+    ban.B.trim <- if(s@wrap)
+        chr_trim(cur.banner, x@etc@text.width, sgr.supported=sgr.supported)
+      else cur.banner
     banner.A <- s@funs@word.delete(ban.A.trim)
     banner.B <- s@funs@word.insert(ban.B.trim)
 
@@ -515,8 +519,12 @@ setMethod("as.character", "Diff",
       Map(
         function(col, type) {
           diff.line <- type %in% c("insert", "delete", "match", "guide", "fill")
-          col[diff.line] <- lapply(col[diff.line], rpad, x@etc@text.width)
-          col[!diff.line] <- lapply(col[!diff.line], rpad, x@etc@line.width)
+          col[diff.line] <- lapply(
+            col[diff.line], rpad, x@etc@text.width, sgr.supported=sgr.supported
+          )
+          col[!diff.line] <- lapply(
+            col[!diff.line], rpad, x@etc@line.width, sgr.supported=sgr.supported
+          )
           col
         },
         pre.render.w, types

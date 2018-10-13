@@ -343,7 +343,7 @@ substr2 <- function(x, start, stop, sgr.supported) {
 }
 strsplit2 <- function(x, ..., sgr.supported) {
   res <- strsplit(x, ...)
-  if(sg.rsupported) {
+  if(sgr.supported) {
     has.ansi <- grep("\033[", x, fixed=TRUE)
     if(length(has.ansi)) res[has.ansi] <- crayon::col_strsplit(x[has.ansi], ...)
   }
