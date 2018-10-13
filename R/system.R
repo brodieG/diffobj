@@ -60,6 +60,7 @@ NULL
   diffobj.html.escape.html.entities=TRUE,
   diffobj.html.js=NULL,         # NULL == diffobj_js()
   diffobj.html.css=NULL,        # NULL == diffobj_css()
+  diffobj.sgr.supported=NULL,
 
   # These next two also have defaults set in the `getOption` call in styles.R
   # because of problems with R 3.1 where initialize methods are called on

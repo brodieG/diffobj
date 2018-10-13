@@ -3,7 +3,7 @@ context("diffChr")
 if(!identical(basename(getwd()), "testthat"))
   stop("Working dir does not appear to be /testthat, is ", getwd())
 
-dsf <- function(x)
+rdsf <- function(x)
   file.path(getwd(), "helper", "diffChr", sprintf("%s.rds", x))
 txtf <- function(x)
   file.path(getwd(), "helper", "diffChr", sprintf("%s.txt", x))

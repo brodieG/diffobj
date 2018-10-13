@@ -58,7 +58,7 @@ c.factor <- function(..., recursive=FALSE) {
 # Pull out the names of the functions in a sys.call stack
 
 stack_funs <- function(s.c) {
-  if(!length(s.c)) 
+  if(!length(s.c))
     stop("Logic Error: call stack empty; contact maintainer.") #nocov
   vapply(
     s.c, function(call) paste0(deparse(call), collapse="\n"), character(1L)
@@ -322,7 +322,7 @@ trimws <- NULL
 
 # Placeholders until we are able to use fansi versions
 
-substr2 <- function(x, start, stop) {
+substr2 <- function(x, start, stop, sgr.supported) {
   len.x <- length(x)
   if(
     (length(start) != 1L && length(start) != len.x) ||
@@ -331,19 +331,25 @@ substr2 <- function(x, start, stop) {
     stop("`start` and `stop` must be length 1 or the same length as `x`.")
 
   res <- substr(x, start, stop)
-  has.ansi <- grep("\033[", x, fixed=TRUE)
-  if(length(has.ansi)) {
-    res[has.ansi] <- crayon::col_substr(
-      x[has.ansi],
-      if(length(start) != 1L) start[has.ansi] else start,
-      if(length(stop) != 1L) stop[has.ansi] else stop
-    )
+  if(sgr.supported) {
+    has.ansi <- grep("\033[", x, fixed=TRUE)
+    if(length(has.ansi)) {
+      res[has.ansi] <- crayon::col_substr(
+        x[has.ansi],
+        if(length(start) != 1L) start[has.ansi] else start,
+        if(length(stop) != 1L) stop[has.ansi] else stop
+  ) } }
+  res
+}
+strsplit2 <- function(x, ..., sgr.supported) {
+  res <- strsplit(x, ...)
+  if(sg.rsupported) {
+    has.ansi <- grep("\033[", x, fixed=TRUE)
+    if(length(has.ansi)) res[has.ansi] <- crayon::col_strsplit(x[has.ansi], ...)
   }
   res
 }
-strsplit2 <- function(x, ...) {
-  res <- strsplit(x, ...)
-  has.ansi <- grep("\033[", x, fixed=TRUE)
-  if(length(has.ansi)) res[has.ansi] <- crayon::col_strsplit(x[has.ansi], ...)
-  res
+nchar2 <- function(x, ..., sgr.supported) {
+  if(sgr.supported) crayon::col_nchar(x, ...)
+  else nchar(x, ...)
 }

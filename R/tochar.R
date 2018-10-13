@@ -277,6 +277,7 @@ setMethod("as.character", "Diff",
     mode <- x@etc@mode
     tab.stops <- x@etc@tab.stops
     ignore.white.space <- x@etc@ignore.white.space
+    sgr.supported <- x@etc@sgr.supported
 
     # legacy from when we had different max diffs for different parts of diff
 
@@ -333,8 +334,10 @@ setMethod("as.character", "Diff",
       hunks.flat, function(h.a) c(h.a$tar.rng.sub, h.a$cur.rng.sub), integer(4L)
     )
     hunk.heads <- x@hunk.heads
-    h.h.chars <- nchar(chr_trim(unlist(hunk.heads), x@etc@line.width))
-
+    h.h.chars <- nchar2(
+      chr_trim(unlist(hunk.heads), x@etc@line.width),
+      sgr.supported=sgr.supported
+    )
     # Make the object banner and compute more detailed widths post trim
 
     tar.banner <- if(!is.null(x@etc@tar.banner)) x@etc@tar.banner else
@@ -459,10 +462,14 @@ setMethod("as.character", "Diff",
       )
       for(i in seq_along(pre.render)) {
         hdr <- pre.render[[i]]$type == "header"
-        pre.render.w[[i]][hdr] <-
-          wrap(pre.render[[i]]$dat[hdr], x@etc@line.width)
-        pre.render.w[[i]][!hdr] <-
-          wrap(pre.render[[i]]$dat[!hdr], x@etc@text.width)
+        pre.render.w[[i]][hdr] <- wrap(
+          pre.render[[i]]$dat[hdr], x@etc@line.width,
+          sgr.supported=sgr.supported
+        )
+        pre.render.w[[i]][!hdr] <- wrap(
+          pre.render[[i]]$dat[!hdr], x@etc@text.width,
+          sgr.supported=sgr.supported
+        )
       }
       pre.render.w
     } else lapply(pre.render, function(y) as.list(y$dat))
@@ -586,7 +593,9 @@ setMethod("as.character", "Diff",
     meta.elem <- c(1L, 3:4)
     pre.fin.l[meta.elem] <- lapply(
       pre.fin.l[meta.elem],
-      function(m) es@funs@meta(strwrap(m, width=disp.width))
+      function(m) es@funs@meta(
+        wrap(m, width=disp.width, sgr.supported=sgr.supported)
+      )
     )
     pre.fin <- unlist(pre.fin.l)
 

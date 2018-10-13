@@ -255,9 +255,11 @@ setMethod("as.character", "DiffSummary",
       # Trim text down to what is displayable in the allowed lines
 
       txt <- do.call(paste0, as.list(c(diffs.txt)))
-      txt <- substr2(txt, 1, max.chars)
-      txt.w <- unlist(if(style@wrap) wrap(txt, width) else txt)
-
+      txt <- substr2(txt, 1, max.chars, sgr.supported=etc@sgr.supported)
+      txt.w <- unlist(
+        if(style@wrap) wrap(txt, width, sgr.supported=etc@sgr.supported)
+        else txt
+      )
       # Apply ansi styles if warranted
 
       if(is(style, "StyleAnsi")) {

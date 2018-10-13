@@ -428,7 +428,7 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' @param pad TRUE or FALSE, whether text should be right padded
 #' @param pager what type of \code{\link{Pager}} to use
 #' @param nchar.fun function to use to count characters; intended mostly for
-#'   internal use
+#'   internal use (deprecated as of version 0.2.0).
 #' @param wrap TRUE or FALSE, whether text should be hard wrapped at
 #'   \code{disp.width}
 #' @param na.sub what character value to substitute for NA elements; NA elements
@@ -535,7 +535,7 @@ Style <- setClass("Style", contains="VIRTUAL",
     na.sub="",
     blank.sub="",
     disp.width=0L,
-    nchar.fun=crayon::col_nchar  # even raw input can have SGR in it
+    nchar.fun=nchar2  # even raw input can have SGR in it
   ),
   validity=function(object){
     if(!isTRUE(is.one.arg.fun(object@nchar.fun))) {
@@ -592,7 +592,7 @@ StyleAnsi <- setClass(
   "StyleAnsi", contains=c("StyleRaw", "Ansi"),
   prototype=list(
     funs=StyleFunsAnsi(),
-    nchar.fun=crayon::col_nchar
+    nchar.fun=nchar2
   )
 )
 setMethod(
@@ -925,7 +925,7 @@ StyleHtml <- setClass(
     pager=PagerBrowser(),
     wrap=FALSE,
     pad=FALSE,
-    nchar.fun=nchar_html,
+    nchar.fun=nchar_html,  # this is not used anymore (0.2.0)
     escape.html.entities=TRUE,
     na.sub="&nbsp;",
     blank.sub="&nbsp;",
@@ -1323,9 +1323,7 @@ setMethod("show", "Style",
     )
     d.txt <- capture.output(show(d.p))
     if(is(object, "Ansi")) {
-      old.crayon.opt <- options(crayon.enabled=TRUE)
-      on.exit(options(old.crayon.opt), add=TRUE)
-      pad.width <- max(object@nchar.fun(d.txt))
+      pad.width <- max(nchar2(d.txt, sgr.supported=TRUE))
       d.txt <- rpad(d.txt, width=pad.width)
       bgWhite <- crayon::make_style(rgb(1, 1, 1), bg=TRUE, colors=256)
       white <- crayon::make_style(rgb(1, 1, 1), colors=256)

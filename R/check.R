@@ -145,7 +145,7 @@ check_args <- function(
   color.mode, pager, ignore.white.space, max.diffs, align, disp.width,
   hunk.limit, convert.hz.white.space, tab.stops, style, palette.of.styles,
   frame, tar.banner, cur.banner, guides, rds, trim, word.diff, unwrap.atomic,
-  extra, interactive, term.colors, ignore.sgr, call.match
+  extra, interactive, term.colors, ignore.sgr, sgr.supported, call.match
 ) {
   err <- make_err_fun(call)
   warn <- make_warn_fun(call)
@@ -457,7 +457,15 @@ check_args <- function(
 
   # check ignore.sgr
 
+  if(!is.TF(ignore.sgr) && !is.null(ignore.sgr))
+    err("Argument `ignore.sgr` must be TRUE, FALSE, or NULL")
   if(is.null(ignore.sgr)) ignore.sgr <- is(style, "Ansi")
+
+  # check ignore.sgr
+
+  if(!is.TF(sgr.supported) && !is.null(sgr.supported))
+    err("Argument `ignore.sgr` must be TRUE, FALSE, or NULL")
+  if(is.null(sgr.supported)) sgr.supported <- crayon::has_color()
 
   # instantiate settings object
 
@@ -470,7 +478,7 @@ check_args <- function(
     tar.exp=tar.exp, cur.exp=cur.exp, guides=guides, tar.banner=tar.banner,
     cur.banner=cur.banner, trim=trim, word.diff=word.diff,
     unwrap.atomic=unwrap.atomic, ignore.sgr=ignore.sgr,
-    err=err, warn=warn
+    sgr.supported=sgr.supported, err=err, warn=warn
   )
   etc
 }

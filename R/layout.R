@@ -48,8 +48,9 @@ gutter_dat <- function(etc) {
     )
 
   names(gutt.dat.format.pad) <- sub("^gutter\\.", "", names(gutt.dat.format))
-  nc_fun <- etc@style@nchar.fun
-  gutt.max.w <- max(nc_fun(gutt.dat.format.pad))
+  gutt.max.w <- max(
+    nchar2(gutt.dat.format.pad, sgr.supported=etc@sgr.supported)
+  )
   gutt.args <- c(
     list("Gutter"), as.list(gutt.dat.format.pad),
     list(width=gutt.max.w)

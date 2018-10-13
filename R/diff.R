@@ -104,10 +104,10 @@ make_diff_fun <- function(capt_fun) {
     # etc. If not a base text type style, assume gutter and column padding are
     # zero even though that may not always be correct
 
-    nc_fun <- etc.proc@style@nchar.fun
     etc.proc@gutter <- gutter_dat(etc.proc)
 
-    col.pad.width <- nc_fun(etc.proc@style@text@pad.col)
+    col.pad.width <-
+      nchar2(etc.proc@style@text@pad.col, sgr.supported=etc.proc@sgr.supported)
     gutt.width <- etc.proc@gutter@width
 
     half.width <- as.integer((etc.proc@disp.width - col.pad.width) / 2)
@@ -373,6 +373,10 @@ make_diff_fun <- function(capt_fun) {
 #'   resolves to TRUE if `style` resolves to an ANSI formatted diff, and
 #'   FALSE otherwise.  This avoids a diff with existing ANSI SGR formatting
 #'   getting layered with additional ANSI SGR formatting.
+#' @param sgr.supported TRUE, FALSE, or NULL (default), whether to assume the
+#'   standard output device supports ANSI CSI SGR sequences.  If TRUE, strings
+#'   will be manipulated accounting for the SGR sequences.  The default is to
+#'   auto-detect using `crayon::has_ansi`.
 #' @param extra list additional arguments to pass on to the functions used to
 #'   create text representation of the objects to diff (e.g. \code{print},
 #'   \code{str}, etc.)

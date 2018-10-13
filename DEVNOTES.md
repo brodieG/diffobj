@@ -12,6 +12,15 @@ have ANSI in it.
 Ideally we move away from crayon for ansi detection and rely solely on the
 `style` parameter.  So probably do that now.
 
+But what about the special case where we are on a system that does not support
+ANSI escapes, and we want to see the diffs in the ANSI escapes?  Do we just not
+support this?
+
+Probably better to add a separate "ansi.sgr.supported" that for now can default
+to crayon::has_color()?  Then what do we do when someone uses and ANSI style but
+this is off?  Just use it anyway?  And provide global nchar and substr functions
+that are aware of this setting?  Yes.
+
 ## Fansi Problems
 
 Would be great to use fansi instead of crayon for substr as it will be much
