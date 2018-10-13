@@ -368,7 +368,7 @@ make_diff_fun <- function(capt_fun) {
 #'   assumed you intend to use that value literally.
 #' @param cur.banner character(1L) like \code{tar.banner}, but for
 #'   \code{current}
-#' @param ignore.sgr TRUE or FALSE or NULL (default), whether to strip ANSI CSI
+#' @param ignore.sgr TRUE, FALSE, or NULL (default), whether to strip ANSI CSI
 #'   SGR sequences prior to comparison and for display of diff.  If NULL,
 #'   resolves to TRUE if `style` resolves to an ANSI formatted diff, and
 #'   FALSE otherwise.  This avoids a diff with existing ANSI SGR formatting
