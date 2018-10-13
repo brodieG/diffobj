@@ -19,7 +19,10 @@ test_that("tibble", {
      )
      expect_known_output(writeLines(tb.diff), txtf(100))
 
-
+     stop(
+       "Remember to test tibbles with different # of rows; currently it ",
+       "seems trim is not working correctly"
+     )
      expect_equal(
        crayon::strip_style(
          suppressWarnings(as.character())

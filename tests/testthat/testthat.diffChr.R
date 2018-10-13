@@ -3,7 +3,7 @@ context("diffChr")
 if(!identical(basename(getwd()), "testthat"))
   stop("Working dir does not appear to be /testthat, is ", getwd())
 
-rdsf <- function(x)
+dsf <- function(x)
   file.path(getwd(), "helper", "diffChr", sprintf("%s.rds", x))
 txtf <- function(x)
   file.path(getwd(), "helper", "diffChr", sprintf("%s.txt", x))
@@ -86,7 +86,7 @@ test_that("Whitespace", {
   )
 })
 test_that("SGR", {
-  a <- c("hello \033[31mworld\033[31m", "umbrellas", "tomatoes")
+  a <- c("hello \033[31mworld\033[m", "umbrellas", "tomatoes")
   b <- c("hello world", "umbrellas", "tomatoes")
 
   expect_warning(diff <- diffChr(a, b), 'contained ANSI CSI SGR')

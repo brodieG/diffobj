@@ -151,19 +151,6 @@ align_eq <- function(A, B, x, context) {
 
   list(A=A.chunks, B=B.chunks, A.fill=A.fill, B.fill=B.fill)
 }
-# if last char matches, repeat, but only if not in use.ansi mode
-#
-# needed b/c col_strsplit behaves differently than strisplit when delimiter
-# is at end.  Will break if you pass a regex reserved character as pad
-
-pad_end <- function(x, pad, use.ansi) {
-  stopifnot(
-    is.character(x), !anyNA(x), is.character(pad), length(pad) == 1L,
-    !is.na(pad), nchar(pad) == 1L, is.TF(use.ansi)
-  )
-  if(!use.ansi || packageVersion("crayon") >= "1.3.2")
-    sub(paste0(pad, "$"), paste0(pad, pad), x) else x
-}
 # Calculate how many lines of screen space are taken up by the diff hunks
 #
 # `disp.width` should be the available display width, this function computes
@@ -182,7 +169,7 @@ nlines <- function(txt, disp.width, mode) {
 # @param stops may be a single positive integer value, or a vector of values
 #   whereby the last value will be repeated as many times as necessary
 
-strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
+strip_hz_c_int <- function(txt, stops, nc_fun, sub_fun, split_fun) {
 
   # remove trailing and leading CRs (need to record if trailing remains to add
   # back at end? no, not really since by structure next thing must be a newline
@@ -222,7 +209,7 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
       function(x) {
         if(length(h.t <- grep("\t", x, fixed=T))) {
           # workaround for strsplit dropping trailing tabs
-          x.t <- pad_end(x[h.t], "\t", use.ansi)
+          x.t <- sub("\t$", "\t\t", x[h.t])
           x.s <- split_fun(x.t, "\t")
 
           # Now cycle through each line with tabs and replace them with
@@ -271,7 +258,7 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
         # add back every ANSI esc sequence from last line to very end
         # to ensure that we leave in correct ANSI escaped state
 
-        if(use.ansi && grepl(ansi_regex, res, perl=TRUE)) {
+        if(grepl(ansi_regex, res, perl=TRUE)) {
           res <- paste0(
             res,
             gsub(paste0(".*", ansi_regex, ".*"), "\\1", tail(x, 1L), perl=TRUE)
@@ -290,9 +277,10 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
 }
 #' Replace Horizontal Spacing Control Characters
 #'
-#' Removes tabs, newlines, and carriage returns and manipulates the text so that
-#' it looks the renders the same as it did with those horizontal control
-#' characters embedded.  This function is used when the
+#' Removes tabs, newlines, and manipulates the text so that
+#' it looks the same as it did with those horizontal control
+#' characters embedded.  Currently carriage returns are also processed, but
+#' in the future they no longer will be.  This function is used when the
 #' \code{convert.hz.white.space} parameter to the
 #' \code{\link[=diffPrint]{diff*}} methods is active.  The term \dQuote{strip}
 #' is a misnomer that remains for legacy reasons and lazyness.
@@ -322,8 +310,7 @@ strip_hz_control <- function(txt, stops=8L) {
       txt.l[has.n] <- txt.l.n
       txt <- unlist(txt.l)
     }
-    use.ansi <- crayon::has_color()
-    has.ansi <- grepl(ansi_regex, txt, perl=TRUE) & use.ansi
+    has.ansi <- grepl(ansi_regex, txt, perl=TRUE)
     w.ansi <- which(has.ansi)
     wo.ansi <- which(!has.ansi)
 

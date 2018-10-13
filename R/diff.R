@@ -145,6 +145,10 @@ make_diff_fun <- function(capt_fun) {
 #' as options so that users may configure diffs in a persistent manner.
 #' \code{\link{gdo}} is a shorthand function to access \code{diffobj} options.
 #'
+#' Parameter order after \code{color.mode} is not guaranteed.  Future versions
+#' of \code{diffobj} may add parameters and re-order existing parameters past
+#' \code{color.mode}.
+#'
 #' This and other \code{diff*} functions are S4 generics that dispatch on the
 #' \code{target} and \code{current} parameters.  Methods with signature
 #' \code{c("ANY", "ANY")} are defined and act as the default methods.  You can

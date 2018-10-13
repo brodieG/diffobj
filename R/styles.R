@@ -535,7 +535,7 @@ Style <- setClass("Style", contains="VIRTUAL",
     na.sub="",
     blank.sub="",
     disp.width=0L,
-    nchar.fun=nchar
+    nchar.fun=crayon::col_nchar  # even raw input can have SGR in it
   ),
   validity=function(object){
     if(!isTRUE(is.one.arg.fun(object@nchar.fun))) {
