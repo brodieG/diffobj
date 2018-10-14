@@ -64,7 +64,7 @@ make_diff_fun <- function(capt_fun) {
     tar.banner=NULL,
     cur.banner=NULL,
     ignore.sgr=gdo("ignore.sgr"),
-    sgr.supported=gdo("ignore.sgr"),
+    sgr.supported=gdo("sgr.supported"),
     extra=list()
   ) {
   # nocov end
@@ -97,8 +97,9 @@ make_diff_fun <- function(capt_fun) {
     # touching vars in case someone passes `options(crayon.enabled=...)` as one
     # of the arguments
 
-    old.crayon.opt <-
-      options(crayon.enabled=is(etc.proc@style, "StyleAnsi"))
+    old.crayon.opt <- options(
+      crayon.enabled=is(etc.proc@style, "StyleAnsi") || etc.proc@sgr.supported
+    )
     on.exit(options(old.crayon.opt), add=TRUE)
     err <- make_err_fun(sys.call())
 

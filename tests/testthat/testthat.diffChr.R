@@ -89,6 +89,8 @@ test_that("SGR", {
   a <- c("hello \033[31mworld\033[m", "umbrellas", "tomatoes")
   b <- c("hello world", "umbrellas", "tomatoes")
 
+  old.opt <- options(diffobj.sgr.supported=TRUE)
+  on.exit(old.opt)
   expect_warning(diff <- diffChr(a, b), 'contained ANSI CSI SGR')
   expect_known_output(show(diff), txtf(200))
   expect_known_output(show(diffChr(a, b, ignore.sgr=FALSE)), txtf(300))
