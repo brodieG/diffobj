@@ -566,10 +566,14 @@ untrim <- function(dat, word.c, etc) {
   res <- with(
     dat,
     paste0(
-      fun(substr(raw, 0, trim.ind.start - 1L)), word.c,
-      fun(substr(raw, trim.ind.end + 1L, nchar(raw) + 1L))
-    )
-  )
+      fun(
+        substr2(raw, 0, trim.ind.start - 1L, sgr.supported=etc@sgr.supported)
+      ), word.c,
+      fun(
+        substr2(
+          raw, trim.ind.end + 1L, nchar(raw) + 1L,
+          sgr.supported=etc@sgr.supported
+  ) ) ) )
   # substitute blanks
 
   res[!nzchar(dat$raw)] <- etc@style@blank.sub
