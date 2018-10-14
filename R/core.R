@@ -376,8 +376,12 @@ line_diff <- function(
   tar.capt.p <- tar.capt
   cur.capt.p <- cur.capt
   if(etc@convert.hz.white.space) {
-    tar.capt.p <- strip_hz_control(tar.capt, stops=etc@tab.stops)
-    cur.capt.p <- strip_hz_control(cur.capt, stops=etc@tab.stops)
+    tar.capt.p <- strip_hz_control(
+      tar.capt, stops=etc@tab.stops, sgr.supported=etc@sgr.supported
+    )
+    cur.capt.p <- strip_hz_control(
+      cur.capt, stops=etc@tab.stops, sgr.supported=etc@sgr.supported
+    )
   }
   # Apply trimming to remove row heads, etc, but only if something gets trimmed
   # from both elements
