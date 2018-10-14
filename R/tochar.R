@@ -601,9 +601,8 @@ setMethod("as.character", "Diff",
     meta.elem <- c(1L, 3:4)
     pre.fin.l[meta.elem] <- lapply(
       pre.fin.l[meta.elem],
-      function(m) es@funs@meta(
-        wrap(m, width=disp.width, sgr.supported=sgr.supported)
-      )
+      # meta should not have any csi, so plain strwrap is okay
+      function(m) es@funs@meta(strwrap(m, width=disp.width))
     )
     pre.fin <- unlist(pre.fin.l)
 
