@@ -428,7 +428,7 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' @param pad TRUE or FALSE, whether text should be right padded
 #' @param pager what type of \code{\link{Pager}} to use
 #' @param nchar.fun function to use to count characters; intended mostly for
-#'   internal use (deprecated as of version 0.2.0).
+#'   internal use (used only for gutters as of version 0.2.0).
 #' @param wrap TRUE or FALSE, whether text should be hard wrapped at
 #'   \code{disp.width}
 #' @param na.sub what character value to substitute for NA elements; NA elements
@@ -925,7 +925,7 @@ StyleHtml <- setClass(
     pager=PagerBrowser(),
     wrap=FALSE,
     pad=FALSE,
-    nchar.fun=nchar_html,  # this is not used anymore (0.2.0)
+    nchar.fun=nchar_html,  # only used in gutter
     escape.html.entities=TRUE,
     na.sub="&nbsp;",
     blank.sub="&nbsp;",

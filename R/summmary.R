@@ -109,7 +109,8 @@ setMethod("finalizeHtml", c("DiffSummary"),
 #' )
 setMethod("as.character", "DiffSummary",
   function(x, ...) {
-    style <- x@etc@style
+    etc <- x@etc
+    style <- etc@style
     hunks <- sum(!x@diffs["match", ])
     res <- c(apply(x@diffs, 1L, sum))
     scale.threshold <- x@scale.threshold
