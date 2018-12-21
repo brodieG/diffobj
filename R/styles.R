@@ -1400,6 +1400,8 @@ setMethod("summary", "PaletteOfStyles",
 # Helper function to render output for vignette
 
 display_ansi_256_styles <- function() {
+  old.opt <- options(crayon.enabled=TRUE)
+  on.exit(options(old.opt))
   styles <- lapply(
     list(
       StyleAnsi8NeutralYb(), StyleAnsi8NeutralRgb(),
