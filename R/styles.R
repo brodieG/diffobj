@@ -538,12 +538,13 @@ Style <- setClass("Style", contains="VIRTUAL",
     nchar.fun=nchar2  # even raw input can have SGR in it
   ),
   validity=function(object){
-    if(!isTRUE(is.one.arg.fun(object@nchar.fun))) {
-      return(paste0(
-        "Slot `nchar.fun` should be a function with at least one argument that ",
-        "doesn't require more than one argument"
-      ) )
-    }
+    # ## no longer true with nchar2 and support sgr parameter
+    # if(!isTRUE(is.one.arg.fun(object@nchar.fun))) {
+    #   return(paste0(
+    #     "Slot `nchar.fun` should be a function with at least one argument that ",
+    #     "doesn't require more than one argument"
+    #   ) )
+    # }
     if(!is.TF(object@wrap))
       return("Slot `wrap` must be TRUE or FALSE")
     if(!is.TF(object@pad))
