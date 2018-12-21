@@ -1325,6 +1325,8 @@ setMethod("show", "Style",
     )
     d.txt <- capture.output(show(d.p))
     if(is(object, "Ansi")) {
+      old.opt <- options(crayon.enabled=TRUE)
+      on.exit(options(old.opt))
       pad.width <- max(nchar2(d.txt, sgr.supported=TRUE))
       d.txt <- rpad(d.txt, width=pad.width, sgr.supported=TRUE)
       bgWhite <- crayon::make_style(rgb(1, 1, 1), bg=TRUE, colors=256)
@@ -1334,6 +1336,8 @@ setMethod("show", "Style",
       } else if (is(object, "Dark")) {
         d.txt <- crayon::bgBlack(white(d.txt))
       }
+      options(old.opt)
+      on.exit(NULL)
       if(is(object, "Light") || is(object, "Dark")) {
         d.txt <- c(
           d.txt, "",
@@ -1400,8 +1404,6 @@ setMethod("summary", "PaletteOfStyles",
 # Helper function to render output for vignette
 
 display_ansi_256_styles <- function() {
-  old.opt <- options(crayon.enabled=TRUE)
-  on.exit(options(old.opt))
   styles <- lapply(
     list(
       StyleAnsi8NeutralYb(), StyleAnsi8NeutralRgb(),
