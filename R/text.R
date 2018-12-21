@@ -408,6 +408,7 @@ wrap <- function(txt, width, pad=FALSE, sgr.supported) {
 
   # pad if requested
 
-  if(pad) res.l[!has.na] <- lapply(res.l[!has.na], rpad, width=width)
+  if(pad) res.l[!has.na] <- 
+    lapply(res.l[!has.na], rpad, width=width, sgr.supported=sgr.supported)
   res.l
 }
