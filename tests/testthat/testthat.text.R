@@ -15,11 +15,14 @@ test_that("simple wrap", {
 
   txt2 <- "hello world!"
   expect_identical(
-    unlist(diffobj:::wrap(txt2, nchar(txt2), TRUE)),
+    unlist(diffobj:::wrap(txt2, nchar(txt2), TRUE, sgr.supported=TRUE)),
     txt2
   )
   expect_identical(
-    paste0(unlist(diffobj:::wrap(txt2, nchar(txt2) / 2, TRUE)), collapse=""),
+    paste0(
+      unlist(diffobj:::wrap(txt2, nchar(txt2) / 2, TRUE, sgr.supported=TRUE)),
+      collapse=""
+    ),
     txt2
   )
 })
@@ -73,16 +76,22 @@ test_that("strip hz whitespace", {
   )
   expect_equal(
     diffobj:::strip_hz_control(
-      c("ab\t", "\ta\tb\t", sgr.supported=TRUE), stops=4L
+      c("ab\t", "\ta\tb\t"), sgr.supported=TRUE, stops=4L
     ),
     c("ab  ", "    a   b   ")
   )
   # recall that nchar("\033") == 1
   expect_equal(
     diffobj:::strip_hz_control(
-      "\033[31ma\t\033[39mhello\tb", stops=10L, sgr.supported=TRUE
+      "\033[31ma\t\033[39mhello\tb", stops=10L, sgr.supported=FALSE
     ),
     "\033[31ma    \033[39mhello          b"
+  )
+  expect_equal(
+    diffobj:::strip_hz_control(
+      "\033[31ma\t\033[39mhello\tb", stops=10L, sgr.supported=TRUE
+    ),
+    "\033[31ma\033[39m         \033[31m\033[39mhello     \033[31m\033[39mb"
   )
   # carriage returns
 
