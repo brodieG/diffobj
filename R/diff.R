@@ -378,8 +378,9 @@ make_diff_fun <- function(capt_fun) {
 #'   getting layered with additional ANSI SGR formatting.
 #' @param sgr.supported TRUE, FALSE, or NULL (default), whether to assume the
 #'   standard output device supports ANSI CSI SGR sequences.  If TRUE, strings
-#'   will be manipulated accounting for the SGR sequences.  The default is to
-#'   auto-detect using `crayon::has_ansi`.
+#'   will be manipulated accounting for the SGR sequences.  If NULL,
+#'   resolves to TRUE if `style` resolves to an ANSI formatted diff, and
+#'   to `crayon::has_ansi()` otherwise.
 #' @param extra list additional arguments to pass on to the functions used to
 #'   create text representation of the objects to diff (e.g. \code{print},
 #'   \code{str}, etc.)

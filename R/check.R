@@ -464,8 +464,9 @@ check_args <- function(
   # check ignore.sgr
 
   if(!is.TF(sgr.supported) && !is.null(sgr.supported))
-    err("Argument `ignore.sgr` must be TRUE, FALSE, or NULL")
-  if(is.null(sgr.supported)) sgr.supported <- crayon::has_color()
+    err("Argument `sgr.supported` must be TRUE, FALSE, or NULL")
+  if(is.null(sgr.supported))
+    sgr.supported <- is(style, "Ansi") || crayon::has_ans()
 
   # instantiate settings object
 

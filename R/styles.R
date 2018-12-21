@@ -1320,12 +1320,13 @@ setMethod("show", "Style",
     d.p <- diffPrint(
       .mx1, .mx2, context=1, line.limit=7L,
       style=object, pager=PagerOff(),
-      tar.banner="diffobj:::.mx1", cur.banner="diffobj:::.mx2"
+      tar.banner="diffobj:::.mx1", cur.banner="diffobj:::.mx2",
+      sgr.supported=if(is(object, "Ansi")) TRUE
     )
     d.txt <- capture.output(show(d.p))
     if(is(object, "Ansi")) {
       pad.width <- max(nchar2(d.txt, sgr.supported=TRUE))
-      d.txt <- rpad(d.txt, width=pad.width)
+      d.txt <- rpad(d.txt, width=pad.width, sgr.supported=TRUE)
       bgWhite <- crayon::make_style(rgb(1, 1, 1), bg=TRUE, colors=256)
       white <- crayon::make_style(rgb(1, 1, 1), colors=256)
       if(is(object, "Light")) {
