@@ -399,12 +399,12 @@ line_diff <- function(
     tar.trim <- tar.capt.p
     tar.trim.ind <- cbind(
       rep(1L, length(tar.capt.p)),
-      nchar2(tar.capt.p, sgr.supported=etc@sgr.supported)
+      nchar(tar.capt.p)
     )
     cur.trim <- cur.capt.p
     cur.trim.ind <- cbind(
       rep(1L, length(cur.capt.p)),
-      nchar2(cur.capt.p, sgr.supported=etc@sgr.supported)
+      nchar(cur.capt.p)
     )
   }
   # Remove whitespace and CSI SGR if warranted
