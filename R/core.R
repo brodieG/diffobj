@@ -383,6 +383,19 @@ line_diff <- function(
       cur.capt, stops=etc@tab.stops, sgr.supported=etc@sgr.supported
     )
   }
+  # Remove whitespace and CSI SGR if warranted
+
+  if(etc@strip.sgr) {
+    if(has.style.1 <- any(crayon::has_style(tar.capt.p)))
+      tar.capt.p <- crayon::strip_style(tar.capt.p)
+    if(has.style.2 <- any(crayon::has_style(cur.capt.p)))
+      cur.capt.p <- crayon::strip_style(cur.capt.p)
+    if(has.style.1 || has.style.2)
+      etc@warn(
+        "`target` or `current` contained ANSI CSI SGR when rendered; these ",
+        "were stripped.  Use `strip.sgr=FALSE` to preserve them in the diffs."
+      )
+  }
   # Apply trimming to remove row heads, etc, but only if something gets trimmed
   # from both elements
 
@@ -406,19 +419,6 @@ line_diff <- function(
       rep(1L, length(cur.capt.p)),
       nchar(cur.capt.p)
     )
-  }
-  # Remove whitespace and CSI SGR if warranted
-
-  if(etc@ignore.sgr) {
-    if(has.style.1 <- any(crayon::has_style(tar.trim)))
-      tar.trim <- crayon::strip_style(tar.trim)
-    if(has.style.2 <- any(crayon::has_style(cur.trim)))
-      cur.trim <- crayon::strip_style(cur.trim)
-    if(has.style.1 || has.style.2)
-      etc@warn(
-        "`target` or `current` contained ANSI CSI SGR when rendered; these ",
-        "were stripped.  Use `ignore.sgr=FALSE` to preserve them in the diffs."
-      )
   }
   tar.comp <- tar.trim
   cur.comp <- cur.trim

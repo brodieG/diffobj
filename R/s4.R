@@ -151,7 +151,7 @@ setClass("Settings",
     align="AlignThreshold",
     ignore.white.space="logical",
     convert.hz.white.space="logical",
-    ignore.sgr="logical",
+    strip.sgr="logical",
     sgr.supported="logical",
     frame="environment",
     tab.stops="integer",
@@ -178,7 +178,7 @@ setClass("Settings",
     guides=function(obj, obj.as.chr) integer(0L),
     trim=function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr)),
     ignore.white.space=TRUE, convert.hz.white.space=TRUE,
-    word.diff=TRUE, unwrap.atomic=TRUE, ignore.sgr=TRUE, sgr.supported=TRUE,
+    word.diff=TRUE, unwrap.atomic=TRUE, strip.sgr=TRUE, sgr.supported=TRUE,
     err=stop, warn=warning
   ),
   validity=function(object){
@@ -191,7 +191,7 @@ setClass("Settings",
         return(sprintf("Slot `%s` must be integer(1L) and positive", i))
     TF <- c(
       "ignore.white.space", "convert.hz.white.space", "word.diff",
-      "unwrap.atomic", "ignore.sgr"
+      "unwrap.atomic", "strip.sgr"
     )
     for(i in TF)
       if(!is.TF(slot(object, i)) || slot(object, i) < 0L)

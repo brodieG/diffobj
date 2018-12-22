@@ -1,5 +1,5 @@
 < a            > b          
 @@ 1,3 @@      @@ 1,3 @@    
-< [31m[mhello [31mworld[m[31m[m  > hello world
+< hello [31mworld[m  > hello world
   umbrellas      umbrellas  
   tomatoes       tomatoes   

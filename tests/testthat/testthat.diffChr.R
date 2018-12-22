@@ -93,7 +93,7 @@ test_that("SGR", {
   on.exit(old.opt)
   expect_warning(diff <- diffChr(a, b), 'contained ANSI CSI SGR')
   expect_known_output(show(diff), txtf(200))
-  expect_known_output(show(diffChr(a, b, ignore.sgr=FALSE)), txtf(300))
+  expect_known_output(show(diffChr(a, b, strip.sgr=FALSE)), txtf(300))
   expect_known_output(show(diffChr(a, b, format='raw')), txtf(400))
 })
 test_that("Alignment", {
