@@ -19,7 +19,7 @@
 gutter_dat <- function(etc) {
   stopifnot(is(etc, "Settings"))
   old.opt <- options(crayon.enabled=TRUE)
-  on.exit(old.opt)
+  on.exit(options(old.opt))
   funs <- etc@style@funs
   text <- etc@style@text
 
