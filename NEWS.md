@@ -10,6 +10,12 @@
   also ignores white space differences adjoining punctuation.
 * [#118](https://github.com/brodieG/diffobj/issues/118): New option to preserve
   temporary diff file output when using pager (see `?Pager`).
+* [#114](https://github.com/brodieG/diffobj/issues/114): New options `strip.sgr`
+  and `sgr.supported` allow finer control of what happens when input already
+  contains ANSI CSI SGR and how ANSI CSI SGR is handled in string manipulations.
+  Related to this, `options(crayon.enabled=TRUE)` is no longer set when
+  capturing output prior to diff as it used to be.  By default pre-existing ANSI
+  CSI SGR is stripped with a warning prior to comparison.
 
 ## v0.1.11
 

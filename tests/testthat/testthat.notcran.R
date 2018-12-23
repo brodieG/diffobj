@@ -5,41 +5,22 @@ txtf <- function(x)
   file.path(getwd(), "helper", "notcran", sprintf("%s.txt", x))
 
 test_that("tibble", {
+   old.opt <- options(diffobj.sgr.supported=TRUE, crayon.enabled=TRUE)
+   on.exit(old.opt)
    TB1 <- try(tibble::tibble(a=1:10), silent=TRUE)
    if(!inherits(TB1, "try-error")) {
      TB2 <- TB1
      TB2[5,"a"] <- 99L
 
-     # not ideal, have to strip styles now that tibble started adding them as
-     # they clash with ones used by `diffobj`, need to resolve more
-     # systematically with #114
-
      expect_warning(
        tb.diff <- as.character(diffPrint(TB1, TB2, context=1)), 'ANSI CSI'
      )
      expect_known_output(writeLines(tb.diff), txtf(100))
-
-     stop(
-       "Remember to test tibbles with different # of rows; currently it ",
-       "seems trim is not working correctly"
+     expect_warning(tb.diff.2 <- diffPrint(TB1, TB2[-2,], context=1),'ANSI CSI')
+     expect_known_output(tb.diff.2, txtf(200))
+     expect_known_output(
+       diffPrint(TB1, TB2[-2,], context=1, strip.sgr=FALSE), txtf(300)
      )
-     expect_equal(
-       crayon::strip_style(
-         suppressWarnings(as.character())
-       ),
-       crayon::strip_style(
-         structure(
-           c(
-             "\033[33m<\033[39m \033[33mTB1\033[39m        \033[34m>\033[39m \033[34mTB2\033[39m      ",
-             "\033[36m@@ 7,3 @@  \033[39m  \033[36m@@ 7,3 @@  \033[39m",
-             "\033[90m\033[90m~\033[90m \033[90m\033[90m       a\033[90m\033[90m \033[39m  \033[90m\033[90m~\033[90m \033[90m\033[90m       a\033[90m\033[90m \033[39m",
-             "\033[90m\033[90m~\033[90m \033[90m\033[90m   <int>\033[90m\033[90m \033[39m  \033[90m\033[90m~\033[90m \033[90m\033[90m   <int>\033[90m\033[90m \033[39m",
-             "  \033[90m 4 \033[39m    4\033[90m\033[39m     \033[90m 4 \033[39m    4\033[90m\033[39m ",
-             "\033[33m<\033[39m \033[90m 5 \033[39m    \033[33m5\033[39m\033[90m\033[39m   \033[34m>\033[39m \033[90m 5 \033[39m   \033[34m99\033[39m\033[90m\033[39m ",
-             "  \033[90m 6 \033[39m    6\033[90m\033[39m     \033[90m 6 \033[39m    6\033[90m\033[39m "
-          ), len = 7L
-      ) )
-    )
   }
 })
 test_that("data.table", {
