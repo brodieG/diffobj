@@ -22,7 +22,8 @@ diffDeparse(target, current, ...)
   style = gdo("style"), palette.of.styles = gdo("palette"),
   frame = par_frame(), interactive = gdo("interactive"),
   term.colors = gdo("term.colors"), tar.banner = NULL,
-  cur.banner = NULL, extra = list())
+  cur.banner = NULL, strip.sgr = gdo("strip.sgr"),
+  sgr.supported = gdo("sgr.supported"), extra = list())
 }
 \arguments{
 \item{target}{the reference object}
@@ -165,7 +166,7 @@ for normal styles and \code{80L} for HTML styles.}
 
 \item{ignore.white.space}{TRUE or FALSE, whether to consider differences in
 horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
-FALSE)}
+FALSE).}
 
 \item{convert.hz.white.space}{TRUE or FALSE, whether modify input strings
 that contain tabs and carriage returns in such a way that they display as
@@ -260,6 +261,22 @@ assumed you intend to use that value literally.}
 
 \item{cur.banner}{character(1L) like \code{tar.banner}, but for
 \code{current}}
+
+\item{strip.sgr}{TRUE, FALSE, or NULL (default), whether to strip ANSI CSI
+SGR sequences prior to comparison and for display of diff.  If NULL,
+resolves to TRUE if `style` resolves to an ANSI formatted diff, and
+FALSE otherwise.  The default behavior is to avoid confusing diffs where
+the original SGR and the SGR added by the diff are mixed together.}
+
+\item{sgr.supported}{TRUE, FALSE, or NULL (default), whether to assume the
+standard output device supports ANSI CSI SGR sequences.  If TRUE, strings
+will be manipulated accounting for the SGR sequences.  If NULL,
+resolves to TRUE if `style` resolves to an ANSI formatted diff, and
+to `crayon::has_color()` otherwise.  This only controls how the strings are
+manipulated, not whether SGR is added to format the diff, which is
+controlled by the `style` parameter.  This parameter is exposed for the
+rare cases where you might wish to control string manipulation behavior
+directly.}
 
 \item{extra}{list additional arguments to pass on to the functions used to
 create text representation of the objects to diff (e.g. \code{print},

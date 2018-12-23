@@ -303,6 +303,9 @@ strip_hz_c_int <- function(txt, stops, sgr.supported) {
 #' @keywords internal
 #' @param txt character to covert
 #' @param stops integer, what tab stops to use
+#' @param sgr.supported logical whether the current display device supports
+#'   ANSI CSI SGR.  See [diffPrint]'s `sgr.supported` parameter.
+#' @return character, `txt` with horizontal control sequences replaced.
 
 strip_hz_control <- function(txt, stops=8L, sgr.supported) {
   # stopifnot(

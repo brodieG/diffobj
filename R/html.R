@@ -103,7 +103,7 @@ cont_f <- function(class=character()) {
 #'
 #' @export
 #' @param x character
-#' @param dots unused for compatibility with internal use
+#' @param ... unused for compatibility with internal use
 #' @return integer(length(x)) with number of characters of each element
 #' @examples
 #' nchar_html("<a href='http:www.domain.com'>hello</a>")

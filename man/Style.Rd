@@ -45,7 +45,7 @@ the console}
 \item{pager}{what type of \code{\link{Pager}} to use}
 
 \item{nchar.fun}{function to use to count characters; intended mostly for
-internal use}
+internal use (used only for gutters as of version 0.2.0).}
 
 \item{wrap}{TRUE or FALSE, whether text should be hard wrapped at
 \code{disp.width}}

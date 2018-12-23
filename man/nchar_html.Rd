@@ -4,10 +4,12 @@
 \alias{nchar_html}
 \title{Count Text Characters in HTML}
 \usage{
-nchar_html(x)
+nchar_html(x, ...)
 }
 \arguments{
 \item{x}{character}
+
+\item{...}{unused for compatibility with internal use}
 }
 \value{
 integer(length(x)) with number of characters of each element

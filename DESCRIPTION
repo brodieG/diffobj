@@ -28,6 +28,7 @@ Suggests:
     testthat
 Collate:
     'capt.R'
+    'options.R'
     'pager.R'
     'check.R'
     'finalizer.R'
