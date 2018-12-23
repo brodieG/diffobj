@@ -97,10 +97,12 @@ make_diff_fun <- function(capt_fun) {
     # touching vars in case someone passes `options(crayon.enabled=...)` as one
     # of the arguments
 
-    old.crayon.opt <- options(
-      crayon.enabled=is(etc.proc@style, "StyleAnsi") || etc.proc@sgr.supported
-    )
-    on.exit(options(old.crayon.opt), add=TRUE)
+    # old.crayon.opt <- options(
+    #   crayon.enabled=
+    #     is(etc.proc@style, "StyleAnsi") ||
+    #     (!is(etc.proc@style, "StyleHtml") && etc.proc@sgr.supported)
+    # )
+    # on.exit(options(old.crayon.opt), add=TRUE)
     err <- make_err_fun(sys.call())
 
     # Compute gutter values so that we know correct widths to use for capture,
