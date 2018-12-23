@@ -17,9 +17,9 @@ test_that("tibble", {
      )
      expect_known_output(writeLines(tb.diff), txtf(100))
      expect_warning(tb.diff.2 <- diffPrint(TB1, TB2[-2,], context=1),'ANSI CSI')
-     expect_known_output(tb.diff.2, txtf(200))
+     expect_known_output(show(tb.diff.2), txtf(200))
      expect_known_output(
-       diffPrint(TB1, TB2[-2,], context=1, strip.sgr=FALSE), txtf(300)
+       show(diffPrint(TB1, TB2[-2,], context=1, strip.sgr=FALSE)), txtf(300)
      )
   }
 })
