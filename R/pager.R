@@ -126,7 +126,7 @@
 #'
 #' @param pager a function that accepts at least one parameter and does not
 #'   require a parameter other than the first parameter.  This function will be
-#'   called with a file name passed as the first argument.  The referenced file
+#'   called with a file path passed as the first argument.  The referenced file
 #'   will contain the text of the diff.  This is a normally temporary file that
 #'   will be deleted as soon as the pager function completes evaluation.
 #'   \code{PagerSystem} and \code{PagerSystemLess} use \code{\link{file.show}}
@@ -135,7 +135,7 @@
 #'   \code{\link{make_blocking}} ensures that the temporary file is not deleted
 #'   before the pager can access it.  You can also set `file.keep` to TRUE so
 #'   the file persists.
-#' @param file.ext character(1L) an extension to append to file name passed to
+#' @param file.ext character(1L) an extension to append to file path passed to
 #'   \code{pager}, \emph{without} the period.  For example, \code{PagerBrowser}
 #'   uses \dQuote{html} to cause \code{\link{browseURL}} to launch the web
 #'   browser.  This parameter will be overridden if `file.path` is used.
@@ -166,6 +166,7 @@
 #'
 #' @aliases PagerOff, PagerSystem, PagerSystemLess, PagerBrowser
 #' @importFrom utils browseURL
+#' @include options.R
 #' @rdname Pager
 #' @name Pager
 #' @seealso \code{\link{Style}}, \code{\link{pager_is_less}}
@@ -261,9 +262,13 @@ setClass(
 #' @rdname Pager
 
 PagerSystem <- function(
-  pager=file.show, threshold=-1L, file.ext="", ...
+  pager=file.show, threshold=-1L, file.ext="",
+  file.keep=FALSE, file.path=NA_character_, ...
 )
-  new("PagerSystem", pager=pager, threshold=threshold, file.ext=file.ext, ...)
+  new(
+    "PagerSystem", pager=pager, threshold=threshold, file.ext=file.ext, 
+    file.keep=file.keep, file.path=file.path, ...
+  )
 
 #' @export
 #' @rdname Pager
@@ -276,13 +281,13 @@ setClass(
 #' @rdname Pager
 
 PagerSystemLess <- function(
-    pager=file.show, threshold=-1L, file.ext="", flags="R",
-    ansi=TRUE, ...
+  pager=file.show, threshold=-1L, file.ext="", flags="R", ansi=TRUE,
+  file.keep=FALSE, file.path=NA_character_, ...
+)
+  new(
+    "PagerSystemLess", pager=pager, threshold=threshold, file.ext=file.ext,
+    flags=flags, ansi=ansi, file.keep=file.keep, file.path=file.path, ...
   )
-    new(
-      "PagerSystemLess", pager=pager, threshold=threshold, file.ext=file.ext,
-      flags=flags, ansi=ansi, ...
-    )
 
 # Must use initialize so that the pager function can access the flags slot
 
@@ -365,9 +370,13 @@ setClass("PagerBrowser", contains="Pager")
 #' @rdname Pager
 
 PagerBrowser <- function(
-  pager=make_blocking(view_or_browse), threshold=0L, file.ext="html", ...
+  pager=make_blocking(view_or_browse), threshold=0L, file.ext="html",
+  file.keep=FALSE, file.path=NA_character_, ...
 )
-  new("PagerBrowser", pager=pager, threshold=threshold, file.ext=file.ext, ...)
+  new(
+    "PagerBrowser",pager=pager, threshold=threshold, file.ext=file.ext,
+    file.keep=file.keep, file.path=file.path, ...
+  )
 
 # Helper function to determine whether pager will be used or not
 

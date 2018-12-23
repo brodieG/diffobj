@@ -103,11 +103,12 @@ cont_f <- function(class=character()) {
 #'
 #' @export
 #' @param x character
+#' @param ... unused for compatibility with internal use
 #' @return integer(length(x)) with number of characters of each element
 #' @examples
 #' nchar_html("<a href='http:www.domain.com'>hello</a>")
 
-nchar_html <- function(x) {
+nchar_html <- function(x, ...) {
   stopifnot(is.character(x) && !anyNA(x))
   tag.less <- gsub("<[^>]*>", "", x) 
   # Thanks ridgerunner for html entity removal regex

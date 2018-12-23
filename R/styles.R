@@ -428,7 +428,7 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' @param pad TRUE or FALSE, whether text should be right padded
 #' @param pager what type of \code{\link{Pager}} to use
 #' @param nchar.fun function to use to count characters; intended mostly for
-#'   internal use
+#'   internal use (used only for gutters as of version 0.2.0).
 #' @param wrap TRUE or FALSE, whether text should be hard wrapped at
 #'   \code{disp.width}
 #' @param na.sub what character value to substitute for NA elements; NA elements
@@ -535,15 +535,16 @@ Style <- setClass("Style", contains="VIRTUAL",
     na.sub="",
     blank.sub="",
     disp.width=0L,
-    nchar.fun=nchar
+    nchar.fun=nchar2  # even raw input can have SGR in it
   ),
   validity=function(object){
-    if(!isTRUE(is.one.arg.fun(object@nchar.fun))) {
-      return(paste0(
-        "Slot `nchar.fun` should be a function with at least one argument that ",
-        "doesn't require more than one argument"
-      ) )
-    }
+    # ## no longer true with nchar2 and support sgr parameter
+    # if(!isTRUE(is.one.arg.fun(object@nchar.fun))) {
+    #   return(paste0(
+    #     "Slot `nchar.fun` should be a function with at least one argument that ",
+    #     "doesn't require more than one argument"
+    #   ) )
+    # }
     if(!is.TF(object@wrap))
       return("Slot `wrap` must be TRUE or FALSE")
     if(!is.TF(object@pad))
@@ -592,7 +593,7 @@ StyleAnsi <- setClass(
   "StyleAnsi", contains=c("StyleRaw", "Ansi"),
   prototype=list(
     funs=StyleFunsAnsi(),
-    nchar.fun=crayon::col_nchar
+    nchar.fun=nchar2
   )
 )
 setMethod(
@@ -925,7 +926,7 @@ StyleHtml <- setClass(
     pager=PagerBrowser(),
     wrap=FALSE,
     pad=FALSE,
-    nchar.fun=nchar_html,
+    nchar.fun=nchar_html,  # only used in gutter
     escape.html.entities=TRUE,
     na.sub="&nbsp;",
     blank.sub="&nbsp;",
@@ -1319,14 +1320,15 @@ setMethod("show", "Style",
     d.p <- diffPrint(
       .mx1, .mx2, context=1, line.limit=7L,
       style=object, pager=PagerOff(),
-      tar.banner="diffobj:::.mx1", cur.banner="diffobj:::.mx2"
+      tar.banner="diffobj:::.mx1", cur.banner="diffobj:::.mx2",
+      sgr.supported=if(is(object, "Ansi")) TRUE
     )
     d.txt <- capture.output(show(d.p))
     if(is(object, "Ansi")) {
-      old.crayon.opt <- options(crayon.enabled=TRUE)
-      on.exit(options(old.crayon.opt), add=TRUE)
-      pad.width <- max(object@nchar.fun(d.txt))
-      d.txt <- rpad(d.txt, width=pad.width)
+      old.opt <- options(crayon.enabled=TRUE)
+      on.exit(options(old.opt))
+      pad.width <- max(nchar2(d.txt, sgr.supported=TRUE))
+      d.txt <- rpad(d.txt, width=pad.width, sgr.supported=TRUE)
       bgWhite <- crayon::make_style(rgb(1, 1, 1), bg=TRUE, colors=256)
       white <- crayon::make_style(rgb(1, 1, 1), colors=256)
       if(is(object, "Light")) {
@@ -1334,6 +1336,8 @@ setMethod("show", "Style",
       } else if (is(object, "Dark")) {
         d.txt <- crayon::bgBlack(white(d.txt))
       }
+      options(old.opt)
+      on.exit(NULL)
       if(is(object, "Light") || is(object, "Dark")) {
         d.txt <- c(
           d.txt, "",

@@ -18,7 +18,12 @@
 
 .pat.atom <- "^\\s*\\[[1-9][0-9]*\\]\\s"
 .pat.mat <- "^\\s*\\[[1-9]+[0-9]*,\\]\\s"
-.pat.tbl <- "^\\s*[1-9]+[0-9]*:?\\s"       # dfs/tables colon for data.table
+
+# dfs/tables colon for data.table, SGR for tibble, starting to get
+# dangerously broad; we should really split out the tibble business into its own
+# method.
+.pat.tbl <-
+  "^(?:\033\\[[^m]*m)?\\s*[1-9]+[0-9]*:?(?:\033\\[[^m]*m)?\\s"
 .pat.attr <- "^attr\\(,\"(\\\\\"|[^\"])*\")$"
 
 # Find first attribute and drop everything after it
@@ -182,7 +187,9 @@ wtr_help <- function(x, pat) {
       heads <- character(length(heads.l))
       heads[w.pat] <- as.character(heads.l[w.pat])
 
-      heads.num <- as.integer(sub(".*?([0-9]+).*", "\\1", heads, perl=TRUE))
+      heads.num <- as.integer(
+        sub(".*?(?:\033\\[[^m]*m.*?)*([0-9]+).*", "\\1", heads, perl=TRUE)
+      )
       head.ranges <- lapply(ranges, function(x) heads.num[x])
 
       all.identical <-
@@ -559,7 +566,9 @@ trim_sub <- function(obj.as.chr, obj.stripped) {
     # nocov end
   cbind(sub.start, sub.end)
 }
-# Re-insert the trimmed stuff back into the original string
+# Re-insert the trimmed stuff back into the original string, note that we
+# use normal string funs, not ANSI aware ones, because the row header stuff is
+# done in an ANSI unaware manner.
 
 untrim <- function(dat, word.c, etc) {
   fun <- etc@style@funs@trim
@@ -568,8 +577,7 @@ untrim <- function(dat, word.c, etc) {
     paste0(
       fun(substr(raw, 0, trim.ind.start - 1L)), word.c,
       fun(substr(raw, trim.ind.end + 1L, nchar(raw) + 1L))
-    )
-  )
+  ) )
   # substitute blanks
 
   res[!nzchar(dat$raw)] <- etc@style@blank.sub

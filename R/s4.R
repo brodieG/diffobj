@@ -151,6 +151,8 @@ setClass("Settings",
     align="AlignThreshold",
     ignore.white.space="logical",
     convert.hz.white.space="logical",
+    strip.sgr="logical",
+    sgr.supported="logical",
     frame="environment",
     tab.stops="integer",
     tar.exp="ANY",
@@ -166,7 +168,9 @@ setClass("Settings",
     text.width="integer",
     line.width.half="integer",
     text.width.half="integer",
-    gutter="Gutter"
+    gutter="Gutter",
+    err="function",
+    warn="function"
   ),
   prototype=list(
     disp.width=0L, text.width=0L, line.width=0L,
@@ -174,7 +178,8 @@ setClass("Settings",
     guides=function(obj, obj.as.chr) integer(0L),
     trim=function(obj, obj.as.chr) cbind(1L, nchar(obj.as.chr)),
     ignore.white.space=TRUE, convert.hz.white.space=TRUE,
-    word.diff=TRUE, unwrap.atomic=TRUE
+    word.diff=TRUE, unwrap.atomic=TRUE, strip.sgr=TRUE, sgr.supported=TRUE,
+    err=stop, warn=warning
   ),
   validity=function(object){
     int.1L.and.pos <- c(
@@ -186,7 +191,7 @@ setClass("Settings",
         return(sprintf("Slot `%s` must be integer(1L) and positive", i))
     TF <- c(
       "ignore.white.space", "convert.hz.white.space", "word.diff",
-      "unwrap.atomic"
+      "unwrap.atomic", "strip.sgr"
     )
     for(i in TF)
       if(!is.TF(slot(object, i)) || slot(object, i) < 0L)
@@ -302,8 +307,8 @@ valid_dat <- function(x) {
 
 setClass("Diff",
   slots=c(
-    target="ANY",                    # Actual object
-    tar.dat="list",
+    target="ANY",                 # Actual object
+    tar.dat="list",               # see line_diff() for details
     current="ANY",
     cur.dat="list",
     diffs="list",
@@ -313,7 +318,7 @@ setClass("Diff",
     sub.tail="integer",
     capt.mode="character",        # whether in print or str mode
     hit.diffs.max="logical",
-    diff.count.full="integer",         # only really used by diffStr when folding
+    diff.count.full="integer",    # only really used by diffStr when folding
     hunk.heads="list",
     etc="Settings"
   ),

@@ -6,7 +6,7 @@ test_that("simple wrap", {
     "humpty dumpty sat on a wall and had a big fall",
     "humpty sat on a wall and dumped a big fall"
   )
-  res1 <- diffobj:::wrap(txt1, 10, TRUE)
+  res1 <- diffobj:::wrap(txt1, 10, TRUE, sgr.supported=TRUE)
 
   expect_identical(
     gsub(" *$", "", vapply(res1, paste0, character(1L), collapse="")), txt1
@@ -15,11 +15,14 @@ test_that("simple wrap", {
 
   txt2 <- "hello world!"
   expect_identical(
-    unlist(diffobj:::wrap(txt2, nchar(txt2), TRUE)),
+    unlist(diffobj:::wrap(txt2, nchar(txt2), TRUE, sgr.supported=TRUE)),
     txt2
   )
   expect_identical(
-    paste0(unlist(diffobj:::wrap(txt2, nchar(txt2) / 2, TRUE)), collapse=""),
+    paste0(
+      unlist(diffobj:::wrap(txt2, nchar(txt2) / 2, TRUE, sgr.supported=TRUE)),
+      collapse=""
+    ),
     txt2
   )
 })
@@ -41,7 +44,7 @@ test_that("wrap with escape sequences", {
       crayon::style("world", "blue")
     )
   )
-  res3 <- diffobj:::wrap(txt3, 10, TRUE)
+  res3 <- diffobj:::wrap(txt3, 10, TRUE, sgr.supported=TRUE)
 
   expect_identical(
     crayon::strip_style(
@@ -57,38 +60,55 @@ test_that("wrap with escape sequences", {
 test_that("strip hz whitespace", {
   old.opt <- options(crayon.enabled=FALSE)
   on.exit(options(old.opt))
-  expect_equal(diffobj:::strip_hz_control("a\tb", stops=4L), "a   b")
-  expect_equal(diffobj:::strip_hz_control("ab\t", stops=4L), "ab  ")
-  expect_equal(diffobj:::strip_hz_control("a\tb\t", stops=4L), "a   b   ")
-  expect_equal(diffobj:::strip_hz_control("\ta\tb\t", stops=4L), "    a   b   ")
   expect_equal(
-    diffobj:::strip_hz_control("\ta\tb\t", stops=c(2L, 4L)), "  a   b   "
+    diffobj:::strip_hz_control("a\tb", stops=4L, sgr.supported=TRUE), "a   b")
+  expect_equal(
+    diffobj:::strip_hz_control("ab\t", stops=4L, sgr.supported=TRUE), "ab  ")
+  expect_equal(
+    diffobj:::strip_hz_control("a\tb\t", stops=4L, sgr.supported=TRUE), "a   b   ")
+  expect_equal(
+    diffobj:::strip_hz_control("\ta\tb\t", stops=4L, sgr.supported=TRUE), 
+    "    a   b   "
   )
   expect_equal(
-    diffobj:::strip_hz_control(c("ab\t", "\ta\tb\t"), stops=4L),
+    diffobj:::strip_hz_control("\ta\tb\t", stops=c(2L, 4L), sgr.supported=TRUE),
+    "  a   b   "
+  )
+  expect_equal(
+    diffobj:::strip_hz_control(
+      c("ab\t", "\ta\tb\t"), sgr.supported=TRUE, stops=4L
+    ),
     c("ab  ", "    a   b   ")
   )
   # recall that nchar("\033") == 1
   expect_equal(
-    diffobj:::strip_hz_control("\033[31ma\t\033[39mhello\tb", stops=10L),
+    diffobj:::strip_hz_control(
+      "\033[31ma\t\033[39mhello\tb", stops=10L, sgr.supported=FALSE
+    ),
     "\033[31ma    \033[39mhello          b"
+  )
+  expect_equal(
+    diffobj:::strip_hz_control(
+      "\033[31ma\t\033[39mhello\tb", stops=10L, sgr.supported=TRUE
+    ),
+    "\033[31ma\033[39m         \033[31m\033[39mhello     \033[31m\033[39mb"
   )
   # carriage returns
 
   expect_equal(
-    diffobj:::strip_hz_control("hellothere\rHELLO"),
+    diffobj:::strip_hz_control("hellothere\rHELLO", sgr.supported=TRUE),
     "HELLOthere"
   )
   expect_equal(
     diffobj:::strip_hz_control(
-      c("hellothere\rHELLO", "000\r12345678\rabcdef\rABC")
+      c("hellothere\rHELLO", "000\r12345678\rabcdef\rABC"), sgr.supported=TRUE
     ),
     c("HELLOthere", "ABCdef78")
   )
   # newlines
 
   expect_equal(
-    diffobj:::strip_hz_control(c("a", "", "\n", "a\nb")),
+    diffobj:::strip_hz_control(c("a", "", "\n", "a\nb"), sgr.supported=TRUE),
     c("a", "", "", "a", "b")
   )
   # with colors
@@ -97,7 +117,8 @@ test_that("strip hz whitespace", {
 
   expect_equal(
     crayon::strip_style(
-      diffobj:::strip_hz_control("\033[31ma\t\033[39mhello\tb", stops=10L)
+      diffobj:::strip_hz_control(
+        "\033[31ma\t\033[39mhello\tb", stops=10L, sgr.supported=TRUE)
     ),
     "a         hello     b"
   )
@@ -109,7 +130,7 @@ test_that("strip hz whitespace", {
 
   # cat("\n")
   # cat(test.chr, sep="\n")
-  res <- diffobj:::strip_hz_control(test.chr)
+  res <- diffobj:::strip_hz_control(test.chr, sgr.supported=TRUE)
   # cat(res, sep="\n")
   expect_equal(crayon::strip_style(res), "ABCdef78")
 
@@ -123,7 +144,7 @@ test_that("strip hz whitespace", {
   )
   # cat("\n")
   # cat(test.chr.2, sep="\n")
-  res.2 <- diffobj:::strip_hz_control(test.chr.2, stops=8L)
+  res.2 <- diffobj:::strip_hz_control(test.chr.2, stops=8L, sgr.supported=TRUE)
   # cat(res.2, sep="\n")
 
   expect_equal(crayon::strip_style(res.2), "ABC     cd f    78")
@@ -132,7 +153,7 @@ test_that("strip hz whitespace", {
 
   test.chr.3 <- c(test.chr, test.chr.2)
   # cat("\n")
-  res.3 <- diffobj:::strip_hz_control(test.chr.3)
+  res.3 <- diffobj:::strip_hz_control(test.chr.3, sgr.supported=TRUE)
   # cat(res.3, sep="\n")
   # cat(test.chr.3, sep="\n")
 

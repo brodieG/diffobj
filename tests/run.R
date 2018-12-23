@@ -52,7 +52,7 @@ local({                                         # so we can use `on.exit`
         "limit",
         "methods",
         "misc",
-        "notcran",
+        if(nchar(Sys.getenv('NOT_CRAN'))) "notcran",
         "pager",
         "rdiff",
         "s4",

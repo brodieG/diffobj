@@ -17,20 +17,23 @@
 \usage{
 PagerOff(...)
 
-PagerSystem(pager = file.show, threshold = -1L, file.ext = "", ...)
+PagerSystem(pager = file.show, threshold = -1L, file.ext = "",
+  file.keep = FALSE, file.path = NA_character_, ...)
 
 PagerSystemLess(pager = file.show, threshold = -1L, file.ext = "",
-  flags = "R", ansi = TRUE, ...)
+  flags = "R", ansi = TRUE, file.keep = FALSE,
+  file.path = NA_character_, ...)
 
 PagerBrowser(pager = make_blocking(view_or_browse), threshold = 0L,
-  file.ext = "html", ...)
+  file.ext = "html", file.keep = FALSE, file.path = NA_character_,
+  ...)
 }
 \arguments{
 \item{...}{additional arguments to pass on to \code{new}, typically not used.}
 
 \item{pager}{a function that accepts at least one parameter and does not
 require a parameter other than the first parameter.  This function will be
-called with a file name passed as the first argument.  The referenced file
+called with a file path passed as the first argument.  The referenced file
 will contain the text of the diff.  This is a normally temporary file that
 will be deleted as soon as the pager function completes evaluation.
 \code{PagerSystem} and \code{PagerSystemLess} use \code{\link{file.show}}
@@ -45,10 +48,19 @@ of the pager; negative values lead to using
 \code{\link{console_lines} + 1}, and zero leads to always using the pager
 irrespective of how many lines the output has.}
 
-\item{file.ext}{character(1L) an extension to append to file name passed to
+\item{file.ext}{character(1L) an extension to append to file path passed to
 \code{pager}, \emph{without} the period.  For example, \code{PagerBrowser}
 uses \dQuote{html} to cause \code{\link{browseURL}} to launch the web
 browser.  This parameter will be overridden if `file.path` is used.}
+
+\item{file.keep}{TRUE or FALSE (default), whether to keep the temporary
+file the diff is written to.  Normally it is deleted right after the pager
+is invoked.  See `pager` parameter for potential issues with asynchronously
+loading pagers.}
+
+\item{file.path}{character(1L), if not NA the diff will be written to this
+location, ignoring the value of \code{file.ext}.  If NA_character_
+(default), a temporary file is used.}
 
 \item{flags}{character(1L), only for \code{PagerSystemLess}, what flags to
 set with the \code{LESS} system environment variable.  By default the
@@ -63,15 +75,6 @@ slot directly it will not have any effect.}
 
 \item{ansi}{TRUE or FALSE, whether the pager supports ANSI escape
 sequences.}
-
-\item{file.keep}{TRUE or FALSE (default), whether to keep the temporary
-file the diff is written to.  Normally it is deleted right after the pager
-is invoked.  See `pager` parameter for potential issues with asynchronously
-loading pagers.}
-
-\item{file.path}{character(1L), if not NA the diff will be written to this
-location, ignoring the value of \code{file.ext}.  If NA_character_
-(default), a temporary file is used.}
 }
 \description{
 Modify use of pager behavior with pager configuration objects to use as the

@@ -391,11 +391,14 @@ capt_csv <- function(target, current, etc, err, extra){
 
 set_mode <- function(etc, tar.capt, cur.capt) {
   stopifnot(is(etc, "Settings"), is.character(tar.capt), is.character(cur.capt))
-  nc_fun <- etc@style@nchar.fun
   if(etc@mode == "auto") {
     if(
-      any(nc_fun(cur.capt) > etc@text.width.half) ||
-      any(nc_fun(tar.capt) > etc@text.width.half)
+      any(
+        nchar2(cur.capt, sgr.supported=etc@sgr.supported) > etc@text.width.half
+      ) ||
+      any(
+        nchar2(tar.capt, sgr.supported=etc@sgr.supported) > etc@text.width.half
+      )
     ) {
       etc@mode <- "unified"
   } }

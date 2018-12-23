@@ -1,0 +1,8 @@
+[90mNo visible differences between objects, but there are some differences[39m
+[90msuppressed by `ignore.white.space`, `convert.hz.white.space`, `strip.sgr`,[39m
+[90mand/or `trim`. Set all those arguments to FALSE to highlight the differences.[39m
+[33m<[39m [33ma[39m            [34m>[39m [34mb[39m          
+[36m@@ 1,3 @@    [39m  [36m@@ 1,3 @@    [39m
+  [90m[39mhello world[90m[39m    [90m[39mhello world[90m[39m
+  [90m[39mumbrellas[90m[39m      [90m[39mumbrellas[90m[39m  
+  [90m[39mtomatoes[90m[39m       [90m[39mtomatoes[90m[39m   

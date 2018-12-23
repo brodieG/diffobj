@@ -145,7 +145,7 @@ check_args <- function(
   color.mode, pager, ignore.white.space, max.diffs, align, disp.width,
   hunk.limit, convert.hz.white.space, tab.stops, style, palette.of.styles,
   frame, tar.banner, cur.banner, guides, rds, trim, word.diff, unwrap.atomic,
-  extra, interactive, term.colors, call.match
+  extra, interactive, term.colors, strip.sgr, sgr.supported, call.match
 ) {
   err <- make_err_fun(call)
   warn <- make_warn_fun(call)
@@ -447,13 +447,26 @@ check_args <- function(
     d.w <- getOption("width")
     if(!is.valid.width(d.w)) {
       # nocov start this should never happen
-      warning("`getOption(\"width\") returned an invalid width, using 80L")
+      warn("`getOption(\"width\") returned an invalid width, using 80L")
       d.w <- 80L
       # nocov end
     }
     style@disp.width <- d.w
   }
   disp.width <- style@disp.width
+
+  # check strip.sgr
+
+  if(!is.TF(strip.sgr) && !is.null(strip.sgr))
+    err("Argument `strip.sgr` must be TRUE, FALSE, or NULL")
+  if(is.null(strip.sgr)) strip.sgr <- is(style, "Ansi")
+
+  # check strip.sgr
+
+  if(!is.TF(sgr.supported) && !is.null(sgr.supported))
+    err("Argument `sgr.supported` must be TRUE, FALSE, or NULL")
+  if(is.null(sgr.supported))
+    sgr.supported <- is(style, "Ansi") || crayon::has_color()
 
   # instantiate settings object
 
@@ -465,7 +478,8 @@ check_args <- function(
     tab.stops=tab.stops, style=style, frame=frame,
     tar.exp=tar.exp, cur.exp=cur.exp, guides=guides, tar.banner=tar.banner,
     cur.banner=cur.banner, trim=trim, word.diff=word.diff,
-    unwrap.atomic=unwrap.atomic
+    unwrap.atomic=unwrap.atomic, strip.sgr=strip.sgr,
+    sgr.supported=sgr.supported, err=err, warn=warn
   )
   etc
 }

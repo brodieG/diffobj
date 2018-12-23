@@ -109,7 +109,8 @@ setMethod("finalizeHtml", c("DiffSummary"),
 #' )
 setMethod("as.character", "DiffSummary",
   function(x, ...) {
-    style <- x@etc@style
+    etc <- x@etc
+    style <- etc@style
     hunks <- sum(!x@diffs["match", ])
     res <- c(apply(x@diffs, 1L, sum))
     scale.threshold <- x@scale.threshold
@@ -255,14 +256,15 @@ setMethod("as.character", "DiffSummary",
       # Trim text down to what is displayable in the allowed lines
 
       txt <- do.call(paste0, as.list(c(diffs.txt)))
-      txt <- substr(txt, 1, max.chars)
-      txt.w <- unlist(if(style@wrap) wrap(txt, width) else txt)
-
+      txt <- substr2(txt, 1, max.chars, sgr.supported=etc@sgr.supported)
+      txt.w <- unlist(
+        if(style@wrap) wrap(txt, width, sgr.supported=etc@sgr.supported)
+        else txt
+      )
       # Apply ansi styles if warranted
 
       if(is(style, "StyleAnsi")) {
-        old.crayon.opt <-
-          options(crayon.enabled=is(style, "StyleAnsi"))
+        old.crayon.opt <- options(crayon.enabled=TRUE)
         on.exit(options(old.crayon.opt), add=TRUE)
       }
       s.f <- style@funs

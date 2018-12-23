@@ -161,13 +161,13 @@ detect_matrix_guides <- function(txt, dim.n) {
   # identify which lines could be row and col headers
 
   n.p <- "(\\[|\\]|\\(|\\)|\\{|\\}|\\*|\\+|\\?|\\.|\\^|\\$|\\\\|\\|)"
-  c.h <- if(!is.null(col.n) && nchar(col.n)) {
+  c.h <- if(!is.null(col.n) && nzchar(col.n)) {
     col.pat <- sprintf("^\\s{2,}%s$", gsub(n.p, "\\\1", col.n))
     grepl(col.pat, txt)
   } else {
     rep(FALSE, length(txt))
   }
-  r.h <- if(!is.null(row.n) && nchar(row.n)) {
+  r.h <- if(!is.null(row.n) && nzchar(row.n)) {
     # a bit lazy, should include col headers as well
     row.pat <- sprintf("^%s\\s+\\S+", gsub(n.p, "\\\1", row.n))
     grepl(row.pat, txt)
