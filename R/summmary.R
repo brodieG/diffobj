@@ -264,8 +264,7 @@ setMethod("as.character", "DiffSummary",
       # Apply ansi styles if warranted
 
       if(is(style, "StyleAnsi")) {
-        old.crayon.opt <-
-          options(crayon.enabled=is(style, "StyleAnsi"))
+        old.crayon.opt <- options(crayon.enabled=TRUE)
         on.exit(options(old.crayon.opt), add=TRUE)
       }
       s.f <- style@funs

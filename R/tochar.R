@@ -265,8 +265,7 @@ get_hunk_ind <- function(h.a, mode, type="both") {
 
 setMethod("as.character", "Diff",
   function(x, ...) {
-    old.crayon.opt <-
-      options(crayon.enabled=is(x@etc@style, "StyleAnsi"))
+    old.crayon.opt <- options(crayon.enabled=is(x@etc@style, "StyleAnsi"))
     on.exit(options(old.crayon.opt), add=TRUE)
 
     hunk.limit <- x@etc@hunk.limit
