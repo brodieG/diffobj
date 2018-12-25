@@ -101,17 +101,26 @@ parameter).  For other uses, particularly with \code{\link{diffChr}}
 setting this to FALSE can substantially improve performance.}
 
 \item{pager}{one of \dQuote{auto} (default), \dQuote{on},
-\dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
-pager is used to display the diff output.  If \dQuote{on} will use the
-pager associated with the \code{\link{Style}} specified via the
-\code{\link{style}} parameters.  The default behavior is to use a pager if
-either the R console does not support ANSI colors, or if the output of the
-\code{diff*} methods would be taller than one screen.  If the system pager
-is not known to support ANSI colors then we will try to display the output
-in HTML with the IDE viewer if available or with the web browser if not.
-See \code{\link{Pager}}, \code{\link{view_or_browse}}, \code{\link{Style}},
-and \code{\link{PaletteOfStyles}} for more details and for instructions on
-how to modify the default behavior.}
+\dQuote{off}, a \code{\link{Pager}} object, or a list; controls whether and
+how a pager is used to display the diff output.  If \dQuote{on} or
+\dQuote{auto} \emph{and} in interactive mode, will use the pager associated
+with the \code{\link{Style}} specified via the \code{\link{style}}
+parameters.  Under \dQuote{auto}, the default, the pager will activate if
+in interactive mode and if either the R console does not support ANSI
+colors, or if the output of the \code{diff*} methods would be taller than
+one screen.  If the system pager is not known to support ANSI colors then
+we will try to display the output in HTML with the IDE viewer if available
+or with the web browser if not.  If a \code{pager} is a \code{\link{Pager}}
+object, the output will be paged as per that object's configuration.  If a
+list, then the same as with \dQuote{on}, except that the \code{Pager}
+object associated with the selected \code{Style} object is re-instantiated
+with the union of the list elements and the existing settings of that
+\code{Pager}.  The list should contain named elements that correspond to
+the \code{\link{Pager}} instantiation parameters.  The names must be
+specified in full as partial matching will not be carried out.  See
+\code{\link{Pager}}, \code{\link{view_or_browse}}, \code{\link{Style}}, and
+\code{\link{PaletteOfStyles}} for more details and for instructions on how
+to modify the default behavior.}
 
 \item{guides}{TRUE (default), FALSE, or a function that accepts at least two
 arguments and requires no more than two arguments.  Guides
@@ -220,8 +229,8 @@ then the list contents will be used as arguments when instantiating the
 style object.  See \code{\link{Style}} for more details, in particular the
 examples.}
 
-\item{palette.of.styles}{\code{\link{PaletteOfStyles}} object; advanced usage,
-contains all the \code{\link{Style}} objects or
+\item{palette.of.styles}{\code{\link{PaletteOfStyles}} object; advanced
+usage, contains all the \code{\link{Style}} objects or
 \dQuote{classRepresentation} objects extending \code{\link{Style}} that are
 selected by specifying the \code{format}, \code{brightness}, and
 \code{color.mode} parameters.  See \code{\link{PaletteOfStyles}} for more
