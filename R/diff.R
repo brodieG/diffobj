@@ -63,6 +63,8 @@ make_diff_fun <- function(capt_fun) {
     term.colors=gdo("term.colors"),
     tar.banner=NULL,
     cur.banner=NULL,
+    strip.sgr=gdo("strip.sgr"),
+    sgr.supported=gdo("sgr.supported"),
     extra=list()
   ) {
   # nocov end
@@ -82,6 +84,7 @@ make_diff_fun <- function(capt_fun) {
       frame=frame, tar.banner=tar.banner, cur.banner=cur.banner, guides=guides,
       rds=rds, trim=trim, word.diff=word.diff, unwrap.atomic=unwrap.atomic,
       extra=extra, interactive=interactive, term.colors=term.colors,
+      strip.sgr=strip.sgr, sgr.supported=sgr.supported,
       call.match=match.call()
     )
     # If in rds mode, try to see if either target or current reference an RDS
@@ -94,19 +97,22 @@ make_diff_fun <- function(capt_fun) {
     # touching vars in case someone passes `options(crayon.enabled=...)` as one
     # of the arguments
 
-    old.crayon.opt <-
-      options(crayon.enabled=is(etc.proc@style, "StyleAnsi"))
-    on.exit(options(old.crayon.opt), add=TRUE)
+    # old.crayon.opt <- options(
+    #   crayon.enabled=
+    #     is(etc.proc@style, "StyleAnsi") ||
+    #     (!is(etc.proc@style, "StyleHtml") && etc.proc@sgr.supported)
+    # )
+    # on.exit(options(old.crayon.opt), add=TRUE)
     err <- make_err_fun(sys.call())
 
     # Compute gutter values so that we know correct widths to use for capture,
     # etc. If not a base text type style, assume gutter and column padding are
     # zero even though that may not always be correct
 
-    nc_fun <- etc.proc@style@nchar.fun
     etc.proc@gutter <- gutter_dat(etc.proc)
 
-    col.pad.width <- nc_fun(etc.proc@style@text@pad.col)
+    col.pad.width <-
+      nchar2(etc.proc@style@text@pad.col, sgr.supported=etc.proc@sgr.supported)
     gutt.width <- etc.proc@gutter@width
 
     half.width <- as.integer((etc.proc@disp.width - col.pad.width) / 2)
@@ -143,6 +149,10 @@ make_diff_fun <- function(capt_fun) {
 #' \code{color.mode} parameter.  Default values are specified
 #' as options so that users may configure diffs in a persistent manner.
 #' \code{\link{gdo}} is a shorthand function to access \code{diffobj} options.
+#'
+#' Parameter order after \code{color.mode} is not guaranteed.  Future versions
+#' of \code{diffobj} may add parameters and re-order existing parameters past
+#' \code{color.mode}.
 #'
 #' This and other \code{diff*} functions are S4 generics that dispatch on the
 #' \code{target} and \code{current} parameters.  Methods with signature
@@ -222,17 +232,26 @@ make_diff_fun <- function(capt_fun) {
 #'   parameter).  For other uses, particularly with \code{\link{diffChr}}
 #'   setting this to FALSE can substantially improve performance.
 #' @param pager one of \dQuote{auto} (default), \dQuote{on},
-#'   \dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
-#'   pager is used to display the diff output.  If \dQuote{on} will use the
-#'   pager associated with the \code{\link{Style}} specified via the
-#'   \code{\link{style}} parameters.  The default behavior is to use a pager if
-#'   either the R console does not support ANSI colors, or if the output of the
-#'   \code{diff*} methods would be taller than one screen.  If the system pager
-#'   is not known to support ANSI colors then we will try to display the output
-#'   in HTML with the IDE viewer if available or with the web browser if not.
-#'   See \code{\link{Pager}}, \code{\link{view_or_browse}}, \code{\link{Style}},
-#'   and \code{\link{PaletteOfStyles}} for more details and for instructions on
-#'   how to modify the default behavior.
+#'   \dQuote{off}, a \code{\link{Pager}} object, or a list; controls whether and
+#'   how a pager is used to display the diff output.  If \dQuote{on} or
+#'   \dQuote{auto} \emph{and} in interactive mode, will use the pager associated
+#'   with the \code{\link{Style}} specified via the \code{\link{style}}
+#'   parameters.  Under \dQuote{auto}, the default, the pager will activate if
+#'   in interactive mode and if either the R console does not support ANSI
+#'   colors, or if the output of the \code{diff*} methods would be taller than
+#'   one screen.  If the system pager is not known to support ANSI colors then
+#'   we will try to display the output in HTML with the IDE viewer if available
+#'   or with the web browser if not.  If a \code{pager} is a \code{\link{Pager}}
+#'   object, the output will be paged as per that object's configuration.  If a
+#'   list, then the same as with \dQuote{on}, except that the \code{Pager}
+#'   object associated with the selected \code{Style} object is re-instantiated
+#'   with the union of the list elements and the existing settings of that
+#'   \code{Pager}.  The list should contain named elements that correspond to
+#'   the \code{\link{Pager}} instantiation parameters.  The names must be
+#'   specified in full as partial matching will not be carried out.  See
+#'   \code{\link{Pager}}, \code{\link{view_or_browse}}, \code{\link{Style}}, and
+#'   \code{\link{PaletteOfStyles}} for more details and for instructions on how
+#'   to modify the default behavior.
 #' @param guides TRUE (default), FALSE, or a function that accepts at least two
 #'   arguments and requires no more than two arguments.  Guides
 #'   are additional context lines that are not strictly part of a hunk, but
@@ -298,7 +317,7 @@ make_diff_fun <- function(capt_fun) {
 #'   for normal styles and \code{80L} for HTML styles.
 #' @param ignore.white.space TRUE or FALSE, whether to consider differences in
 #'   horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
-#'   FALSE)
+#'   FALSE).
 #' @param convert.hz.white.space TRUE or FALSE, whether modify input strings
 #'   that contain tabs and carriage returns in such a way that they display as
 #'   they would \bold{with} those characters, but without using those
@@ -327,8 +346,8 @@ make_diff_fun <- function(capt_fun) {
 #'   then the list contents will be used as arguments when instantiating the
 #'   style object.  See \code{\link{Style}} for more details, in particular the
 #'   examples.
-#' @param palette.of.styles \code{\link{PaletteOfStyles}} object; advanced usage,
-#'   contains all the \code{\link{Style}} objects or
+#' @param palette.of.styles \code{\link{PaletteOfStyles}} object; advanced
+#'   usage, contains all the \code{\link{Style}} objects or
 #'   \dQuote{classRepresentation} objects extending \code{\link{Style}} that are
 #'   selected by specifying the \code{format}, \code{brightness}, and
 #'   \code{color.mode} parameters.  See \code{\link{PaletteOfStyles}} for more
@@ -363,6 +382,20 @@ make_diff_fun <- function(capt_fun) {
 #'   assumed you intend to use that value literally.
 #' @param cur.banner character(1L) like \code{tar.banner}, but for
 #'   \code{current}
+#' @param strip.sgr TRUE, FALSE, or NULL (default), whether to strip ANSI CSI
+#'   SGR sequences prior to comparison and for display of diff.  If NULL,
+#'   resolves to TRUE if `style` resolves to an ANSI formatted diff, and
+#'   FALSE otherwise.  The default behavior is to avoid confusing diffs where
+#'   the original SGR and the SGR added by the diff are mixed together.
+#' @param sgr.supported TRUE, FALSE, or NULL (default), whether to assume the
+#'   standard output device supports ANSI CSI SGR sequences.  If TRUE, strings
+#'   will be manipulated accounting for the SGR sequences.  If NULL,
+#'   resolves to TRUE if `style` resolves to an ANSI formatted diff, and
+#'   to `crayon::has_color()` otherwise.  This only controls how the strings are
+#'   manipulated, not whether SGR is added to format the diff, which is
+#'   controlled by the `style` parameter.  This parameter is exposed for the
+#'   rare cases where you might wish to control string manipulation behavior
+#'   directly.
 #' @param extra list additional arguments to pass on to the functions used to
 #'   create text representation of the objects to diff (e.g. \code{print},
 #'   \code{str}, etc.)

@@ -4,7 +4,8 @@
 \alias{make_blocking}
 \title{Create a Blocking Version of a Function}
 \usage{
-make_blocking(fun, msg = "Press ENTER to continue...", invisible.res = TRUE)
+make_blocking(fun, msg = "Press ENTER to continue...",
+  invisible.res = TRUE)
 }
 \arguments{
 \item{fun}{a function}
@@ -14,11 +15,13 @@ make_blocking(fun, msg = "Press ENTER to continue...", invisible.res = TRUE)
 \item{invisible.res}{whether to return the result of \code{fun} invisibly}
 }
 \value{
-\code{fun}, wrapped in a function that does the blocking
-make_blocking(sum, invisible.res=FALSE)(1:10)
+\code{fun}, wrapped in a function that does the blocking.
 }
 \description{
 Wraps \code{fun} in a function that runs \code{fun} and then issues a
 \code{readline} prompt to prevent further R code evaluation until user
 presses a key.
+}
+\examples{
+make_blocking(sum, invisible.res=FALSE)(1:10)
 }

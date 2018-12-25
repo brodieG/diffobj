@@ -1,0 +1,6 @@
+< a          > b        
+@@ 2,3 @@    @@ 2,3 @@  
+  b            b        
+< c          > C        
+  d            d        
+... omitted 2/3 hunks

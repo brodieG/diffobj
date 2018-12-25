@@ -4,17 +4,26 @@
 \alias{strip_hz_control}
 \title{Replace Horizontal Spacing Control Characters}
 \usage{
-strip_hz_control(txt, stops = 8L)
+strip_hz_control(txt, stops = 8L, sgr.supported)
 }
 \arguments{
 \item{txt}{character to covert}
 
 \item{stops}{integer, what tab stops to use}
+
+\item{sgr.supported}{logical whether the current display device supports
+ANSI CSI SGR.  See \code{\link[=diffPrint]{diff*}}'s \code{sgr.supported}
+parameter.}
+}
+\value{
+character, `txt` with horizontal control sequences
+  replaced.
 }
 \description{
-Removes tabs, newlines, and carriage returns and manipulates the text so that
-it looks the renders the same as it did with those horizontal control
-characters embedded.  This function is used when the
+Removes tabs, newlines, and manipulates the text so that
+it looks the same as it did with those horizontal control
+characters embedded.  Currently carriage returns are also processed, but
+in the future they no longer will be.  This function is used when the
 \code{convert.hz.white.space} parameter to the
 \code{\link[=diffPrint]{diff*}} methods is active.  The term \dQuote{strip}
 is a misnomer that remains for legacy reasons and lazyness.

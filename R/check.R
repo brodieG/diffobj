@@ -145,7 +145,7 @@ check_args <- function(
   color.mode, pager, ignore.white.space, max.diffs, align, disp.width,
   hunk.limit, convert.hz.white.space, tab.stops, style, palette.of.styles,
   frame, tar.banner, cur.banner, guides, rds, trim, word.diff, unwrap.atomic,
-  extra, interactive, term.colors, call.match
+  extra, interactive, term.colors, strip.sgr, sgr.supported, call.match
 ) {
   err <- make_err_fun(call)
   warn <- make_warn_fun(call)
@@ -321,18 +321,27 @@ check_args <- function(
   )
     err("Argument `style` must be \"auto\", a `Style` object, or a list.")
 
-  # pager
+  # pager; 'on' just means use pager already associated with style
 
   valid_object(pager, "pager", err)
   valid.pagers <- c("auto", "off", "on")
-  if(!is(pager, "Pager") && !string_in(pager, valid.pagers))
+  if(
+    !is(pager, "Pager") && !string_in(pager, valid.pagers) &&
+    !(is.list(pager) && !is.object(pager))
+  )
     err(
       "Argument `pager` must be one of `", dep(valid.pagers),
-      "` or a `Pager` object."
+      "`, a `Pager` object, or a list."
     )
-  if(!is(pager, "Pager") && string_in(pager, "off"))
-    pager <- PagerOff()
-
+  pager.args <- list()
+  if(!is(pager, "Pager")) {
+    if(string_in(pager, "off")) {
+      pager <- PagerOff()
+    } else if (is.list(pager)) {
+      pager.args <- pager
+      pager <- "auto"
+    }
+  }
   # palette and arguments that reference palette dimensions
 
   if(is.null(palette.of.styles)) palette.of.styles <- PaletteOfStyles()
@@ -351,13 +360,13 @@ check_args <- function(
   # Figure out whether pager is allowable or not; note that "auto" pager just
   # means let the pager that comes built into the style be the pager
 
-  if(!is(pager, "Pager")) {
+  if(is.character(pager))
     pager <- if(
       (pager == "auto" && interactive) || pager == "on"
     ) {
       "on"
     } else PagerOff()
-  }
+
   # format; decide what format to use
 
   if(
@@ -375,8 +384,7 @@ check_args <- function(
     # unfortuantely we cannot have different styles depending on whether the
     # output is paged or not, at least not at this time
 
-    pager.could.be.ansi <- if(is(pager, "Pager"))
-      pager@ansi else pager_is_less()
+    pager.could.be.ansi <- if(is(pager, "Pager")) pager@ansi else FALSE
 
     if(!is.chr.1L(format))
       err("Argument `format` must be character(1L) and not NA")
@@ -393,7 +401,7 @@ check_args <- function(
         # nocov end
       # No recognized color alternatives, try to use HTML if we can
 
-      format <- if(!term.colors %in% c(8, 256) || !pager.could.be.ansi) {
+      format <- if(!term.colors %in% c(8, 256) && !pager.could.be.ansi) {
         if(
           interactive && (identical(pager, "on") || is(pager, "PagerBrowser"))
         ) "html" else "raw"
@@ -401,6 +409,8 @@ check_args <- function(
         "ansi8"
       } else if (term.colors == 256) {
         "ansi256"
+      } else if (pager.could.be.ansi) {
+        "raw"
       } else stop("Logic error: unhandled format; contact maintainer.") # nocov
     }
     style <- palette.of.styles[[
@@ -429,11 +439,20 @@ check_args <- function(
   } else if(!is(style, "Style"))
     stop("Logic Error: unexpected style state; contact maintainer.") # nocov
 
-  # Attach specific pager if it was requested generated; if "auto" just let the
+  # Attach specific pager if it was requested generated; if "on" just let the
   # existing pager on the style be, which is done by not modifying @pager
 
-  if(is(pager, "Pager")) style@pager <- pager
-  else if(!identical(pager, "on"))
+  if(is(pager, "Pager")) {
+    style@pager <- pager
+  } else if (length(pager.args)) {
+    ## this is a bit gnarly, and
+    pager.s <- style@pager
+    old.slots <-
+      sapply(slotNames(pager.s), slot, object=pager.s, simplify=FALSE)
+    pager.args <-
+      c(pager.args, old.slots[setdiff(names(old.slots), names(pager.args))])
+    style@pager <- do.call("new", c(list(class(pager.s)), pager.args))
+  } else if(!identical(pager, "on"))
     stop("Logic Error: Unexpected pager state; contact maintainer.") # nocov
 
   # Check display width
@@ -447,13 +466,26 @@ check_args <- function(
     d.w <- getOption("width")
     if(!is.valid.width(d.w)) {
       # nocov start this should never happen
-      warning("`getOption(\"width\") returned an invalid width, using 80L")
+      warn("`getOption(\"width\") returned an invalid width, using 80L")
       d.w <- 80L
       # nocov end
     }
     style@disp.width <- d.w
   }
   disp.width <- style@disp.width
+
+  # check strip.sgr
+
+  if(!is.TF(strip.sgr) && !is.null(strip.sgr))
+    err("Argument `strip.sgr` must be TRUE, FALSE, or NULL")
+  if(is.null(strip.sgr)) strip.sgr <- is(style, "Ansi")
+
+  # check strip.sgr
+
+  if(!is.TF(sgr.supported) && !is.null(sgr.supported))
+    err("Argument `sgr.supported` must be TRUE, FALSE, or NULL")
+  if(is.null(sgr.supported))
+    sgr.supported <- is(style, "Ansi") || crayon::has_color()
 
   # instantiate settings object
 
@@ -465,7 +497,8 @@ check_args <- function(
     tab.stops=tab.stops, style=style, frame=frame,
     tar.exp=tar.exp, cur.exp=cur.exp, guides=guides, tar.banner=tar.banner,
     cur.banner=cur.banner, trim=trim, word.diff=word.diff,
-    unwrap.atomic=unwrap.atomic
+    unwrap.atomic=unwrap.atomic, strip.sgr=strip.sgr,
+    sgr.supported=sgr.supported, err=err, warn=warn
   )
   etc
 }

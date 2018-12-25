@@ -1,6 +1,7 @@
 library(diffobj)
 context("pager")
 
+void <- function(x) NULL
 test_that("Specifying pager", {
   style <- gdo("diffobj.style")
   if(is.null(style)) style <- StyleAnsi8NeutralYb()
@@ -38,6 +39,8 @@ test_that("System Pagers", {
   expect_warning(res <- pg.less@pager(), "VWF$")
   expect_equal(res, 42)
   expect_equal(less.orig, Sys.getenv("LESS"))
+  expect_equal(PagerSystemLess(pager=pager_mock)@flags, "R")
+  expect_error(PagerSystemLess(pager=pager_mock, flags=letters))
 })
 test_that("use_pager", {
   with_mock(
@@ -48,7 +51,6 @@ test_that("use_pager", {
     }
   )
 })
-
 test_that("Setting LESS var", {
   less.orig <- Sys.getenv("LESS")
   old.opt <- options(crayon.enabled=FALSE)  # problems with crayon and LESS
@@ -83,7 +85,6 @@ test_that("Setting LESS var", {
     expect_warning(diffobj:::set_less_var("V"), "Unable to set")
   )
 })
-
 test_that("viewer vs browser", {
   viewer <- function(x) "viewer"
   old.external <- options(viewer=viewer, browser=function(url) "browser")
@@ -101,7 +102,8 @@ test_that("viewer vs browser", {
   )
 })
 test_that("blocking", {
-  # Note that readline just proceeds in non-interactive mode
+  # Note that readline just proceeds in non-interactive mode, which is why we
+  # need the mock here
 
   with_mock(
     "diffobj:::interactive"=function() FALSE,
@@ -113,17 +115,62 @@ test_that("blocking", {
 
       expect_warning(res <- make_blocking(sum)(1:10), "readline")
       expect_equal(sum(1:10), res)
-    }
-  )
-})
-
+      expect_true(
+        withVisible(
+          suppressWarnings(make_blocking(sum, invisible=FALSE)(1:10))
+        )[['visible']]
+      )
+  })
+  with_mock(
+    "diffobj:::readline"=function(...) warning("readline"),
+    {
+      expect_warning(
+        show(
+          diffChr(
+            "a", "b", format='raw',
+            pager=list(pager=void, make.blocking=TRUE, threshold=0)
+          )
+        ),
+        "readline"
+      )
+      expect_warning(
+        show(
+          diffChr(
+            "a", "b", format='html',
+            pager=list(
+              pager=void, make.blocking=NA, threshold=0,
+              file.keep=FALSE
+            )
+        ) ),
+        "readline"
+      )
+      expect_warning(
+        show(
+          diffChr(
+            "a", "b", format='html',
+            pager=list(pager=void, file.keep=TRUE)
+        ) ),
+        NA
+      )
+      expect_warning(
+        show(
+          diffChr(
+            "a", "b", format='html',
+            pager=list(pager=void, make.blocking=NA, file.keep=TRUE)
+        ) ),
+        NA
+) } )})
 test_that("html page output", {
-  pager <- PagerBrowser(pager=function(x) cat(readLines(x), sep="\n"))
+  pager <- PagerBrowser(
+    pager=function(x) cat(readLines(x), sep="\n"), make.blocking=FALSE
+  )
   expect_equal(
     capture.output(show(diffChr("A", "B", pager=pager, style=StyleRaw()))),
     c("< \"A\"       > \"B\"     ", "@@ 1 @@     @@ 1 @@   ", "< A         > B       ")
   )
-  pager.warn <- PagerBrowser(pager=function(x) cat(readLines(x), sep="\n"))
+  pager.warn <- PagerBrowser(
+    pager=function(x) cat(readLines(x), sep="\n"), make.blocking=FALSE
+  )
   expect_error(
     diffChr(
       "A", "B", pager=pager.warn, format="html", style=list(js="notafile")
@@ -155,7 +202,6 @@ test_that("html page output", {
     "Unable to read provided js file"
   )
 })
-
 test_that("pager_is_less", {
   is.less <- pager_is_less()
   expect_true(diffobj:::is.TF(is.less))
@@ -186,4 +232,32 @@ test_that("pager_is_less", {
       expect_false(pager_is_less())
     })
   }
+  ## force some checks
+
+  local({
+    old.opt <- options(pager=NULL)
+    on.exit(options(old.opt))
+    expect_false(pager_is_less())
+  })
+  expect_false(diffobj:::file_is_less(tempfile()))
 })
+test_that("file.keep", {
+  f <- tempfile()
+  show(
+    diffChr(
+      "A", "B", format='raw',
+      pager=list(pager=void, file.keep=TRUE, file.path=f, threshold=0L)
+  ) )
+  expect_equal(
+    readLines(f),
+    c("< \"A\"       > \"B\"     ", "@@ 1 @@     @@ 1 @@   ",
+      "< A         > B       ")
+  )
+  show(
+    diffChr(
+      "A", "B", format='raw',
+      pager=list(pager=void, file.keep=FALSE, file.path=f, threshold=0L)
+  ) )
+  expect_false(file.exists(f))
+})
+

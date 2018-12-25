@@ -21,8 +21,9 @@ diffPrint(target, current, ...)
   hunk.limit = gdo("hunk.limit"), align = gdo("align"),
   style = gdo("style"), palette.of.styles = gdo("palette"),
   frame = par_frame(), interactive = gdo("interactive"),
-  term.colors = gdo("term.colors"), tar.banner = NULL, cur.banner = NULL,
-  extra = list())
+  term.colors = gdo("term.colors"), tar.banner = NULL,
+  cur.banner = NULL, strip.sgr = gdo("strip.sgr"),
+  sgr.supported = gdo("sgr.supported"), extra = list())
 }
 \arguments{
 \item{target}{the reference object}
@@ -100,17 +101,26 @@ parameter).  For other uses, particularly with \code{\link{diffChr}}
 setting this to FALSE can substantially improve performance.}
 
 \item{pager}{one of \dQuote{auto} (default), \dQuote{on},
-\dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
-pager is used to display the diff output.  If \dQuote{on} will use the
-pager associated with the \code{\link{Style}} specified via the
-\code{\link{style}} parameters.  The default behavior is to use a pager if
-either the R console does not support ANSI colors, or if the output of the
-\code{diff*} methods would be taller than one screen.  If the system pager
-is not known to support ANSI colors then we will try to display the output
-in HTML with the IDE viewer if available or with the web browser if not.
-See \code{\link{Pager}}, \code{\link{view_or_browse}}, \code{\link{Style}},
-and \code{\link{PaletteOfStyles}} for more details and for instructions on
-how to modify the default behavior.}
+\dQuote{off}, a \code{\link{Pager}} object, or a list; controls whether and
+how a pager is used to display the diff output.  If \dQuote{on} or
+\dQuote{auto} \emph{and} in interactive mode, will use the pager associated
+with the \code{\link{Style}} specified via the \code{\link{style}}
+parameters.  Under \dQuote{auto}, the default, the pager will activate if
+in interactive mode and if either the R console does not support ANSI
+colors, or if the output of the \code{diff*} methods would be taller than
+one screen.  If the system pager is not known to support ANSI colors then
+we will try to display the output in HTML with the IDE viewer if available
+or with the web browser if not.  If a \code{pager} is a \code{\link{Pager}}
+object, the output will be paged as per that object's configuration.  If a
+list, then the same as with \dQuote{on}, except that the \code{Pager}
+object associated with the selected \code{Style} object is re-instantiated
+with the union of the list elements and the existing settings of that
+\code{Pager}.  The list should contain named elements that correspond to
+the \code{\link{Pager}} instantiation parameters.  The names must be
+specified in full as partial matching will not be carried out.  See
+\code{\link{Pager}}, \code{\link{view_or_browse}}, \code{\link{Style}}, and
+\code{\link{PaletteOfStyles}} for more details and for instructions on how
+to modify the default behavior.}
 
 \item{guides}{TRUE (default), FALSE, or a function that accepts at least two
 arguments and requires no more than two arguments.  Guides
@@ -165,7 +175,7 @@ for normal styles and \code{80L} for HTML styles.}
 
 \item{ignore.white.space}{TRUE or FALSE, whether to consider differences in
 horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
-FALSE)}
+FALSE).}
 
 \item{convert.hz.white.space}{TRUE or FALSE, whether modify input strings
 that contain tabs and carriage returns in such a way that they display as
@@ -219,8 +229,8 @@ then the list contents will be used as arguments when instantiating the
 style object.  See \code{\link{Style}} for more details, in particular the
 examples.}
 
-\item{palette.of.styles}{\code{\link{PaletteOfStyles}} object; advanced usage,
-contains all the \code{\link{Style}} objects or
+\item{palette.of.styles}{\code{\link{PaletteOfStyles}} object; advanced
+usage, contains all the \code{\link{Style}} objects or
 \dQuote{classRepresentation} objects extending \code{\link{Style}} that are
 selected by specifying the \code{format}, \code{brightness}, and
 \code{color.mode} parameters.  See \code{\link{PaletteOfStyles}} for more
@@ -261,6 +271,22 @@ assumed you intend to use that value literally.}
 \item{cur.banner}{character(1L) like \code{tar.banner}, but for
 \code{current}}
 
+\item{strip.sgr}{TRUE, FALSE, or NULL (default), whether to strip ANSI CSI
+SGR sequences prior to comparison and for display of diff.  If NULL,
+resolves to TRUE if `style` resolves to an ANSI formatted diff, and
+FALSE otherwise.  The default behavior is to avoid confusing diffs where
+the original SGR and the SGR added by the diff are mixed together.}
+
+\item{sgr.supported}{TRUE, FALSE, or NULL (default), whether to assume the
+standard output device supports ANSI CSI SGR sequences.  If TRUE, strings
+will be manipulated accounting for the SGR sequences.  If NULL,
+resolves to TRUE if `style` resolves to an ANSI formatted diff, and
+to `crayon::has_color()` otherwise.  This only controls how the strings are
+manipulated, not whether SGR is added to format the diff, which is
+controlled by the `style` parameter.  This parameter is exposed for the
+rare cases where you might wish to control string manipulation behavior
+directly.}
+
 \item{extra}{list additional arguments to pass on to the functions used to
 create text representation of the objects to diff (e.g. \code{print},
 \code{str}, etc.)}
@@ -284,6 +310,10 @@ practice you should rarely need to adjust anything past the
 \code{color.mode} parameter.  Default values are specified
 as options so that users may configure diffs in a persistent manner.
 \code{\link{gdo}} is a shorthand function to access \code{diffobj} options.
+
+Parameter order after \code{color.mode} is not guaranteed.  Future versions
+of \code{diffobj} may add parameters and re-order existing parameters past
+\code{color.mode}.
 
 This and other \code{diff*} functions are S4 generics that dispatch on the
 \code{target} and \code{current} parameters.  Methods with signature

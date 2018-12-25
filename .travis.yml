@@ -1,3 +1,5 @@
+env:
+  - NOT_CRAN=TRUE
 language: r
 r:
   - 3.1

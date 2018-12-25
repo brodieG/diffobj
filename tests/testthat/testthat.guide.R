@@ -205,6 +205,14 @@ test_that("detect_s4_guides", {
     diffobj:::detect_s4_guides(c.1, obj),
     c(1L, 2L, 21L, 25L, 34L)
   )
+  # small diff as that has a non-default show method
+
+  diff <- diffChr("a", "b", format='raw')
+  diff.out <- capture.output(show(diff))
+  expect_equal(
+    diffobj:::detect_s4_guides(diff.out, diff),
+    integer()
+  )
 })
 test_that("custom guide fun", {
   a <- b <- matrix(1:100)
@@ -226,4 +234,34 @@ test_that("custom guide fun", {
     )
     expect_equal_to_reference(trim.err, rdsf(200))
   }
+  expect_error(
+    diffobj:::apply_guides(1:26, LETTERS, function(x, y) 35L),
+    "must produce an integer vector"
+  )
 })
+test_that("errors", {
+  expect_error(
+    guidesStr(1:26, rep(NA_character_, 26)),
+    "Cannot compute guides"
+  )
+  expect_error(
+    guidesPrint(1:26, rep(NA_character_, 26)),
+    "Cannot compute guides"
+  )
+})
+test_that("corner cases", {
+  expect_equal(
+    diffobj:::split_by_guides(letters, integer()),
+    list(structure(letters, idx=seq_along(letters)))
+  )
+  expect_error(
+    guidesStr(1:26, rep(NA_character_, 26)),
+    "Cannot compute guides"
+  )
+  expect_error(
+    guidesPrint(1:26, rep(NA_character_, 26)),
+    "Cannot compute guides"
+  )
+})
+
+

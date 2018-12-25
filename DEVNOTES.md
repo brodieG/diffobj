@@ -1,3 +1,45 @@
+## Crayon or Not Crayon
+
+### ANSI detection And Settings
+
+Do we want our substring functions to be ansi blind if we detect that the system
+does not support ansi?
+
+One problem right now is that when in 'raw' mode, we set `crayon.enabled=FALSE`,
+but we might still be in a system that supports ANSI and the input itself may
+have ANSI in it.
+
+Ideally we move away from crayon for ansi detection and rely solely on the
+`style` parameter.  So probably do that now.
+
+But what about the special case where we are on a system that does not support
+ANSI escapes, and we want to see the diffs in the ANSI escapes?  Do we just not
+support this?
+
+Probably better to add a separate "ansi.sgr.supported" that for now can default
+to crayon::has_color()?  Then what do we do when someone uses and ANSI style but
+this is off?  Just use it anyway?  And provide global nchar and substr functions
+that are aware of this setting?  Yes.
+
+## Fansi Problems
+
+Would be great to use fansi instead of crayon for substr as it will be much
+faster, and also support wide characters, but there are two major issues:
+
+* We still need a terminal ansi-support test, which is well developed and
+  tested in crayon.
+* The fansi tests use `unitizer`, which suggests `diffobj`; need to check if
+  this actually would cause a circular dependency or not.  So diffobj would
+  import fansi, which suggests unitizer.  Currently unitizer imports diffobj.
+  So there does seem to be build time circular dependency.  We could either
+  change all the fansi tests to not be unitizer (or move the unitizer tests to
+  `extra`, and have another version of them that tests output with .Rout files).
+  This seems like a massive PITA, and also annoying because we'll need to make
+  sure both sets of tests are run on travis, but not on CRAN, which then makes
+  it hard to make sure we're submitting the same tarball.  The more realistic
+  solution might be to remove `diffobj` as an `imports` and `suggests` so that
+  it is possible to build unitizer without diffobj.
+
 ## Compiled Testing
 
 Run the 'ses' tests with valgrind.  They should have 100% coverage of the C
