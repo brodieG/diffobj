@@ -583,7 +583,16 @@ setClass("Yb", contains="VIRTUAL")
 #' @exportClass StyleRaw
 #' @rdname Style
 
-StyleRaw <- setClass("StyleRaw", contains=c("Style", "Raw"))
+StyleRaw <- setClass(
+  "StyleRaw", contains=c("Style", "Raw")
+)
+setMethod(
+  "initialize", "StyleRaw",
+  function(.Object, ...) {
+    .Object@pager <- if(pager_is_less())
+      PagerSystemLess() else PagerSystem()
+    callNextMethod(.Object, ...)
+})
 
 #' @export StyleAnsi
 #' @exportClass StyleAnsi
@@ -596,13 +605,6 @@ StyleAnsi <- setClass(
     nchar.fun=nchar2
   )
 )
-setMethod(
-  "initialize", "StyleAnsi",
-  function(.Object, ...) {
-    .Object@pager <- if(pager_is_less())
-      PagerSystemLess() else PagerSystem()
-    callNextMethod(.Object, ...)
-})
 #' @export StyleAnsi8NeutralRgb
 #' @exportClass StyleAnsi8NeutralRgb
 #' @rdname Style
