@@ -427,7 +427,11 @@ show_w_pager <- function(txt, pager) {
 
     if(!pager@file.keep) on.exit(add=TRUE, unlink(disp.f))
     writeLines(txt, disp.f)
-    pager@pager(disp.f)
+    if(
+      isTRUE(pager@make.blocking) ||
+      (is.na(pager@make.blocking) && !pager@file.keep)
+    )
+      make_blocking(pager@pager)(disp.f) else pager@pager(disp.f)
   } else {
     cat(txt, sep="\n")
   }
