@@ -280,12 +280,12 @@ PagerOff <- function(...) new("PagerOff", ...)
 
 setClass(
   "PagerSystem", contains="Pager",
-  prototype=list(pager=file.show, threshold=-1L)
+  prototype=list(pager=file.show, threshold=-1L, file.ext="")
 )
 #' @export
 #' @rdname Pager
 
-PagerSystem <- function(pager=file.show, threshold=-1L, ...)
+PagerSystem <- function(pager=file.show, threshold=-1L, file.ext="", ...)
   new("PagerSystem", pager=pager, threshold=threshold, ...)
 
 #' @export
@@ -299,11 +299,11 @@ setClass(
 #' @rdname Pager
 
 PagerSystemLess <- function(
-  pager=file.show, threshold=-1L, flags="R", ansi=TRUE, ...
+  pager=file.show, threshold=-1L, flags="R", file.ext="", ansi=TRUE, ...
 )
   new(
-    "PagerSystemLess", pager=pager, threshold=threshold, flags=flags, ansi=ansi,
-    ...
+    "PagerSystemLess", pager=pager, threshold=threshold, flags=flags,
+    ansi=ansi, file.ext=file.ext, ...
   )
 
 # Must use initialize so that the pager function can access the flags slot
