@@ -339,7 +339,7 @@ check_args <- function(
       pager <- PagerOff()
     } else if (is.list(pager)) {
       pager.args <- pager
-      pager <- "auto"
+      pager <- "on"
     }
   }
   # palette and arguments that reference palette dimensions

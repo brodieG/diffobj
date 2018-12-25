@@ -122,6 +122,7 @@ test_that("blocking", {
       )
   })
   with_mock(
+    "diffobj:::interactive"=function() TRUE,
     "diffobj:::readline"=function(...) warning("readline"),
     {
       expect_warning(
