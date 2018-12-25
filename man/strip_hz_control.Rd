@@ -12,10 +12,12 @@ strip_hz_control(txt, stops = 8L, sgr.supported)
 \item{stops}{integer, what tab stops to use}
 
 \item{sgr.supported}{logical whether the current display device supports
-ANSI CSI SGR.  See [diffPrint]'s `sgr.supported` parameter.}
+ANSI CSI SGR.  See \code{\link[=diffPrint]{diff*}}'s \code{sgr.supported}
+parameter.}
 }
 \value{
-character, `txt` with horizontal control sequences replaced.
+character, `txt` with horizontal control sequences
+  replaced.
 }
 \description{
 Removes tabs, newlines, and manipulates the text so that

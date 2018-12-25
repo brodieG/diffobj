@@ -176,7 +176,8 @@
 #' ## in interactive mode
 #' \dontrun{
 #' ## Specify Pager parameters via list; this lets the `diff*` functions pick
-#' ## their preferred pager, but allows you to modify the pager behavior.
+#' ## their preferred pager based on format and other output parameters, but
+#' ## allows you to modify the pager behavior.
 #'
 #' f <- tempfile()
 #' diffChr(
@@ -198,7 +199,7 @@
 #'
 #' page.fun <- function(x) cat(paste0("| ", readLines(x)), sep="\n")
 #' page.conf <- PagerSystem(pager=page.fun, threshold=0L)
-#' diffChr(1:200, 180:300, pager=page.conf, width=getOption("width") - 2)
+#' diffChr(1:200, 180:300, pager=page.conf, disp.width=getOption("width") - 2)
 #'
 #' ## Set-up the custom pager as the default pager
 #'
