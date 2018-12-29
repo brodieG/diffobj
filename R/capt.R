@@ -124,7 +124,7 @@ capt_str <- function(target, current, etc, err, extra){
 
   if(getRversion() < "3.2.0") {
     # nocov start
-    match.call(
+    str.match <- match.call(
       str_tpl,
       call=as.call(c(list(quote(str), object=NULL), dots))
     )
