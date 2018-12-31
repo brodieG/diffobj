@@ -168,6 +168,7 @@ wtr_help <- function(x, pat) {
       !match.valid & seq_along(match.valid) > 1L &
       seq_along(match.valid) != length(match.valid)
     )
+    res <- integer(0L)
     if(
       !length(interstitial) || (
         length(interstitial) &&
@@ -198,10 +199,9 @@ wtr_help <- function(x, pat) {
         vapply(head.ranges, function(x) all(diff(x) == 1L), logical(1L))
 
       if(all.identical && all.one.apart && head.ranges[[1L]][1L] == 1L) {
-        unlist(ranges)
-      } else integer(0L)
-    } else integer(0L)
-  } else integer(0L)
+        res <- unlist(ranges)
+  } } }
+  res
 }
 which_table_rh <- function(x) {
   stopifnot(is.character(x), !anyNA(x))
@@ -277,9 +277,11 @@ which_array_rh <- function(x, dim.names.x) {
 
   m.h <- lapply(dat, which_matrix_rh, head(dim.names.x, 2L))
 
+  res <- integer(0L)
   if(length(m.h) && all(vapply(m.h, identical, logical(1L), m.h[[1L]]))) {
-    unlist(Map(function(y, z) attr(y, "idx")[z], dat, m.h))
-  } else integer(0L)
+    res <- unlist(Map(function(y, z) attr(y, "idx")[z], dat, m.h))
+  }
+  res
 }
 strip_array_rh <- function(x, dim.names.x) {
   inds <- which_array_rh(x, dim.names.x)
