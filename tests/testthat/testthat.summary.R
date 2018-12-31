@@ -5,6 +5,8 @@ if(!identical(basename(getwd()), "testthat"))
 
 rdsf <- function(x)
   file.path(getwd(), "helper", "summary", sprintf("%s.rds", x))
+txtf <- function(x)
+  file.path(getwd(), "helper", "summary", sprintf("%s.txt", x))
 
 # Note, atomic prints happen in different test file
 
@@ -69,4 +71,14 @@ test_that("HTML summary", {
     ) ) ),
     rdsf(900)
   )
+})
+test_that("errors", {
+  diff <- diffChr("hello green world", "hello red world")
+  expect_error(summary(diff, max.lines=0), "strictly positive")
+  expect_error(summary(diff, width=1:3), "integer\\(1L\\)")
+  expect_error(summary(diff, scale.threshold=5), "between 0 and 1")
+})
+test_that("width wrap", {
+  diff <- diffChr("hello green world", "hello red world", format='raw')
+  expect_known_output(show(summary(diff, width=5)), txtf(100))
 })
