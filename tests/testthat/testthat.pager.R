@@ -1,6 +1,9 @@
 library(diffobj)
 context("pager")
 
+txtf <- function(x)
+  file.path(getwd(), "helper", "pager", sprintf("%s.txt", x))
+
 void <- function(x) NULL
 test_that("Specifying pager", {
   style <- gdo("diffobj.style")
@@ -261,4 +264,17 @@ test_that("file.keep", {
   ) )
   expect_false(file.exists(f))
 })
-
+test_that("basic pager", {
+  f <- tempfile()
+  on.exit(unlink(f))
+  expect_known_output(
+    show(
+      diffChr(
+        1, 2, pager=Pager(file.keep=TRUE, file.path=f, threshold=0L),
+        format='raw'
+      )
+    ),
+    txtf(100)
+  )
+  expect_equal(readLines(txtf(100)), readLines(f))
+})

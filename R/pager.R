@@ -229,14 +229,13 @@
 
 setClass(
   "Pager",
-  contains="VIRTUAL",
   slots=c(
     pager="function", file.ext="character", threshold="numeric",
     ansi="logical", file.keep="logical", file.path="character",
     make.blocking="logical"
   ),
   prototype=list(
-    file.ext="", threshold=0L,
+    pager=function(x) writeLines(readLines(x)), file.ext="", threshold=0L,
     pager=function(x) stop("Pager object does not specify a paging function."),
     ansi=FALSE, file.keep=FALSE, file.path=NA_character_, make.blocking=FALSE
   ),
@@ -256,8 +255,8 @@ setClass(
 #' @rdname Pager
 
 Pager <- function(
-  pager, file.ext="", threshold=0L, ansi=FALSE,
-  file.keep=FALSE, file.path=NA_character_, make.blocking=FALSE
+  pager=function(x) writeLines(readLines(x)), file.ext="", threshold=0L,
+  ansi=FALSE, file.keep=FALSE, file.path=NA_character_, make.blocking=FALSE
 ) {
   new(
     'Pager', pager=pager, file.ext=file.ext, threshold=threshold,
@@ -312,11 +311,11 @@ PagerSystemLess <- function(
 setMethod("initialize", "PagerSystemLess",
   function(.Object, ...) {
     dots <- list(...)
-    if("flags" %in% names(dots)) {
-      flags <- dots[['flags']]
-      if(!is.chr.1L(flags))
+    flags <- if("flags" %in% names(dots)) {
+      if(!is.chr.1L(dots[['flags']]))
         stop("Argument `flags` must be character(1L) and not NA")
-    } else flags <- .Object@flags
+      dots[['flags']]
+    } else ""
     pager.old <- dots[['pager']]
     pager <- function(x) {
       old.less <- set_less_var(flags)
