@@ -84,6 +84,20 @@ test_that("auto style selection", {
   )
   expect_is(
     diffChr(
+      letters, LETTERS, style="auto", format="auto", interactive=TRUE,
+      pager="auto", term.colors=9
+    )@etc@style,
+    "StyleAnsi8NeutralYb"
+  )
+  expect_is(
+    diffChr(
+      letters, LETTERS, style="auto", format="auto", interactive=TRUE,
+      pager="auto", brightness='light', term.colors=500
+    )@etc@style,
+    "StyleAnsi256LightYb"
+  )
+  expect_is(
+    diffChr(
       letters, LETTERS, style="auto", format="html", interactive=TRUE,
       pager="auto", color.mode=c("rgb", ansi8="yb")
     )@etc@style,
