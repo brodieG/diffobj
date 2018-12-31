@@ -401,13 +401,15 @@ check_args <- function(
         # nocov end
       # No recognized color alternatives, try to use HTML if we can
 
-      format <- if(!term.colors %in% c(8, 256) && !pager.could.be.ansi) {
+      format <- if(
+        term.colors < 8 && !pager.could.be.ansi
+      ) {
         if(
           interactive && (identical(pager, "on") || is(pager, "PagerBrowser"))
         ) "html" else "raw"
-      } else if (term.colors == 8) {
+      } else if (term.colors < 256) {
         "ansi8"
-      } else if (term.colors == 256) {
+      } else if (term.colors >= 256) {
         "ansi256"
       } else if (pager.could.be.ansi) {
         "raw"
