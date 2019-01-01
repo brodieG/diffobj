@@ -3,8 +3,8 @@ Type: Package
 Title: Diffs for R Objects
 Description: Generate a colorized diff of two R objects for an intuitive
     visualization of their differences.
-Version: 0.2.0
-Date: 2019-01-01
+Version: 0.2.1
+Date: 2019-01-02
 Authors@R: c(
     person(
     "Brodie", "Gaslam", email="brodie.gaslam@yahoo.com",

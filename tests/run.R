@@ -56,7 +56,7 @@ local({                                         # so we can use `on.exit`
         "pager",
         "rdiff",
         "s4",
-        "ses",
+        "ses",     # run this file only for valgrind
         "style",
         "subset",
         "summary",

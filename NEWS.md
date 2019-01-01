@@ -1,6 +1,6 @@
 # diffobj
 
-## v0.2.0
+## v0.2.0-1
 
 * [#129](https://github.com/brodieG/diffobj/issues/129): Allow pager
   specification via lists rather than full `Pager` objects for easier changes to
