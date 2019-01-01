@@ -88,7 +88,8 @@ setMethod("finalizeHtml", c("ANY"),
     } else if (html.output == "diff.only") {
       css <- ""
       tpl <- "%s%s"
-    } else stop("Logic Error: unexpected html.output; contact maintainer.")
+    } else
+      stop("Internal Error: unexpected html.output; contact maintainer.")# nocov
     sprintf(tpl, css, paste0(x.chr, collapse=""))
   }
 )

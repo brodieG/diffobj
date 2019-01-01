@@ -15,9 +15,9 @@
 \alias{PagerSystemLess}
 \title{Objects for Specifying Pager Settings}
 \usage{
-Pager(pager, file.ext = "", threshold = 0L, ansi = FALSE,
-  file.keep = FALSE, file.path = NA_character_,
-  make.blocking = FALSE)
+Pager(pager = function(x) writeLines(readLines(x)), file.ext = "",
+  threshold = 0L, ansi = FALSE, file.keep = FALSE,
+  file.path = NA_character_, make.blocking = FALSE)
 
 PagerOff(...)
 

@@ -376,7 +376,7 @@ setMethod("as.character", "Diff",
 
     trim.meta <- attr(hunk.grps, "meta")
     if(is.null(trim.meta))
-      stop("Logic error: missing trim meta data, contact maintainer")
+      stop("Internal error: missing trim meta data, contact maintainer") # nocov
 
     lim.line <- trim.meta$lines
     lim.hunk <- trim.meta$hunks
@@ -393,7 +393,7 @@ setMethod("as.character", "Diff",
       if(!is.null(str.fold.out)) {
         # nocov start
         stop(
-          "Logic Error: should not be str folding when limited; contact ",
+          "Internal Error: should not be str folding when limited; contact ",
           "maintainer."
         )
         # nocov end

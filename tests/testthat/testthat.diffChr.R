@@ -95,6 +95,9 @@ test_that("SGR", {
   expect_known_output(show(diff), txtf(200))
   expect_known_output(show(diffChr(a, b, strip.sgr=FALSE)), txtf(300))
   expect_known_output(show(diffChr(a, b, format='raw')), txtf(400))
+
+  expect_error(diffChr(a, b, strip.sgr=1:3), "TRUE, FALSE, or NULL")
+  expect_error(diffChr(a, b, sgr.supported=1:3), "TRUE, FALSE, or NULL")
 })
 test_that("Alignment", {
   chr.7 <- c("a b c d e", "F G h i j k", "xxx", "yyy", "k l m n o")

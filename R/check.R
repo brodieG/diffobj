@@ -405,14 +405,14 @@ check_args <- function(
         term.colors < 8 && !pager.could.be.ansi
       ) {
         if(
-          interactive && (identical(pager, "on") || is(pager, "PagerBrowser"))
+          (interactive && identical(pager, "on")) || is(pager, "PagerBrowser")
         ) "html" else "raw"
       } else if (term.colors < 256) {
         "ansi8"
       } else if (term.colors >= 256) {
         "ansi256"
       } else if (pager.could.be.ansi) {
-        "raw"
+        if(!pager@threshold) "ansi8" else "raw"
       } else stop("Logic error: unhandled format; contact maintainer.") # nocov
     }
     style <- palette.of.styles[[

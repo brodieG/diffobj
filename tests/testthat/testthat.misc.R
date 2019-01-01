@@ -119,3 +119,9 @@ test_that("Gutters", {
   etc@style@funs@gutter <- function(x) stop("bad gutters")
   expect_error(diffobj:::gutter_dat(etc), "Failed attempting to apply gutter.")
 })
+test_that("Finalizer error handling", {
+  expect_error(finalizeHtml(letters, NULL), "must be character")
+  expect_error(
+    finalizeHtml(letters, letters, letters), "must be character\\(1L"
+  )
+})

@@ -278,3 +278,25 @@ test_that("basic pager", {
   )
   expect_equal(readLines(txtf(100)), readLines(f))
 })
+test_that("format-pager interaction", {
+  old.opt <- options(crayon.colors=7)
+  crayon::num_colors(TRUE)
+  on.exit({
+    options(old.opt)
+    crayon::num_colors(TRUE)
+  })
+  expect_is(
+    diffChr(1, 2, format='auto', pager="on", interactive=TRUE)@etc@style,
+    "StyleHtml"
+  )
+  expect_is(
+    diffChr(1, 2, format='auto', pager="on", interactive=FALSE)@etc@style, 
+    "StyleRaw"
+  )
+  expect_is(
+    diffChr(
+      1, 2, format='auto', pager=PagerBrowser(), interactive=FALSE
+    )@etc@style,
+    "StyleHtml"
+  )
+})
