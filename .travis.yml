@@ -1,6 +1,5 @@
 env:
-  - NOT_CRAN=TRUE
-  - _R_CHECK_LENGTH_1_LOGIC2_=TRUE
+  - NOT_CRAN=TRUE _R_CHECK_LENGTH_1_LOGIC2_=TRUE
 
 language: r
 
