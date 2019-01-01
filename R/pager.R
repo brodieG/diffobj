@@ -137,8 +137,7 @@
 #'   of the pager; negative values lead to using
 #'   \code{\link{console_lines} + 1}, and zero leads to always using the pager
 #'   irrespective of how many lines the output has.
-#' @param ansi TRUE or FALSE, whether the pager supports ANSI escape
-#'   sequences.
+#' @param ansi TRUE or FALSE, whether the pager supports ANSI CSI SGR sequences.
 #' @param flags character(1L), only for \code{PagerSystemLess}, what flags to
 #'   set with the \code{LESS} system environment variable.  By default the
 #'   \dQuote{R} flag is set to ensure ANSI escape sequences are interpreted if
@@ -184,6 +183,7 @@
 #'   1:200, 180:300, format='html', pager=list(file.keep=TRUE, file.path=f)
 #' )
 #' head(readLines(f))
+#' unlink(f)
 #'
 #' ## Assuming system pager is `less` and terminal supports ANSI ESC sequences
 #' ## Equivalent to running `less -RFX`

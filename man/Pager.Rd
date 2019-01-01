@@ -52,8 +52,7 @@ of the pager; negative values lead to using
 \code{\link{console_lines} + 1}, and zero leads to always using the pager
 irrespective of how many lines the output has.}
 
-\item{ansi}{TRUE or FALSE, whether the pager supports ANSI escape
-sequences.}
+\item{ansi}{TRUE or FALSE, whether the pager supports ANSI CSI SGR sequences.}
 
 \item{file.keep}{TRUE or FALSE (default), whether to keep the temporary
 file the diff is written to.  Normally it is deleted right after the pager
@@ -209,6 +208,7 @@ diffChr(
   1:200, 180:300, format='html', pager=list(file.keep=TRUE, file.path=f)
 )
 head(readLines(f))
+unlink(f)
 
 ## Assuming system pager is `less` and terminal supports ANSI ESC sequences
 ## Equivalent to running `less -RFX`

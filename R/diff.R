@@ -233,23 +233,38 @@ make_diff_fun <- function(capt_fun) {
 #'   setting this to FALSE can substantially improve performance.
 #' @param pager one of \dQuote{auto} (default), \dQuote{on},
 #'   \dQuote{off}, a \code{\link{Pager}} object, or a list; controls whether and
-#'   how a pager is used to display the diff output.  If \dQuote{on} or
-#'   \dQuote{auto} \emph{and} in interactive mode, will use the pager associated
-#'   with the \code{\link{Style}} specified via the \code{\link{style}}
-#'   parameters.  Under \dQuote{auto}, the default, the pager will activate if
-#'   in interactive mode and if either the R console does not support ANSI
-#'   colors, or if the output of the \code{diff*} methods would be taller than
-#'   one screen.  If the system pager is not known to support ANSI colors then
-#'   we will try to display the output in HTML with the IDE viewer if available
-#'   or with the web browser if not.  If a \code{pager} is a \code{\link{Pager}}
-#'   object, the output will be paged as per that object's configuration.  If a
-#'   list, then the same as with \dQuote{on}, except that the \code{Pager}
-#'   object associated with the selected \code{Style} object is re-instantiated
-#'   with the union of the list elements and the existing settings of that
-#'   \code{Pager}.  The list should contain named elements that correspond to
-#'   the \code{\link{Pager}} instantiation parameters.  The names must be
-#'   specified in full as partial matching will not be carried out.  See
-#'   \code{\link{Pager}}, \code{\link{view_or_browse}}, \code{\link{Style}}, and
+#'   how a pager is used to display the diff output.  If you require a
+#'   particular pager behavior you must use a \code{\link{Pager}}
+#'   object, or \dQuote{off} to turn off the pager.  All other settings will
+#'   interact with other parameters such as \code{format}, \code{style}, as well
+#'   as with your system capabilities, and attempt to select the most useful
+#'   pager.
+#'
+#'   \dQuote{auto} and \dQuote{on} are the same, except that in non-interactive
+#'   mode \dQuote{auto} is equivalent to \dQuote{off}.  \dQuote{off} will always
+#'   send output to the console.  If \dQuote{on}, whether the output
+#'   actually gets routed to the pager depends on the pager \code{threshold}
+#'   setting (see \code{\link{Pager}}).  The default behavior is to use the
+#'   pager associated with the \code{Style} object.  The \code{Style} object is
+#'   itself is determined by the \code{format} or \code{style} parameters.
+#'
+#'   Depending on your system configuration different styles and corresponding
+#'   pagers will get selected, unless you specify a \code{Pager} object
+#'   directly.  On a system with a system pager that supports ANSI CSI SGR
+#'   colors, the pager will only trigger if the output is taller than one
+#'   window.  If the system pager is not known to support ANSI colors then the
+#'   output will be sent as HTML to  the IDE viewer if available or to the web
+#'   browser if not.
+#'
+#'   If \code{pager} is a list, then the same as with \dQuote{on}, except that
+#'   the \code{Pager} object associated with the selected \code{Style} object is
+#'   re-instantiated with the union of the list elements and the existing
+#'   settings of that \code{Pager}.  The list should contain named elements that
+#'   correspond to the \code{\link{Pager}} instantiation parameters.  The names
+#'   must be specified in full as partial parameter matching will not be carried
+#'   out because the pager will be instantiated with \code{\link{new}}.
+#'
+#'   See \code{\link{Pager}}, \code{\link{Style}}, and
 #'   \code{\link{PaletteOfStyles}} for more details and for instructions on how
 #'   to modify the default behavior.
 #' @param guides TRUE (default), FALSE, or a function that accepts at least two
