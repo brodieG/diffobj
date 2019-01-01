@@ -142,6 +142,8 @@ wtr_help <- function(x, pat) {
   # It must be the case that the first block of matches occurs after non-matches
   # since the first header should happen first
 
+  res <- integer(0L)
+
   if(
     any(w.pat.rle$values) && length(w.pat.rle$values) > 1L &&
     w.pat.rle$values[2L]
@@ -168,7 +170,6 @@ wtr_help <- function(x, pat) {
       !match.valid & seq_along(match.valid) > 1L &
       seq_along(match.valid) != length(match.valid)
     )
-    res <- integer(0L)
     if(
       !length(interstitial) || (
         length(interstitial) &&
