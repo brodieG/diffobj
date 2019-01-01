@@ -27,7 +27,7 @@ check_limit <- function(limit) {
     !is.numeric(limit) || any(is.na(limit)) ||
     !length(limit) %in% 1:2 ||
     !is.finite(limit) ||
-    round(limit) != limit ||
+    any(round(limit) != limit) ||
     (length(limit) == 2L && diff(limit) > 0)
   ) {
     return(
@@ -52,7 +52,7 @@ is.int.1L <- function(x)
   is.finite(x)
 
 is.int.2L <- function(x)
-  is.numeric(x) && length(x) == 2L && !anyNA(x) && x ==  round(x) &&
+  is.numeric(x) && length(x) == 2L && !anyNA(x) && all(x ==  round(x)) &&
   is.finite(x)
 
 is.TF <- function(x) isTRUE(x) || identical(x, FALSE)

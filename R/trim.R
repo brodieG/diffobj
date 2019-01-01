@@ -195,9 +195,9 @@ wtr_help <- function(x, pat) {
       head.ranges <- lapply(ranges, function(x) heads.num[x])
 
       all.identical <-
-        vapply(head.ranges, identical, logical(1L), head.ranges[[1L]])
+        all(vapply(head.ranges, identical, logical(1L), head.ranges[[1L]]))
       all.one.apart <-
-        vapply(head.ranges, function(x) all(diff(x) == 1L), logical(1L))
+        all(vapply(head.ranges, function(x) all(diff(x) == 1L), logical(1L)))
 
       if(all.identical && all.one.apart && head.ranges[[1L]][1L] == 1L) {
         res <- unlist(ranges)
