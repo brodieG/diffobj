@@ -26,7 +26,7 @@ check_limit <- function(limit) {
   if(
     !is.numeric(limit) || any(is.na(limit)) ||
     !length(limit) %in% 1:2 ||
-    !is.finite(limit) ||
+    !all(is.finite(limit)) ||
     any(round(limit) != limit) ||
     (length(limit) == 2L && diff(limit) > 0)
   ) {
