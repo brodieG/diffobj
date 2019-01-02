@@ -48,11 +48,11 @@ string_in <- function(x, valid.x) is.chr.1L(x) && x %in% valid.x
 # Simple validation functions
 
 is.int.1L <- function(x)
-  is.numeric(x) && length(x) == 1L && !is.na(x) && x ==  round(x) &&
+  is.numeric(x) && length(x) == 1L && !is.na(x) && all(x == round(x)) &&
   is.finite(x)
 
 is.int.2L <- function(x)
-  is.numeric(x) && length(x) == 2L && !anyNA(x) && all(x ==  round(x)) &&
+  is.numeric(x) && length(x) == 2L && !anyNA(x) && all(x == round(x)) &&
   is.finite(x)
 
 is.TF <- function(x) isTRUE(x) || identical(x, FALSE)
