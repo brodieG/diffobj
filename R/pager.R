@@ -16,11 +16,12 @@
 
 #' Objects for Specifying Pager Settings
 #'
-#' Modify use of pager behavior with pager configuration objects to use as the
-#' \code{pager} argument to the \code{\link[=diffPrint]{diff*}} methods or as
-#' the \code{pager} slot for \code{\link{Style}} objects.  Note that in this
-#' documentation we use the \dQuote{pager} term loosely and intend it to refer
-#' to any device other than the terminal that can be used to render output.
+#' Initializers for pager configuration objects that modify pager behavior.
+#' These objects can be used as the \code{pager} argument to the
+#' \code{\link[=diffPrint]{diff*}} methods, or as the \code{pager} slot for
+#' \code{\link{Style}} objects.  In this documentation we use the \dQuote{pager}
+#' term loosely and intend it to refer to any device other than the terminal
+#' that can be used to render output.
 #'
 #' @section Default Output Behavior:
 #'
@@ -70,6 +71,8 @@
 #' Several pre-defined pager configuration objects are available via
 #' constructor functions:
 #' \itemize{
+#'   \item \code{Pager}: Generic pager just outputs directly to terminal; not
+#'     useful unless the default parameters are modified.
 #'   \item \code{PagerOff}: Turn off pager
 #'   \item \code{PagerSystem}: Use the system pager as invoked by
 #'      \code{\link{file.show}}
@@ -104,16 +107,17 @@
 #' Alternatively you can start with an existing \code{Pager} object and change
 #' the defaults.  Both these cases are covered in the examples.
 #'
-#' You can change what system pager is used by changing it with
-#' \code{options(pager=...)} or by changing the \code{$PAGER} environment
+#' You can change what system pager is used by \code{PagerSystem} by changing it
+#' with \code{options(pager=...)} or by changing the \code{$PAGER} environment
 #' variable.  You can also explicitly set a function to act as the pager when
 #' you instantiate the \code{Pager} configuration object (see examples).
 #'
 #' If you wish to define your own pager object you should do so by extending the
-#' \code{Pager} class.  If the function you use to handle the actual paging is
-#' non-blocking (i.e. allows R code evaluation to continue after it is spawned,
-#' you should set the \code{make.blocking} parameter to TRUE to pause execution
-#' prior to deleting the temporary file that contains the diff.
+#' any of the \code{Pager} classes.  If the function you use to handle the
+#' actual paging is non-blocking (i.e. allows R code evaluation to continue
+#' after it is spawned, you should set the \code{make.blocking} parameter to
+#' TRUE to pause execution prior to deleting the temporary file that contains
+#' the diff.
 #'
 #' @param pager a function that accepts at least one parameter and does not
 #'   require a parameter other than the first parameter.  This function will be

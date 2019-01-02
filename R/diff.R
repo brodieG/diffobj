@@ -237,8 +237,8 @@ make_diff_fun <- function(capt_fun) {
 #'   particular pager behavior you must use a \code{\link{Pager}}
 #'   object, or \dQuote{off} to turn off the pager.  All other settings will
 #'   interact with other parameters such as \code{format}, \code{style}, as well
-#'   as with your system capabilities, and attempt to select the most useful
-#'   pager.
+#'   as with your system capabilities in order to select the pager expected to
+#'   be most useful.
 #'
 #'   \dQuote{auto} and \dQuote{on} are the same, except that in non-interactive
 #'   mode \dQuote{auto} is equivalent to \dQuote{off}.  \dQuote{off} will always
@@ -262,7 +262,7 @@ make_diff_fun <- function(capt_fun) {
 #'   settings of that \code{Pager}.  The list should contain named elements that
 #'   correspond to the \code{\link{Pager}} instantiation parameters.  The names
 #'   must be specified in full as partial parameter matching will not be carried
-#'   out because the pager will be instantiated with \code{\link{new}}.
+#'   out because the pager is re-instantiated with \code{\link{new}}.
 #'
 #'   See \code{\link{Pager}}, \code{\link{Style}}, and
 #'   \code{\link{PaletteOfStyles}} for more details and for instructions on how
