@@ -53,7 +53,7 @@ is.int.1L <- function(x)
 
 is.int.2L <- function(x)
   is.numeric(x) && length(x) == 2L && !anyNA(x) && all(x == round(x)) &&
-  is.finite(x)
+  all(is.finite(x))
 
 is.TF <- function(x) isTRUE(x) || identical(x, FALSE)
 
