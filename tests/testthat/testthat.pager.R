@@ -314,3 +314,39 @@ test_that("format-pager interaction", {
     "StyleHtml"
   )
 })
+test_that("format-pager interaction 2", {
+  old.rs <- Sys.getenv('RSTUDIO', unset=NA)
+  old.rsterm <- Sys.getenv('RSTUDIO_TERM', unset=NA)
+  on.exit({
+    if(is.na(old.rs)) {
+      Sys.unsetenv('RSTUDIO')
+    } else Sys.setenv('RSTUDIO'=old.rs)
+
+    if(is.na(old.rsterm)) {
+      Sys.unsetenv('RSTUDIO_TERM')
+    } else Sys.setenv('RSTUDIO_TERM'=old.rsterm)
+  })
+  Sys.unsetenv('RSTUDIO')
+  Sys.unsetenv('RSTUDIO_TERM')
+  old.opt <- options(crayon.colors=8)
+  crayon::num_colors(TRUE)
+  on.exit({options(old.opt); crayon::num_colors(TRUE)}, add=TRUE)
+
+  Sys.setenv(RSTUDIO='1')
+
+  expect_is(
+    diffChr(1, 2, format='auto', pager='on', interactive=TRUE)@etc@style,
+    "StyleHtml"
+  )
+  expect_is(
+    diffChr(1, 2, format='auto', interactive=FALSE)@etc@style,
+    "StyleAnsi"
+  )
+  Sys.setenv(RSTUDIO_TERM='HELLO')
+  crayon::num_colors(TRUE)
+
+  expect_is(
+    diffChr(1, 2, format='auto', pager='on', interactive=TRUE)@etc@style,
+    "StyleAnsi"
+  )
+})

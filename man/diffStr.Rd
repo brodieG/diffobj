@@ -122,8 +122,11 @@ setting this to FALSE can substantially improve performance.}
   directly.  On a system with a system pager that supports ANSI CSI SGR
   colors, the pager will only trigger if the output is taller than one
   window.  If the system pager is not known to support ANSI colors then the
-  output will be sent as HTML to  the IDE viewer if available or to the web
-  browser if not.
+  output will be sent as HTML to the IDE viewer if available or to the web
+  browser if not.  Even though Rstudio now supports ANSI CSI SGR at the
+  console output is still formatted as HTML and sent to the IDE viewer.
+  Partly this is for continuity of behavior, but also because the default
+  Rstudio pager does not support ANSI CSI SGR, at least as of this writing.
 
   If \code{pager} is a list, then the same as with \dQuote{on}, except that
   the \code{Pager} object associated with the selected \code{Style} object is

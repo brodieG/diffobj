@@ -402,6 +402,11 @@ check_args <- function(
       # No recognized color alternatives, try to use HTML if we can
 
       format <- if(
+        nzchar(Sys.getenv('RSTUDIO')) && !nzchar(Sys.getenv('RSTUDIO_TERM')) &&
+        interactive
+      ) {
+        "html"
+      } else if(
         term.colors < 8 && !pager.could.be.ansi
       ) {
         if(

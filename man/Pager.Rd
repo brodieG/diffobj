@@ -83,7 +83,7 @@ specify this slot via the constructor as in the example.  If you set the
 slot directly it will not have any effect.}
 }
 \description{
-Initializers fore pager configuration objects that modify pager behavior.
+Initializers for pager configuration objects that modify pager behavior.
 These objects can be used as the \code{pager} argument to the
 \code{\link[=diffPrint]{diff*}} methods, or as the \code{pager} slot for
 \code{\link{Style}} objects.  In this documentation we use the \dQuote{pager}
