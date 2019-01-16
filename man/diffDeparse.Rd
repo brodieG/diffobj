@@ -58,8 +58,8 @@ calculation.}
 \itemize{
   \item \dQuote{auto}: to select output format based on terminal
     capabilities; will attempt to use one of the ANSI formats if they
-    appear to be supported, and if not will attempt to use HTML and
-    browser output if in interactive mode.
+    appear to be supported, and if not or if you are in the Rstudio console
+    it will attempt to use HTML and browser output if in interactive mode.
   \item \dQuote{raw}: plain text
   \item \dQuote{ansi8}: color and format diffs using basic ANSI escape
     sequences
@@ -70,7 +70,8 @@ calculation.}
     web page (see docs for \code{html.output} under \code{\link{Style}}).
 }
 Defaults to \dQuote{auto}.  See \code{palette.of.styles} for details
-on customization, \code{\link{style}} for full control of output format.}
+on customization, \code{\link{style}} for full control of output format.
+See `pager` parameter for more discussion of Rstudio behavior.}
 
 \item{brightness}{character, one of \dQuote{light}, \dQuote{dark},
 \dQuote{neutral}, useful for adjusting color scheme to light or dark
