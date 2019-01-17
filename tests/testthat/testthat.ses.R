@@ -1,9 +1,6 @@
 context("ses")
 
-# These tests are intended to be run under valgrind so we can make sure there
-# are no compiled code issues.  It's basically impossible to run the full test
-# suite under valgrind because there are lots of false positives from the PCRE
-# library.
+# Any tests added here should also be added to the valgrind test file
 
 test_that("basic", {
   expect_equal(ses(letters[1:10], letters[1:10]), character())
