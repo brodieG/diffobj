@@ -350,3 +350,13 @@ test_that("format-pager interaction 2", {
     "StyleAnsi"
   )
 })
+test_that("format-pager interaction 3", {
+  expect_is(
+    diffPrint(1:3, 3:1, format='auto', interactive=FALSE, term.colors=1)@etc@style,
+    "StyleRaw"
+  )
+  expect_is(
+    diffPrint(1:3, 3:1, format='auto', interactive=FALSE, term.colors=8)@etc@style,
+    "StyleAnsi"
+  )
+})

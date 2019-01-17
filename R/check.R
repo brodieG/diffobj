@@ -407,17 +407,19 @@ check_args <- function(
       ) {
         "html"
       } else if(
-        term.colors < 8 && !pager.could.be.ansi
+        term.colors < 8
       ) {
-        if(
-          (interactive && identical(pager, "on")) || is(pager, "PagerBrowser")
-        ) "html" else "raw"
+        if(!pager.could.be.ansi) {
+          if(
+            (interactive && identical(pager, "on")) || is(pager, "PagerBrowser")
+          ) "html" else "raw"
+        } else {
+          if(!pager@threshold) "ansi8" else "raw"
+        }
       } else if (term.colors < 256) {
         "ansi8"
       } else if (term.colors >= 256) {
         "ansi256"
-      } else if (pager.could.be.ansi) {
-        if(!pager@threshold) "ansi8" else "raw"
       } else stop("Logic error: unhandled format; contact maintainer.") # nocov
     }
     style <- palette.of.styles[[

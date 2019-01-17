@@ -281,10 +281,7 @@ Pager <- function(
 #' @export
 #' @rdname Pager
 
-setClass(
-  "PagerOff", contains="Pager",
-  prototype=list(ansi=TRUE)    # pager off shouldn't prevent ANSI use
-)
+setClass("PagerOff", contains="Pager")
 
 #' @export
 #' @rdname Pager
