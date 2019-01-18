@@ -13,7 +13,6 @@
 \alias{guidesStr,ANY,character-method}
 \alias{guidesChr}
 \alias{guidesChr,ANY,character-method}
-\alias{guidesDeparse}
 \alias{guidesDeparse,ANY,character-method}
 \alias{guidesFile}
 \alias{guidesFile,ANY,character-method}

@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Brodie Gaslam
+# Copyright (C) 2019 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -57,7 +57,7 @@ capt_print <- function(target, current, etc, err, extra){
   if(getRversion() >= "3.2.0") {
     print.match <- try(
       match.call(
-        get("print", envir=etc@frame),
+        get("print", envir=etc@frame, mode='function'),
         as.call(c(list(quote(print), x=NULL), dots)),
         envir=etc@frame
     ) )
@@ -124,22 +124,17 @@ capt_str <- function(target, current, etc, err, extra){
 
   if(getRversion() < "3.2.0") {
     # nocov start
-    str.match <- try(
-      match.call(
-        str_tpl,
-        call=as.call(c(list(quote(str), object=NULL), dots))
-    ) )
+    str.match <- match.call(
+      str_tpl,
+      call=as.call(c(list(quote(str), object=NULL), dots))
+    )
     # nocov end
   } else {
-    str.match <- try(
-      match.call(
-        str_tpl,
-        call=as.call(c(list(quote(str), object=NULL), dots)), envir=etc@frame
-    ) )
+    str.match <- match.call(
+      str_tpl,
+      call=as.call(c(list(quote(str), object=NULL), dots)), envir=etc@frame
+    )
   }
-  if(inherits(str.match, "try-error"))
-    err("Unable to compose `str` call")
-
   names(str.match)[[2L]] <- ""
 
   # Handle auto mode (side by side always for `str`)
@@ -234,10 +229,12 @@ capt_str <- function(target, current, etc, err, extra){
   if(!max.level.supplied) {
     repeat{
       if((safety <- safety + 1L) > max.depth && !first.loop)
+        # nocov start
         stop(
           "Logic Error: exceeded list depth when comparing structures; contact ",
           "maintainer."
         )
+        # nocov end
       if(!first.loop) {
         tar.str <- tar.capt[tar.lvls <= lvl]
         cur.str <- cur.capt[cur.lvls <= lvl]
@@ -381,11 +378,11 @@ capt_csv <- function(target, current, etc, err, extra){
   tar.df <- try(do.call(read.csv, c(list(target), extra), quote=TRUE))
   if(inherits(tar.df, "try-error")) err("Unable to read `target` file.")
   if(!is.data.frame(tar.df))
-    err("`target` file did not produce a data frame when read")
+    err("`target` file did not produce a data frame when read")   # nocov
   cur.df <- try(do.call(read.csv, c(list(current), extra), quote=TRUE))
   if(inherits(cur.df, "try-error")) err("Unable to read `current` file.")
   if(!is.data.frame(cur.df))
-    err("`current` file did not produce a data frame when read")
+    err("`current` file did not produce a data frame when read")  # nocov
 
   capt_print(tar.df, cur.df, etc, err, extra)
 }
@@ -394,11 +391,14 @@ capt_csv <- function(target, current, etc, err, extra){
 
 set_mode <- function(etc, tar.capt, cur.capt) {
   stopifnot(is(etc, "Settings"), is.character(tar.capt), is.character(cur.capt))
-  nc_fun <- etc@style@nchar.fun
   if(etc@mode == "auto") {
     if(
-      any(nc_fun(cur.capt) > etc@text.width.half) ||
-      any(nc_fun(tar.capt) > etc@text.width.half)
+      any(
+        nchar2(cur.capt, sgr.supported=etc@sgr.supported) > etc@text.width.half
+      ) ||
+      any(
+        nchar2(tar.capt, sgr.supported=etc@sgr.supported) > etc@text.width.half
+      )
     ) {
       etc@mode <- "unified"
   } }

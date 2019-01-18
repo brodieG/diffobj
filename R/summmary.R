@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Brodie Gaslam
+# Copyright (C) 2019 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -109,7 +109,8 @@ setMethod("finalizeHtml", c("DiffSummary"),
 #' )
 setMethod("as.character", "DiffSummary",
   function(x, ...) {
-    style <- x@etc@style
+    etc <- x@etc
+    style <- etc@style
     hunks <- sum(!x@diffs["match", ])
     res <- c(apply(x@diffs, 1L, sum))
     scale.threshold <- x@scale.threshold
@@ -129,23 +130,36 @@ setMethod("as.character", "DiffSummary",
           "Objects are `all.equal`"
       } )
     } else {
+      pad <- 2L
+      width <- x@width - pad
+
       head <- paste0(
-        sprintf(
-          "Found differences in %d hunk%s:", hunks, if(hunks != 1L) "s" else ""
+        paste0(
+          strwrap(
+            sprintf(
+              "Found differences in %d hunk%s:", hunks, if(hunks != 1L) "s" else ""
+            ),
+            width=width
+          ),
+          collapse=style@text@line.break
         ),
         style@summary@detail(
-          sprintf(
-            "%d insertion%s, %d deletion%s, %d match%s (lines)",
-            res[["add"]], if(res[["add"]] == 1L) "" else "s",
-            res[["delete"]], if(res[["delete"]] == 1L) "" else "s",
-            res[["match"]], if(res[["match"]] == 1L) "" else "es"
-        ) ),
+          paste0(
+            strwrap(
+              sprintf(
+                "%d insertion%s, %d deletion%s, %d match%s (lines)",
+                res[["add"]], if(res[["add"]] == 1L) "" else "s",
+                res[["delete"]], if(res[["delete"]] == 1L) "" else "s",
+                res[["match"]], if(res[["match"]] == 1L) "" else "es"
+              ),
+              width=width
+            ),
+          collapse=style@text@line.break
+          )
+        ),
         collapse=""
       )
       # Compute character screen display
-
-      pad <- 2L
-      width <- x@width - pad
 
       max.chars <- x@max.lines * width
       diffs <- x@diffs
@@ -255,14 +269,15 @@ setMethod("as.character", "DiffSummary",
       # Trim text down to what is displayable in the allowed lines
 
       txt <- do.call(paste0, as.list(c(diffs.txt)))
-      txt <- substr(txt, 1, max.chars)
-      txt.w <- unlist(if(style@wrap) wrap(txt, width) else txt)
-
+      txt <- substr2(txt, 1, max.chars, sgr.supported=etc@sgr.supported)
+      txt.w <- unlist(
+        if(style@wrap) wrap(txt, width, sgr.supported=etc@sgr.supported)
+        else txt
+      )
       # Apply ansi styles if warranted
 
       if(is(style, "StyleAnsi")) {
-        old.crayon.opt <-
-          options(crayon.enabled=is(style, "StyleAnsi"))
+        old.crayon.opt <- options(crayon.enabled=TRUE)
         on.exit(options(old.crayon.opt), add=TRUE)
       }
       s.f <- style@funs
@@ -295,8 +310,10 @@ setMethod("as.character", "DiffSummary",
       if(length(extra) && style@wrap) extra <- strwrap(extra, width=width)
       c(
         style@summary@body(
-          paste0(c(head, body), collapse=style@text@line.break)
-        ),
+          paste0(
+            c(head, body),
+            collapse=style@text@line.break
+        ) ),
         style@summary@map(c(map, extra))
       )
     }

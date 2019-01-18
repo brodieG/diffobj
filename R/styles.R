@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Brodie Gaslam
+# Copyright (C) 2019 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -216,7 +216,7 @@ StyleText <- setClass(
 #' @slot map function applied to the map portion of the summary
 
 StyleSummary <- setClass("StyleSummary",
-  slots=c(container="ANY", body="ANY", map="ANY"),
+  slots=c(container="ANY", body="ANY", map="ANY", detail="ANY"),
   prototype=list(
     container=function(x) sprintf("\n%s\n", paste0(x, collapse="")),
     body=identity,
@@ -224,7 +224,7 @@ StyleSummary <- setClass("StyleSummary",
     map=function(x) sprintf("\n%s", paste0("  ", x, collapse="\n"))
   ),
   validity=function(object) {
-    fun.slots <- c("container", "body", "map")
+    fun.slots <- c("container", "body", "map", "detail")
     for(i in fun.slots) {
       if(!isTRUE(is.one.arg.fun(slot(object, i))))
         return(
@@ -240,7 +240,7 @@ StyleSummary <- setClass("StyleSummary",
 
 StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
   prototype=list(
-    container=function(x) div_f("summary")(paste0(x, collapse="")),
+    container=function(x) div_f("diffobj-summary")(paste0(x, collapse="")),
     body=div_f("body"),
     detail=div_f("detail"),
     map=div_f("map")
@@ -395,7 +395,7 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' uses \code{@funs@container <- cont_f("light", "rgb")}.  \code{cont_f} returns
 #' a function that accepts a character vector as an argument and returns
 #' that value wrapped in a \code{DIV} block with class
-#' \dQuote{"diffobj_container light rgb"}.  This allows the CSS style sheet to
+#' \dQuote{"diffobj-container light rgb"}.  This allows the CSS style sheet to
 #' target the \code{Diff} elements with the correct styles.
 #'
 #' @section Modifying Style Parameters Directly:
@@ -428,7 +428,7 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' @param pad TRUE or FALSE, whether text should be right padded
 #' @param pager what type of \code{\link{Pager}} to use
 #' @param nchar.fun function to use to count characters; intended mostly for
-#'   internal use
+#'   internal use (used only for gutters as of version 0.2.0).
 #' @param wrap TRUE or FALSE, whether text should be hard wrapped at
 #'   \code{disp.width}
 #' @param na.sub what character value to substitute for NA elements; NA elements
@@ -535,15 +535,16 @@ Style <- setClass("Style", contains="VIRTUAL",
     na.sub="",
     blank.sub="",
     disp.width=0L,
-    nchar.fun=nchar
+    nchar.fun=nchar2  # even raw input can have SGR in it
   ),
   validity=function(object){
-    if(!isTRUE(is.one.arg.fun(object@nchar.fun))) {
-      return(paste0(
-        "Slot `nchar.fun` should be a function with at least one argument that ",
-        "doesn't require more than one argument"
-      ) )
-    }
+    # ## no longer true with nchar2 and support sgr parameter
+    # if(!isTRUE(is.one.arg.fun(object@nchar.fun))) {
+    #   return(paste0(
+    #     "Slot `nchar.fun` should be a function with at least one argument that ",
+    #     "doesn't require more than one argument"
+    #   ) )
+    # }
     if(!is.TF(object@wrap))
       return("Slot `wrap` must be TRUE or FALSE")
     if(!is.TF(object@pad))
@@ -582,7 +583,16 @@ setClass("Yb", contains="VIRTUAL")
 #' @exportClass StyleRaw
 #' @rdname Style
 
-StyleRaw <- setClass("StyleRaw", contains=c("Style", "Raw"))
+StyleRaw <- setClass(
+  "StyleRaw", contains=c("Style", "Raw")
+)
+setMethod(
+  "initialize", "StyleRaw",
+  function(.Object, ...) {
+    .Object@pager <- if(pager_is_less())
+      PagerSystemLess() else PagerSystem()
+    callNextMethod(.Object, ...)
+})
 
 #' @export StyleAnsi
 #' @exportClass StyleAnsi
@@ -592,16 +602,9 @@ StyleAnsi <- setClass(
   "StyleAnsi", contains=c("StyleRaw", "Ansi"),
   prototype=list(
     funs=StyleFunsAnsi(),
-    nchar.fun=crayon::col_nchar
+    nchar.fun=nchar2
   )
 )
-setMethod(
-  "initialize", "StyleAnsi",
-  function(.Object, ...) {
-    .Object@pager <- if(pager_is_less())
-      PagerSystemLess() else PagerSystem()
-    callNextMethod(.Object, ...)
-})
 #' @export StyleAnsi8NeutralRgb
 #' @exportClass StyleAnsi8NeutralRgb
 #' @rdname Style
@@ -878,41 +881,41 @@ StyleHtml <- setClass(
   prototype=list(
     funs=StyleFuns(
       container=cont_f(),
-      row=div_f("row"),
+      row=div_f("diffobj-row"),
       banner.insert=div_f("insert"),
       banner.delete=div_f("delete"),
-      banner=div_f("line banner"),
+      banner=div_f("diffobj-line banner"),
       line.insert=div_f("insert"),
       line.delete=div_f("delete"),
-      line.match=div_f("match"),
-      line.guide=div_f("guide"),
-      line.fill=div_f("fill"),
-      line=div_f("line"),
+      line.match=div_f("diffobj-match"),
+      line.guide=div_f("diffobj-guide"),
+      line.fill=div_f("diffobj-fill"),
+      line=div_f("diffobj-line"),
       text.insert=div_f("insert"),
       text.delete=div_f("delete"),
-      text.match=div_f("match"),
-      text.guide=div_f("guide"),
-      text.fill=div_f("fill"),
-      text=div_f("text"),
+      text.match=div_f("diffobj-match"),
+      text.guide=div_f("diffobj-guide"),
+      text.fill=div_f("diffobj-fill"),
+      text=div_f("diffobj-text"),
       gutter.insert=div_f("insert"),
       gutter.delete=div_f("delete"),
-      gutter.match=div_f("match"),
-      gutter.guide=div_f("guide"),
-      gutter.fill=div_f("fill"),
+      gutter.match=div_f("diffobj-match"),
+      gutter.guide=div_f("diffobj-guide"),
+      gutter.fill=div_f("diffobj-fill"),
       gutter.pad=div_f("pad"),
       gutter.context.sep=div_f(c("context_sep", "ctd")),
       gutter.insert.ctd=div_f(c("insert", "ctd")),
       gutter.delete.ctd=div_f(c("delete", "ctd")),
-      gutter.match.ctd=div_f(c("match", "ctd")),
-      gutter.guide.ctd=div_f(c("guide", "ctd")),
-      gutter.fill.ctd=div_f(c("fill", "ctd")),
+      gutter.match.ctd=div_f(c("diffobj-match", "ctd")),
+      gutter.guide.ctd=div_f(c("diffobj-guide", "ctd")),
+      gutter.fill.ctd=div_f(c("diffobj-fill", "ctd")),
       gutter.context.sep.ctd=div_f(c("context_sep", "ctd")),
-      gutter=div_f("gutter"),
+      gutter=div_f("diffobj-gutter"),
       context.sep=div_f("context_sep"),
-      word.insert=span_f(c("word", "insert")),
-      word.delete=span_f(c("word", "delete")),
-      trim=span_f("trim"),
-      header=div_f(c("header"))
+      word.insert=span_f(c("diffobj-word", "insert")),
+      word.delete=span_f(c("diffobj-word", "delete")),
+      trim=span_f("diffobj-trim"),
+      header=div_f(c("diffobj-header"))
     ),
     text=StyleText(
       gutter.insert="&gt;",
@@ -925,7 +928,7 @@ StyleHtml <- setClass(
     pager=PagerBrowser(),
     wrap=FALSE,
     pad=FALSE,
-    nchar.fun=nchar_html,
+    nchar.fun=nchar_html,  # only used in gutter
     escape.html.entities=TRUE,
     na.sub="&nbsp;",
     blank.sub="&nbsp;",
@@ -1319,14 +1322,15 @@ setMethod("show", "Style",
     d.p <- diffPrint(
       .mx1, .mx2, context=1, line.limit=7L,
       style=object, pager=PagerOff(),
-      tar.banner="diffobj:::.mx1", cur.banner="diffobj:::.mx2"
+      tar.banner="diffobj:::.mx1", cur.banner="diffobj:::.mx2",
+      sgr.supported=if(is(object, "Ansi")) TRUE
     )
     d.txt <- capture.output(show(d.p))
     if(is(object, "Ansi")) {
-      old.crayon.opt <- options(crayon.enabled=TRUE)
-      on.exit(options(old.crayon.opt), add=TRUE)
-      pad.width <- max(object@nchar.fun(d.txt))
-      d.txt <- rpad(d.txt, width=pad.width)
+      old.opt <- options(crayon.enabled=TRUE)
+      on.exit(options(old.opt))
+      pad.width <- max(nchar2(d.txt, sgr.supported=TRUE))
+      d.txt <- rpad(d.txt, width=pad.width, sgr.supported=TRUE)
       bgWhite <- crayon::make_style(rgb(1, 1, 1), bg=TRUE, colors=256)
       white <- crayon::make_style(rgb(1, 1, 1), colors=256)
       if(is(object, "Light")) {
@@ -1334,6 +1338,8 @@ setMethod("show", "Style",
       } else if (is(object, "Dark")) {
         d.txt <- crayon::bgBlack(white(d.txt))
       }
+      options(old.opt)
+      on.exit(NULL)
       if(is(object, "Light") || is(object, "Dark")) {
         d.txt <- c(
           d.txt, "",

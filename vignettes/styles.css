@@ -144,10 +144,10 @@ div.sourceCode pre{
   /*border-radius: 3px 3px 0px 0px;*/
 }
 div.sourceCode + pre,
-div.sourceCode + div.diffobj_container {
+div.sourceCode + div.diffobj-container {
   margin-top: -5px;
 }
-div.diffobj_container pre{
+div.diffobj-container pre.diffobj-content {
   line-height: 1.3;
 }
 /*

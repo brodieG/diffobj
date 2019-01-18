@@ -16,7 +16,6 @@
 \alias{trimChr,ANY,character-method}
 \alias{trimDeparse}
 \alias{trimDeparse,ANY,character-method}
-\alias{trimFile}
 \alias{trimFile,ANY,character-method}
 \title{Methods to Remove Unsemantic Text Prior to Diff}
 \usage{

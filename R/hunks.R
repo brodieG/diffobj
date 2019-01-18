@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Brodie Gaslam
+# Copyright (C) 2019 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -76,7 +76,7 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
           # atomic hunks may only be del/ins or match, not both
 
           if((del.len || ins.len) && mtc.len || !(del.len + ins.len + mtc.len))
-            stop("Logic Error: unexpected edit types; contact maintainer.")
+            stop("Logic Error: unknown edit types; contact maintainer.") # nocov
 
           # Figure out where previous hunk left off
 
@@ -156,10 +156,12 @@ group_hunks <- function(hunks, etc, tar.capt, cur.capt) {
 
       repeat {
         if((safety <- safety + 1L) > ctx.max)
+          # nocov start
           stop(
             "Logic Error: stuck trying to find auto-context; contact ",
             "maintainer."
           )
+          # nocov end
         if(len > line.limit[[1L]] && ctx - ctx.lo > 1L) {
           ctx.hi <- ctx
           ctx <- as.integer((ctx - ctx.lo) / 2)
@@ -193,7 +195,7 @@ group_hunks <- function(hunks, etc, tar.capt, cur.capt) {
 p_and_t_hunks <- function(hunks.raw, ctx.val, etc) {
   c.all <- process_hunks(hunks.raw, ctx.val, etc)
   hunk.limit <- etc@hunk.limit
-  if(hunk.limit[[1L]] >= 0L && length(c.all) > hunk.limit)
+  if(hunk.limit[[1L]] >= 0L && length(c.all) > hunk.limit[[1L]])
     c.all <- c.all[seq_along(hunk.limit[[2L]])]
   c.all
 }
@@ -247,9 +249,11 @@ process_hunks <- function(x, ctx.val, etc) {
   context <- ctx.val
   ctx.vec <- vapply(x, "[[", logical(1L), "context")
   if(!all(abs(diff(ctx.vec)) == 1L))
+    # nocov start
     stop(
       "Logic Error: atomic hunks not interspersing context; contact maintainer."
     )
+    # nocov end
 
   hunk.len <- length(x)
 
@@ -358,7 +362,7 @@ process_hunks <- function(x, ctx.val, etc) {
           h$tar.rng.sub,
           h$cur.rng.sub - h$cur.rng.sub[1L] + h$tar.rng.sub[1L]
       ) )
-        stop("Logic Error: unequal size context hunks; contact mainainer")
+        stop("Logic Error: unequal context hunks; contact mainainer") # nocov
 
       # since in a context hunk, everything in tar and cur is the same, so
       # we just need to recompute the `cur` guidelines relative to tar indices
@@ -403,8 +407,10 @@ hunk_len <- function(hunk.id, hunks, tar.capt, cur.capt, etc) {
   disp.width <- etc@disp.width
   mode <- etc@mode
   hunk <- hunks[[hunk.id]]
-  A.lines <- nlines(get_dat_raw(hunk$A, tar.capt, cur.capt), disp.width, mode)
-  B.lines <- nlines(get_dat_raw(hunk$B, tar.capt, cur.capt), disp.width, mode)
+  A.lines <-
+    nlines(get_dat_raw(hunk$A, tar.capt, cur.capt), disp.width, mode, etc)
+  B.lines <-
+    nlines(get_dat_raw(hunk$B, tar.capt, cur.capt), disp.width, mode, etc)
 
   # Depending on each mode, figure out how to set up the lines;
   # straightforward except for context where we need to account for the

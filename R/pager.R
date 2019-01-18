@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Brodie Gaslam
+# Copyright (C) 2019 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -16,11 +16,12 @@
 
 #' Objects for Specifying Pager Settings
 #'
-#' Modify use of pager behavior with pager configuration objects to use as the
-#' \code{pager} argument to the \code{\link[=diffPrint]{diff*}} methods or as
-#' the \code{pager} slot for \code{\link{Style}} objects.  Note that in this
-#' documentation we use the \dQuote{pager} term loosely and intend it to refer
-#' to any device other than the terminal that can be used to render output.
+#' Initializers for pager configuration objects that modify pager behavior.
+#' These objects can be used as the \code{pager} argument to the
+#' \code{\link[=diffPrint]{diff*}} methods, or as the \code{pager} slot for
+#' \code{\link{Style}} objects.  In this documentation we use the \dQuote{pager}
+#' term loosely and intend it to refer to any device other than the terminal
+#' that can be used to render output.
 #'
 #' @section Default Output Behavior:
 #'
@@ -70,6 +71,8 @@
 #' Several pre-defined pager configuration objects are available via
 #' constructor functions:
 #' \itemize{
+#'   \item \code{Pager}: Generic pager just outputs directly to terminal; not
+#'     useful unless the default parameters are modified.
 #'   \item \code{PagerOff}: Turn off pager
 #'   \item \code{PagerSystem}: Use the system pager as invoked by
 #'      \code{\link{file.show}}
@@ -81,11 +84,6 @@
 #'   \item \code{PagerBrowser}: Use \code{getOption("viewer")} if defined, or
 #'     \code{\link{browseURL}} if not
 #' }
-#' \emph{Important}: Make sure you instantiate the pager objects with the
-#' constructor functions (e.g. \code{PagerSystemLess(...)} not
-#' \code{new('PagerSystemLess', ...)} as otherwise they will not be properly
-#' configured.
-#'
 #' The default configuration for \code{PagerSystem} and \code{PagerSystemLess}
 #' leads to output being sent to the pager if it exceeds the estimated window
 #' size, whereas \code{PagerBrowser} always sends output to the pager.  This
@@ -93,8 +91,8 @@
 #'
 #' \code{PagerSystemLess}'s primary role is to correctly configure the
 #' \code{$LESS} system variable so that \code{less} renders the ANSI escape
-#' sequences as intended.  On OS X \code{more} is a faux-alias to \code{less} of
-#' sorts, except it does not appear to read the \code{$LESS} system variable.
+#' sequences as intended.  On OS X \code{more} is a faux-alias to \code{less},
+#' except it does not appear to read the \code{$LESS} system variable.
 #' Should you configure your system pager to be the \code{more} version of
 #' \code{less}, \code{\link{pager_is_less}} will be tricked into thinking you
 #' are using a \dQuote{normal} version of \code{less} and you will likely end up
@@ -104,46 +102,43 @@
 #'
 #' @section Custom Pager Configurations:
 #'
-#' In most cases the simplest way to generate new pager configurations is to
-#' start with one of the existing configuration objects.  For example, if you
-#' wanted to tell \code{diffobj} that your default system pager supports ANSI
-#' escape sequences despite not being \code{less} you could use
-#' \code{diffPrint(a, b, pager=PagerSystem(ansi=TRUE)}.
+#' In most cases the simplest way to generate new pager configurations is to use
+#' a list specification in the \code{\link[=diffPrint]{diff*}} call.
+#' Alternatively you can start with an existing \code{Pager} object and change
+#' the defaults.  Both these cases are covered in the examples.
 #'
-#' You can change what system pager is used by changing it with
-#' \code{options(pager=...} or by changing the \code{$PAGER} environment
+#' You can change what system pager is used by \code{PagerSystem} by changing it
+#' with \code{options(pager=...)} or by changing the \code{$PAGER} environment
 #' variable.  You can also explicitly set a function to act as the pager when
 #' you instantiate the \code{Pager} configuration object (see examples).
 #'
 #' If you wish to define your own pager object you should do so by extending the
-#' \code{Pager} virtual class.  At a minimum you should specify the \code{pager}
-#' slot of the object (see constructor function parameter definition).  If the
-#' function you use to handle the actual paging is non-blocking (i.e. allows R
-#' code evaluation to continue after it is spawned, you may want to wrap it in
-#' a function that pauses evaluation such as \code{\link{make_blocking}}, as
-#' otherwise the temporary file that contains the diff may be deleted before
-#' the pager has a chance to read it.
+#' any of the \code{Pager} classes.  If the function you use to handle the
+#' actual paging is non-blocking (i.e. allows R code evaluation to continue
+#' after it is spawned, you should set the \code{make.blocking} parameter to
+#' TRUE to pause execution prior to deleting the temporary file that contains
+#' the diff.
 #'
 #' @param pager a function that accepts at least one parameter and does not
 #'   require a parameter other than the first parameter.  This function will be
-#'   called with a file name passed as the first argument.  The referenced file
-#'   will contain the text of the diff.  This is a temporary file that will be
-#'   deleted as soon as the pager function completes evaluation.
+#'   called with a file path passed as the first argument.  The referenced file
+#'   will contain the text of the diff.  By default this is a temporary file that
+#'   will be deleted as soon as the pager function completes evaluation.
 #'   \code{PagerSystem} and \code{PagerSystemLess} use \code{\link{file.show}}
 #'   by default, and \code{PagerBrowser} uses
-#'   \code{make_blocking(view_or_browse)}.  Note that
-#'   \code{\link{make_blocking}} ensures that the temporary file is not deleted
-#'   before the pager can access it.
-#' @param file.ext character(1L) an extension to append to file name passed to
+#'   \code{\link{view_or_browse}} for HTML output.  For asynchronous pagers such
+#'   as \code{view_or_browse} it is important to make the pager function
+#'   blocking by setting the \code{make.blocking} parameter to TRUE, or to
+#'   specify a pager file path explicitly with \code{file.path}.
+#' @param file.ext character(1L) an extension to append to file path passed to
 #'   \code{pager}, \emph{without} the period.  For example, \code{PagerBrowser}
 #'   uses \dQuote{html} to cause \code{\link{browseURL}} to launch the web
-#'   browser.
+#'   browser.  This parameter will be overridden if \code{file.path} is used.
 #' @param threshold integer(1L) number of lines of output that triggers the use
 #'   of the pager; negative values lead to using
 #'   \code{\link{console_lines} + 1}, and zero leads to always using the pager
 #'   irrespective of how many lines the output has.
-#' @param ansi TRUE or FALSE, whether the pager supports ANSI escape
-#'   sequences.
+#' @param ansi TRUE or FALSE, whether the pager supports ANSI CSI SGR sequences.
 #' @param flags character(1L), only for \code{PagerSystemLess}, what flags to
 #'   set with the \code{LESS} system environment variable.  By default the
 #'   \dQuote{R} flag is set to ensure ANSI escape sequences are interpreted if
@@ -154,10 +149,24 @@
 #'   of the evaluation and is reset / unset afterwards. \emph{Note:} you must
 #'   specify this slot via the constructor as in the example.  If you set the
 #'   slot directly it will not have any effect.
-#' @param ... additional arguments to pass on to \code{new}, typically not used
+#' @param file.path character(1L), if not NA the diff will be written to this
+#'   location, ignoring the value of \code{file.ext}.  If NA_character_
+#'   (default), a temporary file is used and removed after the pager function
+#'   completes evaluation.  If not NA, the file is preserved.  Beware that the
+#'   file will be overwritten if it already exists.
+#' @param make.blocking TRUE, FALSE, or NA. Whether to wrap \code{pager} with
+#'   \code{\link{make_blocking}} prior to calling it.  This suspends R code
+#'   execution until there is user input so that temporary diff files are not
+#'   deleted before the pager has a chance to read them.  This typically
+#'   defaults to FALSE, except for \code{PagerBrowser} where it defaults to NA,
+#'   which resolves to \code{is.na(file.path)} (i.e. it is TRUE if the diff is
+#'   being written to a temporary file, and FALSE otherwise).
+#' @param ... additional arguments to pass on to \code{new} that are passed on
+#'   to parent classes.
 #'
 #' @aliases PagerOff, PagerSystem, PagerSystemLess, PagerBrowser
 #' @importFrom utils browseURL
+#' @include options.R
 #' @rdname Pager
 #' @name Pager
 #' @seealso \code{\link{Style}}, \code{\link{pager_is_less}}
@@ -165,10 +174,24 @@
 #' ## We `dontrun` these examples as they involve pagers that should only be run
 #' ## in interactive mode
 #' \dontrun{
+#' ## Specify Pager parameters via list; this lets the `diff*` functions pick
+#' ## their preferred pager based on format and other output parameters, but
+#' ## allows you to modify the pager behavior.
+#'
+#' f <- tempfile()
+#' diffChr(1:200, 180:300, format='html', pager=list(file.path=f))
+#' head(readLines(f))  # html output
+#' unlink(f)
+#'
 #' ## Assuming system pager is `less` and terminal supports ANSI ESC sequences
 #' ## Equivalent to running `less -RFX`
 #'
 #' diffChr(1:200, 180:300, pager=PagerSystemLess(flags="RFX"))
+#'
+#' ## If the auto-selected pager would be the system pager, we could
+#' ## equivalently use:
+#'
+#' diffChr(1:200, 180:300, pager=list(flags="RFX"))
 #'
 #' ## System pager is not less, but it supports ANSI escape sequences
 #'
@@ -179,7 +202,7 @@
 #'
 #' page.fun <- function(x) cat(paste0("| ", readLines(x)), sep="\n")
 #' page.conf <- PagerSystem(pager=page.fun, threshold=0L)
-#' diffChr(1:200, 180:300, pager=page.conf, width=getOption("width") - 2)
+#' diffChr(1:200, 180:300, pager=page.conf, disp.width=getOption("width") - 2)
 #'
 #' ## Set-up the custom pager as the default pager
 #'
@@ -192,37 +215,73 @@
 #' ## blocking itself.  On OS X we need to specify the extension so the correct
 #' ## program opens it (in this case `TextEdit`):
 #'
-#' page.fun <- make_blocking(browseURL)
-#' page.conf <- PagerSystem(pager=page.fun, file.ext="txt")
-#' diffChr(1:200, 180:300, pager=page.conf)
+#' page.conf <- Pager(pager=browseURL, file.ext="txt", make.blocking=TRUE)
+#' diffChr(1:200, 180:300, pager=page.conf, format='raw')
+#'
+#' ## An alternative to a blocking pager is to disable the
+#' ## auto-file deletion; here we also specify a file location
+#' ## explicitly so we can recover the diff text.
+#'
+#' f <- paste0(tempfile(), ".html")  # must specify .html
+#' diffChr(1:5, 2:6, format='html', pager=list(file.path=f))
+#' tail(readLines(f))
+#' unlink(f)
 #' }
 
 setClass(
   "Pager",
-  contains="VIRTUAL",
   slots=c(
     pager="function", file.ext="character", threshold="numeric",
-    ansi="logical"
+    ansi="logical", file.path="character", make.blocking="logical"
   ),
   prototype=list(
-    file.ext="", threshold=0L,
+    pager=function(x) writeLines(readLines(x)), file.ext="", threshold=0L,
     pager=function(x) stop("Pager object does not specify a paging function."),
-    ansi=FALSE
+    ansi=FALSE, file.path=NA_character_, make.blocking=FALSE
   ),
   validity=function(object) {
     if(!is.chr.1L(object@file.ext)) return("Invalid `file.ext` slot")
     if(!is.int.1L(object@threshold)) return("Invalid `threshold` slot")
     if(!is.TF(object@ansi)) return("Invalid `ansi` slot")
+    if(!is.logical(object@make.blocking) || length(object@make.blocking) != 1L)
+      return("Invalid `make.blocking` slot")
+    if(!is.character(object@file.path) || length(object@file.path) != 1L)
+      return("Invalid `file.path` slot")
+
     TRUE
   }
 )
+setMethod("initialize", "Pager",
+  function(.Object, ...) {
+    dots <- list(...)
+    if("file.path" %in% names(dots)) {
+      file.path <- dots[['file.path']]
+      if(length(file.path) != 1L)
+        stop("Argument `file.path` must be length 1.")
+      if(is.na(file.path)) file.path <- NA_character_
+      if(!is.character(file.path))
+        stop("Argument `file.path` must be character.")
+      dots[['file.path']] <- file.path
+    }
+    do.call(callNextMethod, c(list(.Object), dots))
+  }
+)
+
 #' @export
 #' @rdname Pager
 
-setClass(
-  "PagerOff", contains="Pager",
-  prototype=list(ansi=TRUE)    # pager off shouldn't prevent ANSI use
-)
+Pager <- function(
+  pager=function(x) writeLines(readLines(x)), file.ext="", threshold=0L,
+  ansi=FALSE, file.path=NA_character_, make.blocking=FALSE
+) {
+  new(
+    'Pager', pager=pager, file.ext=file.ext, threshold=threshold,
+    file.path=file.path, make.blocking=make.blocking
+) }
+#' @export
+#' @rdname Pager
+
+setClass("PagerOff", contains="Pager")
 
 #' @export
 #' @rdname Pager
@@ -234,15 +293,13 @@ PagerOff <- function(...) new("PagerOff", ...)
 
 setClass(
   "PagerSystem", contains="Pager",
-  prototype=list(pager=file.show, threshold=-1L),
+  prototype=list(pager=file.show, threshold=-1L, file.ext="")
 )
 #' @export
 #' @rdname Pager
 
-PagerSystem <- function(
-  pager=file.show, threshold=-1L, file.ext="", ...
-)
-  new("PagerSystem", pager=pager, threshold=threshold, file.ext=file.ext, ...)
+PagerSystem <- function(pager=file.show, threshold=-1L, file.ext="", ...)
+  new("PagerSystem", pager=pager, threshold=threshold, ...)
 
 #' @export
 #' @rdname Pager
@@ -255,32 +312,31 @@ setClass(
 #' @rdname Pager
 
 PagerSystemLess <- function(
-    pager=file.show, threshold=-1L, file.ext="", flags="R",
-    ansi=TRUE, ...
+  pager=file.show, threshold=-1L, flags="R", file.ext="", ansi=TRUE, ...
+)
+  new(
+    "PagerSystemLess", pager=pager, threshold=threshold, flags=flags,
+    ansi=ansi, file.ext=file.ext, ...
   )
-    new(
-      "PagerSystemLess", pager=pager, threshold=threshold, file.ext=file.ext,
-      flags=flags, ansi=ansi, ...
-    )
 
 # Must use initialize so that the pager function can access the flags slot
 
 setMethod("initialize", "PagerSystemLess",
   function(.Object, ...) {
     dots <- list(...)
-    if("flags" %in% names(dots)) {
-      flags <- dots$flags
-      if(!is.chr.1L(flags))
+    flags <- if("flags" %in% names(dots)) {
+      if(!is.chr.1L(dots[['flags']]))
         stop("Argument `flags` must be character(1L) and not NA")
-    } else flags <- .Object@flags
-    pager.old <- dots$pager
+      dots[['flags']]
+    } else ""
+    pager.old <- dots[['pager']]
     pager <- function(x) {
       old.less <- set_less_var(flags)
       on.exit(reset_less_var(old.less), add=TRUE)
       pager.old(x)
     }
-    dots$flags <- flags
-    dots$pager <- pager
+    dots[['flags']] <- flags
+    dots[['pager']] <- pager
     do.call(callNextMethod, c(list(.Object), dots))
 } )
 #' Create a Blocking Version of a Function
@@ -293,7 +349,8 @@ setMethod("initialize", "PagerSystemLess",
 #' @param fun a function
 #' @param msg character(1L) a message to use as the \code{readline} prompt
 #' @param invisible.res whether to return the result of \code{fun} invisibly
-#' @return \code{fun}, wrapped in a function that does the blocking
+#' @return \code{fun}, wrapped in a function that does the blocking.
+#' @examples
 #' make_blocking(sum, invisible.res=FALSE)(1:10)
 
 make_blocking <- function(
@@ -303,11 +360,12 @@ make_blocking <- function(
   if(!is.chr.1L(msg)) stop("Argument `msg` must be character(1L) and not NA")
   if(!is.TF(invisible.res))
     stop("Argument `invisible.res` must be TRUE or FALSE")
-  function(...) {
+  res <- function(...) {
     res <- fun(...)
     readline(msg)
     if(invisible.res) invisible(res) else res
   }
+  res
 }
 #' Invoke IDE Viewer If Available, browseURL If Not
 #'
@@ -338,15 +396,21 @@ view_or_browse <- function(url) {
   }
   res
 }
-setClass("PagerBrowser", contains="Pager")
+setClass(
+  "PagerBrowser", contains="Pager",
+  prototype=list(threshold=0L, file.ext='html', make.blocking=NA)
+)
 
 #' @export
 #' @rdname Pager
 
 PagerBrowser <- function(
-  pager=make_blocking(view_or_browse), threshold=0L, file.ext="html", ...
+  pager=view_or_browse, threshold=0L, file.ext="html", make.blocking=NA, ...
 )
-  new("PagerBrowser", pager=pager, threshold=threshold, file.ext=file.ext, ...)
+  new(
+    "PagerBrowser", pager=pager, threshold=threshold, file.ext=file.ext,
+    make.blocking=make.blocking, ...
+  )
 
 # Helper function to determine whether pager will be used or not
 

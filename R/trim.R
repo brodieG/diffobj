@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Brodie Gaslam
+# Copyright (C) 2019 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -18,6 +18,12 @@
 
 .pat.atom <- "^\\s*\\[[1-9][0-9]*\\]\\s"
 .pat.mat <- "^\\s*\\[[1-9]+[0-9]*,\\]\\s"
+
+# dfs/tables colon for data.table, SGR for tibble, starting to get
+# dangerously broad; we should really split out the tibble business into its own
+# method.
+.pat.tbl <-
+  "^(?:\033\\[[^m]*m)?\\s*[1-9]+[0-9]*:?(?:\033\\[[^m]*m)?\\s"
 .pat.attr <- "^attr\\(,\"(\\\\\"|[^\"])*\")$"
 
 # Find first attribute and drop everything after it
@@ -136,6 +142,8 @@ wtr_help <- function(x, pat) {
   # It must be the case that the first block of matches occurs after non-matches
   # since the first header should happen first
 
+  res <- integer(0L)
+
   if(
     any(w.pat.rle$values) && length(w.pat.rle$values) > 1L &&
     w.pat.rle$values[2L]
@@ -145,17 +153,14 @@ wtr_help <- function(x, pat) {
 
     # Only take matches they if alternate T/F
 
-    match.break <- max(
-      which(
-        match.blocks != rep(c(FALSE, TRUE), length.out=length(match.blocks))
-      ),
-      0L
-    )
-    match.valid <- if(match.break) {
+    match.break <-
+      match.blocks != rep(c(FALSE, TRUE), length.out=length(match.blocks))
+
+    match.valid <- if(any(match.break)) {
       # actually very difficult to test this; need a df like structure that is
       # wrapped and has some irregularity that crops up later, and we're not
       # actually able to generate these with vanilla structures
-      head(match.blocks, match.break - 1L)
+      head(match.blocks, min(which(match.break)) - 1L)
     } else match.blocks
 
     # Make sure that all interstitial blocks are same length and that they all
@@ -184,26 +189,25 @@ wtr_help <- function(x, pat) {
       heads <- character(length(heads.l))
       heads[w.pat] <- as.character(heads.l[w.pat])
 
-      heads.num <- as.integer(sub(".*?([0-9]+).*", "\\1", heads, perl=TRUE))
+      heads.num <- as.integer(
+        sub(".*?(?:\033\\[[^m]*m.*?)*([0-9]+).*", "\\1", heads, perl=TRUE)
+      )
       head.ranges <- lapply(ranges, function(x) heads.num[x])
 
       all.identical <-
-        vapply(head.ranges, identical, logical(1L), head.ranges[[1L]])
+        all(vapply(head.ranges, identical, logical(1L), head.ranges[[1L]]))
       all.one.apart <-
-        vapply(head.ranges, function(x) all(diff(x) == 1L), logical(1L))
+        all(vapply(head.ranges, function(x) all(diff(x) == 1L), logical(1L)))
 
       if(all.identical && all.one.apart && head.ranges[[1L]][1L] == 1L) {
-        unlist(ranges)
-      } else integer(0L)
-    } else integer(0L)
-  } else integer(0L)
+        res <- unlist(ranges)
+  } } }
+  res
 }
 which_table_rh <- function(x) {
   stopifnot(is.character(x), !anyNA(x))
-  pat.2 <- "^\\s*[1-9]+[0-9]*:?\\s"       # dfs/tables colon for data.table
-
-  res <- wtr_help(x, pat.2)
-  if(length(res)) attr(res, "pat") <- pat.2
+  res <- wtr_help(x, .pat.tbl)
+  if(length(res)) attr(res, "pat") <- .pat.tbl
   res
 }
 strip_table_rh <- function(x) {
@@ -274,9 +278,11 @@ which_array_rh <- function(x, dim.names.x) {
 
   m.h <- lapply(dat, which_matrix_rh, head(dim.names.x, 2L))
 
+  res <- integer(0L)
   if(length(m.h) && all(vapply(m.h, identical, logical(1L), m.h[[1L]]))) {
-    unlist(Map(function(y, z) attr(y, "idx")[z], dat, m.h))
-  } else integer(0L)
+    res <- unlist(Map(function(y, z) attr(y, "idx")[z], dat, m.h))
+  }
+  res
 }
 strip_array_rh <- function(x, dim.names.x) {
   inds <- which_array_rh(x, dim.names.x)
@@ -563,7 +569,9 @@ trim_sub <- function(obj.as.chr, obj.stripped) {
     # nocov end
   cbind(sub.start, sub.end)
 }
-# Re-insert the trimmed stuff back into the original string
+# Re-insert the trimmed stuff back into the original string, note that we
+# use normal string funs, not ANSI aware ones, because the row header stuff is
+# done in an ANSI unaware manner.
 
 untrim <- function(dat, word.c, etc) {
   fun <- etc@style@funs@trim
@@ -572,8 +580,7 @@ untrim <- function(dat, word.c, etc) {
     paste0(
       fun(substr(raw, 0, trim.ind.start - 1L)), word.c,
       fun(substr(raw, trim.ind.end + 1L, nchar(raw) + 1L))
-    )
-  )
+  ) )
   # substitute blanks
 
   res[!nzchar(dat$raw)] <- etc@style@blank.sub

@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Brodie Gaslam
+# Copyright (C) 2019 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -22,10 +22,10 @@ ansi_regex <- paste0("(?:(?:\\x{001b}\\[)|\\x{009b})",
 
 # Function to split a character vector by newlines; handles some special cases
 
-split_new_line <- function(x) {
+split_new_line <- function(x, sgr.supported) {
   y <- x
   y[!nzchar(x)] <- "\n"
-  unlist(strsplit(y, "\n"))
+  unlist(strsplit2(y, "\n", sgr.supported=sgr.supported))
 }
 html_ent_sub <- function(x, style) {
   if(is(style, "StyleHtml") && style@escape.html.entities) {
@@ -102,11 +102,11 @@ align_eq <- function(A, B, x, context) {
     # mode...
 
     A.valid <- which(
-      nchar(A.eq.trim) >= etc@align@min.chars &
+      nchar2(A.eq.trim, sgr.supported=etc@sgr.supported) >= etc@align@min.chars &
       A.tok.ratio >= etc@align@threshold
     )
     B.valid <- which(
-      nchar(B.eq.trim) >= etc@align@min.chars &
+      nchar2(B.eq.trim, sgr.supported=etc@sgr.supported) >= etc@align@min.chars &
       B.tok.ratio >= etc@align@threshold
     )
     B.eq.seq <- seq_along(B.eq.trim)
@@ -151,38 +151,28 @@ align_eq <- function(A, B, x, context) {
 
   list(A=A.chunks, B=B.chunks, A.fill=A.fill, B.fill=B.fill)
 }
-# if last char matches, repeat, but only if not in use.ansi mode
-#
-# needed b/c col_strsplit behaves differently than strisplit when delimiter
-# is at end.  Will break if you pass a regex reserved character as pad
-
-pad_end <- function(x, pad, use.ansi) {
-  stopifnot(
-    is.character(x), !anyNA(x), is.character(pad), length(pad) == 1L,
-    !is.na(pad), nchar(pad) == 1L, is.TF(use.ansi)
-  )
-  if(!use.ansi || packageVersion("crayon") >= "1.3.2")
-    sub(paste0(pad, "$"), paste0(pad, pad), x) else x
-}
 # Calculate how many lines of screen space are taken up by the diff hunks
 #
 # `disp.width` should be the available display width, this function computes
 # the net real estate account for mode, padding, etc.
 
-nlines <- function(txt, disp.width, mode) {
-  use.ansi <- crayon::has_color()
+nlines <- function(txt, disp.width, mode, etc) {
   # stopifnot(is.character(txt), all(!is.na(txt)))
   capt.width <- calc_width_pad(disp.width, mode)
-  if(use.ansi) txt <- crayon::strip_style(txt)
-  pmax(1L, as.integer(ceiling(nchar(txt) / capt.width)))
-}
+  pmax(
+    1L,
+    as.integer(
+      ceiling(
+        nchar2(txt, sgr.supported=etc@sgr.supported
+        ) / capt.width
+) ) ) }
 # Gets rid of tabs and carriage returns
 #
 # Assumes each line is one screen line
 # @param stops may be a single positive integer value, or a vector of values
 #   whereby the last value will be repeated as many times as necessary
 
-strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
+strip_hz_c_int <- function(txt, stops, sgr.supported) {
 
   # remove trailing and leading CRs (need to record if trailing remains to add
   # back at end? no, not really since by structure next thing must be a newline
@@ -192,7 +182,8 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
   has.tabs <- grep("\t", txt, fixed=TRUE)
   has.crs <- grep("\r", txt, fixed=TRUE)
   txt.s <- as.list(txt)
-  txt.s[has.crs] <- if(!any(has.crs)) list() else split_fun(txt[has.crs], "\r+")
+  txt.s[has.crs] <- if(!any(has.crs)) list()
+    else strsplit2(txt[has.crs], "\r+", sgr.supported=sgr.supported)
 
   # Assume \r resets tab stops as it would on a type writer; so now need to
   # generate the set maximum set of possible tab stops; approximate here by
@@ -205,8 +196,11 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
         txt.s[has.tabs], function(x) {
           # add number of chars and number of tabs times max tab length
           sum(
-            nc_fun(x) + (
-              vapply(strsplit(x, "\t"), length, integer(1L)) +
+            nchar2(x, sgr.supported=sgr.supported) + (
+              vapply(
+                strsplit2(x, "\t", sgr.supported=sgr.supported),
+                length, integer(1L)
+              ) +
               grepl("\t$", x) - 1L
             ) * max.stop
           )
@@ -222,8 +216,8 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
       function(x) {
         if(length(h.t <- grep("\t", x, fixed=T))) {
           # workaround for strsplit dropping trailing tabs
-          x.t <- pad_end(x[h.t], "\t", use.ansi)
-          x.s <- split_fun(x.t, "\t")
+          x.t <- sub("\t$", "\t\t", x[h.t])
+          x.s <- strsplit2(x.t, "\t", sgr.supported=sgr.supported)
 
           # Now cycle through each line with tabs and replace them with
           # spaces
@@ -232,7 +226,7 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
             function(y) {
               topad <- head(y, -1L)
               rest <- tail(y, 1L)
-              chrs <- nc_fun(topad)
+              chrs <- nchar2(topad, sgr.supported=sgr.supported)
               pads <- character(length(topad))
               txt.len <- 0L
               for(i in seq_along(topad)) {
@@ -265,13 +259,18 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
     txt.s[has.crs],
     function(x) {
       if(length(x) > 1L) {
-        chrs <- nc_fun(x)
+        chrs <- nchar2(x, sgr.supported=sgr.supported)
         max.disp <- c(tail(rev(cummax(rev(chrs))), -1L), 0L)
-        res <- paste0(rev(sub_fun(x, max.disp + 1L, chrs)), collapse="")
+        res <- paste0(
+          rev(
+            substr2(x, max.disp + 1L, chrs, sgr.supported=sgr.supported)
+          ),
+          collapse=""
+        )
         # add back every ANSI esc sequence from last line to very end
         # to ensure that we leave in correct ANSI escaped state
 
-        if(use.ansi && grepl(ansi_regex, res, perl=TRUE)) {
+        if(grepl(ansi_regex, res, perl=TRUE)) {
           res <- paste0(
             res,
             gsub(paste0(".*", ansi_regex, ".*"), "\\1", tail(x, 1L), perl=TRUE)
@@ -290,9 +289,10 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
 }
 #' Replace Horizontal Spacing Control Characters
 #'
-#' Removes tabs, newlines, and carriage returns and manipulates the text so that
-#' it looks the renders the same as it did with those horizontal control
-#' characters embedded.  This function is used when the
+#' Removes tabs, newlines, and manipulates the text so that
+#' it looks the same as it did with those horizontal control
+#' characters embedded.  Currently carriage returns are also processed, but
+#' in the future they no longer will be.  This function is used when the
 #' \code{convert.hz.white.space} parameter to the
 #' \code{\link[=diffPrint]{diff*}} methods is active.  The term \dQuote{strip}
 #' is a misnomer that remains for legacy reasons and lazyness.
@@ -303,8 +303,13 @@ strip_hz_c_int <- function(txt, stops, use.ansi, nc_fun, sub_fun, split_fun) {
 #' @keywords internal
 #' @param txt character to covert
 #' @param stops integer, what tab stops to use
+#' @param sgr.supported logical whether the current display device supports
+#'   ANSI CSI SGR.  See \code{\link[=diffPrint]{diff*}}'s \code{sgr.supported}
+#'   parameter.
+#' @return character, `txt` with horizontal control sequences
+#'   replaced.
 
-strip_hz_control <- function(txt, stops=8L) {
+strip_hz_control <- function(txt, stops=8L, sgr.supported) {
   # stopifnot(
   #   is.character(txt), !anyNA(txt),
   #   is.integer(stops), length(stops) >= 1L, !anyNA(stops), all(stops > 0L)
@@ -318,48 +323,38 @@ strip_hz_control <- function(txt, stops=8L) {
   } else {
     if(length(has.n <- grep("\n", txt, fixed=TRUE))) {
       txt.l <- as.list(txt)
-      txt.l.n <- strsplit(txt[has.n], "\n")
+      txt.l.n <- strsplit2(txt[has.n], "\n", sgr.supported=sgr.supported)
       txt.l[has.n] <- txt.l.n
       txt <- unlist(txt.l)
     }
-    use.ansi <- crayon::has_color()
-    has.ansi <- grepl(ansi_regex, txt, perl=TRUE) & use.ansi
+    has.ansi <- grepl(ansi_regex, txt, perl=TRUE)
     w.ansi <- which(has.ansi)
     wo.ansi <- which(!has.ansi)
 
     # since for the time being the crayon funs are a bit slow, only us them on
     # strings that are known to have ansi escape sequences
 
-    res <- character(length(txt))
-    res[w.ansi] <- strip_hz_c_int(
-      txt[w.ansi], stops, use.ansi, crayon::col_nchar,
-      crayon::col_substr, crayon::col_strsplit
-    )
-    res[wo.ansi] <- strip_hz_c_int(
-      txt[wo.ansi], stops, use.ansi, nchar, substr, strsplit
-    )
-    res
+    strip_hz_c_int(txt, stops, sgr.supported=sgr.supported)
   }
 }
 # Normalize strings so whitespace differences don't show up as differences
 
-normalize_whitespace <- function(txt) gsub("(\t| )+", " ", trimws(txt))
+normalize_whitespace <- function(txt)
+  gsub(" ([[:punct:]])", "\\1", gsub("(\t| )+", " ", trimws(txt)))
 
 # Simple text manip functions
 
-chr_trim <- function(text, width) {
+chr_trim <- function(text, width, sgr.supported) {
   stopifnot(all(width > 2L))
   ifelse(
-    nchar(text) > width,
-    paste0(substr(text, 1L, width - 2L), ".."),
+    nchar2(text, sgr.supported=sgr.supported) > width,
+    paste0(substr2(text, 1L, width - 2L, sgr.supported=sgr.supported), ".."),
     text
   )
 }
-rpad <- function(text, width, pad.chr=" ") {
-  use.ansi <- crayon::has_color()
+rpad <- function(text, width, pad.chr=" ", sgr.supported) {
   stopifnot(is.character(pad.chr), length(pad.chr) == 1L, nchar(pad.chr) == 1L)
-  nchar_fun <- if(use.ansi) crayon::col_nchar else nchar
-  pad.count <- width - nchar_fun(text)
+  pad.count <- width - nchar2(text, sgr.supported=sgr.supported)
   pad.count[pad.count < 0L] <- 0L
   pad.chrs <- vapply(
     pad.count, function(x) paste0(rep(pad.chr, x), collapse=""), character(1L)
@@ -373,8 +368,8 @@ rpad <- function(text, width, pad.chr=" ") {
 #
 # Returns a list of split vectors
 
-wrap_int <- function(txt, width, sub_fun, nc_fun) {
-  nchars <- nc_fun(txt)
+wrap_int <- function(txt, width, sgr.supported) {
+  nchars <- nchar2(txt, sgr.supported=sgr.supported)
   res <- as.list(txt)
   too.wide <- which(nchars > width)
   res[too.wide] <- lapply(
@@ -384,11 +379,14 @@ wrap_int <- function(txt, width, sub_fun, nc_fun) {
         from=width, by=width, length.out=ceiling(nchars[[i]] / width)
       )
       split.start <- split.end - width + 1L
-      sub_fun(rep(txt[[i]], length(split.start)), split.start, split.end)
+      substr2(
+        rep(txt[[i]], length(split.start)), split.start, split.end,
+        sgr.supported=sgr.supported
+      )
   } )
   res
 }
-wrap <- function(txt, width, pad=FALSE) {
+wrap <- function(txt, width, pad=FALSE, sgr.supported) {
   if(length(grep("\n", txt, fixed=TRUE)))
     # nocov start
     stop("Logic error: wrap input contains newlines; contact maintainer.")
@@ -398,16 +396,12 @@ wrap <- function(txt, width, pad=FALSE) {
   # a vector of character positions after which we should split our character
   # vector
 
-  use.ansi <- crayon::has_color()
   has.na <- is.na(txt)
-  has.chars <- nzchar(txt) & !has.na
+  has.chars <- nchar2(txt, sgr.supported=sgr.supported) & !has.na
   w.chars <- which(has.chars)
   wo.chars <- which(!has.chars & !has.na)
 
   txt.sub <- txt[has.chars]
-  w.ansi.log <- grepl(ansi_regex, txt.sub, perl=TRUE) & use.ansi
-  w.ansi <- which(w.ansi.log)
-  wo.ansi <- which(!w.ansi.log)
 
   # Wrap differently depending on whether contains ansi or not, exclude zero
   # length char elements
@@ -415,13 +409,11 @@ wrap <- function(txt, width, pad=FALSE) {
   res.l <- vector("list", length(txt))
   res.l[has.na] <- NA_character_
   res.l[wo.chars] <- ""
-  res.l[w.chars][w.ansi] <-
-    wrap_int(txt.sub[w.ansi], width, crayon::col_substr, crayon::col_nchar)
-  res.l[w.chars][wo.ansi] <-
-    wrap_int(txt.sub[wo.ansi], width, substr, nchar)
+  res.l[w.chars] <- wrap_int(txt.sub, width, sgr.supported=sgr.supported)
 
   # pad if requested
 
-  if(pad) res.l[!has.na] <- lapply(res.l[!has.na], rpad, width=width)
+  if(pad) res.l[!has.na] <- 
+    lapply(res.l[!has.na], rpad, width=width, sgr.supported=sgr.supported)
   res.l
 }

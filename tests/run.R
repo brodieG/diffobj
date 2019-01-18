@@ -31,45 +31,51 @@ local({                                         # so we can use `on.exit`
   old.opts <- c(old.opts, no.null.opt.list)
 
   on.exit(options(old.opts))
-  test.res <- test_dir(
-    "testthat",
-    filter=paste0(                              # so we can run subset of files
-      c(
-        "atomic",
-        "banner",
-        "capture",
-        "check",
-        "context",
-        "core",
-        "diffChr",
-        "diffDeparse",
-        "diffObj",
-        "diffPrint",
-        "diffStr",
-        "file",
-        "guide",
-        "html",
-        "limit",
-        "methods",
-        "misc",
-        "notcran",
-        "pager",
-        "rdiff",
-        "s4",
-        "ses",
-        "style",
-        "subset",
-        "summary",
-        "text",
-        "trim",
-        "warning"
-      ), collapse="|"
+
+  valgrind <- FALSE
+  if(!valgrind) {
+    test.res <- test_dir(
+      "testthat",
+      filter=paste0(                              # so we can run subset of files
+        c(
+          "atomic",
+          "banner",
+          "capture",
+          "check",
+          "context",
+          "core",
+          "diffChr",
+          "diffDeparse",
+          "diffObj",
+          "diffPrint",
+          "diffStr",
+          "file",
+          "guide",
+          "html",
+          "limit",
+          "methods",
+          "misc",
+          if(nchar(Sys.getenv('NOT_CRAN'))) "notcran",
+          "pager",
+          "rdiff",
+          "s4",
+          "ses",     # run this file only for valgrind
+          "style",
+          "subset",
+          "summary",
+          "text",
+          "trim",
+          "warning"
+        ), collapse="|"
+      )
     )
-  )
-  with(
-    as.data.frame(test.res), {
-      fail <- sum(failed)
-      err <- sum(error)
-      if(fail != 0 || err) stop("Errors: ", err, " Failures: ", fail)
-  })
+    with(
+      as.data.frame(test.res), {
+        fail <- sum(failed)
+        err <- sum(error)
+        if(fail != 0 || err) stop("Errors: ", err, " Failures: ", fail)
+    })
+  } else {
+    source('valgrind/tests-valgrind.R')
+  }
 })

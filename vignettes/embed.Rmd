@@ -1,5 +1,5 @@
 ---
-title: "Embed Diffs in R Markdown"
+title: "Embed Diffs in R Markdown Or Shiny"
 author: "Brodie Gaslam"
 output:
     rmarkdown::html_vignette:
@@ -8,38 +8,46 @@ output:
           - !expr diffobj::diffobj_css()
           - styles.css
 vignette: >
-  %\VignetteIndexEntry{Embed Diffs in R Markdown}
+  %\VignetteIndexEntry{Embed Diffs in R Markdown Or Shiny}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
+
 ---
 
 ```{r echo=FALSE}
 library(diffobj)
 ```
-## Basic Requirements
+
+## Rmarkdown
+
+### Basic Requirements
 
 Any R chunks that produce diffs should include the `results='asis'` option,
 e.g.:
 
-    ```{r results='asis'}
-    # R code here
-    ```
+````
+```{r, comment="", results="asis"}`r ''`
+# R code here
+```
+````
 
-## Easy but Ugly
+### Embedded CSS
 
 This is what a basic code block should look like:
 
-    ```{r results='asis'}
-    cat(                                 # output to screen
-      as.character(                      # convert to diff to character vector
-        diffPrint(                       # run diff
-          1:5, 2:6,
-          format="html",                 # specify html output
-          style=list(
-            html.output="diff.w.style"   # configure html style
-          )
-    ) ) )
-    ```
+````
+```{r, comment="", results="asis"}`r ''`
+cat(                                 # output to screen
+  as.character(                      # convert to diff to character vector
+    diffPrint(                       # run diff
+      1:5, 2:6,
+      format="html",                 # specify html output
+      style=list(
+        html.output="diff.w.style"   # configure html style
+      )
+) ) )
+```
+````
 
 Here we use this same code as an actual markdown R code block:
 
@@ -59,7 +67,7 @@ Although this is illegal HTML, it seems to work in most browsers.  Another
 problem is that every diff you use in your document will inject the same CSS
 code over and over.
 
-## A Cleaner Option
+### External CSS
 
 A better option is to provide the CSS directly by modifying the `output`
 portion of the [YAML
@@ -103,7 +111,7 @@ cat(
 This will omit the CSS, but since we include it via the YAML everything should
 work as expected.
 
-## Use Options
+### Use Options
 
 Almost all `diffobj` parameters can be specified via options:
 
@@ -126,4 +134,48 @@ cat(as.character(diffPrint(1:5, 2:6)))
 ```{r echo=FALSE}
 options(old.opts)
 ```
+
+## Shiny
+
+Shiny usage is very similar to `rmarkdown`.  In both cases we want to get
+`diffobj` to produce HTML output to embed in our document.  If we are willing to
+embed the CSS with each diff, we can use:
+
+```{r, eval=FALSE}
+library(shiny)
+shinyApp(
+  ui=fluidPage(htmlOutput('diffobj_element')),
+  server=function(input, output) {
+    output$diffobj_element <- renderUI({
+      HTML(
+        as.character(
+          diffPrint(
+            1:5, 2:6,
+            format="html",
+            style=list(html.output="diff.w.style")
+) ) )}) } )
+```
+
+If we have many diffs, it may be preferable to use options and external
+style sheet:
+
+```{r, eval=FALSE}
+options(
+  diffobj.format="html",
+  diffobj.style=list(html.output="diff.only")
+)
+shinyApp(
+  ui=fluidPage(
+    includeCSS(diffobj_css()),
+    htmlOutput('diffobj_element')
+  ),
+  server=function(input, output) {
+    output$diffobj_element <- renderUI({
+      HTML(as.character(diffPrint(1:5, 2:6,)))
+}) } )
+```
+
+Unlike with our [rmarkdown example](#external-css), this CSS is included
+in the body of the HTML document instead of in the header, so it is technically
+illegal like in our [embedded css example](#embedded-css).
 

@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Brodie Gaslam
+# Copyright (C) 2019 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -362,8 +362,10 @@ line_diff <- function(
   # Need to remove new lines as the processed captures do that anyway and we
   # end up with mismatched lengths if we don't
 
-  if(any(nzchar(tar.capt))) tar.capt <- split_new_line(tar.capt)
-  if(any(nzchar(cur.capt))) cur.capt <- split_new_line(cur.capt)
+  if(any(nzchar(tar.capt)))
+    tar.capt <- split_new_line(tar.capt, sgr.supported=etc@sgr.supported)
+  if(any(nzchar(cur.capt)))
+    cur.capt <- split_new_line(cur.capt, sgr.supported=etc@sgr.supported)
 
   # Some debate as to whether we want to do this first, or last.  First has
   # many benefits so that everything is consistent, width calcs can work fine,
@@ -374,8 +376,25 @@ line_diff <- function(
   tar.capt.p <- tar.capt
   cur.capt.p <- cur.capt
   if(etc@convert.hz.white.space) {
-    tar.capt.p <- strip_hz_control(tar.capt, stops=etc@tab.stops)
-    cur.capt.p <- strip_hz_control(cur.capt, stops=etc@tab.stops)
+    tar.capt.p <- strip_hz_control(
+      tar.capt, stops=etc@tab.stops, sgr.supported=etc@sgr.supported
+    )
+    cur.capt.p <- strip_hz_control(
+      cur.capt, stops=etc@tab.stops, sgr.supported=etc@sgr.supported
+    )
+  }
+  # Remove whitespace and CSI SGR if warranted
+
+  if(etc@strip.sgr) {
+    if(has.style.1 <- any(crayon::has_style(tar.capt.p)))
+      tar.capt.p <- crayon::strip_style(tar.capt.p)
+    if(has.style.2 <- any(crayon::has_style(cur.capt.p)))
+      cur.capt.p <- crayon::strip_style(cur.capt.p)
+    if(has.style.1 || has.style.2)
+      etc@warn(
+        "`target` or `current` contained ANSI CSI SGR when rendered; these ",
+        "were stripped.  Use `strip.sgr=FALSE` to preserve them in the diffs."
+      )
   }
   # Apply trimming to remove row heads, etc, but only if something gets trimmed
   # from both elements
@@ -391,12 +410,16 @@ line_diff <- function(
   if(identical(tar.trim, tar.capt.p) || identical(cur.trim, cur.capt.p)) {
     # didn't trim in both, so go back to original
     tar.trim <- tar.capt.p
-    tar.trim.ind <- cbind(rep(1L, length(tar.capt.p)), nchar(tar.capt.p))
+    tar.trim.ind <- cbind(
+      rep(1L, length(tar.capt.p)),
+      nchar(tar.capt.p)
+    )
     cur.trim <- cur.capt.p
-    cur.trim.ind <- cbind(rep(1L, length(cur.capt.p)), nchar(cur.capt.p))
+    cur.trim.ind <- cbind(
+      rep(1L, length(cur.capt.p)),
+      nchar(cur.capt.p)
+    )
   }
-  # Remove whitespace if warranted
-
   tar.comp <- tar.trim
   cur.comp <- cur.trim
 
@@ -605,9 +628,13 @@ line_diff <- function(
 
   hunk.heads <-
     lapply(hunk.grps, make_hh, etc@mode, tar.dat, cur.dat, ranges.orig)
-  h.h.chars <- nchar(chr_trim(unlist(hunk.heads), etc@line.width))
-
-  chr.size <- etc@style@nchar.fun(chr.dat)
+  h.h.chars <- nchar2(
+    chr_trim(
+      unlist(hunk.heads), etc@line.width, sgr.supported=etc@sgr.supported
+    ),
+    sgr.supported=etc@sgr.supported
+  )
+  chr.size <- nchar2(chr.dat, sgr.supported=etc@sgr.supported)
   max.col.w <- max(
     max(0L, chr.size, .min.width + gutter.dat@width), h.h.chars
   )

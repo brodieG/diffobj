@@ -5,6 +5,8 @@ if(!identical(basename(getwd()), "testthat"))
 
 rdsf <- function(x)
   file.path(getwd(), "helper", "diffChr", sprintf("%s.rds", x))
+txtf <- function(x)
+  file.path(getwd(), "helper", "diffChr", sprintf("%s.txt", x))
 
 test_that("Corner Cases", {
   # Corner cases from https://neil.fraser.name/writing/diff/
@@ -79,6 +81,23 @@ test_that("Whitespace", {
   expect_equal_to_reference(
     as.character(diffChr("woo\nhoo\nfoo", c("woo", "foo"))), rdsf(1000)
   )
+  expect_known_output(
+    diffChr("hello . world", "hello.  world", format='raw'), txtf(100)
+  )
+})
+test_that("SGR", {
+  a <- c("hello \033[31mworld\033[m", "umbrellas", "tomatoes")
+  b <- c("hello world", "umbrellas", "tomatoes")
+
+  old.opt <- options(diffobj.sgr.supported=TRUE)
+  on.exit(old.opt)
+  expect_warning(diff <- diffChr(a, b), 'contained ANSI CSI SGR')
+  expect_known_output(show(diff), txtf(200))
+  expect_known_output(show(diffChr(a, b, strip.sgr=FALSE)), txtf(300))
+  expect_known_output(show(diffChr(a, b, format='raw')), txtf(400))
+
+  expect_error(diffChr(a, b, strip.sgr=1:3), "TRUE, FALSE, or NULL")
+  expect_error(diffChr(a, b, sgr.supported=1:3), "TRUE, FALSE, or NULL")
 })
 test_that("Alignment", {
   chr.7 <- c("a b c d e", "F G h i j k", "xxx", "yyy", "k l m n o")

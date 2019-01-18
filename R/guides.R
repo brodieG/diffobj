@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Brodie Gaslam
+# Copyright (C) 2019 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -125,6 +125,7 @@ detect_2d_guides <- function(txt) {
 
 detect_list_guides <- function(txt) {
   stopifnot(is.character(txt))
+  res <- integer(0L)
   if(length(txt)) {
     # match stuff like "[[1]][[2]]" or "$ab[[1]]$cd" ...
     square.brkt <- "(\\[\\[\\d+\\]\\])"
@@ -144,8 +145,9 @@ detect_list_guides <- function(txt) {
       v.p.rle <- rle(valid.pat)
       valid.pat[-with(v.p.rle, cumsum(lengths)[values])] <- FALSE
     }
-    which(valid.pat)
-  } else integer(0L)
+    res <- which(valid.pat)
+  }
+  res
 }
 # Matrices
 
@@ -161,13 +163,13 @@ detect_matrix_guides <- function(txt, dim.n) {
   # identify which lines could be row and col headers
 
   n.p <- "(\\[|\\]|\\(|\\)|\\{|\\}|\\*|\\+|\\?|\\.|\\^|\\$|\\\\|\\|)"
-  c.h <- if(!is.null(col.n) && nchar(col.n)) {
+  c.h <- if(!is.null(col.n) && nzchar(col.n)) {
     col.pat <- sprintf("^\\s{2,}%s$", gsub(n.p, "\\\1", col.n))
     grepl(col.pat, txt)
   } else {
     rep(FALSE, length(txt))
   }
-  r.h <- if(!is.null(row.n) && nchar(row.n)) {
+  r.h <- if(!is.null(row.n) && nzchar(row.n)) {
     # a bit lazy, should include col headers as well
     row.pat <- sprintf("^%s\\s+\\S+", gsub(n.p, "\\\1", row.n))
     grepl(row.pat, txt)
@@ -184,18 +186,20 @@ detect_matrix_guides <- function(txt, dim.n) {
   row.types[r.h] <- 1L                   # row meta / col headers
   row.types[c.h] <- 2L                   # col meta
 
-  mx.starts <- if(is.null(n.d.n)) {
+  mx.starts <- integer(0L)
+  if(is.null(n.d.n)) {
     mx.start.num <- 1L
-    which(row.types == mx.start.num)
+    mx.starts <- which(row.types == mx.start.num)
   } else {
     mx.start.num <- 2L
     tmp <- which(row.types == mx.start.num)
     if(sum(r.h) == sum(c.h) && identical(which(c.h) + 1L, which(r.h))) {
-      tmp
-    } else integer(0L)
+      mx.starts <- tmp
+    }
   }
   mx.start <- head(mx.starts, 1L)
 
+  res <- integer(0L)
   if(length(mx.start)) {
     # Now  try to see if pattern repeats to identify the full list of wrapped
     # guides, and return the indices that are part of repeating pattern
@@ -208,9 +212,10 @@ detect_matrix_guides <- function(txt, dim.n) {
       row.types[pat.inds],
       floor((length(txt) - mx.start + 1L) / length(pat.inds))
     )
-    which(head(row.types, length(template)) == template & !!template) +
+    res <- which(head(row.types, length(template)) == template & !!template) +
       mx.start - 1L
-  } else integer(0L)
+  }
+  res
 }
 # Here we want to get the high dimension counter as well as the column headers
 # of each sub-dimension
@@ -228,6 +233,7 @@ detect_array_guides <- function(txt, dim.n) {
   dim.guides <- which(grepl("^, ,", txt))
   blanks <- which(txt == "")
 
+  res <- integer(0L)
   if(
     length(dim.guides) && length(blanks) &&
     all(dim.guides + 1L %in% blanks) &&
@@ -243,8 +249,9 @@ detect_array_guides <- function(txt, dim.n) {
       all(vapply(heads, identical, logical(1L), heads[[1L]])) &&
       all(vapply(heads, length, integer(1L)))
     )
-      dim.guide.fin else integer(0L)
-  } else integer(0L)
+      res <- dim.guide.fin
+  }
+  res
 }
 # Utility fun to determin whether an object would be shown with the default show
 # method
@@ -275,7 +282,7 @@ detect_s4_guides <- function(txt, obj) {
     guides.txt <- txt[guides.loc]
 
     if(!identical(guides, guides.txt)) {
-      integer()
+      integer()   # nocov really no way to test this, and harmless
     } else {
       guides.loc
     }

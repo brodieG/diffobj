@@ -6,6 +6,11 @@ test_that("diff util detection", {
   expect_false(has_Rdiff(function(...) warning("test warning")))
   expect_true(has_Rdiff(function(...) NULL))
 })
+test_that("errors", {
+  expect_error(Rdiff_chr(stop('hello'), 'goodbye'), "Unable to coerce")
+  expect_error(Rdiff_chr('hello', stop('goodbye')), "Unable to coerce")
+  expect_error(Rdiff_obj(stop('hello'), 'goodbye'), "Unable to store")
+})
 # Only run tests on machines that are likely to have diff utility
  
 if(identical(.Platform$OS.type, "unix") && has_Rdiff()) {

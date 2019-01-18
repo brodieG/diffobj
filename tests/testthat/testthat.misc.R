@@ -110,3 +110,18 @@ test_that("trimws2", {
 
   expect_error(diffobj:::trimws2("  hello world  ", 'banana'), "is wrong")
 })
+test_that("string", {
+  expect_error(diffobj:::substr2("hello world", 1, 1:2), "same length")
+})
+test_that("Gutters", {
+  etc <- new("Settings")
+  etc@style <- StyleRaw()
+  etc@style@funs@gutter <- function(x) stop("bad gutters")
+  expect_error(diffobj:::gutter_dat(etc), "Failed attempting to apply gutter.")
+})
+test_that("Finalizer error handling", {
+  expect_error(finalizeHtml(letters, NULL), "must be character")
+  expect_error(
+    finalizeHtml(letters, letters, letters), "must be character\\(1L"
+  )
+})

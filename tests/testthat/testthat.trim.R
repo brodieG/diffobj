@@ -35,6 +35,10 @@ test_that("Atomic", {
   expect_equal_to_reference(
     as.character(diffPrint(1:3, 2:6, trim=FALSE)), rdsf(50)
   )
+  # bad headers
+
+  bh <- c("[1] a b c", "[4] d e f", "[5] h")
+  expect_equal(diffobj:::which_atomic_rh(bh), integer())
 })
 test_that("Matrix", {
   mx1 <- mx2 <- matrix(1:3, 3)
@@ -130,6 +134,17 @@ test_that("Table", {
     c(diffobj:::which_table_rh(capture.output(head(Puromycin, 10L)))),
     2:11
   )
+  # Bad wrap
+
+  bw <- c(
+    "    bad", "1   123", "2   456",
+    "    dab", "1   123", "2   456",
+    "    abd", "1   123")
+
+  expect_equal(
+    diffobj:::wtr_help(bw, diffobj:::.pat.tbl),
+    c(2L, 3L, 5L, 6L)
+  )
 })
 test_that("Array", {
   a <- array(1:6, c(3, 1, 2))
@@ -210,7 +225,6 @@ test_that("List", {
     diffobj:::strip_list_rh(capture.output(c), c),
     c("[[1]]", "[[1]][[1]]", "\"a\"", "", "", "[[2]]", "\"b\"", "")
   )
-
 })
 test_that("custom trim fun", {
   a <- matrix(100:102)
@@ -235,8 +249,17 @@ test_that("custom trim fun", {
     diffPrint(1:100, 2:100, trim=function(x, y) TRUE),
     "method return value must be a two "
   )
+  expect_error(
+    diffobj:::apply_trim(letters, letters, function(x) TRUE),
+    "Invalid trim function"
+  )
+  expect_error(
+    diffobj:::apply_trim(
+      letters, letters, function(x, y) cbind(1:25, 1:25)
+    ),
+    "must have as many rows"
+  )
 })
-
 test_that("s4", {
   setClass("DOTrimTest", slots=c(a="numeric", b="list", c="matrix"))
   obj <- new(

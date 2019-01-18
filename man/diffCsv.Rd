@@ -21,8 +21,9 @@ diffCsv(target, current, ...)
   hunk.limit = gdo("hunk.limit"), align = gdo("align"),
   style = gdo("style"), palette.of.styles = gdo("palette"),
   frame = par_frame(), interactive = gdo("interactive"),
-  term.colors = gdo("term.colors"), tar.banner = NULL, cur.banner = NULL,
-  extra = list())
+  term.colors = gdo("term.colors"), tar.banner = NULL,
+  cur.banner = NULL, strip.sgr = gdo("strip.sgr"),
+  sgr.supported = gdo("sgr.supported"), extra = list())
 }
 \arguments{
 \item{target}{character(1L) or file connection with read capability;
@@ -58,8 +59,8 @@ calculation.}
 \itemize{
   \item \dQuote{auto}: to select output format based on terminal
     capabilities; will attempt to use one of the ANSI formats if they
-    appear to be supported, and if not will attempt to use HTML and
-    browser output if in interactive mode.
+    appear to be supported, and if not or if you are in the Rstudio console
+    it will attempt to use HTML and browser output if in interactive mode.
   \item \dQuote{raw}: plain text
   \item \dQuote{ansi8}: color and format diffs using basic ANSI escape
     sequences
@@ -70,7 +71,8 @@ calculation.}
     web page (see docs for \code{html.output} under \code{\link{Style}}).
 }
 Defaults to \dQuote{auto}.  See \code{palette.of.styles} for details
-on customization, \code{\link{style}} for full control of output format.}
+on customization, \code{\link{style}} for full control of output format.
+See `pager` parameter for more discussion of Rstudio behavior.}
 
 \item{brightness}{character, one of \dQuote{light}, \dQuote{dark},
 \dQuote{neutral}, useful for adjusting color scheme to light or dark
@@ -101,17 +103,44 @@ parameter).  For other uses, particularly with \code{\link{diffChr}}
 setting this to FALSE can substantially improve performance.}
 
 \item{pager}{one of \dQuote{auto} (default), \dQuote{on},
-\dQuote{off}, or a \code{\link{Pager}} object; controls whether and how a
-pager is used to display the diff output.  If \dQuote{on} will use the
-pager associated with the \code{\link{Style}} specified via the
-\code{\link{style}} parameters.  The default behavior is to use a pager if
-either the R console does not support ANSI colors, or if the output of the
-\code{diff*} methods would be taller than one screen.  If the system pager
-is not known to support ANSI colors then we will try to display the output
-in HTML with the IDE viewer if available or with the web browser if not.
-See \code{\link{Pager}}, \code{\link{view_or_browse}}, \code{\link{Style}},
-and \code{\link{PaletteOfStyles}} for more details and for instructions on
-how to modify the default behavior.}
+  \dQuote{off}, a \code{\link{Pager}} object, or a list; controls whether and
+  how a pager is used to display the diff output.  If you require a
+  particular pager behavior you must use a \code{\link{Pager}}
+  object, or \dQuote{off} to turn off the pager.  All other settings will
+  interact with other parameters such as \code{format}, \code{style}, as well
+  as with your system capabilities in order to select the pager expected to
+  be most useful.
+
+  \dQuote{auto} and \dQuote{on} are the same, except that in non-interactive
+  mode \dQuote{auto} is equivalent to \dQuote{off}.  \dQuote{off} will always
+  send output to the console.  If \dQuote{on}, whether the output
+  actually gets routed to the pager depends on the pager \code{threshold}
+  setting (see \code{\link{Pager}}).  The default behavior is to use the
+  pager associated with the \code{Style} object.  The \code{Style} object is
+  itself is determined by the \code{format} or \code{style} parameters.
+
+  Depending on your system configuration different styles and corresponding
+  pagers will get selected, unless you specify a \code{Pager} object
+  directly.  On a system with a system pager that supports ANSI CSI SGR
+  colors, the pager will only trigger if the output is taller than one
+  window.  If the system pager is not known to support ANSI colors then the
+  output will be sent as HTML to the IDE viewer if available or to the web
+  browser if not.  Even though Rstudio now supports ANSI CSI SGR at the
+  console output is still formatted as HTML and sent to the IDE viewer.
+  Partly this is for continuity of behavior, but also because the default
+  Rstudio pager does not support ANSI CSI SGR, at least as of this writing.
+
+  If \code{pager} is a list, then the same as with \dQuote{on}, except that
+  the \code{Pager} object associated with the selected \code{Style} object is
+  re-instantiated with the union of the list elements and the existing
+  settings of that \code{Pager}.  The list should contain named elements that
+  correspond to the \code{\link{Pager}} instantiation parameters.  The names
+  must be specified in full as partial parameter matching will not be carried
+  out because the pager is re-instantiated with \code{\link{new}}.
+
+  See \code{\link{Pager}}, \code{\link{Style}}, and
+  \code{\link{PaletteOfStyles}} for more details and for instructions on how
+  to modify the default behavior.}
 
 \item{guides}{TRUE (default), FALSE, or a function that accepts at least two
 arguments and requires no more than two arguments.  Guides
@@ -166,7 +195,7 @@ for normal styles and \code{80L} for HTML styles.}
 
 \item{ignore.white.space}{TRUE or FALSE, whether to consider differences in
 horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
-FALSE)}
+FALSE).}
 
 \item{convert.hz.white.space}{TRUE or FALSE, whether modify input strings
 that contain tabs and carriage returns in such a way that they display as
@@ -220,8 +249,8 @@ then the list contents will be used as arguments when instantiating the
 style object.  See \code{\link{Style}} for more details, in particular the
 examples.}
 
-\item{palette.of.styles}{\code{\link{PaletteOfStyles}} object; advanced usage,
-contains all the \code{\link{Style}} objects or
+\item{palette.of.styles}{\code{\link{PaletteOfStyles}} object; advanced
+usage, contains all the \code{\link{Style}} objects or
 \dQuote{classRepresentation} objects extending \code{\link{Style}} that are
 selected by specifying the \code{format}, \code{brightness}, and
 \code{color.mode} parameters.  See \code{\link{PaletteOfStyles}} for more
@@ -261,6 +290,22 @@ assumed you intend to use that value literally.}
 
 \item{cur.banner}{character(1L) like \code{tar.banner}, but for
 \code{current}}
+
+\item{strip.sgr}{TRUE, FALSE, or NULL (default), whether to strip ANSI CSI
+SGR sequences prior to comparison and for display of diff.  If NULL,
+resolves to TRUE if `style` resolves to an ANSI formatted diff, and
+FALSE otherwise.  The default behavior is to avoid confusing diffs where
+the original SGR and the SGR added by the diff are mixed together.}
+
+\item{sgr.supported}{TRUE, FALSE, or NULL (default), whether to assume the
+standard output device supports ANSI CSI SGR sequences.  If TRUE, strings
+will be manipulated accounting for the SGR sequences.  If NULL,
+resolves to TRUE if `style` resolves to an ANSI formatted diff, and
+to `crayon::has_color()` otherwise.  This only controls how the strings are
+manipulated, not whether SGR is added to format the diff, which is
+controlled by the `style` parameter.  This parameter is exposed for the
+rare cases where you might wish to control string manipulation behavior
+directly.}
 
 \item{extra}{list additional arguments to pass on to the functions used to
 create text representation of the objects to diff (e.g. \code{print},

@@ -1,4 +1,8 @@
+env:
+  - NOT_CRAN=TRUE _R_CHECK_LENGTH_1_LOGIC2_=TRUE
+
 language: r
+
 r:
   - 3.1
   - oldrel

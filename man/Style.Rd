@@ -45,7 +45,7 @@ the console}
 \item{pager}{what type of \code{\link{Pager}} to use}
 
 \item{nchar.fun}{function to use to count characters; intended mostly for
-internal use}
+internal use (used only for gutters as of version 0.2.0).}
 
 \item{wrap}{TRUE or FALSE, whether text should be hard wrapped at
 \code{disp.width}}
@@ -263,7 +263,7 @@ applied to the entire diff output.  For example, \code{StyleHtmlLightRgb}
 uses \code{@funs@container <- cont_f("light", "rgb")}.  \code{cont_f} returns
 a function that accepts a character vector as an argument and returns
 that value wrapped in a \code{DIV} block with class
-\dQuote{"diffobj_container light rgb"}.  This allows the CSS style sheet to
+\dQuote{"diffobj-container light rgb"}.  This allows the CSS style sheet to
 target the \code{Diff} elements with the correct styles.
 }
 

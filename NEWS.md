@@ -1,5 +1,33 @@
 # diffobj
 
+## v0.2.0-1
+
+### Features
+
+* [#129](https://github.com/brodieG/diffobj/issues/129): Allow pager
+  specification via lists rather than full `Pager` objects for easier changes to
+  defaults.  As part of this we changed `StyleRaw` objects to use default
+  pager instead of `PagerOff`.
+* [#126](https://github.com/brodieG/diffobj/issues/126): Add embedding diffs in
+  Shiny to vignette.
+* [#119](https://github.com/brodieG/diffobj/issues/119): `ignore.whitespace` now
+  also ignores white space differences adjoining punctuation.
+* [#118](https://github.com/brodieG/diffobj/issues/118): New option to preserve
+  temporary diff file output when using pager (see `?Pager`).
+* [#114](https://github.com/brodieG/diffobj/issues/114): New options `strip.sgr`
+  and `sgr.supported` allow finer control of what happens when input already
+  contains ANSI CSI SGR and how ANSI CSI SGR is handled in string manipulations.
+  Related to this, `options(crayon.enabled=TRUE)` is no longer set when
+  capturing output prior to diff as it used to be.  By default pre-existing ANSI
+  CSI SGR is stripped with a warning prior to comparison.
+
+### Bugs
+
+* [#131](https://github.com/brodieG/diffobj/issues/131): Fix missing slot in S4
+  class definition (discovered by Bill Dunlap).
+* [#127](https://github.com/brodieG/diffobj/issues/127): Width CSS conflicts
+  with bootstrap (reported by @eckyu, debugged/fixed by @cpsievert).
+
 ## v0.1.11
 
 * [#123](https://github.com/brodieG/diffobj/issues/123): Compatibility with R3.1

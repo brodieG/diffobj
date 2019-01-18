@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Brodie Gaslam
+# Copyright (C) 2019 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -18,6 +18,8 @@
 
 gutter_dat <- function(etc) {
   stopifnot(is(etc, "Settings"))
+  old.opt <- options(crayon.enabled=TRUE)
+  on.exit(options(old.opt))
   funs <- etc@style@funs
   text <- etc@style@text
 
@@ -48,8 +50,9 @@ gutter_dat <- function(etc) {
     )
 
   names(gutt.dat.format.pad) <- sub("^gutter\\.", "", names(gutt.dat.format))
-  nc_fun <- etc@style@nchar.fun
-  gutt.max.w <- max(nc_fun(gutt.dat.format.pad))
+  gutt.max.w <- max(
+    etc@style@nchar.fun(gutt.dat.format.pad, sgr.supported=etc@sgr.supported)
+  )
   gutt.args <- c(
     list("Gutter"), as.list(gutt.dat.format.pad),
     list(width=gutt.max.w)

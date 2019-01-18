@@ -4,7 +4,6 @@
 \alias{webfiles}
 \alias{diffobj_js}
 \alias{diffobj_css}
-\alias{diffobj_js}
 \title{Return Location of Default HTML Support Files}
 \usage{
 diffobj_css()

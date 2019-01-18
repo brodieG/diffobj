@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Brodie Gaslam
+# Copyright (C) 2019 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -265,8 +265,7 @@ get_hunk_ind <- function(h.a, mode, type="both") {
 
 setMethod("as.character", "Diff",
   function(x, ...) {
-    old.crayon.opt <-
-      options(crayon.enabled=is(x@etc@style, "StyleAnsi"))
+    old.crayon.opt <- options(crayon.enabled=is(x@etc@style, "StyleAnsi"))
     on.exit(options(old.crayon.opt), add=TRUE)
 
     hunk.limit <- x@etc@hunk.limit
@@ -277,6 +276,7 @@ setMethod("as.character", "Diff",
     mode <- x@etc@mode
     tab.stops <- x@etc@tab.stops
     ignore.white.space <- x@etc@ignore.white.space
+    sgr.supported <- x@etc@sgr.supported
 
     # legacy from when we had different max diffs for different parts of diff
 
@@ -295,15 +295,16 @@ setMethod("as.character", "Diff",
       if(
         (
           ignore.white.space || x@etc@convert.hz.white.space ||
-          !identical(x@etc@trim, trim_identity)
+          !identical(x@etc@trim, trim_identity) || x@etc@strip.sgr
         ) &&
         !isTRUE(all.equal(x@tar.dat$orig, x@cur.dat$orig)) &&
         isTRUE(all.equal(x@tar.dat$comp, x@cur.dat$comp))
       ) {
         paste0(
           msg, ", but there are some differences suppressed by ",
-          "`ignore.white.space`, `convert.hz.white.space`, and/or `trim`. ",
-          "Set all those arguments to FALSE to highlight the differences.",
+          "`ignore.white.space`, `convert.hz.white.space`, `strip.sgr`, ",
+          "and/or `trim`. Set all those arguments to FALSE to highlight ",
+          "the differences.",
           collapse=""
         )
       } else if (!isTRUE(all.eq <- all.equal(x@target, x@current))) {
@@ -332,18 +333,24 @@ setMethod("as.character", "Diff",
       hunks.flat, function(h.a) c(h.a$tar.rng.sub, h.a$cur.rng.sub), integer(4L)
     )
     hunk.heads <- x@hunk.heads
-    h.h.chars <- nchar(chr_trim(unlist(hunk.heads), x@etc@line.width))
-
+    h.h.chars <- nchar2(
+      chr_trim(
+        unlist(hunk.heads), x@etc@line.width, sgr.supported=sgr.supported
+      ),
+      sgr.supported=sgr.supported
+    )
     # Make the object banner and compute more detailed widths post trim
 
     tar.banner <- if(!is.null(x@etc@tar.banner)) x@etc@tar.banner else
       deparse(x@etc@tar.exp)[[1L]]
     cur.banner <- if(!is.null(x@etc@cur.banner)) x@etc@cur.banner else
       deparse(x@etc@cur.exp)[[1L]]
-    ban.A.trim <-
-      if(s@wrap) chr_trim(tar.banner, x@etc@text.width) else tar.banner
-    ban.B.trim <-
-      if(s@wrap) chr_trim(cur.banner, x@etc@text.width) else cur.banner
+    ban.A.trim <- if(s@wrap)
+        chr_trim(tar.banner, x@etc@text.width, sgr.supported=sgr.supported)
+      else tar.banner
+    ban.B.trim <- if(s@wrap)
+        chr_trim(cur.banner, x@etc@text.width, sgr.supported=sgr.supported)
+      else cur.banner
     banner.A <- s@funs@word.delete(ban.A.trim)
     banner.B <- s@funs@word.insert(ban.B.trim)
 
@@ -369,7 +376,7 @@ setMethod("as.character", "Diff",
 
     trim.meta <- attr(hunk.grps, "meta")
     if(is.null(trim.meta))
-      stop("Logic error: missing trim meta data, contact maintainer")
+      stop("Internal error: missing trim meta data, contact maintainer") # nocov
 
     lim.line <- trim.meta$lines
     lim.hunk <- trim.meta$hunks
@@ -386,7 +393,7 @@ setMethod("as.character", "Diff",
       if(!is.null(str.fold.out)) {
         # nocov start
         stop(
-          "Logic Error: should not be str folding when limited; contact ",
+          "Internal Error: should not be str folding when limited; contact ",
           "maintainer."
         )
         # nocov end
@@ -458,10 +465,14 @@ setMethod("as.character", "Diff",
       )
       for(i in seq_along(pre.render)) {
         hdr <- pre.render[[i]]$type == "header"
-        pre.render.w[[i]][hdr] <-
-          wrap(pre.render[[i]]$dat[hdr], x@etc@line.width)
-        pre.render.w[[i]][!hdr] <-
-          wrap(pre.render[[i]]$dat[!hdr], x@etc@text.width)
+        pre.render.w[[i]][hdr] <- wrap(
+          pre.render[[i]]$dat[hdr], x@etc@line.width,
+          sgr.supported=sgr.supported
+        )
+        pre.render.w[[i]][!hdr] <- wrap(
+          pre.render[[i]]$dat[!hdr], x@etc@text.width,
+          sgr.supported=sgr.supported
+        )
       }
       pre.render.w
     } else lapply(pre.render, function(y) as.list(y$dat))
@@ -507,8 +518,12 @@ setMethod("as.character", "Diff",
       Map(
         function(col, type) {
           diff.line <- type %in% c("insert", "delete", "match", "guide", "fill")
-          col[diff.line] <- lapply(col[diff.line], rpad, x@etc@text.width)
-          col[!diff.line] <- lapply(col[!diff.line], rpad, x@etc@line.width)
+          col[diff.line] <- lapply(
+            col[diff.line], rpad, x@etc@text.width, sgr.supported=sgr.supported
+          )
+          col[!diff.line] <- lapply(
+            col[!diff.line], rpad, x@etc@line.width, sgr.supported=sgr.supported
+          )
           col
         },
         pre.render.w, types
@@ -585,6 +600,7 @@ setMethod("as.character", "Diff",
     meta.elem <- c(1L, 3:4)
     pre.fin.l[meta.elem] <- lapply(
       pre.fin.l[meta.elem],
+      # meta should not have any csi, so plain strwrap is okay
       function(m) es@funs@meta(strwrap(m, width=disp.width))
     )
     pre.fin <- unlist(pre.fin.l)

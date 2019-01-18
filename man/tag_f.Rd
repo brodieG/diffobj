@@ -7,7 +7,6 @@
 \alias{cont_f}
 \alias{div_f}
 \alias{span_f}
-\alias{cont_f}
 \title{Make Functions That Wrap Text in HTML Tags}
 \usage{
 tag_f(tag, class = character(), style = character())
@@ -41,7 +40,7 @@ functions that are  vectorized and will apply opening and closing tags to
 each element of a character vector.  \code{container_f} on the other hand
 produces a function will collapse a character vector into length 1, and only
 then applies the tags.  Additionally, \code{container_f} already comes with
-the \dQuote{diffobj_container} class specified.
+the \dQuote{diffobj-container} class specified.
 }
 \note{
 inputs are assumed to be valid class names or CSS styles.
