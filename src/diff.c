@@ -4,7 +4,7 @@
  * implementation is not compatible with the original one.  See next
  * comment blocks for original copyright and license information.
  *
- * Copyright (C) 2018  Brodie Gaslam
+ * Copyright (C) 2019 Brodie Gaslam
  *
  * This file is part of "diffobj - Diffs for R Objects"
  *
@@ -719,12 +719,13 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
    * that match entirely.
    */
   x = y = 0;
-  while (
-    x < n && y < m && _comp_chr(a, aoff + x, b, boff + y)
-  ) {
+  while (x < n && y < m) {
+    if(boff > INT_MAX - y)
+      error("Internal error: overflow for boff; contact maintainer"); //nocov
+    if(aoff > INT_MAX - x)
+      error("Internal error: overflow for aoff; contact maintainer"); //nocov
+    if(!_comp_chr(a, aoff + x, b, boff + y)) break;
     x++; y++;
-    if(boff + y < boff + y - 1 || aoff + x < aoff + x - 1)
-      error("Logic Error: exceeded int size 45823; contact maintainer");  // nocov
   }
   _edit(&ctx, DIFF_MATCH, aoff, x);
 

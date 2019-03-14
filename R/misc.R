@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Brodie Gaslam
+# Copyright (C) 2019 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -27,9 +27,9 @@ rle_sub <- function(rle, ind) {
     as.integer(ind)
   } else if(is.logical(ind)) {
     which(ind)
-  } else stop("Logic Error: unexpected `ind` input") # nocov
+  } else stop("Internal Error: unexpected `ind` input") # nocov
   if(!all(ind) > 0 || !all(diff(ind) > 0))
-    stop("Logic Error: `ind` should be monotonically increasing")  # nocov
+    stop("Internal Error: `ind` should be monotonically increasing")  # nocov
 
   len.cum <- cumsum(rle$lengths)
   all.ind <- Map(
@@ -59,7 +59,7 @@ c.factor <- function(..., recursive=FALSE) {
 
 stack_funs <- function(s.c) {
   if(!length(s.c))
-    stop("Logic Error: call stack empty; contact maintainer.") #nocov
+    stop("Internal Error: call stack empty; contact maintainer.") #nocov
   vapply(
     s.c, function(call) paste0(deparse(call), collapse="\n"), character(1L)
   )
@@ -74,7 +74,9 @@ stack_funs <- function(s.c) {
 
 which_top <- function(s.c) {
   if(!length(s.c))
-    stop("Logic Error: stack should have at least one call, contact maintainer")
+    # nocov start
+    stop("Internal Error: stack should have at least one call, contact maintainer")
+    # nocov end
   funs <- stack_funs(s.c)
   fun.ref <- stack_funs(list(.internal.call))  # find .local call
   fun.ref.loc <- match(fun.ref, funs, nomatch=0L)
@@ -271,7 +273,10 @@ get_pal_par <- function(format, param) {
     param[format]
   } else if (wild.match <- match("", names(param), nomatch=0L)) {
     param[wild.match]
-  } else stop("Logic Error: malformed palette parameter; contact maintainer.")
+  } else 
+    # nocov start
+    stop("Internal Error: malformed palette parameter; contact maintainer.")
+    # nocov end
 }
 # check whether argument list contains non-default formals
 
@@ -353,3 +358,8 @@ nchar2 <- function(x, ..., sgr.supported) {
   if(sgr.supported) crayon::col_nchar(x, ...)
   else nchar(x, ...)
 }
+# This is an internal method for testing
+#' @export
+
+print.diffobj_ogewlhgiadfl <- function(x, ...) stop('failure')
+

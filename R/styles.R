@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Brodie Gaslam
+# Copyright (C) 2019 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -216,7 +216,7 @@ StyleText <- setClass(
 #' @slot map function applied to the map portion of the summary
 
 StyleSummary <- setClass("StyleSummary",
-  slots=c(container="ANY", body="ANY", map="ANY"),
+  slots=c(container="ANY", body="ANY", map="ANY", detail="ANY"),
   prototype=list(
     container=function(x) sprintf("\n%s\n", paste0(x, collapse="")),
     body=identity,
@@ -224,7 +224,7 @@ StyleSummary <- setClass("StyleSummary",
     map=function(x) sprintf("\n%s", paste0("  ", x, collapse="\n"))
   ),
   validity=function(object) {
-    fun.slots <- c("container", "body", "map")
+    fun.slots <- c("container", "body", "map", "detail")
     for(i in fun.slots) {
       if(!isTRUE(is.one.arg.fun(slot(object, i))))
         return(

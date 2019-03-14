@@ -33,7 +33,14 @@ test_that("fits or doesn't", {
   )
   expect_equal(diffObj(1:1000, 1000:1, line.limit=5)@capt.mode, "str")
 })
-
+test_that("misc", {
+  expect_error(diffObj(1, 2, extra=list(TRUE)), "extra")
+})
+test_that("print error", {
+  x <- structure("hello", class="diffobj_ogewlhgiadfl")
+  y <- structure("goodbye", class="diffobj_ogewlhgiadfl")
+  expect_error(diffObj(x, y), "Error in calling .diffPrint.")
+})
 # Random exmaples to think through `diffObj` output
 
 diffObj(

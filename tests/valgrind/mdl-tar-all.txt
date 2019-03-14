@@ -1,0 +1,109 @@
+List of 12
+$ coefficients : Named num [1:2]
+   6.526 -0.223
+..- attr(*, "names")= chr [1:2]
+   "(Intercept)" "Sepal.Width"
+$ residuals : Named num [1:150]
+   -0.644 -0.956 -1.111 -1.234
+   -0.722 ...
+..- attr(*, "names")= chr [1:150]
+   "1" "2" "3" "4" ...
+$ effects : Named num [1:150]
+   -71.566 -1.188 -1.081 -1.187
+   -0.759 ...
+..- attr(*, "names")= chr [1:150]
+   "(Intercept)" "Sepal.Width" "" ""
+   ...
+$ rank : int 2
+$ fitted.values: Named num [1:150]
+   5.74 5.86 5.81 5.83 5.72 ...
+..- attr(*, "names")= chr [1:150]
+   "1" "2" "3" "4" ...
+$ assign : int [1:2] 0 1
+$ qr :List of 5
+..$ qr : num [1:150, 1:2] -12.2474
+   0.0816 0.0816 0.0816 0.0816 ...
+.. ..- attr(*, "dimnames")=List of 2
+.. .. ..$ : chr [1:150] "1" "2" "3"
+   "4" ...
+.. .. ..$ : chr [1:2] "(Intercept)"
+   "Sepal.Width"
+.. ..- attr(*, "assign")= int [1:2]
+   0 1
+..$ qraux: num [1:2] 1.08 1.02
+..$ pivot: int [1:2] 1 2
+..$ tol : num 1e-07
+..$ rank : int 2
+..- attr(*, "class")= chr "qr"
+$ df.residual : int 148
+$ xlevels : Named list()
+$ call : language lm(formula = frm1,
+   data = iris)
+$ terms :Classes 'terms', 'formula'
+   language Sepal.Length ~
+   Sepal.Width
+.. ..- attr(*, "variables")=
+   language list(Sepal.Length,
+   Sepal.Width)
+.. ..- attr(*, "factors")= int [1:2,
+   1] 0 1
+.. .. ..- attr(*, "dimnames")=List
+   of 2
+.. .. .. ..$ : chr [1:2]
+   "Sepal.Length" "Sepal.Width"
+.. .. .. ..$ : chr "Sepal.Width"
+.. ..- attr(*, "term.labels")= chr
+   "Sepal.Width"
+.. ..- attr(*, "order")= int 1
+.. ..- attr(*, "intercept")= int 1
+.. ..- attr(*, "response")= int 1
+.. ..- attr(*,
+   ".Environment")=<environment:
+   R_GlobalEnv>
+.. ..- attr(*, "predvars")= language
+   list(Sepal.Length, Sepal.Width)
+.. ..- attr(*, "dataClasses")= Named
+   chr [1:2] "numeric" "numeric"
+.. .. ..- attr(*, "names")= chr
+   [1:2] "Sepal.Length"
+   "Sepal.Width"
+$ model :'data.frame': 150 obs. of 2
+   variables:
+..$ Sepal.Length: num [1:150] 5.1
+   4.9 4.7 4.6 5 5.4 4.6 5 4.4 4.9
+   ...
+..$ Sepal.Width : num [1:150] 3.5 3
+   3.2 3.1 3.6 3.9 3.4 3.4 2.9 3.1
+   ...
+..- attr(*, "terms")=Classes
+   'terms', 'formula' language
+   Sepal.Length ~ Sepal.Width
+.. .. ..- attr(*, "variables")=
+   language list(Sepal.Length,
+   Sepal.Width)
+.. .. ..- attr(*, "factors")= int
+   [1:2, 1] 0 1
+.. .. .. ..- attr(*,
+   "dimnames")=List of 2
+.. .. .. .. ..$ : chr [1:2]
+   "Sepal.Length" "Sepal.Width"
+.. .. .. .. ..$ : chr "Sepal.Width"
+.. .. ..- attr(*, "term.labels")=
+   chr "Sepal.Width"
+.. .. ..- attr(*, "order")= int 1
+.. .. ..- attr(*, "intercept")= int
+   1
+.. .. ..- attr(*, "response")= int 1
+.. .. ..- attr(*,
+   ".Environment")=<environment:
+   R_GlobalEnv>
+.. .. ..- attr(*, "predvars")=
+   language list(Sepal.Length,
+   Sepal.Width)
+.. .. ..- attr(*, "dataClasses")=
+   Named chr [1:2] "numeric"
+   "numeric"
+.. .. .. ..- attr(*, "names")= chr
+   [1:2] "Sepal.Length"
+   "Sepal.Width"
+- attr(*, "class")= chr "lm"

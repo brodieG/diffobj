@@ -1,0 +1,25 @@
+List of 13
+$ coefficients : Named num [1:4]
+   2.251 0.804 1.459 1.947
+$ residuals : Named num [1:150]
+   0.0361 0.2379 -0.1228 -0.1424
+   -0.1442 ...
+$ effects : Named num [1:150]
+   -71.566 -1.188 0.279 8.525 -0.114
+   ...
+$ rank : int 4
+$ fitted.values: Named num [1:150]
+   5.06 4.66 4.82 4.74 5.14 ...
+$ assign : int [1:4] 0 1 2 2
+$ qr :List of 5
+$ df.residual : int 146
+$ contrasts :List of 1
+$ xlevels :List of 1
+$ call : language lm(formula = frm2,
+   data = iris)
+$ terms :Classes 'terms', 'formula'
+   language Sepal.Length ~
+   Sepal.Width + Species
+$ model :'data.frame': 150 obs. of 3
+   variables:
+- attr(*, "class")= chr "lm"

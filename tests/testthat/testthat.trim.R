@@ -225,7 +225,6 @@ test_that("List", {
     diffobj:::strip_list_rh(capture.output(c), c),
     c("[[1]]", "[[1]][[1]]", "\"a\"", "", "", "[[2]]", "\"b\"", "")
   )
-
 })
 test_that("custom trim fun", {
   a <- matrix(100:102)
@@ -250,8 +249,17 @@ test_that("custom trim fun", {
     diffPrint(1:100, 2:100, trim=function(x, y) TRUE),
     "method return value must be a two "
   )
+  expect_error(
+    diffobj:::apply_trim(letters, letters, function(x) TRUE),
+    "Invalid trim function"
+  )
+  expect_error(
+    diffobj:::apply_trim(
+      letters, letters, function(x, y) cbind(1:25, 1:25)
+    ),
+    "must have as many rows"
+  )
 })
-
 test_that("s4", {
   setClass("DOTrimTest", slots=c(a="numeric", b="list", c="matrix"))
   obj <- new(

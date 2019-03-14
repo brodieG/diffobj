@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Brodie Gaslam
+# Copyright (C) 2019 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -195,7 +195,7 @@ group_hunks <- function(hunks, etc, tar.capt, cur.capt) {
 p_and_t_hunks <- function(hunks.raw, ctx.val, etc) {
   c.all <- process_hunks(hunks.raw, ctx.val, etc)
   hunk.limit <- etc@hunk.limit
-  if(hunk.limit[[1L]] >= 0L && length(c.all) > hunk.limit)
+  if(hunk.limit[[1L]] >= 0L && length(c.all) > hunk.limit[[1L]])
     c.all <- c.all[seq_along(hunk.limit[[2L]])]
   c.all
 }

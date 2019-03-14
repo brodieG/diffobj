@@ -5,8 +5,14 @@ txtf <- function(x)
   file.path(getwd(), "helper", "notcran", sprintf("%s.txt", x))
 
 test_that("tibble", {
-   old.opt <- options(diffobj.sgr.supported=TRUE, crayon.enabled=TRUE)
-   on.exit(old.opt)
+   old.opt <- options(
+     diffobj.sgr.supported=TRUE, crayon.enabled=TRUE, crayon.colors=256
+   )
+   crayon::num_colors(TRUE)
+   on.exit({
+     options(old.opt)
+     crayon::num_colors(TRUE)
+   })
    TB1 <- try(tibble::tibble(a=1:10), silent=TRUE)
    if(!inherits(TB1, "try-error")) {
      TB2 <- TB1
@@ -18,9 +24,11 @@ test_that("tibble", {
      expect_known_output(writeLines(tb.diff), txtf(100))
      expect_warning(tb.diff.2 <- diffPrint(TB1, TB2[-2,], context=1),'ANSI CSI')
      expect_known_output(show(tb.diff.2), txtf(200))
-     expect_known_output(
-       show(diffPrint(TB1, TB2[-2,], context=1, strip.sgr=FALSE)), txtf(300)
-     )
+     if(packageVersion('pillar') > '1.3.0')
+       # Due to pillar #129
+       expect_known_output(
+         show(diffPrint(TB1, TB2[-2,], context=1, strip.sgr=FALSE)), txtf(300)
+       )
   }
 })
 test_that("data.table", {

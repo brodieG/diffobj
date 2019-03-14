@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Brodie Gaslam
+# Copyright (C) 2019 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -142,6 +142,8 @@ wtr_help <- function(x, pat) {
   # It must be the case that the first block of matches occurs after non-matches
   # since the first header should happen first
 
+  res <- integer(0L)
+
   if(
     any(w.pat.rle$values) && length(w.pat.rle$values) > 1L &&
     w.pat.rle$values[2L]
@@ -193,15 +195,14 @@ wtr_help <- function(x, pat) {
       head.ranges <- lapply(ranges, function(x) heads.num[x])
 
       all.identical <-
-        vapply(head.ranges, identical, logical(1L), head.ranges[[1L]])
+        all(vapply(head.ranges, identical, logical(1L), head.ranges[[1L]]))
       all.one.apart <-
-        vapply(head.ranges, function(x) all(diff(x) == 1L), logical(1L))
+        all(vapply(head.ranges, function(x) all(diff(x) == 1L), logical(1L)))
 
       if(all.identical && all.one.apart && head.ranges[[1L]][1L] == 1L) {
-        unlist(ranges)
-      } else integer(0L)
-    } else integer(0L)
-  } else integer(0L)
+        res <- unlist(ranges)
+  } } }
+  res
 }
 which_table_rh <- function(x) {
   stopifnot(is.character(x), !anyNA(x))
@@ -277,9 +278,11 @@ which_array_rh <- function(x, dim.names.x) {
 
   m.h <- lapply(dat, which_matrix_rh, head(dim.names.x, 2L))
 
+  res <- integer(0L)
   if(length(m.h) && all(vapply(m.h, identical, logical(1L), m.h[[1L]]))) {
-    unlist(Map(function(y, z) attr(y, "idx")[z], dat, m.h))
-  } else integer(0L)
+    res <- unlist(Map(function(y, z) attr(y, "idx")[z], dat, m.h))
+  }
+  res
 }
 strip_array_rh <- function(x, dim.names.x) {
   inds <- which_array_rh(x, dim.names.x)

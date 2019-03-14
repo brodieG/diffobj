@@ -1,5 +1,5 @@
-# Copyright (C) 2018  Brodie Gaslam
-#
+# Copyright (C) 2019 Brodie Gaslam
+
 # This file is part of "diffobj - Diffs for R Objects"
 #
 # This program is free software: you can redistribute it and/or modify
@@ -418,18 +418,19 @@ setMethod("finalizeHtml", c("Diff"),
 
 show_w_pager <- function(txt, pager) {
   use.pager <- use_pager(pager, attr(txt, "len"))
+  file.keep <- !is.na(pager@file.path)
 
   # Finalize and output
 
   if(use.pager) {
     disp.f <- if(!is.na(pager@file.path)) pager@file.path
-    else paste0(tempfile(), ".", pager@file.ext)
+      else paste0(tempfile(), ".", pager@file.ext)
 
-    if(!pager@file.keep) on.exit(add=TRUE, unlink(disp.f))
+    if(!file.keep) on.exit(add=TRUE, unlink(disp.f))
     writeLines(txt, disp.f)
     if(
       isTRUE(pager@make.blocking) ||
-      (is.na(pager@make.blocking) && !pager@file.keep)
+      (is.na(pager@make.blocking) && !file.keep)
     )
       make_blocking(pager@pager)(disp.f) else pager@pager(disp.f)
   } else {

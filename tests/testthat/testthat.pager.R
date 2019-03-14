@@ -1,6 +1,10 @@
 library(diffobj)
 context("pager")
 
+txtf <- function(x)
+  file.path(getwd(), "helper", "pager", sprintf("%s.txt", x))
+
+# void pager, doesn't do anything, just to test side effect of writing to file
 void <- function(x) NULL
 test_that("Specifying pager", {
   style <- gdo("diffobj.style")
@@ -122,6 +126,7 @@ test_that("blocking", {
       )
   })
   with_mock(
+    "diffobj:::interactive"=function() TRUE,
     "diffobj:::readline"=function(...) warning("readline"),
     {
       expect_warning(
@@ -137,18 +142,21 @@ test_that("blocking", {
         show(
           diffChr(
             "a", "b", format='html',
-            pager=list(
-              pager=void, make.blocking=NA, threshold=0,
-              file.keep=FALSE
-            )
+            pager=list(pager=void, make.blocking=NA, threshold=0)
         ) ),
         "readline"
       )
       expect_warning(
+        show(diffChr("a", "b", format='html', pager=list(pager=void))),
+        "readline"
+      )
+      f <- tempfile()
+      on.exit(unlink(f))
+      expect_warning(
         show(
           diffChr(
             "a", "b", format='html',
-            pager=list(pager=void, file.keep=TRUE)
+            pager=list(pager=void, make.blocking=NA, file.path=f)
         ) ),
         NA
       )
@@ -156,10 +164,17 @@ test_that("blocking", {
         show(
           diffChr(
             "a", "b", format='html',
-            pager=list(pager=void, make.blocking=NA, file.keep=TRUE)
+            pager=list(pager=void, make.blocking=FALSE, file.path=f)
         ) ),
         NA
-) } )})
+      )
+      expect_warning(
+        show(
+          diffChr("a", "b", format='html', pager=list(pager=void, file.path=f))
+        ),
+        NA
+      )
+} )})
 test_that("html page output", {
   pager <- PagerBrowser(
     pager=function(x) cat(readLines(x), sep="\n"), make.blocking=FALSE
@@ -241,23 +256,107 @@ test_that("pager_is_less", {
   })
   expect_false(diffobj:::file_is_less(tempfile()))
 })
-test_that("file.keep", {
+test_that("file.path", {
   f <- tempfile()
   show(
     diffChr(
       "A", "B", format='raw',
-      pager=list(pager=void, file.keep=TRUE, file.path=f, threshold=0L)
+      pager=list(pager=void, file.path=f, threshold=0L)
   ) )
   expect_equal(
     readLines(f),
     c("< \"A\"       > \"B\"     ", "@@ 1 @@     @@ 1 @@   ",
       "< A         > B       ")
   )
-  show(
-    diffChr(
-      "A", "B", format='raw',
-      pager=list(pager=void, file.keep=FALSE, file.path=f, threshold=0L)
-  ) )
-  expect_false(file.exists(f))
+  expect_error(
+    show(
+      diffChr(
+        "A", "B", format='raw',
+        pager=list(pager=void, file.path=NA, threshold=0L)
+    ) ),
+    NA
+  )
 })
+test_that("basic pager", {
+  f <- tempfile()
+  on.exit(unlink(f))
+  expect_known_output(
+    show(
+      diffChr(
+        1, 2, pager=Pager(file.path=f, threshold=0L),
+        format='raw'
+      )
+    ),
+    txtf(100)
+  )
+  expect_equal(readLines(txtf(100)), readLines(f))
+  unlink(f)
+})
+test_that("format-pager interaction", {
+  old.opt <- options(crayon.colors=7)
+  crayon::num_colors(TRUE)
+  on.exit({
+    options(old.opt)
+    crayon::num_colors(TRUE)
+  })
+  expect_is(
+    diffChr(1, 2, format='auto', pager="on", interactive=TRUE)@etc@style,
+    "StyleHtml"
+  )
+  expect_is(
+    diffChr(1, 2, format='auto', pager="on", interactive=FALSE)@etc@style,
+    "StyleRaw"
+  )
+  expect_is(
+    diffChr(
+      1, 2, format='auto', pager=PagerBrowser(), interactive=FALSE
+    )@etc@style,
+    "StyleHtml"
+  )
+})
+test_that("format-pager interaction 2", {
+  old.rs <- Sys.getenv('RSTUDIO', unset=NA)
+  old.rsterm <- Sys.getenv('RSTUDIO_TERM', unset=NA)
+  on.exit({
+    if(is.na(old.rs)) {
+      Sys.unsetenv('RSTUDIO')
+    } else Sys.setenv('RSTUDIO'=old.rs)
 
+    if(is.na(old.rsterm)) {
+      Sys.unsetenv('RSTUDIO_TERM')
+    } else Sys.setenv('RSTUDIO_TERM'=old.rsterm)
+  })
+  Sys.unsetenv('RSTUDIO')
+  Sys.unsetenv('RSTUDIO_TERM')
+  old.opt <- options(crayon.colors=8)
+  crayon::num_colors(TRUE)
+  on.exit({options(old.opt); crayon::num_colors(TRUE)}, add=TRUE)
+
+  Sys.setenv(RSTUDIO='1')
+
+  expect_is(
+    diffChr(1, 2, format='auto', pager='on', interactive=TRUE)@etc@style,
+    "StyleHtml"
+  )
+  expect_is(
+    diffChr(1, 2, format='auto', interactive=FALSE)@etc@style,
+    "StyleAnsi"
+  )
+  Sys.setenv(RSTUDIO_TERM='HELLO')
+  crayon::num_colors(TRUE)
+
+  expect_is(
+    diffChr(1, 2, format='auto', pager='on', interactive=TRUE)@etc@style,
+    "StyleAnsi"
+  )
+})
+test_that("format-pager interaction 3", {
+  expect_is(
+    diffPrint(1:3, 3:1, format='auto', interactive=FALSE, term.colors=1)@etc@style,
+    "StyleRaw"
+  )
+  expect_is(
+    diffPrint(1:3, 3:1, format='auto', interactive=FALSE, term.colors=8)@etc@style,
+    "StyleAnsi"
+  )
+})

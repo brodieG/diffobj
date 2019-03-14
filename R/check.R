@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Brodie Gaslam
+# Copyright (C) 2019 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -26,8 +26,8 @@ check_limit <- function(limit) {
   if(
     !is.numeric(limit) || any(is.na(limit)) ||
     !length(limit) %in% 1:2 ||
-    !is.finite(limit) ||
-    round(limit) != limit ||
+    !all(is.finite(limit)) ||
+    any(round(limit) != limit) ||
     (length(limit) == 2L && diff(limit) > 0)
   ) {
     return(
@@ -48,12 +48,12 @@ string_in <- function(x, valid.x) is.chr.1L(x) && x %in% valid.x
 # Simple validation functions
 
 is.int.1L <- function(x)
-  is.numeric(x) && length(x) == 1L && !is.na(x) && x ==  round(x) &&
+  is.numeric(x) && length(x) == 1L && !is.na(x) && all(x == round(x)) &&
   is.finite(x)
 
 is.int.2L <- function(x)
-  is.numeric(x) && length(x) == 2L && !anyNA(x) && x ==  round(x) &&
-  is.finite(x)
+  is.numeric(x) && length(x) == 2L && !anyNA(x) && all(x == round(x)) &&
+  all(is.finite(x))
 
 is.TF <- function(x) isTRUE(x) || identical(x, FALSE)
 
@@ -339,7 +339,7 @@ check_args <- function(
       pager <- PagerOff()
     } else if (is.list(pager)) {
       pager.args <- pager
-      pager <- "auto"
+      pager <- "on"
     }
   }
   # palette and arguments that reference palette dimensions
@@ -401,16 +401,25 @@ check_args <- function(
         # nocov end
       # No recognized color alternatives, try to use HTML if we can
 
-      format <- if(!term.colors %in% c(8, 256) && !pager.could.be.ansi) {
-        if(
-          interactive && (identical(pager, "on") || is(pager, "PagerBrowser"))
-        ) "html" else "raw"
-      } else if (term.colors == 8) {
+      format <- if(
+        nzchar(Sys.getenv('RSTUDIO')) && !nzchar(Sys.getenv('RSTUDIO_TERM')) &&
+        interactive
+      ) {
+        "html"
+      } else if(
+        term.colors < 8
+      ) {
+        if(!pager.could.be.ansi) {
+          if(
+            (interactive && identical(pager, "on")) || is(pager, "PagerBrowser")
+          ) "html" else "raw"
+        } else {
+          if(!pager@threshold) "ansi8" else "raw"
+        }
+      } else if (term.colors < 256) {
         "ansi8"
-      } else if (term.colors == 256) {
+      } else if (term.colors >= 256) {
         "ansi256"
-      } else if (pager.could.be.ansi) {
-        "raw"
       } else stop("Logic error: unhandled format; contact maintainer.") # nocov
     }
     style <- palette.of.styles[[

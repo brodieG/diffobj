@@ -1,0 +1,21 @@
+
+Found
+differences
+in 1
+hunk:
+  1
+insertion,
+1
+deletion,
+0
+matches
+(lines)
+
+Diff map
+(line:char
+scale is
+1:1 for
+single
+chars, ):
+  DI
+
