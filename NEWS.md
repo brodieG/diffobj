@@ -1,5 +1,9 @@
 # diffobj
 
+## v0.2.2
+
+* Set `RNGversion()` due to changes to sampling mechanism.
+
 ## v0.2.0-1
 
 ### Features
