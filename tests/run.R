@@ -1,6 +1,6 @@
 # Run tests
 
-library(testthat)
+if(!require(testthat)) stop("`testthat` must be available to run tests.")
 library(diffobj)
 
 local({                                         # so we can use `on.exit`
@@ -31,6 +31,8 @@ local({                                         # so we can use `on.exit`
   old.opts <- c(old.opts, no.null.opt.list)
 
   on.exit(options(old.opts))
+
+  RNGversion("3.5.2");
 
   valgrind <- FALSE
   if(!valgrind) {
@@ -78,4 +80,5 @@ local({                                         # so we can use `on.exit`
   } else {
     source('valgrind/tests-valgrind.R')
   }
+  RNGversion(as.character(getRversion()))
 })
