@@ -60,6 +60,24 @@ test_that("file", {
     as.character(diffChr(letters, letters2, tar.banner="f1", cur.banner="f2")),
     as.character(diffFile(f1, f2))
   )
+
+  # issue 133 h/t Noam Ross, thanks for the test
+
+  library(diffobj)
+  x <- tempfile()
+  y <- tempfile()
+  on.exit(unlink(c(x, y)))
+  cat("Hello\nthere\n", file = x)
+  file.copy(x, y)
+  expect_identical(
+    as.character(diffFile(x, y, format = "raw")),
+    structure(
+      c("No visible differences between objects.", 
+        "< x          > y        ", 
+        "@@ 1,2 @@    @@ 1,2 @@  ", 
+        "  Hello        Hello    ", 
+        "  there        there    "), len = 5L)
+  )
 })
 
 test_that("CSV", {

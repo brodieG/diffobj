@@ -368,7 +368,7 @@ capt_file <- function(target, current, etc, err, extra) {
   if(isTRUE(etc@trim)) etc@trim <- trimFile
 
   diff.out <- line_diff(
-    target, current, html_ent_sub(tar.capt, etc@style),
+    tar.capt, cur.capt, html_ent_sub(tar.capt, etc@style),
     html_ent_sub(cur.capt, etc@style), etc=etc
   )
   diff.out@capt.mode <- "file"
