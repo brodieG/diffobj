@@ -1,5 +1,13 @@
 # diffobj
 
+## v0.2.3
+
+* [#133](https://github.com/brodieG/diffobj/issues/133): `diffFile` considers
+  files with equal content but different locations to be `all.equal` now (h/t
+  @noamross).
+* [#132](https://github.com/brodieG/diffobj/issues/132): Duplicate pager slot
+  for baseline `Pager` removed (h/t Bill Dunlap).
+
 ## v0.2.2
 
 * Set `RNGversion()` due to changes to sampling mechanism.
