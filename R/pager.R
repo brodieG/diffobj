@@ -236,7 +236,6 @@ setClass(
   ),
   prototype=list(
     pager=function(x) writeLines(readLines(x)), file.ext="", threshold=0L,
-    pager=function(x) stop("Pager object does not specify a paging function."),
     ansi=FALSE, file.path=NA_character_, make.blocking=FALSE
   ),
   validity=function(object) {
