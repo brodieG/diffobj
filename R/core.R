@@ -484,9 +484,11 @@ line_diff <- function(
 
     tar.dat.sub <- lapply(tar.dat, "[", tar.rh)
     cur.dat.sub <- lapply(cur.dat, "[", cur.rh)
+    tar.rh.ind <- seq_along(tar.dat$raw)[tar.rh]
+    cur.rh.ind <- seq_along(cur.dat$raw)[cur.rh]
 
     diff.word <- diff_word2(
-      tar.dat.sub, cur.dat.sub, tar.ind=tar.rh, cur.ind=cur.rh,
+      tar.dat.sub, cur.dat.sub, tar.ind=tar.rh.ind, cur.ind=cur.rh.ind,
       diff.mode="wrap", warn=warn, etc=etc
     )
     warn <- !diff.word$hit.diffs.max
