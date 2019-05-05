@@ -146,5 +146,11 @@ test_that("Nested dots issue 134, h/t Noam Ross", {
   }
   expect_equal(
     as.character(fn("a", "b", format = "raw")),
+    structure(
+      c(
+        "< target    > current ",
+        "@@ 1 @@     @@ 1 @@   ",
+        "< a         > b       "), len = 3L
+    )
   )
 })
