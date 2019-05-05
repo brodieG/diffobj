@@ -2,6 +2,9 @@
 
 ## v0.2.3
 
+* [#134](https://github.com/brodieG/diffobj/issues/134): Forwarding `...` to
+  `diff*` functions no longer breaks substitution of arguments for diff banners
+  (h/t @noamross)..
 * [#133](https://github.com/brodieG/diffobj/issues/133): `diffFile` considers
   files with equal content but different locations to be `all.equal` now (h/t
   @noamross).

@@ -140,3 +140,17 @@ test_that("NAs", {
     rdsf(1500)
   )
 })
+test_that("Nested dots issue 134, h/t Noam Ross", {
+  fn <- function(target, current, ...) {
+    diffChr(target, current, ...)
+  }
+  expect_equal(
+    as.character(fn("a", "b", format = "raw")),
+    structure(
+      c(
+        "< target    > current ",
+        "@@ 1 @@     @@ 1 @@   ",
+        "< a         > b       "), len = 3L
+    )
+  )
+})
