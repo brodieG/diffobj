@@ -462,7 +462,9 @@ line_diff <- function(
     tok.rat=rep(1, length(cur.capt.p))
   )
   # Word diffs in wrapped form is atomic; note this will potentially change
-  # the length of the vectors
+  # the length of the vectors.  5/2019 Some question here whether we are
+  # allowing things that shouldn't be unwrapped (e.g. diffChr will be detected
+  # as being atomic, and even matrix(1:9) shows up as atomic).
 
   tar.wrap.diff <- integer(0L)
   cur.wrap.diff <- integer(0L)
@@ -486,6 +488,9 @@ line_diff <- function(
     cur.dat.sub <- lapply(cur.dat, "[", cur.rh)
     tar.rh.ind <- seq_along(tar.dat$raw)[tar.rh]
     cur.rh.ind <- seq_along(cur.dat$raw)[cur.rh]
+
+    # 5/2019: are we doing this wrong? Seems like we don't need to subset
+    # tar.dat first?
 
     diff.word <- diff_word2(
       tar.dat.sub, cur.dat.sub, tar.ind=tar.rh.ind, cur.ind=cur.rh.ind,
