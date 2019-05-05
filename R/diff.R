@@ -336,7 +336,7 @@ make_diff_fun <- function(capt_fun) {
 #'   for normal styles and \code{80L} for HTML styles.
 #' @param ignore.white.space TRUE or FALSE, whether to consider differences in
 #'   horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
-#'   FALSE).
+#'   TRUE).
 #' @param convert.hz.white.space TRUE or FALSE, whether modify input strings
 #'   that contain tabs and carriage returns in such a way that they display as
 #'   they would \bold{with} those characters, but without using those
