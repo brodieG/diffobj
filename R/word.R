@@ -366,17 +366,19 @@ word_to_line_map <- function(
     }
     dat
   }
-  tar.dat <- augment(tar.dat, tar.lines.f2, tar.ind)
-  cur.dat <- augment(cur.dat, cur.lines.f2, cur.ind)
+  tar.dat.aug <- augment(tar.dat, tar.lines.f2, tar.ind)
+  cur.dat.aug <- augment(cur.dat, cur.lines.f2, cur.ind)
 
   # Also need to augment the indices so we can re-insert properly; we subvert
   # the fill logic since that will make sure
 
-  tar.ind.a <-
-    augment(list(fill=!logical(length(tar.dat[[1]]))), tar.lines.f2, tar.ind)
+  tar.ind.a <- augment(
+    list(fill=!logical(length(tar.dat[[1]]))), tar.lines.f2, tar.ind
+  )
   tar.ind.a.l <- unname(unlist(tar.ind.a))
-  cur.ind.a <-
-    augment(list(fill=!logical(length(cur.dat[[1]]))), cur.lines.f2, cur.ind)
+  cur.ind.a <- augment(
+    list(fill=!logical(length(cur.dat[[1]]))), cur.lines.f2, cur.ind
+  )
   cur.ind.a.l <- unname(unlist(cur.ind.a))
 
   # Generate the final vectors to do the diffs on; these should be unique
@@ -395,8 +397,9 @@ word_to_line_map <- function(
   }
   neg.nums <- sum(!tar.match, !cur.match)
 
-  strings <-
-    make_unique_strings(pos.nums + neg.nums, c(tar.dat$raw, cur.dat$raw))
+  strings <- make_unique_strings(
+    pos.nums + neg.nums, c(tar.dat.aug$raw, cur.dat.aug$raw)
+  )
   strings.pos <- strings[seq.int(pos.nums)]
   strings.neg <- tail(strings, neg.nums)
   if(neg.nums + pos.nums != length(strings)) {
@@ -405,11 +408,11 @@ word_to_line_map <- function(
     # nocov end
   }
 
-  tar.dat$comp[tar.ind.a.l][tar.match] <- strings.pos
-  cur.dat$comp[cur.ind.a.l][cur.match] <- strings.pos
-  tar.dat$comp[tar.ind.a.l][!tar.match] <- head(strings.neg, sum(!tar.match))
-  cur.dat$comp[cur.ind.a.l][!cur.match] <- tail(strings.neg, sum(!cur.match))
-  list(tar.dat=tar.dat, cur.dat=cur.dat)
+  tar.dat.aug$comp[tar.ind.a.l][tar.match] <- strings.pos
+  cur.dat.aug$comp[cur.ind.a.l][cur.match] <- strings.pos
+  tar.dat.aug$comp[tar.ind.a.l][!tar.match] <- head(strings.neg, sum(!tar.match))
+  cur.dat.aug$comp[cur.ind.a.l][!cur.match] <- tail(strings.neg, sum(!cur.match))
+  list(tar.dat=tar.dat.aug, cur.dat=cur.dat.aug)
 }
 # Pull out mismatching words from the word regexec; helper functions
 
@@ -571,14 +574,18 @@ diff_word2 <- function(
   # Note that we're only operating on a subset of the data via tar.ind and
   # cur.ind
 
+  tar.dat.fin <- tar.dat
+  cur.dat.fin <- cur.dat
   if(diff.mode == "wrap") {
     word.line.mapped <- word_to_line_map(
       hunks.flat, tar.dat, cur.dat, tar.ends, cur.ends, tar.ind, cur.ind
     )
-    tar.dat <- word.line.mapped$tar.dat
-    cur.dat <- word.line.mapped$cur.dat
+    tar.dat.fin <- word.line.mapped$tar.dat
+    cur.dat.fin <- word.line.mapped$cur.dat
   }
-  list(tar.dat=tar.dat, cur.dat=cur.dat, hit.diffs.max=diffs$hit.diffs.max)
+  list(
+    tar.dat=tar.dat.fin, cur.dat=cur.dat.fin, hit.diffs.max=diffs$hit.diffs.max
+  )
 }
 # Make unique strings
 #
