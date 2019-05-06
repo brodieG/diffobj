@@ -84,7 +84,7 @@ reassign_lines2 <- function(lines, cont, hunk.diff) {
 ## Used when we're doing a wrapped diff for atomic vectors.  We have been
 ## through several iterations trying to get the most intuitive behavior and the
 ## result is a fairly non-intuitive and likely inefficient algorithm.  It works
-## for the most part, so we leave it as is, but is long, messy, and could
+## for the most part, so we leave it as is, but is long, messy, and should
 ## probably be replaced by a far more elegant solution.
 ##
 ## @param tar.ends and cur.ends are the indices of the last elements in each line
@@ -158,7 +158,7 @@ word_to_line_map <- function(
   h.cont <- vapply(hunks, "[[", logical(1L), "context")
 
   # Compute what indices are in each lines; we are going to use this to
-  # categorize what time of line this is; some of this might be duplicative with
+  # categorize what type of line this is; some of this might be duplicative with
   # what we did earlier, but that was so long ago I don't want to get back into
   # it
 
@@ -342,7 +342,7 @@ word_to_line_map <- function(
       else tar.lines.f2[[i]] <- short.pad
   } }
   # Augment the input vectors by the blanks we added; these blanks are
-  # represented by NAs in our index vector so should be easy to do
+  # represented by NAs in our index vector.
 
   augment <- function(dat, lines, ind) {
     lines.u <- unlist(lines)
@@ -354,7 +354,7 @@ word_to_line_map <- function(
       hd <- i.vec[hd.ind]
       tl <- i.vec[tl.ind]
       bod <- vector(typeof(i.vec), length(lines.u))
-      bod[!is.na(lines.u)] <- i.vec
+      bod[!is.na(lines.u)] <- i.vec[!(hd.ind | tl.ind)]
       if(i == "word.ind") {
         bod[is.na(lines.u)] <- list(.word.diff.atom)
       } else if (i == "fill") {
@@ -373,10 +373,10 @@ word_to_line_map <- function(
   # the fill logic since that will make sure
 
   tar.ind.a <-
-    augment(list(fill=!logical(length(tar.ind))), tar.lines.f2, tar.ind)
+    augment(list(fill=!logical(length(tar.dat[[1]]))), tar.lines.f2, tar.ind)
   tar.ind.a.l <- unname(unlist(tar.ind.a))
   cur.ind.a <-
-    augment(list(fill=!logical(length(cur.ind))), cur.lines.f2, cur.ind)
+    augment(list(fill=!logical(length(cur.dat[[1]]))), cur.lines.f2, cur.ind)
   cur.ind.a.l <- unname(unlist(cur.ind.a))
 
   # Generate the final vectors to do the diffs on; these should be unique

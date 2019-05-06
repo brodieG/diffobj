@@ -484,16 +484,8 @@ line_diff <- function(
     # the atomic row headers (NOTE: need to check what happens with named
     # vectors without row headers)
 
-    tar.dat.sub <- lapply(tar.dat, "[", tar.rh)
-    cur.dat.sub <- lapply(cur.dat, "[", cur.rh)
-    tar.rh.ind <- seq_along(tar.dat$raw)[tar.rh]
-    cur.rh.ind <- seq_along(cur.dat$raw)[cur.rh]
-
-    # 5/2019: are we doing this wrong? Seems like we don't need to subset
-    # tar.dat first?
-
     diff.word <- diff_word2(
-      tar.dat.sub, cur.dat.sub, tar.ind=tar.rh.ind, cur.ind=cur.rh.ind,
+      tar.dat, cur.dat, tar.ind=tar.rh, cur.ind=cur.rh,
       diff.mode="wrap", warn=warn, etc=etc
     )
     warn <- !diff.word$hit.diffs.max
