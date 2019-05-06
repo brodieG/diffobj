@@ -489,19 +489,8 @@ line_diff <- function(
       diff.mode="wrap", warn=warn, etc=etc
     )
     warn <- !diff.word$hit.diffs.max
-    dat.up <- function(orig, new, ind) {
-      if(!length(ind)) {
-        orig
-      } else {
-        start <- orig[seq_along(orig) < min(ind)]
-        end <- orig[seq_along(orig) > max(ind)]
-        c(start, new, end)
-      }
-    }
-    tar.dat <-
-      Map(dat.up, tar.dat, diff.word$tar.dat, MoreArgs=list(ind=tar.rh))
-    cur.dat <-
-      Map(dat.up, cur.dat, diff.word$cur.dat, MoreArgs=list(ind=cur.rh))
+    tar.dat <- diff.word$tar.dat
+    cur.dat <- diff.word$cur.dat
 
     # Mark the lines that were wrapped diffed; necessary b/c tar/cur.rh are
     # defined even if other conditions to get in this loop are not, and also
