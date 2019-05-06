@@ -155,11 +155,14 @@ test_that("Nested dots issue 134, h/t Noam Ross", {
   )
 })
 test_that("Newlines in input, issue 135, h/t Flying Sheep", {
-  # a <-     'A Time Series:\n[1] 1 2 3 4'
-  # b <-     'A Time Series:\n[1] 9 4 1 4'
-  # diffobj::diffChr(a, b,
-  #   format = 'raw',
-  #   ignore.white.space = TRUE,
-  #   interactive = FALSE)
+  a <-     'A Time Series:\n[1] 1 2 3 4'
+  b <-     'A Time Series:\n[1] 9 4 1 4'
+  expect_equal(
+    c(as.character(diffobj::diffChr(a, b, format = 'raw'))),
+    c("< a               > b             ",
+      "@@ 1,2 @@         @@ 1,2 @@       ", 
+      "< A Time Series:  > A Time Series:", 
+      "< [1] 1 2 3 4     > [1] 9 4 1 4   ")
+  )
 })
 

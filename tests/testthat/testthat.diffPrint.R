@@ -192,6 +192,7 @@ test_that("factors", {
   expect_equal_to_reference(
     as.character(diffPrint(factor(1:100), factor(c(1:99, 101)))), rdsf(3200)
   )
+  diffobj::diffPrint(factor(1:20), factor(c(1:19, 21)))
 })
 test_that("Raw output", {
   expect_equal_to_reference(

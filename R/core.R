@@ -439,7 +439,8 @@ line_diff <- function(
   # - raw: the original captured text line by line, with strip_hz applied
   # - trim: as above, but with row meta data removed
   # - trim.ind: the indices used to re-insert `trim` into `raw`
-  # - comp: the strings that will have the line diffs run on
+  # - comp: the strings that will have the line diffs run on, these can be
+  #   modified to force a particular outcome, e.g. by word_to_line_map
   # - eq: the portion of `trim` that is equal post word-diff
   # - fin: the final character string for display to user
   # - word.ind: for use by `regmatches<-` to re-insert colored words
@@ -468,6 +469,8 @@ line_diff <- function(
 
   tar.wrap.diff <- integer(0L)
   cur.wrap.diff <- integer(0L)
+  tar.dat.w <- tar.dat
+  cur.dat.w <- cur.dat
 
   if(
     is.atomic(target) && is.atomic(current) &&
@@ -489,12 +492,13 @@ line_diff <- function(
       diff.mode="wrap", warn=warn, etc=etc
     )
     warn <- !diff.word$hit.diffs.max
-    tar.dat <- diff.word$tar.dat
-    cur.dat <- diff.word$cur.dat
+    tar.dat.w <- diff.word$tar.dat
+    cur.dat.w <- diff.word$cur.dat
 
     # Mark the lines that were wrapped diffed; necessary b/c tar/cur.rh are
     # defined even if other conditions to get in this loop are not, and also
     # because the addition of the fill lines moves everything around
+    # (effectively tar/cur.wrap.diff are the fill-offset versions of tar/cur.rh)
 
     tar.wrap.diff <- seq_along(tar.dat$fill)[!tar.dat$fill][tar.rh]
     cur.wrap.diff <- seq_along(cur.dat$fill)[!cur.dat$fill][cur.rh]
@@ -502,7 +506,7 @@ line_diff <- function(
   # Actual line diff
 
   diffs <- char_diff(
-    tar.dat$comp, cur.dat$comp, etc=etc, diff.mode="line", warn=warn
+    tar.dat.w$comp, cur.dat.w$comp, etc=etc, diff.mode="line", warn=warn
   )
   warn <- !diffs$hit.diffs.max
 
@@ -512,9 +516,12 @@ line_diff <- function(
   # word.diffs list; bad part here is that we keep overwriting the overall
   # diff data for each hunk, which might be slow
 
+  tar.dat.ww <- cur.dat.w
+  cur.dat.ww <- cur.dat.w
+
   if(etc@word.diff) {
     # Word diffs on hunks, excluding all values that have already been wrap
-    # diffed as in tar.rh and cur.rh
+    # diffed as in tar.rh and cur.rh / tar.wrap.diff and cur.wrap.diff
 
     for(h.a in hunks.flat) {
       if(h.a$context) next
@@ -522,12 +529,12 @@ line_diff <- function(
       h.a.tar.ind <- setdiff(h.a.ind[h.a.ind > 0], tar.wrap.diff)
       h.a.cur.ind <- setdiff(abs(h.a.ind[h.a.ind < 0]), cur.wrap.diff)
       h.a.w.d <- diff_word2(
-        tar.dat, cur.dat, h.a.tar.ind, h.a.cur.ind, diff.mode="hunk", warn=warn,
-        etc=etc
+        tar.dat.w, cur.dat.w, h.a.tar.ind, h.a.cur.ind, diff.mode="hunk", 
+        warn=warn, etc=etc
       )
-      tar.dat <- h.a.w.d$tar.dat
-      cur.dat <- h.a.w.d$cur.dat
-      warn <- !h.a.w.d$hit.diffs.max
+      tar.dat.ww <- h.a.w.d[['tar.dat']]
+      cur.dat.ww <- h.a.w.d[['cur.dat']]
+      warn <- warn || !h.a.w.d[['hit.diffs.max']]
     }
     # Compute the token ratios
 
@@ -538,23 +545,23 @@ line_diff <- function(
         else max(0, (wc - length(y)) / wc),
       numeric(1L)
     )
-    tar.dat$tok.rat <- tok_ratio_compute(tar.dat$word.ind)
-    cur.dat$tok.rat <- tok_ratio_compute(cur.dat$word.ind)
+    tar.dat.ww$tok.rat <- tok_ratio_compute(tar.dat.ww$word.ind)
+    cur.dat.ww$tok.rat <- tok_ratio_compute(cur.dat.ww$word.ind)
 
     # Deal with mixed UTF/plain strings
 
-    tar.dat$word.ind <- fix_word_ind(tar.dat$word.ind)
-    cur.dat$word.ind <- fix_word_ind(cur.dat$word.ind)
+    tar.dat.ww$word.ind <- fix_word_ind(tar.dat.ww$word.ind)
+    cur.dat.ww$word.ind <- fix_word_ind(cur.dat.ww$word.ind)
 
     # Remove different words to make equal strings
 
-    tar.dat$eq <- with(tar.dat, `regmatches<-`(trim, word.ind, value=""))
-    cur.dat$eq <- with(cur.dat, `regmatches<-`(trim, word.ind, value=""))
+    tar.dat.ww$eq <- with(tar.dat.ww, `regmatches<-`(trim, word.ind, value=""))
+    cur.dat.ww$eq <- with(cur.dat.ww, `regmatches<-`(trim, word.ind, value=""))
   }
   # Instantiate result
 
   hunk.grps.raw <- group_hunks(
-    hunks.flat, etc=etc, tar.capt=tar.dat$raw, cur.capt=cur.dat$raw
+    hunks.flat, etc=etc, tar.capt=tar.dat.ww$raw, cur.capt=cur.dat.ww$raw
   )
   gutter.dat <- etc@gutter
   max.w <- etc@text.width
@@ -568,7 +575,8 @@ line_diff <- function(
   }
   # Trim hunks to the extent needed to make sure we fit in lines
 
-  hunk.grps <- trim_hunks(hunk.grps.raw, etc.group, tar.dat$raw, cur.dat$raw)
+  hunk.grps <-
+    trim_hunks(hunk.grps.raw, etc.group, tar.dat.ww$raw, cur.dat.ww$raw)
   hunks.flat <- unlist(hunk.grps, recursive=FALSE)
 
   # Compact to width of widest element, so retrieve all char values; also
@@ -583,7 +591,7 @@ line_diff <- function(
   # be faster to use tar.dat and cur.dat directly
 
   chr.ind <- unlist(lapply(hunks.flat, "[", c("A", "B")))
-  chr.dat <- get_dat_raw(chr.ind, tar.dat$raw, cur.dat$raw)
+  chr.dat <- get_dat_raw(chr.ind, tar.dat.ww$raw, cur.dat.ww$raw)
   chr.size <- integer(length(chr.dat))
 
   ranges <- vapply(
@@ -604,8 +612,8 @@ line_diff <- function(
     hunks.flat, function(h.a) {
       with(
         h.a, c(
-          rng_non_fill(tar.rng.sub, which(tar.dat$fill)),
-          rng_non_fill(cur.rng.sub, which(cur.dat$fill))
+          rng_non_fill(tar.rng.sub, which(tar.dat.ww$fill)),
+          rng_non_fill(cur.rng.sub, which(cur.dat.ww$fill))
       ) )
     },
     integer(4L)
@@ -615,7 +623,7 @@ line_diff <- function(
   # that adjusted ranges are not necessarily contiguous
 
   hunk.heads <-
-    lapply(hunk.grps, make_hh, etc@mode, tar.dat, cur.dat, ranges.orig)
+    lapply(hunk.grps, make_hh, etc@mode, tar.dat.ww, cur.dat.ww, ranges.orig)
   h.h.chars <- nchar2(
     chr_trim(
       unlist(hunk.heads), etc@line.width, sgr.supported=etc@sgr.supported
@@ -635,7 +643,7 @@ line_diff <- function(
 
   new(
     "Diff", diffs=hunk.grps, target=target, current=current,
-    hit.diffs.max=!warn, tar.dat=tar.dat, cur.dat=cur.dat, etc=etc,
+    hit.diffs.max=!warn, tar.dat=tar.dat.ww, cur.dat=cur.dat.ww, etc=etc,
     hunk.heads=hunk.heads, trim.dat=attr(hunk.grps, 'meta')
   )
 }

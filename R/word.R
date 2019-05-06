@@ -81,20 +81,32 @@ reassign_lines2 <- function(lines, cont, hunk.diff) {
 }
 ## Helper Function for Mapping Word Diffs to Lines
 ##
-## Used when we're doing a wrapped diff for atomic vectors.  We have been
-## through several iterations trying to get the most intuitive behavior and the
-## result is a fairly non-intuitive and likely inefficient algorithm.  It works
-## for the most part, so we leave it as is, but is long, messy, and should
-## probably be replaced by a far more elegant solution.
+## Used when we're doing a wrapped diff for atomic vectors.  For this the
+## wrapped display is unwrapped possibly removing row header meta data, and the
+## diff is carried out on the words.  The challenge is we need to then be able
+## to re-map back each word back to the line it was on originally before
+## unwrapping.  This may include adding padding line blanks in the case one hunk
+## displays across more lines than another.
+##
+## We have been through several iterations trying to get the most intuitive
+## behavior and the result is a fairly non-intuitive and likely inefficient
+## algorithm.  It works for the most part, so we leave it as is, but is long,
+## messy, and should probably be replaced by a far more elegant solution.
+##
+## If tar/cur.dat here should contain the subset of the atomic vector display
+## that is not meta data (e.g. factor levels, or time series spec data)
 ##
 ## @param tar.ends and cur.ends are the indices of the last elements in each line
 ##   of the vector
-## @param tar.dat and cur.dat are the data
-## @param tar.ind and cur.ind seem to be used by augment, but don't totally
-##   remember what for.  They can have positive and negative values
+## @param tar.dat and cur.dat are the data, see `line_diff` body for detailed
+##   description of them (about 100 lines in).  Note that the data has been
+##   subset to just the portion of it that has row headers (e.g. excluding
+##   factor levels, etc.)
+## @param tar/cur.ends the position in the unwrapped vector of the last "word"
+##   in each line.
 
 word_to_line_map <- function(
-  hunks, tar.dat, cur.dat, tar.ends, cur.ends, tar.ind, cur.ind
+  hunks, tar.dat, cur.dat, tar.ends, cur.ends
 ) {
   # Once we've done all the replication and disambiguation, we need to make sure
   # diff hunks have the same number of lines.  Start mix lines or start/end mix
@@ -160,7 +172,7 @@ word_to_line_map <- function(
   # Compute what indices are in each lines; we are going to use this to
   # categorize what type of line this is; some of this might be duplicative with
   # what we did earlier, but that was so long ago I don't want to get back into
-  # it
+  # it.
 
   tar.idx <- Map(seq, c(1L, head(tar.ends, -1L) + 1L), tar.ends, by=1L)
   cur.idx <- Map(seq, c(1L, head(cur.ends, -1L) + 1L), cur.ends, by=1L)
@@ -344,42 +356,25 @@ word_to_line_map <- function(
   # Augment the input vectors by the blanks we added; these blanks are
   # represented by NAs in our index vector.
 
-  augment <- function(dat, lines, ind) {
+  augment <- function(dat, lines) {
     lines.u <- unlist(lines)
     lines.len <- length(lines.u)
     for(i in names(dat)) {
-      i.vec <- dat[[i]]
-      hd.ind <- seq_along(i.vec) < min(ind)
-      tl.ind <- seq_along(i.vec) > max(ind)
-      hd <- i.vec[hd.ind]
-      tl <- i.vec[tl.ind]
-      bod <- vector(typeof(i.vec), length(lines.u))
-      bod[!is.na(lines.u)] <- i.vec[!(hd.ind | tl.ind)]
+      i.vec <- vector(typeof(dat[[i]]), length(lines.u))
+      i.vec[!is.na(lines.u)] <- dat[[i]]
       if(i == "word.ind") {
-        bod[is.na(lines.u)] <- list(.word.diff.atom)
+        i.vec[is.na(lines.u)] <- list(.word.diff.atom)
       } else if (i == "fill") {
         # warning: this is also used/subverted for augmenting the original
         # indices so think before you change it
-        bod[is.na(lines.u)] <- TRUE
+        i.vec[is.na(lines.u)] <- TRUE
       }
-      dat[[i]] <- c(hd, bod, tl)
+      dat[[i]] <- i.vec
     }
     dat
   }
-  tar.dat.aug <- augment(tar.dat, tar.lines.f2, tar.ind)
-  cur.dat.aug <- augment(cur.dat, cur.lines.f2, cur.ind)
-
-  # Also need to augment the indices so we can re-insert properly; we subvert
-  # the fill logic since that will make sure
-
-  tar.ind.a <- augment(
-    list(fill=!logical(length(tar.dat[[1]]))), tar.lines.f2, tar.ind
-  )
-  tar.ind.a.l <- unname(unlist(tar.ind.a))
-  cur.ind.a <- augment(
-    list(fill=!logical(length(cur.dat[[1]]))), cur.lines.f2, cur.ind
-  )
-  cur.ind.a.l <- unname(unlist(cur.ind.a))
+  tar.dat.aug <- augment(tar.dat, tar.lines.f2)
+  cur.dat.aug <- augment(cur.dat, cur.lines.f2)
 
   # Generate the final vectors to do the diffs on; these should be unique
   # and matching for the matches, and unique and mismatching for the
@@ -408,10 +403,10 @@ word_to_line_map <- function(
     # nocov end
   }
 
-  tar.dat.aug$comp[tar.ind.a.l][tar.match] <- strings.pos
-  cur.dat.aug$comp[cur.ind.a.l][cur.match] <- strings.pos
-  tar.dat.aug$comp[tar.ind.a.l][!tar.match] <- head(strings.neg, sum(!tar.match))
-  cur.dat.aug$comp[cur.ind.a.l][!cur.match] <- tail(strings.neg, sum(!cur.match))
+  tar.dat.aug$comp[tar.match] <- strings.pos
+  cur.dat.aug$comp[cur.match] <- strings.pos
+  tar.dat.aug$comp[!tar.match] <- head(strings.neg, sum(!tar.match))
+  cur.dat.aug$comp[!cur.match] <- tail(strings.neg, sum(!cur.match))
   list(tar.dat=tar.dat.aug, cur.dat=cur.dat.aug)
 }
 # Pull out mismatching words from the word regexec; helper functions
@@ -572,16 +567,47 @@ diff_word2 <- function(
   # line diff infrastructure
   #
   # Note that we're only operating on a subset of the data via tar.ind and
-  # cur.ind
+  # cur.ind, these are supposed to be the contiguous block of lines that have
+  # row headers.
 
   tar.dat.fin <- tar.dat
   cur.dat.fin <- cur.dat
   if(diff.mode == "wrap") {
+    tar.dat.ind <- lapply(tar.dat, '[', tar.ind)
+    cur.dat.ind <- lapply(cur.dat, '[', cur.ind)
     word.line.mapped <- word_to_line_map(
-      hunks.flat, tar.dat, cur.dat, tar.ends, cur.ends, tar.ind, cur.ind
+      hunks.flat, tar.dat.ind, cur.dat.ind, tar.ends, cur.ends
     )
-    tar.dat.fin <- word.line.mapped$tar.dat
-    cur.dat.fin <- word.line.mapped$cur.dat
+    # Merge back the mapped data, need to account for possiblity of padding
+    # lines being added.
+
+    tar.len.old <- length(tar.dat[[1L]])
+    cur.len.old <- length(tar.dat[[1L]])
+
+    tar.ind.lo <- seq_len(1L - head(tar.ind, 1L))
+    tar.ind.hi <- seq_len(tar.len.old - tail(tar.ind, 1L)) + tail(tar.ind, 1L)
+    cur.ind.lo <- seq_len(1L - head(cur.ind, 1L))
+    cur.ind.hi <- seq_len(cur.len.old - tail(cur.ind, 1L)) + tail(cur.ind, 1L)
+
+    interleave <- function(idx, new, old, lo, hi)
+      c(old[[idx]][lo], new[[idx]], old[[idx]][hi])
+
+    tar.dat.fin <- setNames(
+      lapply(
+        seq_along(tar.dat), interleave,
+        new=word.line.mapped[['tar.dat']], old=tar.dat,
+        lo=tar.ind.lo, hi=tar.ind.hi
+      ),
+      names(tar.dat)
+    )
+    cur.dat.fin <- setNames(
+      lapply(
+        seq_along(cur.dat), interleave,
+        new=word.line.mapped[['cur.dat']], old=cur.dat,
+        lo=cur.ind.lo, hi=cur.ind.hi
+      ),
+      names(cur.dat)
+    )
   }
   list(
     tar.dat=tar.dat.fin, cur.dat=cur.dat.fin, hit.diffs.max=diffs$hit.diffs.max

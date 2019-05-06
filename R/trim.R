@@ -80,7 +80,8 @@ which_atomic_cont <- function(x.chr, x) {
   } else which_atomic_rh(x.chr)
   res
 }
-# Identify elements that contain row headers
+# Identify elements that contain row headers, these are guaranteed to be
+# sequential incrementing with no gaps, or zero length.
 
 which_atomic_rh <- function(x) {
   stopifnot(is.character(x), !anyNA(x))
@@ -95,7 +96,7 @@ which_atomic_rh <- function(x) {
   # attributes
 
   w.pat.rle <- rle(w.pat)
-  if(any(w.pat.rle$values)) {
+  res <- if(any(w.pat.rle$values)) {
     # First get the indices of the patterns that match
 
     first.block <- min(which(w.pat.rle$values))
@@ -113,7 +114,10 @@ which_atomic_rh <- function(x) {
     r.h.nums <- sub(".*?([0-9]+).*", "\\1", r.h.vals, perl=TRUE)
     r.h.nums.u <- length(unique(diff(as.numeric(r.h.nums))))
 
-    if(r.h.nums.u <= 1L && r.h.lens.u == 1L && r.h.nums[[1L]] == "1") {
+    if(
+      r.h.nums.u <= 1L && r.h.lens.u == 1L && r.h.nums[[1L]] == "1" &&
+      (length(w.pat.ind) < 2L || all(diff(w.pat.ind)) == 1L)
+    ) {
       w.pat.ind
     } else integer(0L)
   } else integer(0L)
