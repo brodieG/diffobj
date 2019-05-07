@@ -516,7 +516,7 @@ line_diff <- function(
   # word.diffs list; bad part here is that we keep overwriting the overall
   # diff data for each hunk, which might be slow
 
-  tar.dat.ww <- cur.dat.w
+  tar.dat.ww <- tar.dat.w
   cur.dat.ww <- cur.dat.w
 
   if(etc@word.diff) {
@@ -529,7 +529,7 @@ line_diff <- function(
       h.a.tar.ind <- setdiff(h.a.ind[h.a.ind > 0], tar.wrap.diff)
       h.a.cur.ind <- setdiff(abs(h.a.ind[h.a.ind < 0]), cur.wrap.diff)
       h.a.w.d <- diff_word2(
-        tar.dat.w, cur.dat.w, h.a.tar.ind, h.a.cur.ind, diff.mode="hunk", 
+        tar.dat.ww, cur.dat.ww, h.a.tar.ind, h.a.cur.ind, diff.mode="hunk",
         warn=warn, etc=etc
       )
       tar.dat.ww <- h.a.w.d[['tar.dat']]

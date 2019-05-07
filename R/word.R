@@ -578,11 +578,11 @@ diff_word2 <- function(
     # lines being added.
 
     tar.len.old <- length(tar.dat[[1L]])
-    cur.len.old <- length(tar.dat[[1L]])
+    cur.len.old <- length(cur.dat[[1L]])
 
-    tar.ind.lo <- seq_len(1L - head(tar.ind, 1L))
+    tar.ind.lo <- seq_len(head(tar.ind, 1L) - 1L)
     tar.ind.hi <- seq_len(tar.len.old - tail(tar.ind, 1L)) + tail(tar.ind, 1L)
-    cur.ind.lo <- seq_len(1L - head(cur.ind, 1L))
+    cur.ind.lo <- seq_len(head(cur.ind, 1L) - 1L)
     cur.ind.hi <- seq_len(cur.len.old - tail(cur.ind, 1L)) + tail(cur.ind, 1L)
 
     interleave <- function(idx, new, old, lo, hi)
