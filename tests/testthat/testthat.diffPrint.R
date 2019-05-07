@@ -199,6 +199,10 @@ test_that("factors and other meta", {
   f2 <- factor(c(1:20, 22:99, 101))
   expect_known_output(diffPrint(f1, f2), txtf(100), print=TRUE)
 
+  f3 <- factor(letters[1:10])
+  f4 <- factor(letters[1:10], levels=letters[1:11])
+  expect_known_output(diffPrint(f3, f4), txtf(150), print=TRUE)
+
   print.diffobj_test_c1 <- function(x, ...) {
     writeLines(c("Header row 1", "header row 2"))
     print(c(x))
