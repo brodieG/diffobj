@@ -161,7 +161,7 @@ test_that("Newlines in input, issue 135, h/t Flying Sheep", {
     c(as.character(diffobj::diffChr(a, b, format = 'raw'))),
     c("< a               > b             ",
       "@@ 1,2 @@         @@ 1,2 @@       ", 
-      "< A Time Series:  > A Time Series:", 
+      "  A Time Series:    A Time Series:", 
       "< [1] 1 2 3 4     > [1] 9 4 1 4   ")
   )
 })
