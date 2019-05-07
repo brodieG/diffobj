@@ -500,8 +500,8 @@ line_diff <- function(
     # because the addition of the fill lines moves everything around
     # (effectively tar/cur.wrap.diff are the fill-offset versions of tar/cur.rh)
 
-    tar.wrap.diff <- seq_along(tar.dat$fill)[!tar.dat$fill][tar.rh]
-    cur.wrap.diff <- seq_along(cur.dat$fill)[!cur.dat$fill][cur.rh]
+    tar.wrap.diff <- seq_along(tar.dat.w$fill)[!tar.dat.w$fill][tar.rh]
+    cur.wrap.diff <- seq_along(cur.dat.w$fill)[!cur.dat.w$fill][cur.rh]
   }
   # Actual line diff
 
