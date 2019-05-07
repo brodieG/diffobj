@@ -203,6 +203,14 @@ test_that("factors and other meta", {
   f4 <- factor(letters[1:10], levels=letters[1:11])
   expect_known_output(diffPrint(f3, f4), txtf(150), print=TRUE)
 
+  # time series
+
+  nhtemp2 <- nhtemp
+  nhtemp2[c(5, 30)] <- -999
+  expect_known_output(diffPrint(nhtemp, nhtemp2), txtf(175), print=TRUE)
+
+  # Meta on both sides
+
   print.diffobj_test_c1 <- function(x, ...) {
     writeLines(c("Header row 1", "header row 2"))
     print(c(x))
@@ -211,6 +219,7 @@ test_that("factors and other meta", {
   m1 <- structure(1:30, class='diffobj_test_c1')
   m2 <- structure(2:51, class='diffobj_test_c1')
   expect_known_output(diffPrint(m1, m2), txtf(200), print=TRUE)
+
 })
 test_that("Raw output", {
   expect_equal_to_reference(
