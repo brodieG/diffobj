@@ -81,23 +81,36 @@ reassign_lines2 <- function(lines, cont, hunk.diff) {
 }
 ## Helper Function for Mapping Word Diffs to Lines
 ##
-## Used when we're doing a wrapped diff for atomic vectors.  For this the
-## wrapped display is unwrapped possibly removing row header meta data, and the
-## diff is carried out on the words.  The challenge is we need to then be able
+## Used when we're doing a wrapped diff for atomic vectors.  We expect to
+## receive `tar/cur.dat` with any meta data lines (e.g. factor levels, time
+## series meta data) removed already.  The challenge is we need to then be able
 ## to re-map back each word back to the line it was on originally before
 ## unwrapping.  This may include adding padding line blanks in the case one hunk
 ## displays across more lines than another.
+#
+## This function does two things: inserts padding lines when hunks in one object
+## end up longer than in the other and similar lines don't align, and computes
+## mock character strings that will be used by to force alignments. We
+## manufacture unique strings that either match or don't match across the two
+## objects depending on the word contents of each line, and then pass those
+## back as the `comp` component of the `tar.dat` and `cur.dat` returned.  The
+## subsequent line diff will use `comp` and cause the relevant lines to be lined
+## up.  This is inefficient and round-about, but has the huge benefit of
+## allowing us to plug in the wrapped diff into our existing line diff
+## infrastructure
+##
+## Note that in "word" mode the returned values may be longer than the input ones
+## as it may be necessary to add lines to get things to match-up.  Added lines
+## are indicated by TRUE values in the `fill` component of the `*.dat` return
+## values
 ##
 ## We have been through several iterations trying to get the most intuitive
 ## behavior and the result is a fairly non-intuitive and likely inefficient
 ## algorithm.  It works for the most part, so we leave it as is, but is long,
-## messy, and should probably be replaced by a far more elegant solution.
+## messy, and should be replaced by a more elegant solution.
 ##
-## If tar/cur.dat here should contain the subset of the atomic vector display
-## that is not meta data (e.g. factor levels, or time series spec data)
-##
-## @param tar.ends and cur.ends are the indices of the last elements in each line
-##   of the vector
+## @param tar.ends and cur.ends are the indices of the last elements in each
+## line of the vector
 ## @param tar.dat and cur.dat are the data, see `line_diff` body for detailed
 ##   description of them (about 100 lines in).  Note that the data has been
 ##   subset to just the portion of it that has row headers (e.g. excluding
@@ -453,16 +466,10 @@ reg_apply <- function(reg, ends, mismatch) {
 # Modify `tar.dat` and `cur.dat` by generating `regmatches` indices for the
 # words that are different
 #
-# If `diff.mode` is "wrap", then line up lines based on the word matches and
-# mismatches contained there-in.  This is done by generating new strings
-# that match or don't depending on the word contents, and then passing those
-# back as the `comp` component of the `tar.dat` and `cur.dat` returned.  The
-# subsequent line diff will cause the relevant lines to be lined up.
-#
-# Note that in "word" mode the returned values may be longer than the input ones
-# as it may be necessary to add lines to get things to match-up.  Added lines
-# are indicated by TRUE values in the `fill` component of the `*.dat` return
-# values
+# If `diff.mode` is "wrap", then wrapped atomic vector output is unwrapped and
+# the diff is carried out in the unwrapped form, and then re-assembled.  See
+# `word_to_line_map` for details in how its done.  Return values may be longer
+# than input in this mode.
 #
 # `match.quotes` will make "words" starting and ending with quotes; it should
 # only be used with atomic character vectors or possibly deparsed objects.
@@ -533,14 +540,6 @@ diff_word2 <- function(
     tar.unsplit, cur.unsplit, etc=etc, diff.mode=diff.mode, warn=warn
   )
   # Need to figure out which elements match, and which ones do not
-  #
-  # questions about the `abs`; should it be applied to both `tar` and `cur`?
-  # can definitely have negative numbers in `x$A`; stuff seems to work fine, but
-  # it seems like this should cause problems.  Maybe this only ever runs in
-  # context mode so it's fine?  Odd part is that in browsing when debuggin at
-  # some point we most definitely saw negative numbers in x$A, although it is
-  # possible we were at the wrong spot in the call stack and looked at the
-  # original line diff hunks instead of the word diff ones...
 
   hunks.flat <- diffs$hunks
   tar.mism <- unlist(
@@ -561,10 +560,7 @@ diff_word2 <- function(
   cur.dat$word.ind[cur.ind] <- reg_apply(cur.reg, cur.ends, cur.mism)
 
   # If in wrap mode (which is really atomic mode), generate a spoofed
-  # `comp` vector that will force the line diff to align in a way that respects
-  # the word differences.  This is inefficient and round-about, but has the
-  # huge benefit of allowing us to plug in the wrapped diff into our existing
-  # line diff infrastructure
+  # `comp` vector (see word_to_line_map)
   #
   # Note that we're only operating on a subset of the data via tar.ind and
   # cur.ind, these are supposed to be the contiguous block of lines that have
