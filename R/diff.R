@@ -140,8 +140,7 @@ make_diff_fun <- function(capt_fun) {
 #' Runs the diff between the \code{print} or \code{show} output produced by
 #' \code{target} and \code{current}.  Given the extensive parameter list, this
 #' documentation page is intended as a reference for all the \code{diff*}
-#' methods.  For a high level introduction see \code{vignette("diffobj")} and
-#' the examples.
+#' methods.  For a high level introduction see \code{vignette("diffobj")}.
 #'
 #' Almost all aspects of how the diffs are computed and displayed are
 #' controllable through the \code{diff*} methods parameters.  This results in a
@@ -162,14 +161,15 @@ make_diff_fun <- function(capt_fun) {
 #' Note that while the generics include \code{...} as an argument, none of the
 #' methods do.
 #'
-#' @section Matrices and Data Frames: 
+#' @section Matrices and Data Frames:
 #'
 #' While \code{diffPrint} attempts to handle the default R behavior that wraps
 #' wide tables, the results are often sub-optimal.  A better approach is to set
 #' the \code{disp.width} parameter to a large enough value such that wrapping is
-#' not necessary, and let \code{diffPrint} post-processing handle the wrapping
-#' of the result.  Using a browser-based \code{pager} may make it easier to
-#' review the results.
+#' not necessary, and a browser-based \code{pager}.  In the future we will add
+#' the capability to specify different capture widths and wrap widths so that
+#' this is an option for terminal output (see
+#' \href{https://github.com/brodieG/diffobj/issues/109}{issue 109}).
 #'
 #' One thing to keep in mind is that \code{diffPrint} is not designed to work
 #' with very large data frames.

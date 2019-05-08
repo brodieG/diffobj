@@ -463,9 +463,7 @@ line_diff <- function(
     tok.rat=rep(1, length(cur.capt.p))
   )
   # Word diffs in wrapped form is atomic; note this will potentially change
-  # the length of the vectors.  5/2019 Some question here whether we are
-  # allowing things that shouldn't be unwrapped (e.g. diffChr will be detected
-  # as being atomic, and even matrix(1:9) shows up as atomic).
+  # the length of the vectors.
 
   tar.wrap.diff <- integer(0L)
   cur.wrap.diff <- integer(0L)
@@ -480,14 +478,17 @@ line_diff <- function(
     length(cur.rh <- which_atomic_cont(cur.capt.p, current)) &&
     etc@unwrap.atomic && etc@word.diff
   ) {
+    # For historical compatibility we allow `diffChr` to get into this step if
+    # the text format is right, even though it is arguable whether it should be
+    # allowed or not.
+
     if(!all(diff(tar.rh) == 1L) || !all(diff(cur.rh)) == 1L){
       # nocov start
       stop("Logic Error, row headers must be sequential; contact maintainer.")
       # nocov end
     }
     # Only do this for the portion of the data that actually matches up with
-    # the atomic row headers (NOTE: need to check what happens with named
-    # vectors without row headers)
+    # the atomic row headers.
 
     diff.word <- diff_word2(
       tar.dat, cur.dat, tar.ind=tar.rh, cur.ind=cur.rh,
