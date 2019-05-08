@@ -57,8 +57,8 @@ test_that("Word wrap in atomic", {
   expect_equal_to_reference(as.character(diffPrint(A, B)), rdsf(1200))
   expect_equal_to_reference(as.character(diffPrint(B, A)), rdsf(1250))
 
-  # Make sure turning off word.diff also turns of unwrapping, but that we can turn
-  # off unwrapping without turning off word diff
+  # Make sure turning off word.diff also turns of unwrapping, but that we can
+  # turn off unwrapping without turning off word diff
 
   expect_equal_to_reference(
     as.character(diffPrint(A, B, word.diff=FALSE)), rdsf(1300)

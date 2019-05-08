@@ -360,3 +360,12 @@ test_that("format-pager interaction 3", {
     "StyleAnsi"
   )
 })
+test_that("Default pager writes to screen", {
+  # issue132 thanks Bill Dunlap
+
+  f <- tempfile()
+  on.exit(unlink(f))
+  writeLines("hello world", f)
+
+  expect_equal(capture.output(new("Pager")@pager(f)), "hello world")
+})

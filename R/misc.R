@@ -130,13 +130,27 @@ extract_call <- function(s.c, par.env) {
   get.fun <- get_fun(found.call[[1L]], env=par.env)
   res <- no.match
   if(is.function(get.fun)) {
-    found.call.m <- try(match.call(definition=get.fun, call=found.call))
+    found.call.m <- try(
+      # this creates an environment where `...` is available so we don't
+      # get a "... used in a situation it does not exist error" (issue 134)
+      (function(...) {
+        match.call(definition=get.fun, call=found.call, envir=environment())
+      })()
+    )
     if(!inherits(found.call.m, "try-error")) {
       if(length(found.call.m) < 3L) length(found.call.m) <- 3L
       res <-
         list(call=found.call.m, tar=found.call.m[[2L]], cur=found.call.m[[3L]])
-    }
-  }
+    } else {
+      # nocov start
+      # not sure if it's possible to get here, seems like not, maybe we can
+      # get rid of try, but don't want to risk breaking stuff that used to work
+      warning(
+        "Failed trying to recover tar/cur expressions for display, see ",
+        "previous errors."
+      )
+      # nocov end
+  } }
   res
 }
 #' Get Parent Frame of S4 Call Stack

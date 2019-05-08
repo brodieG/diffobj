@@ -140,3 +140,29 @@ test_that("NAs", {
     rdsf(1500)
   )
 })
+test_that("Nested dots issue 134, h/t Noam Ross", {
+  fn <- function(target, current, ...) {
+    diffChr(target, current, ...)
+  }
+  expect_equal(
+    as.character(fn("a", "b", format = "raw")),
+    structure(
+      c(
+        "< target    > current ",
+        "@@ 1 @@     @@ 1 @@   ",
+        "< a         > b       "), len = 3L
+    )
+  )
+})
+test_that("Newlines in input, issue 135, h/t Flying Sheep", {
+  a <-     'A Time Series:\n[1] 1 2 3 4'
+  b <-     'A Time Series:\n[1] 9 4 1 4'
+  expect_equal(
+    c(as.character(diffobj::diffChr(a, b, format = 'raw'))),
+    c("< a               > b             ",
+      "@@ 1,2 @@         @@ 1,2 @@       ", 
+      "  A Time Series:    A Time Series:", 
+      "< [1] 1 2 3 4     > [1] 9 4 1 4   ")
+  )
+})
+
