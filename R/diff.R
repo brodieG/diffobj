@@ -138,15 +138,15 @@ make_diff_fun <- function(capt_fun) {
 #' Diff \code{print}ed Objects
 #'
 #' Runs the diff between the \code{print} or \code{show} output produced by
-#' \code{target} and \code{current}.
+#' \code{target} and \code{current}.  Given the extensive parameter list, this
+#' documentation page is intended as a reference for all the \code{diff*}
+#' methods.  For a high level introduction see \code{vignette("diffobj")} and
+#' the examples.
 #'
-#' @description This documentation page is intended as a reference document
-#' for all the \code{diff*} methods.  For a high level introduction see
-#' \code{vignette("diffobj")} and the examples.  Almost all aspects of how the
-#' diffs are computed and displayed are controllable through the \code{diff*}
-#' methods parameters.  This results in a lengthy parameter list, but in
-#' practice you should rarely need to adjust anything past the
-#' \code{color.mode} parameter.  Default values are specified
+#' Almost all aspects of how the diffs are computed and displayed are
+#' controllable through the \code{diff*} methods parameters.  This results in a
+#' lengthy parameter list, but in practice you should rarely need to adjust
+#' anything past the \code{color.mode} parameter.  Default values are specified
 #' as options so that users may configure diffs in a persistent manner.
 #' \code{\link{gdo}} is a shorthand function to access \code{diffobj} options.
 #'
@@ -161,6 +161,18 @@ make_diff_fun <- function(capt_fun) {
 #' selected classes that can then \code{callNextMethod} for the actual diff.
 #' Note that while the generics include \code{...} as an argument, none of the
 #' methods do.
+#'
+#' @section Matrices and Data Frames: 
+#'
+#' While \code{diffPrint} attempts to handle the default R behavior that wraps
+#' wide tables, the results are often sub-optimal.  A better approach is to set
+#' the \code{disp.width} parameter to a large enough value such that wrapping is
+#' not necessary, and let \code{diffPrint} post-processing handle the wrapping
+#' of the result.  Using a browser-based \code{pager} may make it easier to
+#' review the results.
+#'
+#' One thing to keep in mind is that \code{diffPrint} is not designed to work
+#' with very large data frames.
 #'
 #' @export
 #' @seealso \code{\link{diffObj}}, \code{\link{diffStr}},
@@ -279,7 +291,7 @@ make_diff_fun <- function(capt_fun) {
 #'   in a different color to indicate they are not part of the hunk.  If a
 #'   function, the function should accept as the first argument the object
 #'   being diffed, and the second the character representation of the object.
-#'   The function should return the indices of the elements of the second
+#'   The function should return the indices of the elements of the
 #'   character representation that should be treated as guides.  See
 #'   \code{\link{guides}} for more details.
 #' @param trim TRUE (default), FALSE, or a function that accepts at least two
@@ -294,21 +306,25 @@ make_diff_fun <- function(capt_fun) {
 #'   and carries out the diff on the object instead of the original argument.
 #'   Currently there is no mechanism for specifying additional arguments to
 #'   \code{readRDS}
-#' @param unwrap.atomic TRUE (default) or FALSE.  Only relevant for
+#' @param unwrap.atomic TRUE (default) or FALSE.  Relevant primarily for
 #'   \code{diffPrint}, if TRUE, and \code{word.diff} is also TRUE, and both
-#'   \code{target} and \code{current} are \emph{unnamed} and atomic, the vectors
-#'   are unwrapped and diffed element by element, and then re-wrapped.  Since
-#'   \code{diffPrint} is fundamentally a line diff, the re-wrapped lines are
-#'   lined up in a manner that is as consistent as possible with the unwrapped
-#'   diff.  Lines that contain the location of the word differences will be
-#'   paired up.  Since the vectors may well be wrapped with different
-#'   periodicities this will result in lines that are paired up that look like
-#'   they should not be paired up, though the locations of the differences
-#'   should be.  If is entirely possible that setting this parameter to FALSE
-#'   will result in a slower diff.  This happens if two vectors are actually
-#'   fairly similar, but their line representations are not.  For example, in
-#'   comparing \code{1:100} to \code{c(100, 1:99)}, there is really only one
-#'   difference at the \dQuote{word} level, but every screen line is different.
+#'   \code{target} and \code{current} are \emph{unnamed} one-dimension atomics ,
+#'   the vectors are unwrapped and diffed element by element, and then
+#'   re-wrapped.  Since \code{diffPrint} is fundamentally a line diff, the
+#'   re-wrapped lines are lined up in a manner that is as consistent as possible
+#'   with the unwrapped diff.  Lines that contain the location of the word
+#'   differences will be paired up.  Since the vectors may well be wrapped with
+#'   different periodicities this will result in lines that are paired up that
+#'   look like they should not be paired up, though the locations of the
+#'   differences should be.  If is entirely possible that setting this parameter
+#'   to FALSE will result in a slower diff.  This happens if two vectors are
+#'   actually fairly similar, but their line representations are not.  For
+#'   example, in comparing \code{1:100} to \code{c(100, 1:99)}, there is really
+#'   only one difference at the \dQuote{word} level, but every screen line is
+#'   different.  \code{diffChr} will also do the unwrapping if it is given a
+#'   character vector that contains output that looks like the atomic vectors
+#'   described above.  This is a bug, but as the functionality could be useful
+#'   when diffing e.g. \code{capture.output} data, we now declare it a feature.
 #' @param line.limit integer(2L) or integer(1L), if length 1 how many lines of
 #'   output to show, where \code{-1} means no limit.  If length 2, the first
 #'   value indicates the threshold of screen lines to begin truncating output,
@@ -328,15 +344,18 @@ make_diff_fun <- function(capt_fun) {
 #'   \code{context} is used since context can cause two hunks to bleed into
 #'   each other and become one.
 #' @param max.diffs integer(1L), number of \emph{differences} after which we
-#'   abandon the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
-#'   \code{-1L} to always stick to the original algorithm (defaults to 10000L).
+#'   abandon the \code{O(n^2)} diff algorithm in favor of a naive element by
+#'   element comparison. Set to \code{-1L} to always stick to the original
+#'   algorithm (defaults to 50000L).
 #' @param disp.width integer(1L) number of display columns to take up; note that
 #'   in \dQuote{sidebyside} \code{mode} the effective display width is half this
 #'   number (set to 0L to use default widths which are \code{getOption("width")}
-#'   for normal styles and \code{80L} for HTML styles.
+#'   for normal styles and \code{80L} for HTML styles.  Future versions of
+#'   \code{diffobj} may change this to larger values for two dimensional objects
+#'   for better diffs (see details).
 #' @param ignore.white.space TRUE or FALSE, whether to consider differences in
 #'   horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
-#'   FALSE).
+#'   TRUE).
 #' @param convert.hz.white.space TRUE or FALSE, whether modify input strings
 #'   that contain tabs and carriage returns in such a way that they display as
 #'   they would \bold{with} those characters, but without using those
