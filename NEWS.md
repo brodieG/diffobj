@@ -9,7 +9,9 @@ This is a bugfix release.
   incorrect defaults.
 * [#135](https://github.com/brodieG/diffobj/issues/135): Incorrect handling of
   potential meta data strings when unwrapping atomics would cause a "wrong sign
-  in by argument" error (h/t @flying-sheep).
+  in by argument" error (h/t @flying-sheep).  We also fixed other bugs related
+  to the handling of meta data in atomic vectors that were uncovered while
+  debugging this issue.
 * [#134](https://github.com/brodieG/diffobj/issues/134): Forwarding `...` to
   `diff*` functions no longer breaks substitution of arguments for diff banners
   (h/t @noamross)..
