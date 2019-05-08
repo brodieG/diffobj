@@ -150,7 +150,7 @@ context lines are shown in addition to the normal diff output, typically
 in a different color to indicate they are not part of the hunk.  If a
 function, the function should accept as the first argument the object
 being diffed, and the second the character representation of the object.
-The function should return the indices of the elements of the second
+The function should return the indices of the elements of the
 character representation that should be treated as guides.  See
 \code{\link{guides}} for more details.}
 
@@ -189,13 +189,16 @@ described above.  This is a bug, but as the functionality could be useful
 when diffing e.g. \code{capture.output} data, we now declare it a feature.}
 
 \item{max.diffs}{integer(1L), number of \emph{differences} after which we
-abandon the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
-\code{-1L} to always stick to the original algorithm (defaults to 10000L).}
+abandon the \code{O(n^2)} diff algorithm in favor of a naive element by
+element comparison. Set to \code{-1L} to always stick to the original
+algorithm (defaults to 50000L).}
 
 \item{disp.width}{integer(1L) number of display columns to take up; note that
 in \dQuote{sidebyside} \code{mode} the effective display width is half this
 number (set to 0L to use default widths which are \code{getOption("width")}
-for normal styles and \code{80L} for HTML styles.}
+for normal styles and \code{80L} for HTML styles.  Future versions of
+\code{diffobj} may change this to larger values for two dimensional objects
+for better diffs (see details).}
 
 \item{ignore.white.space}{TRUE or FALSE, whether to consider differences in
 horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
