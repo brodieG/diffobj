@@ -294,21 +294,25 @@ make_diff_fun <- function(capt_fun) {
 #'   and carries out the diff on the object instead of the original argument.
 #'   Currently there is no mechanism for specifying additional arguments to
 #'   \code{readRDS}
-#' @param unwrap.atomic TRUE (default) or FALSE.  Only relevant for
+#' @param unwrap.atomic TRUE (default) or FALSE.  Relevant primarily for
 #'   \code{diffPrint}, if TRUE, and \code{word.diff} is also TRUE, and both
-#'   \code{target} and \code{current} are \emph{unnamed} and atomic, the vectors
-#'   are unwrapped and diffed element by element, and then re-wrapped.  Since
-#'   \code{diffPrint} is fundamentally a line diff, the re-wrapped lines are
-#'   lined up in a manner that is as consistent as possible with the unwrapped
-#'   diff.  Lines that contain the location of the word differences will be
-#'   paired up.  Since the vectors may well be wrapped with different
-#'   periodicities this will result in lines that are paired up that look like
-#'   they should not be paired up, though the locations of the differences
-#'   should be.  If is entirely possible that setting this parameter to FALSE
-#'   will result in a slower diff.  This happens if two vectors are actually
-#'   fairly similar, but their line representations are not.  For example, in
-#'   comparing \code{1:100} to \code{c(100, 1:99)}, there is really only one
-#'   difference at the \dQuote{word} level, but every screen line is different.
+#'   \code{target} and \code{current} are \emph{unnamed} one-dimension atomics ,
+#'   the vectors are unwrapped and diffed element by element, and then
+#'   re-wrapped.  Since \code{diffPrint} is fundamentally a line diff, the
+#'   re-wrapped lines are lined up in a manner that is as consistent as possible
+#'   with the unwrapped diff.  Lines that contain the location of the word
+#'   differences will be paired up.  Since the vectors may well be wrapped with
+#'   different periodicities this will result in lines that are paired up that
+#'   look like they should not be paired up, though the locations of the
+#'   differences should be.  If is entirely possible that setting this parameter
+#'   to FALSE will result in a slower diff.  This happens if two vectors are
+#'   actually fairly similar, but their line representations are not.  For
+#'   example, in comparing \code{1:100} to \code{c(100, 1:99)}, there is really
+#'   only one difference at the \dQuote{word} level, but every screen line is
+#'   different.  \code{diffChr} will also do the unwrapping if it is given a
+#'   character vector that contains output that looks like the atomic vectors
+#'   described above.  This is a bug, but as the functionality could be useful
+#'   when diffing e.g. \code{capture.output} data, we now declare it a feature.
 #' @param line.limit integer(2L) or integer(1L), if length 1 how many lines of
 #'   output to show, where \code{-1} means no limit.  If length 2, the first
 #'   value indicates the threshold of screen lines to begin truncating output,
