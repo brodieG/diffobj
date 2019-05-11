@@ -61,14 +61,13 @@ test_that("rle_sub", {
 test_that("myers_simple", {
 
 })
-
 test_that("call funs", {
   # Failure case; assumes no S4 dispatch in testthat
   calls <- list(quote(a()), quote(b()), quote(notafunctionblah()))
   expect_equal(diffobj:::which_top(calls), length(calls))
   expect_warning(diffobj:::extract_call(calls, new.env()), "Unable to find")
 
-  # missing param workds
+  # missing param works
   calls2 <- pairlist(
     quote(diffChr("a")), quote(diffChr("a")), quote(.local(target, current, ...))
   )
@@ -76,6 +75,9 @@ test_that("call funs", {
     diffobj:::extract_call(calls2, new.env()),
     list(call = quote(diffChr(target = "a", NULL)), tar = "a", cur = NULL)
   )
+  # fallback parent frame
+
+  expect_equal(diffobj:::par_frame(), .GlobalEnv)
 })
 
 test_that("lines", {
