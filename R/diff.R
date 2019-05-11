@@ -68,8 +68,10 @@ make_diff_fun <- function(capt_fun) {
     extra=list()
   ) {
   # nocov end
-    frame # force frame so that `par_frame` called in this context
+    frame    # force frame so that `par_frame` called in this context
     call.dat <- extract_call(sys.calls(), frame)
+    target   # force target/current so if one missing we get an error here
+    current  # and not later
 
     # Check args and evaluate all the auto-selection arguments
 
