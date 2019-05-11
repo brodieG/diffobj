@@ -42,7 +42,7 @@ rle_sub <- function(rle, ind) {
 c.factor <- function(..., recursive=FALSE) {
   dots <- list(...)
   dots.n.n <- dots[!vapply(dots, is.null, logical(1L))]
-  if(!length(dots)) factor(0L) else {
+  if(!length(dots)) factor(character()) else {
     if(
       !all(vapply(dots.n.n, is, logical(1L), "factor")) ||
       length(unique(lapply(dots.n.n, levels))) != 1L
