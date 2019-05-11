@@ -137,7 +137,12 @@ extract_call <- function(s.c, par.env) {
       })()
     )
     if(!inherits(found.call.m, "try-error")) {
-      if(length(found.call.m) < 3L) length(found.call.m) <- 3L
+      if(length(found.call.m) < 3L) {
+        found.call.ml <- as.list(found.call.m)
+        length(found.call.ml) <- 3L
+        # found.call.ml[[3L]] <- quote(list(x=))[[2L]]
+        found.call.m <- as.call(found.call.ml)
+      }
       res <-
         list(call=found.call.m, tar=found.call.m[[2L]], cur=found.call.m[[3L]])
     } else {
