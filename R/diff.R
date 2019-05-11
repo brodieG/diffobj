@@ -333,13 +333,15 @@ make_diff_fun <- function(capt_fun) {
 #'   and the second the number of lines to truncate to, which should be fewer
 #'   than the threshold.  Note that this parameter is implemented on a
 #'   best-efforts basis and should not be relied on to produce the exact
-#'   number of lines requested.  If you want a specific number of lines use
-#'   \code{[} or \code{head} / \code{tail}.  One advantage of \code{line.limit}
-#'   over these other options is that you can combine it with
-#'   \code{context="auto"} and auto \code{max.level} selection (the latter for
-#'   \code{diffStr}), which allows the diff to dynamically adjust to make best
-#'   use of the available display lines.  \code{[}, \code{head}, and \code{tail}
-#'   just subset the text of the output.
+#'   number of lines requested.  In particular do not expect it to work well for
+#'   for values small enough that the banner portion of the diff would have to
+#'   be trimmed.  If you want a specific number of lines use \code{[} or
+#'   \code{head} / \code{tail}.  One advantage of \code{line.limit} over these
+#'   other options is that you can combine it with \code{context="auto"} and
+#'   auto \code{max.level} selection (the latter for \code{diffStr}), which
+#'   allows the diff to dynamically adjust to make best use of the available
+#'   display lines.  \code{[}, \code{head}, and \code{tail} just subset the text
+#'   of the output.
 #' @param hunk.limit integer(2L) or integer (1L), how many diff hunks to show.
 #'   Behaves similarly to \code{line.limit}.  How many hunks are in a
 #'   particular diff is a function of how many differences, and also how much
