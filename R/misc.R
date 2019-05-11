@@ -84,6 +84,9 @@ which_top <- function(s.c) {
   f.rle <- rle(funs)
   val.calls <- f.rle$lengths == 2
 
+  # default if failed to find a value is last call on stack
+  res <- length(s.c)
+
   if(any(val.calls) && fun.ref.loc) {
     # return first index of last pairs of identical calls in the call stack
     # that is followed by a correct .internal call, and also that are not
@@ -94,15 +97,11 @@ which_top <- function(s.c) {
     rle.followed <- which(
       rle.elig.max < max(fun.ref.loc) & !grepl("eval\\(", funs[rle.elig.max])
     )
-    if(!length(rle.followed)) {  # can't find correct one
-      length(s.c)
-    } else {
-      rle.elig[[max(rle.followed)]][1L]
+    if(length(rle.followed)) {  # can't find correct one
+      res <- rle.elig[[max(rle.followed)]][1L]
     }
-  } else {
-    # failed to find a value, so just return last call on stack
-    length(s.c)
   }
+  res
 }
 get_fun <- function(name, env) {
   get.fun <- if(is.name(name) || (is.character(name) && length(name) == 1L)) {
