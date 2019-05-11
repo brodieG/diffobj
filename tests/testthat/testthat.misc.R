@@ -67,6 +67,15 @@ test_that("call funs", {
   calls <- list(quote(a()), quote(b()), quote(notafunctionblah()))
   expect_equal(diffobj:::which_top(calls), length(calls))
   expect_warning(diffobj:::extract_call(calls, new.env()), "Unable to find")
+
+  # missing param workds
+  calls2 <- pairlist(
+    quote(diffChr("a")), quote(diffChr("a")), quote(.local(target, current, ...))
+  )
+  expect_equal(
+    diffobj:::extract_call(calls2, new.env()),
+    list(call = quote(diffChr(target = "a", NULL)), tar = "a", cur = NULL)
+  )
 })
 
 test_that("lines", {
@@ -124,4 +133,7 @@ test_that("Finalizer error handling", {
   expect_error(
     finalizeHtml(letters, letters, letters), "must be character\\(1L"
   )
+})
+test_that("c.factor", {
+  expect_equal(diffobj:::c.factor(), factor(character()))
 })
