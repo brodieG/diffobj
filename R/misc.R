@@ -376,8 +376,12 @@ nchar2 <- function(x, ..., sgr.supported) {
   if(sgr.supported) crayon::col_nchar(x, ...)
   else nchar(x, ...)
 }
-# This is an internal method for testing
+# These are internal methods for testing
 #' @export
 
 print.diffobj_ogewlhgiadfl <- function(x, ...) stop('failure')
+
+#' @export
+as.character.diffobj_ogewlhgiadfl <- function(x, ...) stop('failure')
+
 

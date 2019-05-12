@@ -95,8 +95,7 @@ test_that("errors", {
   expect_error(ses('a', 'b', max.diffs='hello'), "must be scalar integer")
   expect_error(ses('a', 'b', warn='hello'), "must be TRUE or FALSE")
 
-  as.character.diffobj_test_class <- function(x, ...) stop("boom boom")
-  a <- structure(1, class='diffobj_test_class')
+  a <- structure(1, class='diffobj_ogewlhgiadfl ')
   expect_error(ses(a, 1), "could not be coerced")
   expect_error(ses(1, a), "could not be coerced")
 })
