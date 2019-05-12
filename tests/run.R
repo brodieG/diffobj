@@ -70,6 +70,7 @@ local({                                         # so we can use `on.exit`
       collapse="|"
     )
     test.res <- test_dir("testthat", filter=filter)
+    # test.res <- test_dir("testthat", filter="diffPrint")
     with(
       as.data.frame(test.res), {
         fail <- sum(failed)

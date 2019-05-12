@@ -35,4 +35,5 @@ test_that("diff data validation works", {
 test_that("any", {
   expect_true(any(diffChr('a', 'b')))
   expect_false(any(diffChr('a', 'a')))
+  expect_error(any(diffChr('a', 'a'), 2), "supports only one argument")
 })

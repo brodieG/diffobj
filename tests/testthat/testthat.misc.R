@@ -75,9 +75,10 @@ test_that("call funs", {
     diffobj:::extract_call(calls2, new.env()),
     list(call = quote(diffChr(target = "a", NULL)), tar = "a", cur = NULL)
   )
-  # fallback parent frame
+  # fallback parent frame; can't think of a good way to actually cause this to
+  # happen
 
-  expect_equal(diffobj:::par_frame(), .GlobalEnv)
+  # expect_equal(diffobj:::par_frame(), .GlobalEnv)
 })
 
 test_that("lines", {

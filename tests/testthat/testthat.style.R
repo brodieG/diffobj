@@ -128,11 +128,20 @@ test_that("palette param selection", {
     rdsf(500)
   )
 })
-test_that("style fun validation", {
+test_that("style validation", {
   s.f <- StyleFuns()
   expect_true(validObject(s.f))
   s.f@word.insert <- function(x, y) NULL
   expect_error(validObject(s.f), "word.insert")
+
+  expect_error(
+    diffChr(1,2, format='html', style=list(scale=1:3)),
+    "must be TRUE or FALSE"
+  )
+  expect_error(
+    diffChr(1,2, format='html', style=list(html.output="a")),
+    "must be in"
+  )
 })
 test_that("palette with objects", {
   pal <- PaletteOfStyles()

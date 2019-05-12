@@ -128,9 +128,9 @@ test_that("Alignment", {
   expect_equal(
     as.character(diffChr(chr.7a, chr.7b, align=a1, format='raw')),
     structure(
-      c("< c(\"a b ..  > \"D [ f g\"", "@@ 1,2 @@    @@ 1 @@    ",
-        "< a b c e    ~          ", "< d [ f g    > D [ f g  "), len = 4L
-  ) )
+      c("< chr.7a     > chr.7b   ", "@@ 1,2 @@    @@ 1 @@    ",
+        "< a b c e    ~          ", "< d [ f g    > D [ f g  "), len = 4L)
+  )
   # corner case where alignment alog exits early because it runs out of B values
   # to match A values to.
 
