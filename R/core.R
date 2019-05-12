@@ -473,9 +473,9 @@ line_diff <- function(
   if(
     is.atomic(target) && is.atomic(current) &&
     is.null(dim(target)) && is.null(dim(current)) &&
-    is.null(names(target)) && is.null(names(current)) &&
     length(tar.rh <- which_atomic_cont(tar.capt.p, target)) &&
     length(cur.rh <- which_atomic_cont(cur.capt.p, current)) &&
+    is.null(names(target)) && is.null(names(current)) &&
     etc@unwrap.atomic && etc@word.diff
   ) {
     # For historical compatibility we allow `diffChr` to get into this step if
