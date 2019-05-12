@@ -294,3 +294,19 @@ test_that("Quoted Objects", {
     )
   )
 })
+test_that("par_frame", {
+  # check that par_frame is retrieved correctly
+  env <- new.env()
+  env$print <- function(x, ...) stop('boom')
+  expect_error(
+    evalq(diffPrint(1:3, 1:4), env),
+    "Failed attempting .*: boom"
+  )
+
+  f <- function(a, b, ...) {
+    print <- function(x, ...) stop('boom2')
+    diffPrint(a, b, ...)
+  }
+  expect_error(f(1:3, 1:4, format='raw'), "Failed attempting .*: boom2")
+})
+

@@ -182,10 +182,10 @@ extract_call <- function(s.c, par.env) {
 par_frame <- function() {
   s.c <- head(sys.calls(), -1L)
   top <- which_top(s.c)
-  par <- sys.parents()[top]
+  par <- head(sys.parents(), -1L)[top]
   if(par) {
-    sys.frames()[[par]]
-  } else .GlobalEnv
+    head(sys.frames(), -1L)[[par]]
+  } else .GlobalEnv  # can't figure out how to cause this branch
 }
 
 # check whether running in knitr
