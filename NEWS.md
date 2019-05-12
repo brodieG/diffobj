@@ -21,7 +21,7 @@ This is a bugfix release.
 * [#132](https://github.com/brodieG/diffobj/issues/132): Duplicate pager slot
   for baseline `Pager` removed (h/t Bill Dunlap).
 
-There were also several other small internal changes that in theory should not
+There are also several other small internal changes that in theory should not
 affect user facing behavior.
 
 ## v0.2.2
