@@ -382,6 +382,6 @@ nchar2 <- function(x, ..., sgr.supported) {
 print.diffobj_ogewlhgiadfl <- function(x, ...) stop('failure')
 
 #' @export
-as.character.diffobj_ogewlhgiadfl <- function(x, ...) stop('failure')
+as.character.diffobj_ogewlhgiadfl2 <- function(x, ...) stop('failure2')
 
 
