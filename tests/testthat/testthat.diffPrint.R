@@ -5,6 +5,9 @@ if(!identical(basename(getwd()), "testthat"))
 
 rdsf <- function(x)
   file.path(getwd(), "helper", "diffPrint", sprintf("%s.rds", x))
+txtf <- function(x)
+  file.path(getwd(), "helper", "diffPrint", sprintf("%s.txt", x))
+
 # Note, atomic prints happen in different test file
 
 test_that("Matrices", {
@@ -186,12 +189,37 @@ test_that("`unitizer` corner case", {
     as.character(diffPrint(unname(res1), unname(res2))), rdsf(3100)
   )
 })
-test_that("factors", {
+test_that("factors and other meta", {
   # Thanks Frank
 
   expect_equal_to_reference(
     as.character(diffPrint(factor(1:100), factor(c(1:99, 101)))), rdsf(3200)
   )
+  f1 <- factor(1:100)
+  f2 <- factor(c(1:20, 22:99, 101))
+  expect_known_output(diffPrint(f1, f2), txtf(100), print=TRUE)
+
+  f3 <- factor(letters[1:10])
+  f4 <- factor(letters[1:10], levels=letters[1:11])
+  expect_known_output(diffPrint(f3, f4), txtf(150), print=TRUE)
+
+  # time series
+
+  nhtemp2 <- nhtemp
+  nhtemp2[c(5, 30)] <- -999
+  expect_known_output(diffPrint(nhtemp, nhtemp2), txtf(175), print=TRUE)
+
+  # Meta on both sides
+
+  print.diffobj_test_c1 <- function(x, ...) {
+    writeLines(c("Header row 1", "header row 2"))
+    print(c(x))
+    writeLines(c("", "Footer row 1", "", "footer row2"))
+  }
+  m1 <- structure(1:30, class='diffobj_test_c1')
+  m2 <- structure(2:51, class='diffobj_test_c1')
+  expect_known_output(diffPrint(m1, m2), txtf(200), print=TRUE)
+
 })
 test_that("Raw output", {
   expect_equal_to_reference(
@@ -266,3 +294,19 @@ test_that("Quoted Objects", {
     )
   )
 })
+test_that("par_frame", {
+  # check that par_frame is retrieved correctly
+  env <- new.env()
+  env$print <- function(x, ...) stop('boom')
+  expect_error(
+    evalq(diffPrint(1:3, 1:4), env),
+    "Failed attempting .*: boom"
+  )
+
+  f <- function(a, b, ...) {
+    print <- function(x, ...) stop('boom2')
+    diffPrint(a, b, ...)
+  }
+  expect_error(f(1:3, 1:4, format='raw'), "Failed attempting .*: boom2")
+})
+

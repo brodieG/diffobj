@@ -119,6 +119,25 @@ test_that("Alignment", {
     as.character(diffChr(chr.7, chr.8, align=AlignThreshold(min.chars=5))),
     rdsf(1200)  # same as above
   )
+
+  ## Normally this would not align, but we allow symbols to count towards
+  ## alignment
+  chr.7a <- c("a b c e", "d [ f g")
+  chr.7b <- "D [ f g"
+  a1 <- AlignThreshold(threshold=0, min.chars=2, count.alnum.only=FALSE)
+  expect_equal(
+    as.character(diffChr(chr.7a, chr.7b, align=a1, format='raw')),
+    structure(
+      c("< chr.7a     > chr.7b   ", "@@ 1,2 @@    @@ 1 @@    ",
+        "< a b c e    ~          ", "< d [ f g    > D [ f g  "), len = 4L)
+  )
+  # corner case where alignment alog exits early because it runs out of B values
+  # to match A values to.
+
+  b <- c('a b c e', 'x w z f', 'e f g h')
+  a <- c('z o o o', 'p o o o', 'A b c e')
+  al <- AlignThreshold(threshold=0, min.chars=0)
+  expect_known_output(show(diffChr(b, a, align=al, format='raw')), txtf(500))
 })
 test_that("NAs", {
   expect_equal_to_reference(
@@ -140,3 +159,29 @@ test_that("NAs", {
     rdsf(1500)
   )
 })
+test_that("Nested dots issue 134, h/t Noam Ross", {
+  fn <- function(target, current, ...) {
+    diffChr(target, current, ...)
+  }
+  expect_equal(
+    as.character(fn("a", "b", format = "raw")),
+    structure(
+      c(
+        "< target    > current ",
+        "@@ 1 @@     @@ 1 @@   ",
+        "< a         > b       "), len = 3L
+    )
+  )
+})
+test_that("Newlines in input, issue 135, h/t Flying Sheep", {
+  a <-     'A Time Series:\n[1] 1 2 3 4'
+  b <-     'A Time Series:\n[1] 9 4 1 4'
+  expect_equal(
+    c(as.character(diffobj::diffChr(a, b, format = 'raw'))),
+    c("< a               > b             ",
+      "@@ 1,2 @@         @@ 1,2 @@       ",
+      "  A Time Series:    A Time Series:",
+      "< [1] 1 2 3 4     > [1] 9 4 1 4   ")
+  )
+})
+

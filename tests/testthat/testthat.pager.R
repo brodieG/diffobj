@@ -276,6 +276,8 @@ test_that("file.path", {
     ) ),
     NA
   )
+  expect_error(Pager(file.path=letters), "must be length 1")
+  expect_error(Pager(file.path=1), "must be character")
 })
 test_that("basic pager", {
   f <- tempfile()
@@ -359,4 +361,13 @@ test_that("format-pager interaction 3", {
     diffPrint(1:3, 3:1, format='auto', interactive=FALSE, term.colors=8)@etc@style,
     "StyleAnsi"
   )
+})
+test_that("Default pager writes to screen", {
+  # issue132 thanks Bill Dunlap
+
+  f <- tempfile()
+  on.exit(unlink(f))
+  writeLines("hello world", f)
+
+  expect_equal(capture.output(new("Pager")@pager(f)), "hello world")
 })

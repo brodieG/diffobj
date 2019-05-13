@@ -149,7 +149,7 @@ context lines are shown in addition to the normal diff output, typically
 in a different color to indicate they are not part of the hunk.  If a
 function, the function should accept as the first argument the object
 being diffed, and the second the character representation of the object.
-The function should return the indices of the elements of the second
+The function should return the indices of the elements of the
 character representation that should be treated as guides.  See
 \code{\link{guides}} for more details.}
 
@@ -167,34 +167,41 @@ and carries out the diff on the object instead of the original argument.
 Currently there is no mechanism for specifying additional arguments to
 \code{readRDS}}
 
-\item{unwrap.atomic}{TRUE (default) or FALSE.  Only relevant for
+\item{unwrap.atomic}{TRUE (default) or FALSE.  Relevant primarily for
 \code{diffPrint}, if TRUE, and \code{word.diff} is also TRUE, and both
-\code{target} and \code{current} are \emph{unnamed} and atomic, the vectors
-are unwrapped and diffed element by element, and then re-wrapped.  Since
-\code{diffPrint} is fundamentally a line diff, the re-wrapped lines are
-lined up in a manner that is as consistent as possible with the unwrapped
-diff.  Lines that contain the location of the word differences will be
-paired up.  Since the vectors may well be wrapped with different
-periodicities this will result in lines that are paired up that look like
-they should not be paired up, though the locations of the differences
-should be.  If is entirely possible that setting this parameter to FALSE
-will result in a slower diff.  This happens if two vectors are actually
-fairly similar, but their line representations are not.  For example, in
-comparing \code{1:100} to \code{c(100, 1:99)}, there is really only one
-difference at the \dQuote{word} level, but every screen line is different.}
+\code{target} and \code{current} are \emph{unnamed} one-dimension atomics ,
+the vectors are unwrapped and diffed element by element, and then
+re-wrapped.  Since \code{diffPrint} is fundamentally a line diff, the
+re-wrapped lines are lined up in a manner that is as consistent as possible
+with the unwrapped diff.  Lines that contain the location of the word
+differences will be paired up.  Since the vectors may well be wrapped with
+different periodicities this will result in lines that are paired up that
+look like they should not be paired up, though the locations of the
+differences should be.  If is entirely possible that setting this parameter
+to FALSE will result in a slower diff.  This happens if two vectors are
+actually fairly similar, but their line representations are not.  For
+example, in comparing \code{1:100} to \code{c(100, 1:99)}, there is really
+only one difference at the \dQuote{word} level, but every screen line is
+different.  \code{diffChr} will also do the unwrapping if it is given a
+character vector that contains output that looks like the atomic vectors
+described above.  This is a bug, but as the functionality could be useful
+when diffing e.g. \code{capture.output} data, we now declare it a feature.}
 
 \item{max.diffs}{integer(1L), number of \emph{differences} after which we
-abandon the \code{O(n^2)} diff algorithm in favor of a linear one.  Set to
-\code{-1L} to always stick to the original algorithm (defaults to 10000L).}
+abandon the \code{O(n^2)} diff algorithm in favor of a naive element by
+element comparison. Set to \code{-1L} to always stick to the original
+algorithm (defaults to 50000L).}
 
 \item{disp.width}{integer(1L) number of display columns to take up; note that
 in \dQuote{sidebyside} \code{mode} the effective display width is half this
 number (set to 0L to use default widths which are \code{getOption("width")}
-for normal styles and \code{80L} for HTML styles.}
+for normal styles and \code{80L} for HTML styles.  Future versions of
+\code{diffobj} may change this to larger values for two dimensional objects
+for better diffs (see details).}
 
 \item{ignore.white.space}{TRUE or FALSE, whether to consider differences in
 horizontal whitespace (i.e. spaces and tabs) as differences (defaults to
-FALSE).}
+TRUE).}
 
 \item{convert.hz.white.space}{TRUE or FALSE, whether modify input strings
 that contain tabs and carriage returns in such a way that they display as
@@ -214,13 +221,15 @@ value indicates the threshold of screen lines to begin truncating output,
 and the second the number of lines to truncate to, which should be fewer
 than the threshold.  Note that this parameter is implemented on a
 best-efforts basis and should not be relied on to produce the exact
-number of lines requested.  If you want a specific number of lines use
-\code{[} or \code{head} / \code{tail}.  One advantage of \code{line.limit}
-over these other options is that you can combine it with
-\code{context="auto"} and auto \code{max.level} selection (the latter for
-\code{diffStr}), which allows the diff to dynamically adjust to make best
-use of the available display lines.  \code{[}, \code{head}, and \code{tail}
-just subset the text of the output.}
+number of lines requested.  In particular do not expect it to work well for
+for values small enough that the banner portion of the diff would have to
+be trimmed.  If you want a specific number of lines use \code{[} or
+\code{head} / \code{tail}.  One advantage of \code{line.limit} over these
+other options is that you can combine it with \code{context="auto"} and
+auto \code{max.level} selection (the latter for \code{diffStr}), which
+allows the diff to dynamically adjust to make best use of the available
+display lines.  \code{[}, \code{head}, and \code{tail} just subset the text
+of the output.}
 
 \item{hunk.limit}{integer(2L) or integer (1L), how many diff hunks to show.
 Behaves similarly to \code{line.limit}.  How many hunks are in a
@@ -320,13 +329,16 @@ a \code{Diff} object; this object has a \code{show}
   the time you compute the diff and the time you display it.
 }
 \description{
-This documentation page is intended as a reference document
-for all the \code{diff*} methods.  For a high level introduction see
-\code{vignette("diffobj")} and the examples.  Almost all aspects of how the
-diffs are computed and displayed are controllable through the \code{diff*}
-methods parameters.  This results in a lengthy parameter list, but in
-practice you should rarely need to adjust anything past the
-\code{color.mode} parameter.  Default values are specified
+Runs the diff between the \code{print} or \code{show} output produced by
+\code{target} and \code{current}.  Given the extensive parameter list, this
+documentation page is intended as a reference for all the \code{diff*}
+methods.  For a high level introduction see \code{vignette("diffobj")}.
+}
+\details{
+Almost all aspects of how the diffs are computed and displayed are
+controllable through the \code{diff*} methods parameters.  This results in a
+lengthy parameter list, but in practice you should rarely need to adjust
+anything past the \code{color.mode} parameter.  Default values are specified
 as options so that users may configure diffs in a persistent manner.
 \code{\link{gdo}} is a shorthand function to access \code{diffobj} options.
 
@@ -342,10 +354,21 @@ selected classes that can then \code{callNextMethod} for the actual diff.
 Note that while the generics include \code{...} as an argument, none of the
 methods do.
 }
-\details{
-Runs the diff between the \code{print} or \code{show} output produced by
-\code{target} and \code{current}.
+\section{Matrices and Data Frames}{
+
+
+While \code{diffPrint} attempts to handle the default R behavior that wraps
+wide tables, the results are often sub-optimal.  A better approach is to set
+the \code{disp.width} parameter to a large enough value such that wrapping is
+not necessary, and a browser-based \code{pager}.  In the future we will add
+the capability to specify different capture widths and wrap widths so that
+this is an option for terminal output (see
+\href{https://github.com/brodieG/diffobj/issues/109}{issue 109}).
+
+One thing to keep in mind is that \code{diffPrint} is not designed to work
+with very large data frames.
 }
+
 \examples{
 ## `pager="off"` for CRAN compliance; you may omit in normal use
 diffPrint(letters, letters[-5], pager="off")

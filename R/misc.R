@@ -42,7 +42,7 @@ rle_sub <- function(rle, ind) {
 c.factor <- function(..., recursive=FALSE) {
   dots <- list(...)
   dots.n.n <- dots[!vapply(dots, is.null, logical(1L))]
-  if(!length(dots)) factor(0L) else {
+  if(!length(dots)) factor(character()) else {
     if(
       !all(vapply(dots.n.n, is, logical(1L), "factor")) ||
       length(unique(lapply(dots.n.n, levels))) != 1L
@@ -84,6 +84,9 @@ which_top <- function(s.c) {
   f.rle <- rle(funs)
   val.calls <- f.rle$lengths == 2
 
+  # default if failed to find a value is last call on stack
+  res <- length(s.c)
+
   if(any(val.calls) && fun.ref.loc) {
     # return first index of last pairs of identical calls in the call stack
     # that is followed by a correct .internal call, and also that are not
@@ -94,15 +97,11 @@ which_top <- function(s.c) {
     rle.followed <- which(
       rle.elig.max < max(fun.ref.loc) & !grepl("eval\\(", funs[rle.elig.max])
     )
-    if(!length(rle.followed)) {  # can't find correct one
-      length(s.c)
-    } else {
-      rle.elig[[max(rle.followed)]][1L]
+    if(length(rle.followed)) {  # can't find correct one
+      res <- rle.elig[[max(rle.followed)]][1L]
     }
-  } else {
-    # failed to find a value, so just return last call on stack
-    length(s.c)
   }
+  res
 }
 get_fun <- function(name, env) {
   get.fun <- if(is.name(name) || (is.character(name) && length(name) == 1L)) {
@@ -130,13 +129,32 @@ extract_call <- function(s.c, par.env) {
   get.fun <- get_fun(found.call[[1L]], env=par.env)
   res <- no.match
   if(is.function(get.fun)) {
-    found.call.m <- try(match.call(definition=get.fun, call=found.call))
+    found.call.m <- try(
+      # this creates an environment where `...` is available so we don't
+      # get a "... used in a situation it does not exist error" (issue 134)
+      (function(...) {
+        match.call(definition=get.fun, call=found.call, envir=environment())
+      })()
+    )
     if(!inherits(found.call.m, "try-error")) {
-      if(length(found.call.m) < 3L) length(found.call.m) <- 3L
+      if(length(found.call.m) < 3L) {
+        found.call.ml <- as.list(found.call.m)
+        length(found.call.ml) <- 3L
+        # found.call.ml[[3L]] <- quote(list(x=))[[2L]]
+        found.call.m <- as.call(found.call.ml)
+      }
       res <-
         list(call=found.call.m, tar=found.call.m[[2L]], cur=found.call.m[[3L]])
-    }
-  }
+    } else {
+      # nocov start
+      # not sure if it's possible to get here, seems like not, maybe we can
+      # get rid of try, but don't want to risk breaking stuff that used to work
+      warning(
+        "Failed trying to recover tar/cur expressions for display, see ",
+        "previous errors."
+      )
+      # nocov end
+  } }
   res
 }
 #' Get Parent Frame of S4 Call Stack
@@ -164,10 +182,10 @@ extract_call <- function(s.c, par.env) {
 par_frame <- function() {
   s.c <- head(sys.calls(), -1L)
   top <- which_top(s.c)
-  par <- sys.parents()[top]
+  par <- head(sys.parents(), -1L)[top]
   if(par) {
-    sys.frames()[[par]]
-  } else .GlobalEnv
+    head(sys.frames(), -1L)[[par]]
+  } else .GlobalEnv  # can't figure out how to cause this branch
 }
 
 # check whether running in knitr
@@ -358,8 +376,12 @@ nchar2 <- function(x, ..., sgr.supported) {
   if(sgr.supported) crayon::col_nchar(x, ...)
   else nchar(x, ...)
 }
-# This is an internal method for testing
+# These are internal methods for testing
 #' @export
 
 print.diffobj_ogewlhgiadfl <- function(x, ...) stop('failure')
+
+#' @export
+as.character.diffobj_ogewlhgiadfl2 <- function(x, ...) stop('failure2')
+
 

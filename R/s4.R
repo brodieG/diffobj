@@ -216,8 +216,6 @@ setClass("Settings",
 setMethod("initialize", "Settings", function(.Object, ...) {
   if(is.numeric(.Object@disp.width))
     .Object@disp.width <- as.integer(.Object@disp.width)
-  if(is.null(.Object@disp.width))
-    .Object@disp.width <- 80L
   return(callNextMethod(.Object, ...))
 } )
 
@@ -236,67 +234,70 @@ setMethod("sideBySide", "Settings",
 )
 
 # Validate the *.dat slots of the Diff objects
+#
+# We stopped using this one because it was too expensive computationally.
+# Saving the code just in case.
 
-valid_dat <- function(x) {
-  char.cols <- c("orig", "raw", "trim", "eq", "comp", "fin")
-  list.cols <- c("word.ind")
-  zerotoone.cols <- "tok.rat"
-  integer.cols <- c("trim.ind.start", "trim.ind.end")
-
-  if(!is.list(x)) {
-    "should be a list"
-  } else if(!identical(names(x), .diff.dat.cols)) {
-    paste0("should have names ", dep(.diff.dat.cols))
-  } else if(
-    length(
-      unique(
-        vapply(
-          x[c(char.cols, list.cols, zerotoone.cols, integer.cols)],
-          length, integer(1L)
-        )
-    ) ) != 1L
-  ) {
-    "should have equal length components"
-  } else {
-    if(
-      length(
-        not.char <- which(!vapply(x[char.cols], is.character, logical(1L)))
-      )
-    ){
-      sprintf("element `%s` should be character", char.cols[not.char][[1L]])
-    } else if (
-      length(
-        not.int <- which(!vapply(x[integer.cols], is.integer, logical(1L)))
-      )
-    ) {
-      sprintf("element `%s` should be integer", integer.cols[not.int][[1L]])
-    } else if (
-      length(
-        not.list <- which(!vapply(x[list.cols], is.list, logical(1L)))
-      )
-    ) {
-      sprintf("element `%s` should be list", list.cols[not.list][[1L]])
-    } else if (
-      !all(
-        vapply(
-          x$word.ind,
-          function(y)
-            is.integer(y) && is.integer(attr(y, "match.length")) &&
-            length(y) == length(attr(y, "match.length")),
-          logical(1L)
-      ) )
-    ) {
-      "element `word.ind` is not in expected format"
-    } else if (
-      !is.numeric(x$tok.rat) || anyNA(x$tok.rat) || !all(x$tok.rat %bw% c(0, 1))
-    ) {
-      "element `tok.rat` should be numeric with all values between 0 and 1"
-    } else if (!is.logical(x$fill) || anyNA(x$fill)) {
-      "element `fill` should be logical and not contain NAs"
-    }
-    else TRUE
-  }
-}
+# valid_dat <- function(x) {
+#   char.cols <- c("orig", "raw", "trim", "eq", "comp", "fin")
+#   list.cols <- c("word.ind")
+#   zerotoone.cols <- "tok.rat"
+#   integer.cols <- c("trim.ind.start", "trim.ind.end")
+# 
+#   if(!is.list(x)) {
+#     "should be a list"
+#   } else if(!identical(names(x), .diff.dat.cols)) {
+#     paste0("should have names ", dep(.diff.dat.cols))
+#   } else if(
+#     length(
+#       unique(
+#         vapply(
+#           x[c(char.cols, list.cols, zerotoone.cols, integer.cols)],
+#           length, integer(1L)
+#         )
+#     ) ) != 1L
+#   ) {
+#     "should have equal length components"
+#   } else {
+#     if(
+#       length(
+#         not.char <- which(!vapply(x[char.cols], is.character, logical(1L)))
+#       )
+#     ){
+#       sprintf("element `%s` should be character", char.cols[not.char][[1L]])
+#     } else if (
+#       length(
+#         not.int <- which(!vapply(x[integer.cols], is.integer, logical(1L)))
+#       )
+#     ) {
+#       sprintf("element `%s` should be integer", integer.cols[not.int][[1L]])
+#     } else if (
+#       length(
+#         not.list <- which(!vapply(x[list.cols], is.list, logical(1L)))
+#       )
+#     ) {
+#       sprintf("element `%s` should be list", list.cols[not.list][[1L]])
+#     } else if (
+#       !all(
+#         vapply(
+#           x$word.ind,
+#           function(y)
+#             is.integer(y) && is.integer(attr(y, "match.length")) &&
+#             length(y) == length(attr(y, "match.length")),
+#           logical(1L)
+#       ) )
+#     ) {
+#       "element `word.ind` is not in expected format"
+#     } else if (
+#       !is.numeric(x$tok.rat) || anyNA(x$tok.rat) || !all(x$tok.rat %bw% c(0, 1))
+#     ) {
+#       "element `tok.rat` should be numeric with all values between 0 and 1"
+#     } else if (!is.logical(x$fill) || anyNA(x$fill)) {
+#       "element `fill` should be logical and not contain NAs"
+#     }
+#     else TRUE
+#   }
+# }
 #' Diff Result Object
 #'
 #' Return value for the \code{\link[=diffPrint]{diff*}} methods.  Has
