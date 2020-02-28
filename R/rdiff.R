@@ -113,7 +113,10 @@ Rdiff_run <- function(from, to, nullPointers, silent, minimal) {
         "without a `diff` utility accessible to R"
       )
   )
-  if(!is.character(res)) stop("Unexpected tools::Rdiff output")
+  if(!is.character(res))
+    # nocov start
+    stop("Internal Error: Unexpected tools::Rdiff output, contact maintainer")
+    # nocov end
 
   res <- if(minimal) res[!grepl("^[<>-]", res)] else res
   if(silent) res else {

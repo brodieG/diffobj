@@ -105,6 +105,13 @@ test_that("strip hz whitespace", {
     ),
     c("HELLOthere", "ABCdef78")
   )
+  expect_equal(
+    diffobj:::strip_hz_control("hellothere\r", sgr.supported=TRUE),
+    "hellothere"
+  )
+  expect_equal(
+    diffobj:::strip_hz_control(character(), sgr.supported=TRUE), character()
+  )
   # newlines
 
   expect_equal(

@@ -221,13 +221,15 @@ value indicates the threshold of screen lines to begin truncating output,
 and the second the number of lines to truncate to, which should be fewer
 than the threshold.  Note that this parameter is implemented on a
 best-efforts basis and should not be relied on to produce the exact
-number of lines requested.  If you want a specific number of lines use
-\code{[} or \code{head} / \code{tail}.  One advantage of \code{line.limit}
-over these other options is that you can combine it with
-\code{context="auto"} and auto \code{max.level} selection (the latter for
-\code{diffStr}), which allows the diff to dynamically adjust to make best
-use of the available display lines.  \code{[}, \code{head}, and \code{tail}
-just subset the text of the output.}
+number of lines requested.  In particular do not expect it to work well for
+for values small enough that the banner portion of the diff would have to
+be trimmed.  If you want a specific number of lines use \code{[} or
+\code{head} / \code{tail}.  One advantage of \code{line.limit} over these
+other options is that you can combine it with \code{context="auto"} and
+auto \code{max.level} selection (the latter for \code{diffStr}), which
+allows the diff to dynamically adjust to make best use of the available
+display lines.  \code{[}, \code{head}, and \code{tail} just subset the text
+of the output.}
 
 \item{hunk.limit}{integer(2L) or integer (1L), how many diff hunks to show.
 Behaves similarly to \code{line.limit}.  How many hunks are in a
@@ -330,8 +332,7 @@ a \code{Diff} object; this object has a \code{show}
 Runs the diff between the \code{print} or \code{show} output produced by
 \code{target} and \code{current}.  Given the extensive parameter list, this
 documentation page is intended as a reference for all the \code{diff*}
-methods.  For a high level introduction see \code{vignette("diffobj")} and
-the examples.
+methods.  For a high level introduction see \code{vignette("diffobj")}.
 }
 \details{
 Almost all aspects of how the diffs are computed and displayed are
@@ -354,14 +355,15 @@ Note that while the generics include \code{...} as an argument, none of the
 methods do.
 }
 \section{Matrices and Data Frames}{
- 
+
 
 While \code{diffPrint} attempts to handle the default R behavior that wraps
 wide tables, the results are often sub-optimal.  A better approach is to set
 the \code{disp.width} parameter to a large enough value such that wrapping is
-not necessary, and let \code{diffPrint} post-processing handle the wrapping
-of the result.  Using a browser-based \code{pager} may make it easier to
-review the results.
+not necessary, and a browser-based \code{pager}.  In the future we will add
+the capability to specify different capture widths and wrap widths so that
+this is an option for terminal output (see
+\href{https://github.com/brodieG/diffobj/issues/109}{issue 109}).
 
 One thing to keep in mind is that \code{diffPrint} is not designed to work
 with very large data frames.

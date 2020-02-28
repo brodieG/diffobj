@@ -276,6 +276,8 @@ test_that("file.path", {
     ) ),
     NA
   )
+  expect_error(Pager(file.path=letters), "must be length 1")
+  expect_error(Pager(file.path=1), "must be character")
 })
 test_that("basic pager", {
   f <- tempfile()

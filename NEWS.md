@@ -9,7 +9,9 @@ This is a bugfix release.
   incorrect defaults.
 * [#135](https://github.com/brodieG/diffobj/issues/135): Incorrect handling of
   potential meta data strings when unwrapping atomics would cause a "wrong sign
-  in by argument" error (h/t @flying-sheep).
+  in by argument" error (h/t @flying-sheep).  We also fixed other bugs related
+  to the handling of meta data in atomic vectors that were uncovered while
+  debugging this issue.
 * [#134](https://github.com/brodieG/diffobj/issues/134): Forwarding `...` to
   `diff*` functions no longer breaks substitution of arguments for diff banners
   (h/t @noamross)..
@@ -18,6 +20,9 @@ This is a bugfix release.
   @noamross).
 * [#132](https://github.com/brodieG/diffobj/issues/132): Duplicate pager slot
   for baseline `Pager` removed (h/t Bill Dunlap).
+
+There are also several other small internal changes that in theory should not
+affect user facing behavior.
 
 ## v0.2.2
 

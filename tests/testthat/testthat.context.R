@@ -58,3 +58,7 @@ test_that("with line limit", {
     txtf(200)
   )
 })
+test_that("error handling", {
+  expect_error(auto_context(min=-1, max=1:3), "`min` must be")
+  expect_error(auto_context(min=1, max=1:3), "`max` must be")
+})

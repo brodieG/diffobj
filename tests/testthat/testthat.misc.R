@@ -61,12 +61,24 @@ test_that("rle_sub", {
 test_that("myers_simple", {
 
 })
-
 test_that("call funs", {
   # Failure case; assumes no S4 dispatch in testthat
   calls <- list(quote(a()), quote(b()), quote(notafunctionblah()))
   expect_equal(diffobj:::which_top(calls), length(calls))
   expect_warning(diffobj:::extract_call(calls, new.env()), "Unable to find")
+
+  # missing param works
+  calls2 <- pairlist(
+    quote(diffChr("a")), quote(diffChr("a")), quote(.local(target, current, ...))
+  )
+  expect_equal(
+    diffobj:::extract_call(calls2, new.env()),
+    list(call = quote(diffChr(target = "a", NULL)), tar = "a", cur = NULL)
+  )
+  # fallback parent frame; can't think of a good way to actually cause this to
+  # happen
+
+  # expect_equal(diffobj:::par_frame(), .GlobalEnv)
 })
 
 test_that("lines", {
@@ -124,4 +136,7 @@ test_that("Finalizer error handling", {
   expect_error(
     finalizeHtml(letters, letters, letters), "must be character\\(1L"
   )
+})
+test_that("c.factor", {
+  expect_equal(diffobj:::c.factor(), factor(character()))
 })

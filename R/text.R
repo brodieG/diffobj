@@ -61,6 +61,15 @@ align_split <- function(v, m) {
 }
 # Align lists based on equalities on other vectors
 #
+# This is used for hunks that are word diffed.  Once the word differences are
+# accounted for, the remaining strings (A.eq/B.eq) are compared to try to align
+# them with a naive algorithm on a line basis.  This works best when lines as a
+# whole are equal except for a few differences.  There can be funny situations
+# where matched words are on one line in e.g. A, but spread over multiple lines
+# in B.  This isn't really handled well currently.
+#
+# See issue #37.
+#
 # The A/B vecs  will be split up into matchd elements, and non-matched elements.
 # Each matching element will be surrounding by (possibly empty) non-matching
 # elements.

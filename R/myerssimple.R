@@ -29,7 +29,6 @@ myers_simple_int <- function(A, B) {
   N <- length(A)
   M <- length(B)
   MAX <- M + N + 1L
-  if(!MAX) return(matrix(integer(0L), ncol=2))
   OFF <- MAX + 1L  # offset to adjust to R indexing
   Vl <- vector("list", MAX)
   for(D in seq_len(MAX) - 1L) {
@@ -153,7 +152,7 @@ diff_path_to_diff <- function(path, target, current) {
   for(i in seq_along(chunks)) {
     x <- chunks[[i]]
     if((neg <- any(x < 0L, na.rm=TRUE)) && !all(x < 0L, na.rm=TRUE))
-      stop("Logic Error: match group error; contact maintainer")
+      stop("Internal Error: match group error; contact maintainer") # nocov
     if(neg) {
       # Matches, so equal length and set to zero
       res.tar[[i]] <- res.cur[[i]] <- integer(nrow(x))

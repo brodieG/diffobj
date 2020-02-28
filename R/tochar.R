@@ -354,17 +354,18 @@ setMethod("as.character", "Diff",
     banner.A <- s@funs@word.delete(ban.A.trim)
     banner.B <- s@funs@word.insert(ban.B.trim)
 
-    # Trim banner if exceeds line limit, currently we're implicitly assuming
-    # that each banner line does not exceed 1 in length; may change in future
+    # Trim banner doesn't currently work, so we just comment the nulling out and
+    # updated the docs.  This doesn't seem worth fixing.  The banner portion
+    # would still show up with the banners themselves NULLed.
 
     if(line.limit[[1L]] >= 0) {
       ll2 <- line.limit[[2L]]
-      if(ll2 < 2L && mode != "sidebyside") {
-        banner.A <- NULL
-      }
-      if(ll2 < 1L) {
-        banner.B <- banner.A <- NULL
-      }
+      # if(ll2 < 2L && mode != "sidebyside") {
+      #   banner.A <- NULL
+      # }
+      # if(ll2 < 1L) {
+      #   banner.B <- banner.A <- NULL
+      # }
     }
     if(mode == "sidebyside") {
       line.limit <- pmax(integer(2L), line.limit - 2L)
