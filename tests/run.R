@@ -18,6 +18,7 @@ local({                                         # so we can use `on.exit`
       diffobj.format="ansi8", # force ANSI colors
       diffobj.color.mode="yb",# force yb
       diffobj.pager="off",    # run tests without pager
+      stringsAsFactors=TRUE,  # R4.0 switched this on us
       width=80L,
       encoding="UTF-8"        # so Gabor's name renders properly on win...
     )
@@ -32,7 +33,7 @@ local({                                         # so we can use `on.exit`
 
   on.exit(options(old.opts))
 
-  RNGversion("3.5.2");
+  suppressWarnings(RNGversion("3.5.2"));
 
   valgrind <- FALSE
   if(!valgrind) {
