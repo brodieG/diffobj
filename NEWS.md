@@ -1,5 +1,10 @@
 # diffobj
 
+## v0.2.4
+
+* Tests explicitly set `stringsAsFactors=TRUE` so they don't fail with the
+  anticipated changed for R4.0.
+
 ## v0.2.3
 
 This is a bugfix release.
