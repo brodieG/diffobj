@@ -37,6 +37,8 @@ browseVignettes("diffobj")
   the repository, and Uwe Ligges in particular for maintaining
   [Winbuilder](http://win-builder.r-project.org/).
 * The users who have reported bugs and possible fixes (see NEWS.md).
+* [Gábor Csárdi](https://github.com/gaborcsardi) for
+  [crayon](https://github.com/r-lib/crayon).
 * [Jim Hester](https://github.com/jimhester) because
   [covr](https://cran.r-project.org/package=covr) rocks.
 * [Dirk Eddelbuettel](https://github.com/eddelbuettel) and [Carl
