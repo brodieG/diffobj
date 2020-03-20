@@ -1,5 +1,11 @@
 # diffobj
 
+## v0.2.4
+
+* Tests explicitly set `stringsAsFactors=TRUE` so they don't fail with the
+  anticipated changed for R4.0.
+* [#140](https://github.com/brodieG/diffobj/issues/140): Bad link in `?ses`.
+
 ## v0.2.3
 
 This is a bugfix release.

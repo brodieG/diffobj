@@ -136,7 +136,7 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' Computes shortest edit script to convert \code{a} into \code{b} by removing
 #' elements from \code{a} and adding elements from \code{b}.  Intended primarily
 #' for debugging or for other applications that understand that particular
-#' format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}
+#' format.  See \href{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}{GNU diff docs}
 #' for how to interpret the symbols.
 #'
 #' \code{ses} will be much faster than any of the
@@ -178,7 +178,7 @@ ses <- function(a, b, max.diffs=gdo("max.diffs"), warn=gdo("warn")) {
 #'
 #' Implementation of Myer's Diff algorithm with linear space refinement
 #' originally implemented by Mike B. Allen as part of
-#' \href{libmba}{http://www.ioplex.com/~miallen/libmba/}
+#' \href{http://www.ioplex.com/~miallen/libmba/}{libmba}
 #' version 0.9.1.  This implementation is a heavily modified version of the
 #' original C code and is not compatible with the \code{libmba} library.
 #' The C code is simplified by using fixed size arrays instead of variable

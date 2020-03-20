@@ -25,7 +25,7 @@ character
 Computes shortest edit script to convert \code{a} into \code{b} by removing
 elements from \code{a} and adding elements from \code{b}.  Intended primarily
 for debugging or for other applications that understand that particular
-format.  See \href{GNU diff docs}{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}
+format.  See \href{http://www.gnu.org/software/diffutils/manual/diffutils.html#Detailed-Normal}{GNU diff docs}
 for how to interpret the symbols.
 }
 \details{
