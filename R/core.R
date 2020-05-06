@@ -18,6 +18,7 @@
 
 NULL
 
+
 #' Generate a character representation of Shortest Edit Sequence
 #'
 #' @keywords internal
@@ -68,6 +69,10 @@ setMethod("as.character", "MyersMbaSes",
       character(1L)
 ) } )
 # Used for mapping edit actions to numbers so we can use numeric matrices
+# absolutely must be used to create the @type factor in the MBA object.
+#
+# DO NOT CHANGE LIGHTLY; SOME CODE MIGHT RELY ON THE UNDERLYING INTEGER POSITIONS
+
 .edit.map <- c("Match", "Insert", "Delete")
 
 setMethod("as.matrix", "MyersMbaSes",
@@ -75,9 +80,7 @@ setMethod("as.matrix", "MyersMbaSes",
     # map del/ins/match to numbers
 
     len <- length(x@type)
-
-    edit <- match(x@type, .edit.map)
-    matches <- .edit.map[edit] == "Match"
+    matches <- x@type == "Match"
     section <- cumsum(matches + c(0L, head(matches, -1L)))
 
     # Track what the max offset observed so far for elements of the `a` string
@@ -88,20 +91,19 @@ setMethod("as.matrix", "MyersMbaSes",
       if(len) 0L,
       head(
         cummax(
-          ifelse(.edit.map[edit] != "Insert", x@offset + x@length, 1L)
+          ifelse(x@type != "Insert", x@offset + x@length, 1L)
         ) - 1L, -1L
     ) )
-
     # Do same thing with `b`, complicated because the matching entries are all
     # in terms of `a`
 
     last.b <- c(
       if(len) 0L,
-      head(cumsum(ifelse(.edit.map[edit] != "Delete", x@length, 0L)), -1L)
+      head(cumsum(ifelse(x@type != "Delete", x@length, 0L)), -1L)
     )
     cbind(
-      type=edit, len=x@length, off=x@offset, section=section, last.a=last.a,
-      last.b = last.b
+      type=as.integer(x@type), len=x@length, off=x@offset,
+      section=section, last.a=last.a, last.b = last.b
     )
 } )
 setMethod("as.data.frame", "MyersMbaSes",
@@ -146,16 +148,55 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' NAs are treated as the string \dQuote{NA}.  Non-character inputs are coerced
 #' to character.
 #'
+#' For `ses_dat`, the result format indicates operations required to convert `a`
+#' into `b` in a precursor format to the GNU diff shortest edit script.  The
+#' operations are "Match" (do nothing), "Insert" (insert one or more values of
+#' `b` into `a`), and "Delete" (remove values from `a`).  The `len` column
+#' dictates how many values to advance along, insert into, or delete from
+#' `a`.  The `offset` column marks the position at which values from `b`
+#' should be inserted into `a` for "Insert" operations, the elements of `a` that
+#' have matching `b` values for "Match" operations.  You can ignore this value
+#' for "Delete" operations as it is intended for use for the reverse conversion
+#' of `b` into `a`, and it indicates the position in `b` that values from `a`
+#' would be inserted into.
+#'
 #' @export
 #' @param a character
 #' @param b character
 #' @inheritParams diffPrint
 #' @param warn TRUE (default) or FALSE whether to warn if we hit `max.diffs`.
-#' @return character
+#' @return character shortest edit script, or a "machine" readable version of it
+#'   as a `data.frame` with columns `op` (factor, values 'Match', 'Insert', or
+#'   'Delete'), `len` integer, and `offset` integer.  See Details.
 #' @examples
 #' ses(letters[1:3], letters[2:4])
+#' a <- letters[1:6]
+#' b <- c('b', 'CC', 'DD', 'd', 'f')
+#' ses(a, b)
+#' ses_dat(a, b)
 
 ses <- function(a, b, max.diffs=gdo("max.diffs"), warn=gdo("warn")) {
+  args <- ses_prep(a=a, b=b, max.diffs=max.diffs, warn=warn)
+  as.character(
+    diff_myers(
+      args[['a']], args[['b']], max.diffs=args[['max.diffs']],
+      warn=args[['warn']]
+  ) )
+}
+#' @export
+#' @rdname ses
+
+ses_dat <- function(a, b, max.diffs=gdo("max.diffs"), warn=gdo("warn")) {
+  args <- ses_prep(a=a, b=b, max.diffs=max.diffs, warn=warn)
+  mba <- diff_myers(
+    args[['a']], args[['b']], max.diffs=args[['max.diffs']],
+    warn=args[['warn']]
+  )
+  data.frame(op=mba@type, len=mba@length, offset=mba@offset)
+}
+# Internal validation fun for ses_*
+
+ses_prep <- function(a, b, max.diffs, warn) {
   if(!is.character(a)) {
     a <- try(as.character(a))
     if(inherits(a, "try-error"))
@@ -171,9 +212,8 @@ ses <- function(a, b, max.diffs=gdo("max.diffs"), warn=gdo("warn")) {
   if(!is.TF(warn)) stop("Argument `warn` must be TRUE or FALSE.")
   if(anyNA(a)) a[is.na(a)] <- "NA"
   if(anyNA(b)) b[is.na(b)] <- "NA"
-  as.character(diff_myers(a, b, max.diffs=max.diffs, warn=warn))
+  list(a=a, b=b, max.diffs=max.diffs, warn=warn)
 }
-
 #' Diff two character vectors
 #'
 #' Implementation of Myer's Diff algorithm with linear space refinement
@@ -205,6 +245,8 @@ diff_myers <- function(a, b, max.diffs=0L, warn=FALSE) {
   res <- .Call(DIFFOBJ_diffobj, a, b, max.diffs)
   res <- setNames(res, c("type", "length", "offset", "diffs"))
   types <- .edit.map
+  # silly that we have to generate a factor when we have the integer vector and
+  # levels...  Two unncessary hashes.
   res$type <- factor(types[res$type], levels=types)
   res$offset <- res$offset + 1L  # C 0-indexing originally
   res.s4 <- try(do.call("new", c(list("MyersMbaSes", a=a, b=b), res)))
