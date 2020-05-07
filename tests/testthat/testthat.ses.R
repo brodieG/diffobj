@@ -125,3 +125,15 @@ test_that("Repeat tests for full coverage in SES file", {
 
   expect_warning(diffChr(A3, B3, max.diffs=2), "Exceeded diff")
 })
+
+test_that("ses_dat", {
+  a <- b <- do.call(paste0, expand.grid(LETTERS, LETTERS))
+  set.seed(2)
+  b <- b[-sample(length(b), 100)]
+  a <- a[-sample(length(b), 100)]
+
+  dat <- ses_dat(a, b)
+  expect_equal(dat[['val']], dat[['op']] != 'Delete', b)
+  expect_equal(dat[['val']], dat[['op']] != 'Insert', a)
+  expect_equal(dat[['id.a']][!is.na(dat[['id.a']])], a)
+})

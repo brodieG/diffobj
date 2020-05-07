@@ -148,32 +148,38 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' NAs are treated as the string \dQuote{NA}.  Non-character inputs are coerced
 #' to character.
 #'
-#' For `ses_dat`, the result format indicates operations required to convert `a`
-#' into `b` in a precursor format to the GNU diff shortest edit script.  The
-#' operations are "Match" (do nothing), "Insert" (insert one or more values of
-#' `b` into `a`), and "Delete" (remove values from `a`).  The `len` column
-#' dictates how many values to advance along, insert into, or delete from
-#' `a`.  The `offset` column marks the position at which values from `b`
-#' should be inserted into `a` for "Insert" operations, the elements of `a` that
-#' have matching `b` values for "Match" operations.  You can ignore this value
-#' for "Delete" operations as it is intended for use for the reverse conversion
-#' of `b` into `a`, and it indicates the position in `b` that values from `a`
-#' would be inserted into.
+#' \code{ses_dat} provides a semi-processed \dQuote{machine-readable} version of
+#' the data that may be useful for those desiring to use the raw diff data and
+#' not the printed output of \code{diffobj}, but do not wish to manually parse
+#' the \code{ses} output.  It should be slightly faster than \code{ses}.
 #'
 #' @export
 #' @param a character
 #' @param b character
 #' @inheritParams diffPrint
 #' @param warn TRUE (default) or FALSE whether to warn if we hit `max.diffs`.
-#' @return character shortest edit script, or a "machine" readable version of it
-#'   as a `data.frame` with columns `op` (factor, values 'Match', 'Insert', or
-#'   'Delete'), `len` integer, and `offset` integer.  See Details.
+#' @return character shortest edit script, or a machine readable version of it
+#'   as a \code{data.frame} with columns \code{op} (factor, values
+#'   \dQuote{Match}, \dQuote{Insert}, or \dQuote{Delete}), \code{val} integer,
+#'   and \dQuote{offset} integer.  See Details.
 #' @examples
-#' ses(letters[1:3], letters[2:4])
 #' a <- letters[1:6]
 #' b <- c('b', 'CC', 'DD', 'd', 'f')
 #' ses(a, b)
-#' ses_dat(a, b)
+#' (dat <- ses_dat(a, b))
+#'
+#' ## use `ses_dat` output to construct a minimal diff
+#' ## color with ANSI CSI SGR
+#' diff <- dat[['val']]
+#' del <- dat[['op']] == 'Delete'
+#' ins <- dat[['op']] == 'Insert'
+#' if(any(del))
+#'   diff[del] <- paste0("\033[33m- ", diff[del], "\033[m")
+#' if(any(ins))
+#'   diff[ins] <- paste0("\033[34m+ ", diff[ins], "\033[m")
+#' if(any(!ins & !del))
+#'   diff[!ins & !del] <- paste0("  ", diff[!ins & !del])
+#' writeLines(diff)
 
 ses <- function(a, b, max.diffs=gdo("max.diffs"), warn=gdo("warn")) {
   args <- ses_prep(a=a, b=b, max.diffs=max.diffs, warn=warn)
@@ -192,7 +198,35 @@ ses_dat <- function(a, b, max.diffs=gdo("max.diffs"), warn=gdo("warn")) {
     args[['a']], args[['b']], max.diffs=args[['max.diffs']],
     warn=args[['warn']]
   )
-  data.frame(op=mba@type, len=mba@length, offset=mba@offset)
+  # reorder so that deletes are before (lack of foresight in setting factor
+  # levels...) inserts in each section
+
+  sec <- cumsum(mba@type == 'Match')
+  o <- order(sec, c(1L,3L,2L)[as.integer(mba@type)])
+  type <- mba@type[o]
+  len <- mba@length[o]
+  off <- mba@offset[o]
+
+  # offsets are indices in `a` for 'Match' and 'Delete', and in `b` for insert
+  # see `diff_myers` for details
+
+  id <- rep(seq_along(type), len)
+  type2 <- type[id]
+  off2 <- off[id]
+  id2 <- sequence(len) + off2 - 1L
+
+  use.a <- type2 %in% c('Match', 'Delete')
+  use.b <- !use.a
+  values <- character(length(id))
+  values[use.a] <- a[id2[use.a]]
+  values[use.b] <- b[id2[use.b]]
+  id.a <- id.b <- rep(NA_integer_, length(values))
+  id.a[use.a] <- id2[use.a]
+  id.b[use.b] <- id2[use.b]
+
+  data.frame(
+    op=type2, val=values, id.a=id.a, id.b=id.b, stringsAsFactors=FALSE
+  )
 }
 # Internal validation fun for ses_*
 
@@ -228,13 +262,25 @@ ses_prep <- function(a, b, max.diffs, warn) {
 #' A failover result is provided in the case where max diffs allowed is
 #' exceeded.  Ability to provide custom comparison functions is removed.
 #'
+#' The result format indicates operations required to convert \code{a} into
+#' \code{b} in a precursor format to the GNU diff shortest edit script.  The
+#' operations are \dQuote{Match} (do nothing), \dQuote{Insert} (insert one or
+#' more values of \code{b} into \code{a}), and \dQuote{Delete} (remove one or
+#' more values from \code{a}).  The \code{length} slot dictates how
+#' many values to advance along, insert into, or delete from \code{a}.  The
+#' \code{offset} slot changes meaning depending on the operation.  For
+#' \dQuote{Match} and \dQuote{Delete}, it is the starting index of that
+#' operation in \code{a}.  For \dQuote{Insert}, it is the starting index in
+#' \code{b} of the values to insert into \code{a}; the index in \code{a} to
+#' insert at is implicit in previous operations.
+#'
 #' @keywords internal
 #' @param a character
 #' @param b character
 #' @param max.diffs integer(1L) how many differences before giving up; set to
 #'   zero to allow as many as there are
 #' @param warn TRUE or FALSE, whether to warn if we hit `max.diffs`.
-#' @return list
+#' @return MyersMbaSes object
 #' @useDynLib diffobj, .registration=TRUE, .fixes="DIFFOBJ_"
 
 diff_myers <- function(a, b, max.diffs=0L, warn=FALSE) {
