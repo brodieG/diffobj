@@ -149,19 +149,29 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' to character.
 #'
 #' \code{ses_dat} provides a semi-processed \dQuote{machine-readable} version of
-#' the data that may be useful for those desiring to use the raw diff data and
-#' not the printed output of \code{diffobj}, but do not wish to manually parse
-#' the \code{ses} output.  It should be slightly faster than \code{ses}.
+#' precursor data to \code{ses} that may be useful for those desiring to use the
+#' raw diff data and not the printed output of \code{diffobj}, but do not wish
+#' to manually parse the \code{ses} output.  Whether it is faster than
+#' \code{ses} or not depends on the ratio of matching to non-matching values as
+#' \code{ses_dat} includes matching values whereas \code{ses} does not.  See
+#' examples.
 #'
 #' @export
 #' @param a character
 #' @param b character
+#' @param extra TRUE (default) or FALSE, whether to also return the indices in
+#'   \code{a} and \code{b} the diff values are taken from.  Set to FALSE for a
+#'   small performance gain.
 #' @inheritParams diffPrint
-#' @param warn TRUE (default) or FALSE whether to warn if we hit `max.diffs`.
+#' @param warn TRUE (default) or FALSE whether to warn if we hit
+#'   \code{max.diffs}.
 #' @return character shortest edit script, or a machine readable version of it
 #'   as a \code{data.frame} with columns \code{op} (factor, values
-#'   \dQuote{Match}, \dQuote{Insert}, or \dQuote{Delete}), \code{val} integer,
-#'   and \dQuote{offset} integer.  See Details.
+#'   \dQuote{Match}, \dQuote{Insert}, or \dQuote{Delete}), \code{val} character
+#'   corresponding to the value taken from either \code{a} or \code{b},
+#'   and if \code{extra} is TRUE, integer columns \code{id.a} and \code{id.b}
+#'   corresponding to the indices in \code{a} or \code{b} that \code{val} was
+#'   taken from.  See Details.
 #' @examples
 #' a <- letters[1:6]
 #' b <- c('b', 'CC', 'DD', 'd', 'f')
@@ -180,6 +190,10 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' if(any(!ins & !del))
 #'   diff[!ins & !del] <- paste0("  ", diff[!ins & !del])
 #' writeLines(diff)
+#'
+#' ## We can recover `a` and `b` from the data
+#' identical(subset(dat, op != 'Insert', val)[[1]], a)
+#' identical(subset(dat, op != 'Delete', val)[[1]], b)
 
 ses <- function(a, b, max.diffs=gdo("max.diffs"), warn=gdo("warn")) {
   args <- ses_prep(a=a, b=b, max.diffs=max.diffs, warn=warn)
@@ -192,8 +206,11 @@ ses <- function(a, b, max.diffs=gdo("max.diffs"), warn=gdo("warn")) {
 #' @export
 #' @rdname ses
 
-ses_dat <- function(a, b, max.diffs=gdo("max.diffs"), warn=gdo("warn")) {
+ses_dat <- function(
+  a, b, extra=TRUE, max.diffs=gdo("max.diffs"), warn=gdo("warn")
+) {
   args <- ses_prep(a=a, b=b, max.diffs=max.diffs, warn=warn)
+  if(!is.TF(extra)) stop("Argument `extra` must be TRUE or FALSE.")
   mba <- diff_myers(
     args[['a']], args[['b']], max.diffs=args[['max.diffs']],
     warn=args[['warn']]
@@ -220,13 +237,17 @@ ses_dat <- function(a, b, max.diffs=gdo("max.diffs"), warn=gdo("warn")) {
   values <- character(length(id))
   values[use.a] <- a[id2[use.a]]
   values[use.b] <- b[id2[use.b]]
-  id.a <- id.b <- rep(NA_integer_, length(values))
-  id.a[use.a] <- id2[use.a]
-  id.b[use.b] <- id2[use.b]
+  if(extra) {
+    id.a <- id.b <- rep(NA_integer_, length(values))
+    id.a[use.a] <- id2[use.a]
+    id.b[use.b] <- id2[use.b]
 
-  data.frame(
-    op=type2, val=values, id.a=id.a, id.b=id.b, stringsAsFactors=FALSE
-  )
+    data.frame(
+      op=type2, val=values, id.a=id.a, id.b=id.b, stringsAsFactors=FALSE
+    )
+  } else {
+    data.frame(op=type2, val=values, stringsAsFactors=FALSE)
+  }
 }
 # Internal validation fun for ses_*
 
