@@ -15,19 +15,35 @@
 \alias{PagerSystemLess}
 \title{Objects for Specifying Pager Settings}
 \usage{
-Pager(pager = function(x) writeLines(readLines(x)), file.ext = "",
-  threshold = 0L, ansi = FALSE, file.path = NA_character_,
-  make.blocking = FALSE)
+Pager(
+  pager = function(x) writeLines(readLines(x)),
+  file.ext = "",
+  threshold = 0L,
+  ansi = FALSE,
+  file.path = NA_character_,
+  make.blocking = FALSE
+)
 
 PagerOff(...)
 
 PagerSystem(pager = file.show, threshold = -1L, file.ext = "", ...)
 
-PagerSystemLess(pager = file.show, threshold = -1L, flags = "R",
-  file.ext = "", ansi = TRUE, ...)
+PagerSystemLess(
+  pager = file.show,
+  threshold = -1L,
+  flags = "R",
+  file.ext = "",
+  ansi = TRUE,
+  ...
+)
 
-PagerBrowser(pager = view_or_browse, threshold = 0L,
-  file.ext = "html", make.blocking = NA, ...)
+PagerBrowser(
+  pager = view_or_browse,
+  threshold = 0L,
+  file.ext = "html",
+  make.blocking = NA,
+  ...
+)
 }
 \arguments{
 \item{pager}{a function that accepts at least one parameter and does not
@@ -224,7 +240,7 @@ diffChr(1:200, 180:300, pager=PagerSystem(ansi=TRUE))
 ## Use a custom pager, in this case we make up a trivial one and configure it
 ## always page (`threshold=0L`)
 
-page.fun <- function(x) cat(paste0("| ", readLines(x)), sep="\\n")
+page.fun <- function(x) cat(paste0("| ", readLines(x)), sep="\n")
 page.conf <- PagerSystem(pager=page.fun, threshold=0L)
 diffChr(1:200, 180:300, pager=page.conf, disp.width=getOption("width") - 2)
 

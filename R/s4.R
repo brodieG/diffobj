@@ -492,6 +492,8 @@ setMethod("any", "Diff",
       warning("No visible differences, but objects are NOT `all.equal`.")
     res
 } )
+# See diff_myers for explanation of slots
+
 setClass(
   "MyersMbaSes",
   slots=c(
