@@ -67,4 +67,14 @@ test_that("errors in capture", {
     ) ),
     "`current`"
   )
+  as.character.diffobj_qiueblkdsfa <- function(x, ...) x
+  bad_obj <- structure(list(NULL), class='as.character.diffobj_qiueblkdsfa')
+  expect_error(
+    diffobj:::capt_chr(bad_obj, letters),
+    "Coercion of `target`"
+  )
+  expect_error(
+    diffobj:::capt_chr(letters, bad_obj),
+    "Coercion of `current`"
+  )
 })
