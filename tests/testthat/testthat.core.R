@@ -110,7 +110,11 @@ local({
     )
     expect_identical(
       res.1,
-      structure(list(type = structure(c(3L, 1L, 3L, 1L, 2L, 1L, 2L), .Label = c("Match", "Insert", "Delete"), class = "factor"), string = structure(c(2L, 5L, 1L, 3L, 1L, 4L, 5L), .Label = c("a", "ab", "b", "ba", "c"), class = "factor"), len = c(2L, 1L, 1L, 1L, 1L, 2L, 1L), offset = c(1L, 3L, 4L, 5L, 3L, 6L, 6L)), .Names = c("type", "string", "len", "offset"), row.names = c(NA, -7L), class = "data.frame")
+      structure(list(type = structure(c(3L, 1L, 3L, 1L, 2L, 1L, 2L), .Label = c("Match", 
+"Insert", "Delete"), class = "factor"), string = c("ab", "c", 
+"a", "b", "a", "ba", "c"), len = c(2L, 1L, 1L, 1L, 1L, 2L, 1L
+), offset = c(1L, 3L, 4L, 5L, 3L, 6L, 6L)), class = "data.frame", row.names = c(NA, 
+-7L))
     )
     capture.output(
       res.2 <- summary(diffobj:::diff_myers(A, B), with.match=FALSE)

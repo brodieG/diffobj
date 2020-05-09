@@ -379,7 +379,8 @@ setMethod("summary", "MyersMbaSes",
       character(1L)
     )
     res <- data.frame(
-      type=object@type, string=what, len=object@length, offset=object@offset
+      type=object@type, string=what, len=object@length, offset=object@offset,
+      stringsAsFactors=FALSE
     )
     if(!with.match) res <- res[-2L]
     print(res, ...)
