@@ -163,6 +163,9 @@ make_diff_fun <- function(capt_fun) {
 #' Note that while the generics include \code{...} as an argument, none of the
 #' methods do.
 #'
+#' Strings are re-encoded to UTF-8 with \code{\link{enc2utf8}} prior to
+#' comparison to avoid spurious encoding-only differences.
+#'
 #' @section Matrices and Data Frames:
 #'
 #' While \code{diffPrint} attempts to handle the default R behavior that wraps

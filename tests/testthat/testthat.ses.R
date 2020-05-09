@@ -143,3 +143,11 @@ test_that("ses_dat", {
 
   expect_error(ses_dat(a, b, extra=NA), 'TRUE or FALSE')
 })
+test_that("encoding agnostic #144", {
+  # h/t @hadley, these are different in string cache, but should compare equal
+  # as per ?identical
+  x <- c("fa\xE7ile", "fa\ue7ile")
+  Encoding(x) <- c("latin1", "UTF-8")
+  y <- rev(x)
+  expect_equal(diffobj::ses(x, y), character())
+})

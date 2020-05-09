@@ -1,5 +1,13 @@
 # diffobj
 
+## v0.3.0
+
+* [#143](https://github.com/brodieG/diffobj/issues/143): Add `ses_dat` to
+  provide a more computable version of `ses` (h/t @hadley)
+* [#144](https://github.com/brodieG/diffobj/issues/144): Re-encode strings to
+  UTF-8 prior to comparison to avoid spurious encoding-only differences (h/t
+  @hadley)
+
 ## v0.2.4
 
 * Tests explicitly set `stringsAsFactors=TRUE` so they don't fail with the

@@ -309,6 +309,8 @@ diff_myers <- function(a, b, max.diffs=0L, warn=FALSE) {
     is.character(a), is.character(b), all(!is.na(c(a, b))), is.int.1L(max.diffs),
     is.TF(warn)
   )
+  a <- enc2utf8(a)
+  b <- enc2utf8(b)
   res <- .Call(DIFFOBJ_diffobj, a, b, max.diffs)
   res <- setNames(res, c("type", "length", "offset", "diffs"))
   types <- .edit.map

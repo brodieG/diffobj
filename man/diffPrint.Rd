@@ -369,6 +369,9 @@ use this to set up methods to pre-process or set specific parameters for
 selected classes that can then \code{callNextMethod} for the actual diff.
 Note that while the generics include \code{...} as an argument, none of the
 methods do.
+
+Strings are re-encoded to UTF-8 with \code{\link{enc2utf8}} prior to
+comparison to avoid spurious encoding-only differences.
 }
 \section{Matrices and Data Frames}{
 
