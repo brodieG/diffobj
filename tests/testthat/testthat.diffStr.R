@@ -30,12 +30,20 @@ test_that("Simple structure", {
 })
 test_that("Strict width", {
   # formula display changed
-  if(R.Version()$major >= 3 && R.Version()$minor >= "3.1") {
+  if(
+    R.Version()$major >= 3 && R.Version()$minor >= "3.1" || R.Version()$major >3
+  ) {
     expect_equal_to_reference(
       as.character(
         diffStr(mdl1, mdl2, extra=list(strict.width="wrap"), line.limit=30)
       ),
       rdsf(500)
+    )
+    expect_equal_to_reference(
+      as.character(
+        diffStr(mdl1, mdl2, extra=list(strict.width="cut"), line.limit=30)
+      ),
+      rdsf(550)
     )
   }
 })
