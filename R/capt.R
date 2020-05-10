@@ -328,7 +328,7 @@ capt_chr <- function(target, current, etc, err, extra){
   # character object...
 
   if((tt <- typeof(tar.capt)) != 'character')
-    stop("Coercion of `target` did not produce character object (", tc, ").")
+    stop("Coercion of `target` did not produce character object (", tt, ").")
   if((tc <- typeof(cur.capt)) != 'character')
     stop("Coercion of `current` did not produce character object (", tc, ").")
 

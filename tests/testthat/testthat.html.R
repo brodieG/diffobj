@@ -81,5 +81,5 @@ test_that("nchar", {
   expect_equal(nchar_html("<a href='blahblah'>25&nbsp;</a>"), 3)
 })
 test_that("cont_f", {
-  expect_error(cont_f(1L), "must be character")
+  expect_error(cont_f("hello")(1:3), "must be character")
 })

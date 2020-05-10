@@ -384,4 +384,7 @@ print.diffobj_ogewlhgiadfl <- function(x, ...) stop('failure')
 #' @export
 as.character.diffobj_ogewlhgiadfl2 <- function(x, ...) stop('failure2')
 
+#' @export
+
+as.character.diffobj_ogewlhgiadfl3 <- function(x, ...) x
 
