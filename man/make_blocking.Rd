@@ -4,8 +4,7 @@
 \alias{make_blocking}
 \title{Create a Blocking Version of a Function}
 \usage{
-make_blocking(fun, msg = "Press ENTER to continue...",
-  invisible.res = TRUE)
+make_blocking(fun, msg = "Press ENTER to continue...", invisible.res = TRUE)
 }
 \arguments{
 \item{fun}{a function}

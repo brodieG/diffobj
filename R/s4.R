@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Brodie Gaslam
+# Copyright (C) 2020 Brodie Gaslam
 
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -492,6 +492,8 @@ setMethod("any", "Diff",
       warning("No visible differences, but objects are NOT `all.equal`.")
     res
 } )
+# See diff_myers for explanation of slots
+
 setClass(
   "MyersMbaSes",
   slots=c(

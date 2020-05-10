@@ -37,9 +37,6 @@ text used by the diff (e.g. \code{gutter.insert.txt})}
 \item{summary}{a \code{\link{StyleSummary}} object that contains formatting
 functions and other meta data for rendering summaries}
 
-\item{wrap}{TRUE or FALSE, whether the text should be hard wrapped to fit in
-the console}
-
 \item{pad}{TRUE or FALSE, whether text should be right padded}
 
 \item{pager}{what type of \code{\link{Pager}} to use}

@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Brodie Gaslam
+# Copyright (C) 2020 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -326,7 +326,10 @@ detect_s4_guides <- function(txt, obj) {
 #' best efforts basis and may fail if your objects contain \dQuote{pathological}
 #' display representations.  Since the diff will still work with failed
 #' \code{guides} finding we consider this an acceptable compromise.  Guide
-#' finding is more likely to fail with nested recursive structures.
+#' finding is more likely to fail with nested recursive structures.  A known
+#' issue is that list-like S3 objects without print methods [reset the tag
+#' buffers](https://bugs.r-project.org/bugzilla/show_bug.cgi?id=17610) so the
+#' guides become less useful for them.
 #'
 #' \code{guidesStr} highlights top level objects.  The default methods for the
 #' other \code{guide*} generics do not do anything and exist only as a mechanism
@@ -374,7 +377,7 @@ NULL
 
 setGeneric(
   "guidesPrint",
-  function(obj, obj.as.chr) StandardGeneric("guidesPrint") # nocov
+  function(obj, obj.as.chr) standardGeneric("guidesPrint")
 )
 #' @rdname guides
 
@@ -404,7 +407,7 @@ setMethod(
 
 setGeneric(
   "guidesStr",
-  function(obj, obj.as.chr) StandardGeneric("guidesStr")  # nocov
+  function(obj, obj.as.chr) standardGeneric("guidesStr")
 )
 #' @rdname guides
 
@@ -421,7 +424,7 @@ setMethod("guidesStr", c("ANY", "character"),
 
 setGeneric(
   "guidesChr",
-  function(obj, obj.as.chr) StandardGeneric("guidesChr") # nocov
+  function(obj, obj.as.chr) standardGeneric("guidesChr")
 )
 #' @rdname guides
 
@@ -433,7 +436,7 @@ setMethod("guidesChr", c("ANY", "character"),
 
 setGeneric(
   "guidesDeparse",
-  function(obj, obj.as.chr) StandardGeneric("guidesDeparse") # nocov
+  function(obj, obj.as.chr) standardGeneric("guidesDeparse")
 )
 #' @rdname guides
 
@@ -445,7 +448,7 @@ setMethod("guidesDeparse", c("ANY", "character"),
 
 setGeneric(
   "guidesFile",
-  function(obj, obj.as.chr) StandardGeneric("guidesFile") # nocov
+  function(obj, obj.as.chr) standardGeneric("guidesFile")
 )
 #' @rdname guides
 

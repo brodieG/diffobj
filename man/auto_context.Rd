@@ -4,8 +4,10 @@
 \alias{auto_context}
 \title{Configure Automatic Context Calculation}
 \usage{
-auto_context(min = getOption("diffobj.context.auto.min"),
-  max = getOption("diffobj.context.auto.max"))
+auto_context(
+  min = getOption("diffobj.context.auto.min"),
+  max = getOption("diffobj.context.auto.max")
+)
 }
 \arguments{
 \item{min}{integer(1L), positive, set to zero to allow any context}

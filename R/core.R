@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Brodie Gaslam
+# Copyright (C) 2020 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -17,6 +17,7 @@
 #' @include s4.R
 
 NULL
+
 
 #' Generate a character representation of Shortest Edit Sequence
 #'
@@ -68,6 +69,10 @@ setMethod("as.character", "MyersMbaSes",
       character(1L)
 ) } )
 # Used for mapping edit actions to numbers so we can use numeric matrices
+# absolutely must be used to create the @type factor in the MBA object.
+#
+# DO NOT CHANGE LIGHTLY; SOME CODE MIGHT RELY ON THE UNDERLYING INTEGER POSITIONS
+
 .edit.map <- c("Match", "Insert", "Delete")
 
 setMethod("as.matrix", "MyersMbaSes",
@@ -75,9 +80,7 @@ setMethod("as.matrix", "MyersMbaSes",
     # map del/ins/match to numbers
 
     len <- length(x@type)
-
-    edit <- match(x@type, .edit.map)
-    matches <- .edit.map[edit] == "Match"
+    matches <- x@type == "Match"
     section <- cumsum(matches + c(0L, head(matches, -1L)))
 
     # Track what the max offset observed so far for elements of the `a` string
@@ -88,20 +91,19 @@ setMethod("as.matrix", "MyersMbaSes",
       if(len) 0L,
       head(
         cummax(
-          ifelse(.edit.map[edit] != "Insert", x@offset + x@length, 1L)
+          ifelse(x@type != "Insert", x@offset + x@length, 1L)
         ) - 1L, -1L
     ) )
-
     # Do same thing with `b`, complicated because the matching entries are all
     # in terms of `a`
 
     last.b <- c(
       if(len) 0L,
-      head(cumsum(ifelse(.edit.map[edit] != "Delete", x@length, 0L)), -1L)
+      head(cumsum(ifelse(x@type != "Delete", x@length, 0L)), -1L)
     )
     cbind(
-      type=edit, len=x@length, off=x@offset, section=section, last.a=last.a,
-      last.b = last.b
+      type=as.integer(x@type), len=x@length, off=x@offset,
+      section=section, last.a=last.a, last.b = last.b
     )
 } )
 setMethod("as.data.frame", "MyersMbaSes",
@@ -146,16 +148,110 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' NAs are treated as the string \dQuote{NA}.  Non-character inputs are coerced
 #' to character.
 #'
+#' \code{ses_dat} provides a semi-processed \dQuote{machine-readable} version of
+#' precursor data to \code{ses} that may be useful for those desiring to use the
+#' raw diff data and not the printed output of \code{diffobj}, but do not wish
+#' to manually parse the \code{ses} output.  Whether it is faster than
+#' \code{ses} or not depends on the ratio of matching to non-matching values as
+#' \code{ses_dat} includes matching values whereas \code{ses} does not.  See
+#' examples.
+#'
 #' @export
 #' @param a character
 #' @param b character
+#' @param extra TRUE (default) or FALSE, whether to also return the indices in
+#'   \code{a} and \code{b} the diff values are taken from.  Set to FALSE for a
+#'   small performance gain.
 #' @inheritParams diffPrint
-#' @param warn TRUE (default) or FALSE whether to warn if we hit `max.diffs`.
-#' @return character
+#' @param warn TRUE (default) or FALSE whether to warn if we hit
+#'   \code{max.diffs}.
+#' @return character shortest edit script, or a machine readable version of it
+#'   as a \code{data.frame} with columns \code{op} (factor, values
+#'   \dQuote{Match}, \dQuote{Insert}, or \dQuote{Delete}), \code{val} character
+#'   corresponding to the value taken from either \code{a} or \code{b},
+#'   and if \code{extra} is TRUE, integer columns \code{id.a} and \code{id.b}
+#'   corresponding to the indices in \code{a} or \code{b} that \code{val} was
+#'   taken from.  See Details.
 #' @examples
-#' ses(letters[1:3], letters[2:4])
+#' a <- letters[1:6]
+#' b <- c('b', 'CC', 'DD', 'd', 'f')
+#' ses(a, b)
+#' (dat <- ses_dat(a, b))
+#'
+#' ## use `ses_dat` output to construct a minimal diff
+#' ## color with ANSI CSI SGR
+#' diff <- dat[['val']]
+#' del <- dat[['op']] == 'Delete'
+#' ins <- dat[['op']] == 'Insert'
+#' if(any(del))
+#'   diff[del] <- paste0("\033[33m- ", diff[del], "\033[m")
+#' if(any(ins))
+#'   diff[ins] <- paste0("\033[34m+ ", diff[ins], "\033[m")
+#' if(any(!ins & !del))
+#'   diff[!ins & !del] <- paste0("  ", diff[!ins & !del])
+#' writeLines(diff)
+#'
+#' ## We can recover `a` and `b` from the data
+#' identical(subset(dat, op != 'Insert', val)[[1]], a)
+#' identical(subset(dat, op != 'Delete', val)[[1]], b)
 
 ses <- function(a, b, max.diffs=gdo("max.diffs"), warn=gdo("warn")) {
+  args <- ses_prep(a=a, b=b, max.diffs=max.diffs, warn=warn)
+  as.character(
+    diff_myers(
+      args[['a']], args[['b']], max.diffs=args[['max.diffs']],
+      warn=args[['warn']]
+  ) )
+}
+#' @export
+#' @rdname ses
+
+ses_dat <- function(
+  a, b, extra=TRUE, max.diffs=gdo("max.diffs"), warn=gdo("warn")
+) {
+  args <- ses_prep(a=a, b=b, max.diffs=max.diffs, warn=warn)
+  if(!is.TF(extra)) stop("Argument `extra` must be TRUE or FALSE.")
+  mba <- diff_myers(
+    args[['a']], args[['b']], max.diffs=args[['max.diffs']],
+    warn=args[['warn']]
+  )
+  # reorder so that deletes are before (lack of foresight in setting factor
+  # levels...) inserts in each section
+
+  sec <- cumsum(mba@type == 'Match')
+  o <- order(sec, c(1L,3L,2L)[as.integer(mba@type)])
+  type <- mba@type[o]
+  len <- mba@length[o]
+  off <- mba@offset[o]
+
+  # offsets are indices in `a` for 'Match' and 'Delete', and in `b` for insert
+  # see `diff_myers` for details
+
+  id <- rep(seq_along(type), len)
+  type2 <- type[id]
+  off2 <- off[id]
+  id2 <- sequence(len) + off2 - 1L
+
+  use.a <- type2 %in% c('Match', 'Delete')
+  use.b <- !use.a
+  values <- character(length(id))
+  values[use.a] <- a[id2[use.a]]
+  values[use.b] <- b[id2[use.b]]
+  if(extra) {
+    id.a <- id.b <- rep(NA_integer_, length(values))
+    id.a[use.a] <- id2[use.a]
+    id.b[use.b] <- id2[use.b]
+
+    data.frame(
+      op=type2, val=values, id.a=id.a, id.b=id.b, stringsAsFactors=FALSE
+    )
+  } else {
+    data.frame(op=type2, val=values, stringsAsFactors=FALSE)
+  }
+}
+# Internal validation fun for ses_*
+
+ses_prep <- function(a, b, max.diffs, warn) {
   if(!is.character(a)) {
     a <- try(as.character(a))
     if(inherits(a, "try-error"))
@@ -171,9 +267,8 @@ ses <- function(a, b, max.diffs=gdo("max.diffs"), warn=gdo("warn")) {
   if(!is.TF(warn)) stop("Argument `warn` must be TRUE or FALSE.")
   if(anyNA(a)) a[is.na(a)] <- "NA"
   if(anyNA(b)) b[is.na(b)] <- "NA"
-  as.character(diff_myers(a, b, max.diffs=max.diffs, warn=warn))
+  list(a=a, b=b, max.diffs=max.diffs, warn=warn)
 }
-
 #' Diff two character vectors
 #'
 #' Implementation of Myer's Diff algorithm with linear space refinement
@@ -188,13 +283,25 @@ ses <- function(a, b, max.diffs=gdo("max.diffs"), warn=gdo("warn")) {
 #' A failover result is provided in the case where max diffs allowed is
 #' exceeded.  Ability to provide custom comparison functions is removed.
 #'
+#' The result format indicates operations required to convert \code{a} into
+#' \code{b} in a precursor format to the GNU diff shortest edit script.  The
+#' operations are \dQuote{Match} (do nothing), \dQuote{Insert} (insert one or
+#' more values of \code{b} into \code{a}), and \dQuote{Delete} (remove one or
+#' more values from \code{a}).  The \code{length} slot dictates how
+#' many values to advance along, insert into, or delete from \code{a}.  The
+#' \code{offset} slot changes meaning depending on the operation.  For
+#' \dQuote{Match} and \dQuote{Delete}, it is the starting index of that
+#' operation in \code{a}.  For \dQuote{Insert}, it is the starting index in
+#' \code{b} of the values to insert into \code{a}; the index in \code{a} to
+#' insert at is implicit in previous operations.
+#'
 #' @keywords internal
 #' @param a character
 #' @param b character
 #' @param max.diffs integer(1L) how many differences before giving up; set to
 #'   zero to allow as many as there are
 #' @param warn TRUE or FALSE, whether to warn if we hit `max.diffs`.
-#' @return list
+#' @return MyersMbaSes object
 #' @useDynLib diffobj, .registration=TRUE, .fixes="DIFFOBJ_"
 
 diff_myers <- function(a, b, max.diffs=0L, warn=FALSE) {
@@ -202,9 +309,13 @@ diff_myers <- function(a, b, max.diffs=0L, warn=FALSE) {
     is.character(a), is.character(b), all(!is.na(c(a, b))), is.int.1L(max.diffs),
     is.TF(warn)
   )
+  a <- enc2utf8(a)
+  b <- enc2utf8(b)
   res <- .Call(DIFFOBJ_diffobj, a, b, max.diffs)
   res <- setNames(res, c("type", "length", "offset", "diffs"))
   types <- .edit.map
+  # silly that we have to generate a factor when we have the integer vector and
+  # levels...  Two unncessary hashes.
   res$type <- factor(types[res$type], levels=types)
   res$offset <- res$offset + 1L  # C 0-indexing originally
   res.s4 <- try(do.call("new", c(list("MyersMbaSes", a=a, b=b), res)))
@@ -268,7 +379,8 @@ setMethod("summary", "MyersMbaSes",
       character(1L)
     )
     res <- data.frame(
-      type=object@type, string=what, len=object@length, offset=object@offset
+      type=object@type, string=what, len=object@length, offset=object@offset,
+      stringsAsFactors=FALSE
     )
     if(!with.match) res <- res[-2L]
     print(res, ...)

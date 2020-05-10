@@ -1,5 +1,5 @@
 // diffobj - Compare R Objects with a Diff
-// Copyright (C) 2016  Brodie Gaslam
+// Copyright (C) 2020 Brodie Gaslam
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
