@@ -4,7 +4,7 @@
  * implementation is not compatible with the original one.  See next
  * comment blocks for original copyright and license information.
  *
- * Copyright (C) 2019 Brodie Gaslam
+ * Copyright (C) 2020 Brodie Gaslam
  *
  * This file is part of "diffobj - Diffs for R Objects"
  *

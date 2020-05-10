@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Brodie Gaslam
+# Copyright (C) 2020 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
