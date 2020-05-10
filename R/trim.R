@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Brodie Gaslam
+# Copyright (C) 2020 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -459,7 +459,7 @@ NULL
 #' @rdname trim
 
 setGeneric("trimPrint",
-  function(obj, obj.as.chr) StandardGeneric("trimPrint") # nocov
+  function(obj, obj.as.chr) standardGeneric("trimPrint")
 )
 #' @rdname trim
 
@@ -492,7 +492,7 @@ setMethod(
 #' @rdname trim
 
 setGeneric("trimStr",
-  function(obj, obj.as.chr) StandardGeneric("trimStr") # nocov
+  function(obj, obj.as.chr) standardGeneric("trimStr")
 )
 #' @rdname trim
 
@@ -519,7 +519,7 @@ trim_identity <- function(obj, obj.as.chr)
 #' @rdname trim
 
 setGeneric(
-  "trimChr", function(obj, obj.as.chr) StandardGeneric("trimChr")  # nocov
+  "trimChr", function(obj, obj.as.chr) standardGeneric("trimChr")
 )
 
 #' @rdname trim
@@ -531,7 +531,7 @@ setMethod("trimChr", c("ANY", "character"), trim_identity)
 
 setGeneric(
   "trimDeparse",
-  function(obj, obj.as.chr) StandardGeneric("trimDeparse")  # nocov
+  function(obj, obj.as.chr) standardGeneric("trimDeparse")
 )
 #' @rdname trim
 
@@ -541,7 +541,7 @@ setMethod("trimDeparse", c("ANY", "character"), trim_identity)
 #' @rdname trim
 
 setGeneric(
-  "trimFile", function(obj, obj.as.chr) StandardGeneric("trimFile")  # nocov
+  "trimFile", function(obj, obj.as.chr) standardGeneric("trimFile")
 )
 
 #' @rdname trim

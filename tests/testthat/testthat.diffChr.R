@@ -184,4 +184,11 @@ test_that("Newlines in input, issue 135, h/t Flying Sheep", {
       "< [1] 1 2 3 4     > [1] 9 4 1 4   ")
   )
 })
+test_that("Attributes causing dispatch in guides, issue 142", {
+  zlold <- c("0x0000, 0x001F", "0x007F, 0x009F", "0x0300, 0x036F")
+  zlnew <- structure(
+    c("0x0000, 0x001F", "0x008F, 0x009F", "0x0300, 0x036F"), .Dim = 3L
+  )
+  expect_warning(diffChr(zlold, zlnew), NA)
+})
 

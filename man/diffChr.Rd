@@ -342,7 +342,8 @@ a \code{Diff} object; see \code{\link{diffPrint}}.
 Will perform the diff on the actual string values of the character vectors
 instead of capturing the printed screen output. Each vector element is
 treated as a line of text.  NA elements are treated as the string
-\dQuote{NA}.  Non character inputs are coerced to character.
+\dQuote{NA}.  Non character inputs are coerced to character and attributes
+are dropped with \code{\link{c}}.
 }
 \examples{
 ## `pager="off"` for CRAN compliance; you may omit in normal use

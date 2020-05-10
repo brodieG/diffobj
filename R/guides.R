@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Brodie Gaslam
+# Copyright (C) 2020 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -374,7 +374,7 @@ NULL
 
 setGeneric(
   "guidesPrint",
-  function(obj, obj.as.chr) StandardGeneric("guidesPrint") # nocov
+  function(obj, obj.as.chr) standardGeneric("guidesPrint")
 )
 #' @rdname guides
 
@@ -404,7 +404,7 @@ setMethod(
 
 setGeneric(
   "guidesStr",
-  function(obj, obj.as.chr) StandardGeneric("guidesStr")  # nocov
+  function(obj, obj.as.chr) standardGeneric("guidesStr")
 )
 #' @rdname guides
 
@@ -421,7 +421,7 @@ setMethod("guidesStr", c("ANY", "character"),
 
 setGeneric(
   "guidesChr",
-  function(obj, obj.as.chr) StandardGeneric("guidesChr") # nocov
+  function(obj, obj.as.chr) standardGeneric("guidesChr")
 )
 #' @rdname guides
 
@@ -433,7 +433,7 @@ setMethod("guidesChr", c("ANY", "character"),
 
 setGeneric(
   "guidesDeparse",
-  function(obj, obj.as.chr) StandardGeneric("guidesDeparse") # nocov
+  function(obj, obj.as.chr) standardGeneric("guidesDeparse")
 )
 #' @rdname guides
 
@@ -445,7 +445,7 @@ setMethod("guidesDeparse", c("ANY", "character"),
 
 setGeneric(
   "guidesFile",
-  function(obj, obj.as.chr) StandardGeneric("guidesFile") # nocov
+  function(obj, obj.as.chr) standardGeneric("guidesFile")
 )
 #' @rdname guides
 
