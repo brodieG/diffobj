@@ -2,9 +2,12 @@
 % Please edit documentation in R/core.R
 \name{ses}
 \alias{ses}
+\alias{ses_dat}
 \title{Shortest Edit Script}
 \usage{
 ses(a, b, max.diffs = gdo("max.diffs"), warn = gdo("warn"))
+
+ses_dat(a, b, extra = TRUE, max.diffs = gdo("max.diffs"), warn = gdo("warn"))
 }
 \arguments{
 \item{a}{character}
@@ -16,10 +19,21 @@ abandon the \code{O(n^2)} diff algorithm in favor of a naive element by
 element comparison. Set to \code{-1L} to always stick to the original
 algorithm (defaults to 50000L).}
 
-\item{warn}{TRUE (default) or FALSE whether to warn if we hit `max.diffs`.}
+\item{warn}{TRUE (default) or FALSE whether to warn if we hit
+\code{max.diffs}.}
+
+\item{extra}{TRUE (default) or FALSE, whether to also return the indices in
+\code{a} and \code{b} the diff values are taken from.  Set to FALSE for a
+small performance gain.}
 }
 \value{
-character
+character shortest edit script, or a machine readable version of it
+  as a \code{data.frame} with columns \code{op} (factor, values
+  \dQuote{Match}, \dQuote{Insert}, or \dQuote{Delete}), \code{val} character
+  corresponding to the value taken from either \code{a} or \code{b},
+  and if \code{extra} is TRUE, integer columns \code{id.a} and \code{id.b}
+  corresponding to the indices in \code{a} or \code{b} that \code{val} was
+  taken from.  See Details.
 }
 \description{
 Computes shortest edit script to convert \code{a} into \code{b} by removing
@@ -35,7 +49,35 @@ limited numbers of differences.
 
 NAs are treated as the string \dQuote{NA}.  Non-character inputs are coerced
 to character.
+
+\code{ses_dat} provides a semi-processed \dQuote{machine-readable} version of
+precursor data to \code{ses} that may be useful for those desiring to use the
+raw diff data and not the printed output of \code{diffobj}, but do not wish
+to manually parse the \code{ses} output.  Whether it is faster than
+\code{ses} or not depends on the ratio of matching to non-matching values as
+\code{ses_dat} includes matching values whereas \code{ses} does not.  See
+examples.
 }
 \examples{
-ses(letters[1:3], letters[2:4])
+a <- letters[1:6]
+b <- c('b', 'CC', 'DD', 'd', 'f')
+ses(a, b)
+(dat <- ses_dat(a, b))
+
+## use `ses_dat` output to construct a minimal diff
+## color with ANSI CSI SGR
+diff <- dat[['val']]
+del <- dat[['op']] == 'Delete'
+ins <- dat[['op']] == 'Insert'
+if(any(del))
+  diff[del] <- paste0("\033[33m- ", diff[del], "\033[m")
+if(any(ins))
+  diff[ins] <- paste0("\033[34m+ ", diff[ins], "\033[m")
+if(any(!ins & !del))
+  diff[!ins & !del] <- paste0("  ", diff[!ins & !del])
+writeLines(diff)
+
+## We can recover `a` and `b` from the data
+identical(subset(dat, op != 'Insert', val)[[1]], a)
+identical(subset(dat, op != 'Delete', val)[[1]], b)
 }

@@ -88,6 +88,6 @@ test_that("misc", {
     diffPrint(1:3, 2:6, palette.of.styles=1:10),
     "must be a `PaletteOfStyles`"
   )
-
+  expect_error(diffChr(letters, LETTERS, context=NA), "must be integer")
 })
 

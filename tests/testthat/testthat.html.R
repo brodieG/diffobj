@@ -80,3 +80,6 @@ test_that("nchar", {
   expect_equal(nchar_html("<a href='blahblah'>25</a>"), 2)
   expect_equal(nchar_html("<a href='blahblah'>25&nbsp;</a>"), 3)
 })
+test_that("cont_f", {
+  expect_error(cont_f("hello")(1:3), "must be character")
+})

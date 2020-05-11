@@ -1,5 +1,17 @@
 # diffobj
 
+## v0.3.0
+
+* [#143](https://github.com/brodieG/diffobj/issues/143): Add `ses_dat` to
+  provide a more computable version of `ses` (h/t @hadley).
+* [#144](https://github.com/brodieG/diffobj/issues/144): Re-encode strings to
+  UTF-8 prior to comparison to avoid spurious encoding-only differences (h/t
+  @hadley).
+* [#142](https://github.com/brodieG/diffobj/issues/142): Typos in
+  `standardGeneric` in trim/guide generic definitions.
+* Drop attributes from inputs to `diffChr` (revealed as an issue by #142).
+* Banish ghosts of `stringsAsFactors`.
+
 ## v0.2.4
 
 * Tests explicitly set `stringsAsFactors=TRUE` so they don't fail with the

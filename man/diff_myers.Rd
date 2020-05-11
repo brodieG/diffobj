@@ -17,7 +17,7 @@ zero to allow as many as there are}
 \item{warn}{TRUE or FALSE, whether to warn if we hit `max.diffs`.}
 }
 \value{
-list
+MyersMbaSes object
 }
 \description{
 Implementation of Myer's Diff algorithm with linear space refinement
@@ -31,5 +31,18 @@ edit scripts.  Additionally all error handling and memory allocation calls
 have been moved to the internal R functions designed to handle those things.
 A failover result is provided in the case where max diffs allowed is
 exceeded.  Ability to provide custom comparison functions is removed.
+}
+\details{
+The result format indicates operations required to convert \code{a} into
+\code{b} in a precursor format to the GNU diff shortest edit script.  The
+operations are \dQuote{Match} (do nothing), \dQuote{Insert} (insert one or
+more values of \code{b} into \code{a}), and \dQuote{Delete} (remove one or
+more values from \code{a}).  The \code{length} slot dictates how
+many values to advance along, insert into, or delete from \code{a}.  The
+\code{offset} slot changes meaning depending on the operation.  For
+\dQuote{Match} and \dQuote{Delete}, it is the starting index of that
+operation in \code{a}.  For \dQuote{Insert}, it is the starting index in
+\code{b} of the values to insert into \code{a}; the index in \code{a} to
+insert at is implicit in previous operations.
 }
 \keyword{internal}

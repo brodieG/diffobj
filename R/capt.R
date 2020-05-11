@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Brodie Gaslam
+# Copyright (C) 2020 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -323,6 +323,19 @@ capt_chr <- function(target, current, etc, err, extra){
     do.call(as.character, c(list(target), extra), quote=TRUE) else target
   cur.capt <- if(!is.character(current))
     do.call(as.character, c(list(current), extra), quote=TRUE) else current
+
+  # technically possible to have a character method that doesn't return a
+  # character object...
+
+  if((tt <- typeof(tar.capt)) != 'character')
+    stop("Coercion of `target` did not produce character object (", tt, ").")
+  if((tc <- typeof(cur.capt)) != 'character')
+    stop("Coercion of `current` did not produce character object (", tc, ").")
+
+  # drop attributes
+
+  tar.capt <- c(tar.capt)
+  cur.capt <- c(cur.capt)
 
   if(anyNA(tar.capt)) tar.capt[is.na(tar.capt)] <- "NA"
   if(anyNA(cur.capt)) cur.capt[is.na(cur.capt)] <- "NA"

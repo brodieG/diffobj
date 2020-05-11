@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Brodie Gaslam
+# Copyright (C) 2020 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -162,6 +162,9 @@ make_diff_fun <- function(capt_fun) {
 #' selected classes that can then \code{callNextMethod} for the actual diff.
 #' Note that while the generics include \code{...} as an argument, none of the
 #' methods do.
+#'
+#' Strings are re-encoded to UTF-8 with \code{\link{enc2utf8}} prior to
+#' comparison to avoid spurious encoding-only differences.
 #'
 #' @section Matrices and Data Frames:
 #'
@@ -501,7 +504,8 @@ setMethod("diffStr", signature=c("ANY", "ANY"), make_diff_fun(capt_str))
 #' Will perform the diff on the actual string values of the character vectors
 #' instead of capturing the printed screen output. Each vector element is
 #' treated as a line of text.  NA elements are treated as the string
-#' \dQuote{NA}.  Non character inputs are coerced to character.
+#' \dQuote{NA}.  Non character inputs are coerced to character and attributes
+#' are dropped with \code{\link{c}}.
 #'
 #' @inheritParams diffPrint
 #' @seealso \code{\link{diffPrint}} for details on the \code{diff*} functions,
