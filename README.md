@@ -36,7 +36,8 @@ browseVignettes("diffobj")
 * CRAN maintainers, for patiently shepherding packages onto CRAN and maintaining
   the repository, and Uwe Ligges in particular for maintaining
   [Winbuilder](http://win-builder.r-project.org/).
-* The users who have reported bugs and possible fixes (see NEWS.md).
+* The users who have reported bugs and possible fixes, and/or made feature
+  requests (see NEWS.md).
 * [Gábor Csárdi](https://github.com/gaborcsardi) for
   [crayon](https://github.com/r-lib/crayon).
 * [Jim Hester](https://github.com/jimhester) because
