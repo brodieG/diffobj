@@ -56,38 +56,27 @@ test_that("use_pager", {
   )
 })
 test_that("Setting LESS var", {
-  less.orig <- Sys.getenv("LESS")
+  less.orig <- Sys.getenv("LESS", unset=NA)
   old.opt <- options(crayon.enabled=FALSE)  # problems with crayon and LESS
   on.exit({
     diffobj:::reset_less_var(less.orig) # should be tested..., but super simple
     options(old.opt)
   })
   # Here we change the LESS variable even though we're mocking getenv
-  with_mock(
-    Sys.getenv=function(...) NA_character_,
-    expect_true(is.na(diffobj:::set_less_var("XF")))
-  )
+
+  Sys.unsetenv("LESS")
+  expect_true(is.na(diffobj:::set_less_var("XF")))
   expect_equal(Sys.getenv("LESS"), "-XF")
-  with_mock(
-    Sys.getenv=function(...) "-X -F",
-    expect_equal(diffobj:::set_less_var("VP"), "-X -F")
-  )
+  Sys.setenv(LESS="-X -F")
+  expect_equal(diffobj:::set_less_var("VP"), "-X -F")
   expect_equal(Sys.getenv("LESS"), "-X -FVP")
   diffobj:::reset_less_var("-XF")
   expect_equal(Sys.getenv("LESS"), "-XF")
   diffobj:::reset_less_var(NA_character_)
   expect_equal(Sys.getenv("LESS"), "")
-
-  with_mock(
-    Sys.getenv=function(...) "-XF",
-    expect_equal(diffobj:::set_less_var("V"), "-XF")
-  )
+  Sys.setenv(LESS="-XF")
+  expect_equal(diffobj:::set_less_var("V"), "-XF")
   expect_equal(Sys.getenv("LESS"), "-XFV")
-
-  with_mock(
-    Sys.getenv=function(...) NULL,
-    expect_warning(diffobj:::set_less_var("V"), "Unable to set")
-  )
 })
 test_that("viewer vs browser", {
   viewer <- function(x) "viewer"
