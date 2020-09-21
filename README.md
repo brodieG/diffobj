@@ -7,7 +7,7 @@
 
 Generate a colorized diff of two R objects for an intuitive visualization of their differences.
 
-See vignettes for [details](http://htmlpreview.github.io/?https://raw.githubusercontent.com/brodieG/diffobj/master/inst/doc/diffobj.html), and for [comparisons with standard comparison functions](http://htmlpreview.github.io/?https://raw.githubusercontent.com/brodieG/diffobj/master/inst/doc/metacomp.html).
+> See the [introductory vignette for details][1].
 
 ## Output
 
@@ -26,9 +26,13 @@ browseVignettes("diffobj")
 
 ## Related Software
 
-* [tools::Rdiff](https://stat.ethz.ch/R-manual/R-devel/library/tools/html/Rdiff.html).
-* [Daff](https://cran.r-project.org/package=daff) diff, patch and merge for data.frames.
+* [tools::Rdiff][2].
+* [Daff](https://cran.r-project.org/package=daff) diff, patch and merge for
+  data.frames.
 * [GNU diff](https://www.gnu.org/software/diffutils).
+* [waldo](https://cran.r-project.org/package=waldo), which internally uses
+  `diffobj` for diffs but takes a more hands-on approach to detailing object
+  differences.
 
 ## Acknowledgements
 
@@ -78,3 +82,5 @@ browseVignettes("diffobj")
 * [Free Software Foundation](http://fsf.org/) for developing the GPL license and
   promotion of the free software movement.
 
+[1]: https://cran.r-project.org/web/packages/diffobj/vignettes/diffobj.html
+[2]: https://stat.ethz.ch/R-manual/R-devel/library/tools/html/Rdiff.html

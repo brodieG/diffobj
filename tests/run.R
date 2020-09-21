@@ -65,12 +65,13 @@ local({                                         # so we can use `on.exit`
         "summary",
         "text",
         "trim",
-        "warning"
+        "warning",
+        NULL
       ),
       collapse="|"
     )
     test.res <- test_dir("testthat", filter=filter)
-    # test.res <- test_dir("testthat", filter="diffPrint")
+    # test.res <- test_dir("testthat", filter="style")
     with(
       as.data.frame(test.res), {
         fail <- sum(failed)

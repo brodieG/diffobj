@@ -24,7 +24,13 @@ old.opt <- options(
 
 Most R object comparison functions are good at telling you that
 objects are different, but less so at conveying _how_ they are
-different.  I wrote `diffobj` to provide an "aha, that's how they are different" comparison.  In this vignette I will compare `diffPrint` to `all.equal` and to `testthat::compare`.
+different.  I wrote `diffobj` to provide an "aha, that's how they are different"
+comparison.  In this vignette I will compare `diffPrint` to `all.equal` and to
+`testthat::compare`.
+
+> Update: `testthat` now uses `waldo`, which internally uses `diffobj` to
+> compute diffs.  `waldo::compare` does a much better job of reporting
+> differences than the old `testthat::compare`.
 
 Disclaimer: I picked the examples here to showcase `diffobj` capabilities, not
 to carry out a fair and balanced comparison of these comparison functions.
@@ -33,7 +39,8 @@ situations where comparison of R objects is useful.
 
 ## Vectors
 
-I defined four pairs of numeric vectors for us to compare.  I purposefully hid the variable definitions to simulate a comparison of unknown objects.
+I defined four pairs of numeric vectors for us to compare.  I purposefully hid
+the variable definitions to simulate a comparison of unknown objects.
 
 ```{r echo=FALSE}
 A1 <- 1:10

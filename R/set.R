@@ -68,6 +68,10 @@ auto_context <- function(
 # flags is supposed to be character(1L) in form "XVF" or some such
 #
 # Returns the previous value of the variable, NA if it was not set
+#
+# Assumes `Sys.getenv('VAR')` always returns a length 1 character vector, even
+# though strictly this is not documented (used to handle other case but this
+# assumption simplifies testing now that we can't mock Sys.getenv anymore).
 
 set_less_var <- function(flags) {
   LESS <- Sys.getenv("LESS", unset=NA) # NA return is NA_character_
@@ -81,8 +85,7 @@ set_less_var <- function(flags) {
       LESS.new <- sub(
         "\\s*\\K(-[[:alpha:]]+)\\b$", sprintf("\\1%s", flags), LESS, perl=TRUE
   ) } }
-  if(!is.na(LESS.new)) Sys.setenv(LESS=LESS.new) else
-    warning("Unable to set `LESS` system variable")
+  if(!is.na(LESS.new)) Sys.setenv(LESS=LESS.new)
   LESS
 }
 reset_less_var <- function(LESS.old) {
