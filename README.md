@@ -29,7 +29,7 @@ browseVignettes("diffobj")
 * [tools::Rdiff][2].
 * [Daff](https://cran.r-project.org/package=daff) diff, patch and merge for
   data.frames.
-* [GNU diff](https://www.gnu.org/software/diffutils).
+* [GNU diff](https://www.gnu.org/software/diffutils/).
 * [waldo](https://cran.r-project.org/package=waldo), which internally uses
   `diffobj` for diffs but takes a more hands-on approach to detailing object
   differences.
@@ -61,7 +61,7 @@ browseVignettes("diffobj")
   [knitr](https://cran.r-project.org/package=knitr) and  [J.J.
   Allaire](https://github.com/jjallaire) etal for
   [rmarkdown](https://cran.r-project.org/package=rmarkdown), and by extension
-  John MacFarlane for [pandoc](http://pandoc.org/).
+  John MacFarlane for [pandoc](https://pandoc.org/).
 * Olaf Mersmann for
   [microbenchmark](https://cran.r-project.org/package=microbenchmark), because
   microsecond matter, and [Joshua Ulrich](https://github.com/joshuaulrich) for
@@ -79,8 +79,8 @@ browseVignettes("diffobj")
   [Docker](https://www.docker.com/), [Ubuntu](https://www.ubuntu.com/),
   [Brew](https://brew.sh/) for providing infrastructure that greatly simplifies
   open source development.
-* [Free Software Foundation](http://fsf.org/) for developing the GPL license and
+* [Free Software Foundation](https://fsf.org/) for developing the GPL license and
   promotion of the free software movement.
 
-[1]: https://cran.r-project.org/web/packages/diffobj/vignettes/diffobj.html
+[1]: https://cran.r-project.org/package=diffobj/vignettes/diffobj.html
 [2]: https://stat.ethz.ch/R-manual/R-devel/library/tools/html/Rdiff.html
