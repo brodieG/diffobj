@@ -79,8 +79,8 @@ browseVignettes("diffobj")
   [Docker](https://www.docker.com/), [Ubuntu](https://www.ubuntu.com/),
   [Brew](https://brew.sh/) for providing infrastructure that greatly simplifies
   open source development.
-* [Free Software Foundation](https://fsf.org/) for developing the GPL license and
-  promotion of the free software movement.
+* [Free Software Foundation](https://www.fsf.org/) for developing the GPL
+  license and promotion of the free software movement.
 
 [1]: https://cran.r-project.org/package=diffobj/vignettes/diffobj.html
 [2]: https://stat.ethz.ch/R-manual/R-devel/library/tools/html/Rdiff.html
