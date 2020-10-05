@@ -3,7 +3,7 @@
 [![](https://travis-ci.org/brodieG/diffobj.svg?branch=master)](https://travis-ci.org/brodieG/diffobj)
 [![](https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=master)](https://codecov.io/github/brodieG/diffobj?branch=master)
 [![](http://www.r-pkg.org/badges/version/diffobj)](https://cran.r-project.org/package=diffobj)
-[![Dependencies direct/recursive](https://tinyverse.netlify.com/badge/diffobj)](https://tinyverse.netlify.com/)
+[![Dependencies direct/recursive](https://tinyverse.netlify.app/badge/diffobj)](https://tinyverse.netlify.app/)
 
 Generate a colorized diff of two R objects for an intuitive visualization of their differences.
 
@@ -76,7 +76,7 @@ browseVignettes("diffobj")
   for others to use.
 * [Github](https://github.com/), [Travis-CI](https://travis-ci.org/),
   [Codecov](https://codecov.io/), [Vagrant](https://www.vagrantup.com/),
-  [Docker](https://www.docker.com/), [Ubuntu](https://www.ubuntu.com/),
+  [Docker](https://www.docker.com/), [Ubuntu](https://ubuntu.com/),
   [Brew](https://brew.sh/) for providing infrastructure that greatly simplifies
   open source development.
 * [Free Software Foundation](https://www.fsf.org/) for developing the GPL

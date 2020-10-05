@@ -1,6 +1,6 @@
 # diffobj
 
-## v0.3.1
+## v0.3.1-2
 
 * [#150](https://github.com/brodieG/diffobj/issues/150): Make tests compatible
   with new `testthat` release (h/t @hadley).
