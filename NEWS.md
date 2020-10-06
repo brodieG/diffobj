@@ -1,5 +1,11 @@
 # diffobj
 
+## v0.3.1-2
+
+* [#150](https://github.com/brodieG/diffobj/issues/150): Make tests compatible
+  with new `testthat` release (h/t @hadley).
+* Remove pre-built vignettes and note `testthat` change to `waldo` release.
+
 ## v0.3.0
 
 * [#143](https://github.com/brodieG/diffobj/issues/143): Add `ses_dat` to
@@ -163,9 +169,7 @@ affect user facing behavior.
   HTML mode
 * [#63](https://github.com/brodieG/diffobj/issues/63): Show `all.equal` output
   when objects are not `all.equal` but there are no visible differences
-* Add [Mean Relative
-  Indifference](http://htmlpreview.github.io/?https://raw.githubusercontent.com/brodieG/diffobj/master/inst/doc/metacomp.html)
-  vignette and update vignette styling
+* Add Mean Relative Indifference vignette and update vignette styling
 
 ## v0.1.4
 
@@ -185,7 +189,7 @@ affect user facing behavior.
 * Fix subtle rendering and formatting application flaws
 * Switch Travis shields to SVG per Gábor Csárdi
 * Improve in-hunk alignment of partially matching lines
-* Compile with `-pedantic`, fix related warnings [Arun](http://stackoverflow.com/users/559784/arun)
+* Compile with `-pedantic`, fix related warnings [Arun](https://stackoverflow.com/users/559784/arun)
 * Improved coverage and more robust testing
 * Several internal structure changes to accommodate improvements
 

@@ -3,11 +3,11 @@
 [![](https://travis-ci.org/brodieG/diffobj.svg?branch=master)](https://travis-ci.org/brodieG/diffobj)
 [![](https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=master)](https://codecov.io/github/brodieG/diffobj?branch=master)
 [![](http://www.r-pkg.org/badges/version/diffobj)](https://cran.r-project.org/package=diffobj)
-[![Dependencies direct/recursive](https://tinyverse.netlify.com/badge/diffobj)](https://tinyverse.netlify.com/)
+[![Dependencies direct/recursive](https://tinyverse.netlify.app/badge/diffobj)](https://tinyverse.netlify.app/)
 
 Generate a colorized diff of two R objects for an intuitive visualization of their differences.
 
-See vignettes for [details](http://htmlpreview.github.io/?https://raw.githubusercontent.com/brodieG/diffobj/master/inst/doc/diffobj.html), and for [comparisons with standard comparison functions](http://htmlpreview.github.io/?https://raw.githubusercontent.com/brodieG/diffobj/master/inst/doc/metacomp.html).
+> See the [introductory vignette for details][1].
 
 ## Output
 
@@ -26,9 +26,13 @@ browseVignettes("diffobj")
 
 ## Related Software
 
-* [tools::Rdiff](https://stat.ethz.ch/R-manual/R-devel/library/tools/html/Rdiff.html).
-* [Daff](https://cran.r-project.org/package=daff) diff, patch and merge for data.frames.
-* [GNU diff](https://www.gnu.org/software/diffutils).
+* [tools::Rdiff][2].
+* [Daff](https://cran.r-project.org/package=daff) diff, patch and merge for
+  data.frames.
+* [GNU diff](https://www.gnu.org/software/diffutils/).
+* [waldo](https://cran.r-project.org/package=waldo), which internally uses
+  `diffobj` for diffs but takes a more hands-on approach to detailing object
+  differences.
 
 ## Acknowledgements
 
@@ -57,7 +61,7 @@ browseVignettes("diffobj")
   [knitr](https://cran.r-project.org/package=knitr) and  [J.J.
   Allaire](https://github.com/jjallaire) etal for
   [rmarkdown](https://cran.r-project.org/package=rmarkdown), and by extension
-  John MacFarlane for [pandoc](http://pandoc.org/).
+  John MacFarlane for [pandoc](https://pandoc.org/).
 * Olaf Mersmann for
   [microbenchmark](https://cran.r-project.org/package=microbenchmark), because
   microsecond matter, and [Joshua Ulrich](https://github.com/joshuaulrich) for
@@ -72,9 +76,11 @@ browseVignettes("diffobj")
   for others to use.
 * [Github](https://github.com/), [Travis-CI](https://travis-ci.org/),
   [Codecov](https://codecov.io/), [Vagrant](https://www.vagrantup.com/),
-  [Docker](https://www.docker.com/), [Ubuntu](https://www.ubuntu.com/),
+  [Docker](https://www.docker.com/), [Ubuntu](https://ubuntu.com/),
   [Brew](https://brew.sh/) for providing infrastructure that greatly simplifies
   open source development.
-* [Free Software Foundation](http://fsf.org/) for developing the GPL license and
-  promotion of the free software movement.
+* [Free Software Foundation](https://www.fsf.org/) for developing the GPL
+  license and promotion of the free software movement.
 
+[1]: https://cran.r-project.org/package=diffobj/vignettes/diffobj.html
+[2]: https://stat.ethz.ch/R-manual/R-devel/library/tools/html/Rdiff.html
