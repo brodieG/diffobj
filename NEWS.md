@@ -1,6 +1,6 @@
 # diffobj
 
-## v0.3.1
+## v0.3.1-2
 
 * [#150](https://github.com/brodieG/diffobj/issues/150): Make tests compatible
   with new `testthat` release (h/t @hadley).
@@ -189,7 +189,7 @@ affect user facing behavior.
 * Fix subtle rendering and formatting application flaws
 * Switch Travis shields to SVG per Gábor Csárdi
 * Improve in-hunk alignment of partially matching lines
-* Compile with `-pedantic`, fix related warnings [Arun](http://stackoverflow.com/users/559784/arun)
+* Compile with `-pedantic`, fix related warnings [Arun](https://stackoverflow.com/users/559784/arun)
 * Improved coverage and more robust testing
 * Several internal structure changes to accommodate improvements
 
