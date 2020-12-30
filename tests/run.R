@@ -34,7 +34,7 @@ local({                                         # so we can use `on.exit`
 
   suppressWarnings(RNGversion("3.5.2"));
 
-  valgrind <- FALSE
+  valgrind <- TRUE
   if(!valgrind) {
     filter <- paste0(           # so we can run subset of files
       c(
@@ -60,7 +60,6 @@ local({                                         # so we can use `on.exit`
         "rdiff",
         "s4",
         "ses",     # run this file only for valgrind
-        "style",
         "subset",
         "summary",
         "text",
