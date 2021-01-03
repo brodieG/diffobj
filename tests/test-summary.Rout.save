@@ -15,12 +15,8 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "summary"
 > source(file.path('_helper', 'init.R'))
-> 
-> rdsf <- function(x)
-+   readRDS(file.path("testthat", "helper", "summary", sprintf("%s.rds", x)))
-> txtf <- function(x)
-+   readLines(file.path("testthat", "helper", "summary", sprintf("%s.txt", x)))
 > 
 > # Note, atomic prints happen in different test file
 > 
@@ -129,4 +125,4 @@ Error in .local(object, ...) :
 > 
 > proc.time()
    user  system elapsed 
-  3.081   0.219   3.343 
+  3.413   0.271   3.813 

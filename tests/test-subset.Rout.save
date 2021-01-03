@@ -15,6 +15,7 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "subset"
 > source(file.path('_helper', 'init.R'))
 > 
 > A <- B <- letters[1:5]
@@ -66,4 +67,4 @@ Error in .local(x, ...) :
 > 
 > proc.time()
    user  system elapsed 
-  1.532   0.141   1.666 
+  1.519   0.155   1.873 

@@ -15,10 +15,8 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "guides"
 > source(file.path('_helper', 'init.R'))
-> 
-> rdsf <- function(x)
-+   readRDS(file.path("testthat", "helper", "guides", sprintf("%s.rds", x)))
 > 
 > # - detect_2d_guides -----------------------------------------------------------
 > 
@@ -310,4 +308,4 @@ Error in guidesPrint(1:26, rep(NA_character_, 26)) :
 > 
 > proc.time()
    user  system elapsed 
-  2.008   0.204   2.481 
+  1.803   0.185   2.214 

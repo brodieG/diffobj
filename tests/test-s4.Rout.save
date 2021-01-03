@@ -15,6 +15,7 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "s4"
 > source(file.path('_helper', 'init.R'))
 > 
 > # - diff data validation works
@@ -58,4 +59,4 @@ Error : `any` method for `Diff` supports only one argument
 > 
 > proc.time()
    user  system elapsed 
-  1.322   0.143   1.471 
+  1.302   0.151   1.474 

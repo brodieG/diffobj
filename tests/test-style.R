@@ -5,7 +5,7 @@ source(file.path('_helper', 'init.R'))
 
 all.equal(
   capture.output(diffobj:::display_ansi_256_styles()),
-  readRDS(rdsf(100))
+  rdsf(100)
 )
 ## - crayon settings -----------------------------------------------------------
 
@@ -17,7 +17,7 @@ local({
   # should have ANSI coloring despite crayon disabled
   print(
     all.equal(
-      as.character(diffChr(letters[1:3], LETTERS[1:3])), readRDS(rdsf(200))
+      as.character(diffChr(letters[1:3], LETTERS[1:3])), rdsf(200)
     )
   )
   identical(crayon::green("green"), "green")
@@ -30,10 +30,10 @@ identical(
   getClassDef("StyleAnsi256LightRgb", package="diffobj", inherits=FALSE)
 )
 all.equal(
-  capture.output(show(pos)), readRDS(rdsf(300))
+  capture.output(show(pos)), rdsf(300)
 )
 all.equal(
-  capture.output(summary(pos)), readRDS(rdsf(400))
+  capture.output(summary(pos)), rdsf(400)
 )
 
 pos["ansi256", "light", "yb"] <- list(StyleRaw())
@@ -120,14 +120,14 @@ all.equal(
       letters, LETTERS, style="auto", format="ansi256",
       brightness=c("light", ansi256="dark")
   ) ),
-  readRDS(rdsf(500))
+  rdsf(500)
 )
 all.equal(
   as.character(
     diffChr(
       letters, LETTERS, style="auto", format="ansi256", brightness=c("dark")
   ) ),
-  readRDS(rdsf(500))
+  rdsf(500)
 )
 ## - Style Validation ----------------------------------------------------------
 

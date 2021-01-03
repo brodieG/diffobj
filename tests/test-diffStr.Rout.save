@@ -15,12 +15,8 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "diffStr"
 > source(file.path('_helper', 'init.R'))
-> 
-> rdsf <- function(x)
-+   readRDS(file.path("testthat", "helper", "diffStr", sprintf("%s.rds", x)))
-> txtf <- function(x)
-+   readLines(file.path("testthat", "helper", "diffStr", sprintf("%s.txt", x)))
 > 
 > # - lm models ------------------------------------------------------------------
 > 
@@ -143,4 +139,4 @@ Exceeded diff limit during diff computation (17 vs. 2 allowed); overall diff is 
 > 
 > proc.time()
    user  system elapsed 
-  3.882   0.275   4.219 
+  4.331   0.335   4.935 

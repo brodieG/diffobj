@@ -5,11 +5,6 @@ source(file.path('_helper', 'init.R'))
 # files it only fails if an error is thrown.
 
 if(nchar(Sys.getenv('NOT_CRAN'))) {
-  rdsf <- function(x)
-    readRDS(file.path("testthat", "helper", "notcran", sprintf("%s.rds", x)))
-  txtf <- function(x)
-    readLines(file.path("testthat", "helper", "notcran", sprintf("%s.txt", x)))
-
   # - tibble ---------------------------------------------------------------------
 
   local({

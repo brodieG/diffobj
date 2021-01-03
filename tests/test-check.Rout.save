@@ -15,6 +15,7 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "check"
 > source(file.path('_helper', 'init.R'))
 > 
 > # - is.less_flags --------------------------------------------------------------
@@ -166,4 +167,4 @@ Error in diffChr(target = letters, current = LETTERS, context = NA) :
 > 
 > proc.time()
    user  system elapsed 
-  1.367   0.132   1.489 
+  1.280   0.121   1.399 

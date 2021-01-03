@@ -15,6 +15,7 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "misc"
 > source(file.path('_helper', 'init.R'))
 > 
 > # - trim_str -------------------------------------------------------------------
@@ -202,4 +203,4 @@ Error in .local(x, ...) : Argument `js` must be character(1L) and not NA.
 > 
 > proc.time()
    user  system elapsed 
-  1.099   0.112   1.203 
+  1.137   0.125   1.264 

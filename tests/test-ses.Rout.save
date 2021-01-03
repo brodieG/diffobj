@@ -15,6 +15,7 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "ses"
 > source(file.path('_helper', 'init.R'))
 > 
 > # Any tests added here should also be added to the valgrind test file
@@ -162,7 +163,7 @@ Error in ses_prep(a = a, b = b, max.diffs = max.diffs, warn = warn) :
 +   R.Version()$major >= 3 && R.Version()$minor >= "3.1" ||
 +   R.Version()$major >= 4) {
 +   rdsf1 <- function(x)
-+     readRDS(file.path("testthat", "helper", "diffStr", sprintf("%s.rds", x)))
++     readRDS(file.path("_helper", "objs", "diffStr", sprintf("%s.rds", x)))
 +   all.equal(
 +     as.character(
 +       diffStr(mdl1, mdl2, extra=list(strict.width="wrap"), line.limit=30)
@@ -223,4 +224,4 @@ Error in ses_dat(a, b, extra = NA) :
 > 
 > proc.time()
    user  system elapsed 
-  2.144   0.167   2.362 
+  2.315   0.183   2.679 

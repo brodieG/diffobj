@@ -15,6 +15,7 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "warnings"
 > source(file.path('_helper', 'init.R'))
 > 
 > # tests designed to produce warnings
@@ -75,4 +76,4 @@ In diffChr(target = letters, current = LETTERS, style = StyleRaw(),  :
 > 
 > proc.time()
    user  system elapsed 
-  1.308   0.154   1.469 
+  1.620   0.191   1.967 

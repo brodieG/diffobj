@@ -1,6 +1,6 @@
 # Tests intended to be run with tools:::.runPackageTests() (i.e. R CMD check)
 
-stopifnot(basename(getwd()) != 'tests', !exists(NAME))
+stopifnot(basename(getwd()) == 'tests', exists("NAME"))
 
 rdsf <-
   function(x) readRDS(file.path("_helper", "objs", NAME, sprintf("%s.rds", x)))

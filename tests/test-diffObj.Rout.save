@@ -15,10 +15,8 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "diffObj"
 > source(file.path('_helper', 'init.R'))
-> 
-> rdsf <- function(x)
-+   readRDS(file.path("testthat", "helper", "diffObj", sprintf("%s.rds", x)))
 > 
 > # - simple diffobj -------------------------------------------------------------
 > 
@@ -103,4 +101,4 @@ Error in diffObj(target = x, current = y) :
 > 
 > proc.time()
    user  system elapsed 
-  3.253   0.326   3.761 
+  3.252   0.326   3.687 

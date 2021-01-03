@@ -1,9 +1,6 @@
 NAME <- "diffDeparse"
 source(file.path('_helper', 'init.R'))
 
-rdsf <- function(x)
-  readRDS(file.path("testthat", "helper", "diffDeparse", sprintf("%s.rds", x)))
-
 # - deparse --------------------------------------------------------------------
 
 # First one will be done in unified mode since `deparse` disregards

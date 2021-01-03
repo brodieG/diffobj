@@ -15,12 +15,8 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "diffChr"
 > source(file.path('_helper', 'init.R'))
-> 
-> rdsf <- function(x)
-+   readRDS(file.path("testthat", "helper", "diffChr", sprintf("%s.rds", x)))
-> txtf <- function(x)
-+   readLines(file.path("testthat", "helper", "diffChr", sprintf("%s.txt", x)))
 > 
 > # - Corner Cases ---------------------------------------------------------------
 > 
@@ -257,4 +253,4 @@ Error in diffChr(target = a, current = b, sgr.supported = 1:3) :
 > 
 > proc.time()
    user  system elapsed 
-  2.960   0.285   3.325 
+  2.875   0.283   3.250 

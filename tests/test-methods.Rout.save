@@ -15,10 +15,8 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "methods"
 > source(file.path('_helper', 'init.R'))
-> 
-> rdsf <- function(x)
-+   readRDS(file.path("testthat", "helper", "methods", sprintf("%s.rds", x)))
 > 
 > # try implementing methods that change default behavior outside of package
 > 
@@ -79,4 +77,4 @@ Error in diffObj(target = new("testdiffobj", a = 1L), current = new("testdiffobj
 > 
 > proc.time()
    user  system elapsed 
-  1.744   0.181   1.969 
+  1.609   0.172   1.801 

@@ -1,4 +1,4 @@
-NAME <- "guide"
+NAME <- "guides"
 source(file.path('_helper', 'init.R'))
 
 # - detect_2d_guides -----------------------------------------------------------

@@ -15,12 +15,8 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "diffPrint"
 > source(file.path('_helper', 'init.R'))
-> 
-> rdsf <- function(x)
-+   readRDS(file.path("testthat", "helper", "diffPrint", sprintf("%s.rds", x)))
-> txtf <- function(x)
-+   readLines(file.path("testthat", "helper", "diffPrint", sprintf("%s.txt", x)))
 > 
 > # Note, atomic prints happen in different test file
 > 
@@ -328,8 +324,8 @@ function (target, current, mode = gdo("mode"), context = gdo("context"),
         extra)
     diff
 }
-<bytecode: 0x7fdd2835ed10>
-<environment: 0x7fdd28341060>
+<bytecode: 0x7fc707acb828>
+<environment: 0x7fc707ac5f60>
 > 
 > # - Encoding Issues ------------------------------------------------------------
 > 
@@ -412,4 +408,4 @@ Error in .local(target, current, ...) :
 > 
 > proc.time()
    user  system elapsed 
-  5.508   0.621   6.538 
+  5.638   0.630   6.704 

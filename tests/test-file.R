@@ -1,16 +1,13 @@
-NAME <- "file"
+NAME <- "diffFile"
 source(file.path('_helper', 'init.R'))
-
-rdsf <- function(x)
-  readRDS(file.path("testthat", "helper", "diffFile", sprintf("%s.rds", x)))
 
 # - Code File ------------------------------------------------------------------
 
 # # compare two crayon file versions
 # # These should eventually just be downloaded and made into diffFile tests
 
-f.p.1 <- file.path("testthat", "helper", "diffFile", "s.o.3f1f68.R")
-f.p.2 <- file.path("testthat", "helper", "diffFile", "s.o.30dbe0.R")
+f.p.1 <- file.path("_helper", "objs", "diffFile", "s.o.3f1f68.R")
+f.p.2 <- file.path("_helper", "objs", "diffFile", "s.o.30dbe0.R")
 
 # url.1 <- "https://raw.githubusercontent.com/gaborcsardi/crayon/3f1f68ab177b82a27e754a58264af801f7194820/R/string_operations.r"
 # url.2 <- "https://raw.githubusercontent.com/gaborcsardi/crayon/30dbe0d4d92157350af3cb3aeebd6d9a9cdf5c0e/R/string_operations.r"

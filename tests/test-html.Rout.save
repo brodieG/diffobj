@@ -15,10 +15,8 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "html"
 > source(file.path('_helper', 'init.R'))
-> 
-> rdsf <- function(x)
-+   file.path(getwd(), "testthat", "helper", "html", sprintf("%s.rds", x))
 > 
 > # Verify that internal css works
 > 
@@ -30,7 +28,7 @@ Type 'q()' to quit R.
 +       letters[1:3], LETTERS[1:3],
 +       style=StyleHtmlLightYb(html.output="diff.only")
 +   ) ),
-+   readRDS(rdsf(100))
++   rdsf(100)
 + )
 [1] TRUE
 > all.equal(
@@ -39,7 +37,7 @@ Type 'q()' to quit R.
 +       letters[1:6], LETTERS[1:6],
 +       style=StyleHtmlLightYb(html.output="diff.w.style")
 +   ) ),
-+   readRDS(rdsf(200))
++   rdsf(200)
 + )
 [1] TRUE
 > all.equal(
@@ -48,7 +46,7 @@ Type 'q()' to quit R.
 +       letters[1:6], LETTERS[1:6],
 +       style=StyleHtmlLightYb(html.output="page")
 +   ) ),
-+   readRDS(rdsf(300))
++   rdsf(300)
 + )
 [1] TRUE
 > all.equal(
@@ -57,7 +55,7 @@ Type 'q()' to quit R.
 +       letters[1:6], LETTERS[1:6], mode="unified",
 +       style=StyleHtmlLightYb(html.output="page")
 +   ) ),
-+   readRDS(rdsf(350))
++   rdsf(350)
 + )
 [1] TRUE
 > # - Sub CSS --------------------------------------------------------------------
@@ -75,7 +73,7 @@ Type 'q()' to quit R.
 +         style=StyleHtmlLightYb(css=f, html.output="diff.w.style")
 +       )
 +     ),
-+     readRDS(rdsf(400))
++     rdsf(400)
 +   )
 + })
 [1] TRUE
@@ -113,4 +111,4 @@ Error in cont_f("hello")(1:3) : Argument `x` must be character.
 > 
 > proc.time()
    user  system elapsed 
-  1.527   0.141   1.687 
+  1.416   0.133   1.555 

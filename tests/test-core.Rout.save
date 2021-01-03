@@ -15,6 +15,7 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "core"
 > source(file.path('_helper', 'init.R'))
 > 
 > # The Myers paper strings
@@ -199,4 +200,4 @@ Type 'q()' to quit R.
 > 
 > proc.time()
    user  system elapsed 
-  1.171   0.125   1.306 
+  1.154   0.117   1.282 

@@ -15,10 +15,8 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "limit"
 > source(file.path('_helper', 'init.R'))
-> 
-> rdsf <- function(x)
-+   readRDS(file.path("testthat", "helper", "limit", sprintf("%s.rds", x)))
 > 
 > # - Simple limit ---------------------------------------------------------------
 > 
@@ -132,4 +130,4 @@ Error in diffChr(target = letters, current = LETTERS, line.limit = 1:3) :
 > 
 > proc.time()
    user  system elapsed 
-  2.119   0.220   2.363 
+  2.005   0.211   2.256 

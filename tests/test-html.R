@@ -11,7 +11,7 @@ all.equal(
       letters[1:3], LETTERS[1:3],
       style=StyleHtmlLightYb(html.output="diff.only")
   ) ),
-  readRDS(rdsf(100))
+  rdsf(100)
 )
 all.equal(
   as.character(
@@ -19,7 +19,7 @@ all.equal(
       letters[1:6], LETTERS[1:6],
       style=StyleHtmlLightYb(html.output="diff.w.style")
   ) ),
-  readRDS(rdsf(200))
+  rdsf(200)
 )
 all.equal(
   as.character(
@@ -27,7 +27,7 @@ all.equal(
       letters[1:6], LETTERS[1:6],
       style=StyleHtmlLightYb(html.output="page")
   ) ),
-  readRDS(rdsf(300))
+  rdsf(300)
 )
 all.equal(
   as.character(
@@ -35,7 +35,7 @@ all.equal(
       letters[1:6], LETTERS[1:6], mode="unified",
       style=StyleHtmlLightYb(html.output="page")
   ) ),
-  readRDS(rdsf(350))
+  rdsf(350)
 )
 # - Sub CSS --------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ local({
         style=StyleHtmlLightYb(css=f, html.output="diff.w.style")
       )
     ),
-    readRDS(rdsf(400))
+    rdsf(400)
   )
 })
 # - Tag funs -------------------------------------------------------------------

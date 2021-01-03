@@ -15,11 +15,9 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "pager"
 > source(file.path('_helper', 'init.R'))
 > source(file.path('_helper', 'tools.R'))
-> 
-> txtf <- function(x)
-+   readLines(file.path("testthat", "helper", "pager", sprintf("%s.txt", x)))
 > 
 > # void pager, doesn't do anything, just to test side effect of writing to file
 > 
@@ -462,4 +460,4 @@ Error in initialize(value, ...) : Argument `file.path` must be character.
 > 
 > proc.time()
    user  system elapsed 
-  2.168   0.220   2.418 
+  2.318   0.278   2.673 

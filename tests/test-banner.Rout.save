@@ -15,6 +15,7 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "banner"
 > source(file.path('_helper', 'init.R'))
 > 
 > # - Banner Capture ------------------------------------------------------------
@@ -38,4 +39,4 @@ Type 'q()' to quit R.
 > 
 > proc.time()
    user  system elapsed 
-  1.391   0.147   1.541 
+  1.303   0.143   1.449 

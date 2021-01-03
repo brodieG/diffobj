@@ -15,6 +15,7 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> NAME <- "rdiff"
 > source(file.path('_helper', 'init.R'))
 > 
 > # - diff util detection --------------------------------------------------------
@@ -94,4 +95,4 @@ Error in Rdiff_obj(stop("hello"), "goodbye") :
 > 
 > proc.time()
    user  system elapsed 
-  1.157   0.176   1.344 
+  1.370   0.204   1.760 

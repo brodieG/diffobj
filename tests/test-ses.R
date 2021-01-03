@@ -110,7 +110,7 @@ if(
   R.Version()$major >= 3 && R.Version()$minor >= "3.1" ||
   R.Version()$major >= 4) {
   rdsf1 <- function(x)
-    readRDS(file.path("testthat", "helper", "diffStr", sprintf("%s.rds", x)))
+    readRDS(file.path("_helper", "objs", "diffStr", sprintf("%s.rds", x)))
   all.equal(
     as.character(
       diffStr(mdl1, mdl2, extra=list(strict.width="wrap"), line.limit=30)
