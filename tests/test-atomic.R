@@ -1,0 +1,180 @@
+NAME <- "atomic"
+source(file.path('_helper', 'init.R'))
+
+# - Basic Tests
+
+all.equal(as.character(diffPrint(chr.1, chr.2)), rdsf(100))
+all.equal(
+  as.character(diffPrint(chr.1, chr.2, mode="unified")), rdsf(200)
+)
+all.equal(
+  as.character(diffPrint(chr.1, chr.2, mode="context")), rdsf(400)
+)
+all.equal(
+  as.character(diffPrint(chr.1[2:3], chr.2[2], mode="sidebyside")), rdsf(500)
+)
+# Check that `extra` works
+
+all.equal(
+  as.character(
+    diffPrint(chr.1, chr.2, mode="unified", extra=list(quote=FALSE))
+  ),
+  rdsf(600)
+)
+# make sure blanks line up correctly
+
+all.equal(
+  as.character(diffPrint(chr.3, chr.4)), rdsf(700)
+)
+all.equal(
+  as.character(diffPrint(chr.3, chr.4, mode="unified")), rdsf(800)
+)
+
+# - Word wrap in atomic
+
+A <- A.1 <- B <- c(letters, LETTERS)
+B[15] <- "Alabama"
+A.1[5] <- "Ee"
+C <- A[-15]
+D <- C
+E <- B[-45]
+
+# Test simple changes to vectors; at 80 columns removing 1:8 corresponds to
+# row deletion
+
+all.equal(as.character(diffPrint(A[-(1:8)], A)), rdsf(900))
+all.equal(as.character(diffPrint(A, A[-(1:8)])), rdsf(1000))
+
+all.equal(as.character(diffPrint(A[-1], A[-2])), rdsf(1100))
+
+# Replace single word
+
+all.equal(as.character(diffPrint(A, B)), rdsf(1200))
+all.equal(as.character(diffPrint(B, A)), rdsf(1250))
+
+# Make sure turning off word.diff also turns of unwrapping, but that we can
+# turn off unwrapping without turning off word diff
+
+all.equal(
+  as.character(diffPrint(A, B, word.diff=FALSE)), rdsf(1300)
+)
+all.equal(
+  as.character(diffPrint(A, B, unwrap.atomic=FALSE)), rdsf(1400)
+)
+# Different wrap frequency and removed words that span lines
+
+all.equal(
+  as.character(diffPrint(A, A.1[-(13:18)])), rdsf(1425)
+)
+# Removing words
+
+all.equal(as.character(diffPrint(C, B)), rdsf(1450))
+
+# Two hunks
+
+all.equal(as.character(diffPrint(D, E)), rdsf(1500))
+all.equal(as.character(diffPrint(E, D)), rdsf(1600))
+
+# Vignette example
+
+state.abb.2 <- state.abb
+state.abb.2[38] <- "Pennsylvania"
+
+all.equal(
+  as.character(diffPrint(state.abb, state.abb.2)), rdsf(1700)
+)
+# Number corner cases
+
+all.equal(as.character(diffPrint(1:100, 2:101)), rdsf(1800))
+all.equal(as.character(diffPrint(2:101, 1:100)), rdsf(1900))
+all.equal(
+  as.character(diffPrint(2:101, (1:100)[-9])), rdsf(2000)
+)
+all.equal(
+  as.character(diffPrint((2:101)[-98], (1:100)[-9])), rdsf(2100)
+)
+# This is one of those that a better in-hunk align algorithm would benefit
+
+int.1 <- int.2 <- 1:100
+int.2[c(8, 20, 60)] <- 99
+int.2 <- c(50:1, int.2)
+all.equal(as.character(diffPrint(int.1, int.2)), rdsf(2200))
+
+# - with names
+rand.chrs <- do.call(paste0, expand.grid(LETTERS, LETTERS))
+F <- F1 <- F2 <- (2:105)[-98]
+G <- G2 <- G3 <- G4 <- G5 <- (1:100)[-9]
+nm.1 <- rand.chrs[seq_along(F)]
+nm.2 <- rand.chrs[seq_along(G)]
+names(F1) <- names(F2) <- nm.1
+names(G3) <- names(G2) <- names(G3) <-  names(G4) <- names(G5) <- nm.2
+names(G3)[c(5, 25, 60)] <- c("XXXXX", rand.chrs[c(300, 350)])
+names(G4)[c(5, 25, 60)] <- names(G5)[c(5, 25, 60)] <-
+  c("XX", rand.chrs[c(300, 350)])
+attr(F2, "blah") <- 1:5
+attr(G5, "blah") <- 3:8
+
+all.equal(as.character(diffPrint(F, G)), rdsf(2300))
+all.equal(as.character(diffPrint(F1, G2)), rdsf(2400))
+
+# Challenging case b/c the names wrap with values, and you have to pick one or
+# the other to match when the wrap frequencies are different
+
+all.equal(as.character(diffPrint(F1, G3)), rdsf(2500))
+all.equal(as.character(diffPrint(F1, G4)), rdsf(2520))
+
+# Attributes
+
+all.equal(as.character(diffPrint(F2, G5)), rdsf(2530))
+all.equal(as.character(diffPrint(F1, G5)), rdsf(2540))
+
+# - Original tests
+set.seed(2)
+w1 <- sample(
+  c(
+  "carrot", "cat", "cake", "eat", "rabbit", "holes", "the", "a", "pasta",
+  "boom", "noon", "sky", "hat", "blah", "paris", "dog", "snake"
+  ), 25, replace=TRUE
+)
+w4 <- w3 <- w2 <- w1
+w2[sample(seq_along(w1), 5)] <- LETTERS[1:5]
+w3 <- w1[8:15]
+w4 <- c(w1[1:5], toupper(w1[1:5]), w1[6:15], toupper(w1[1:5]))
+
+all.equal(as.character(diffPrint(w1, w2)), rdsf(2600))
+all.equal(as.character(diffPrint(w1, w3)), rdsf(2700))
+all.equal(as.character(diffPrint(w1, w4)), rdsf(2800))
+
+# - Simple word diffs
+a <- c("a", "b", "c", "d")
+b <- c("b", "c", "d", "e")
+all.equal(as.character(diffPrint(a, b)), rdsf(2900))
+
+a <- c("x", "a", "b", "c", "d", "z")
+b <- c("x", "b", "c", "d", "e", "z")
+all.equal(as.character(diffPrint(a, b)), rdsf(3000))
+
+a <- c("x", "a", "b", "c", "d", "z")
+b <- c("z", "b", "c", "d", "e", "x")
+all.equal(as.character(diffPrint(a, b)), rdsf(3100))
+
+# - Alignment edge cases
+all.equal(
+  as.character(diffPrint(20:50, 30:62)), rdsf(3200)
+)
+# below is off; should be aligning matching context line, part of the problem
+# might be that we're doing the realignment without thinking about what the
+# other hunk has.
+#
+# Possible encode each line as hunk#:diff/mix/cont
+
+# all.equal(
+#   as.character(diffPrint(20:50, 35:62)), rdsf(3300)
+# )
+
+# another interesting example where the existing algo seems to lead to a
+# reasonable outcome
+
+all.equal(
+  as.character(diffPrint(c(1:24,35:45), c(1:8, 17:45))), rdsf(3400)
+)

@@ -1,0 +1,70 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> NAME <- "subset"
+> source(file.path('_helper', 'init.R'))
+> 
+> A <- B <- letters[1:5]
+> B[2] <- "B"
+> B[6] <- "F"
+> 
+> # - subset ---------------------------------------------------------------------
+> 
+> local({
++   old.opt <- options(diffobj.style=StyleRaw())
++   on.exit(options(old.opt))
++   a0 <- all.equal(
++     c(as.character(diffChr(A, B)[1:3])),
++     c("< A          > B        ", "@@ 1,5 @@    @@ 1,6 @@  ", "  a            a        ")
++ 
++   )
++   a <- all.equal(
++     c(as.character(diffChr(A, B)[1])), c(as.character(head(diffChr(A, B), 1)))
++   )
++   b <- all.equal(
++     c(as.character(diffChr(A, B)[7:8])), c(as.character(tail(diffChr(A, B), 2)))
++   )
++   c(a0, a, b)
++ })
+[1] TRUE TRUE TRUE
+> # - subset errors --------------------------------------------------------------
+> 
+> diff <- diffChr(A, B)
+> try(diff[NA_real_]) # "contain NAs or both positive"
+Error in .local(x, i, ...) : 
+  `i` may not contain NAs or both positive and negative indices
+> try(diff[c(-1, 1)]) # "contain NAs or both positive"
+Error in .local(x, i, ...) : 
+  `i` may not contain NAs or both positive and negative indices
+> try(head(diff, 1, 2)) # "does not support arguments"
+Error in .local(x, ...) : 
+  This method does not support arguments other than `x` or `n`
+> try(head(diff, NA)) # "must be integer"
+Error in .local(x, ...) : `n` must be integer(1L) and not NA
+> try(head(diff, 1:3)) # "must be integer"
+Error in .local(x, ...) : `n` must be integer(1L) and not NA
+> try(tail(diff, 1:3)) # "must be integer"
+Error in .local(x, ...) : `n` must be integer(1L) and not NA
+> try(tail(diff, 1, 2)) # "does not support arguments"
+Error in .local(x, ...) : 
+  This method does not support arguments other than `x` or `n`
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  1.519   0.155   1.873 

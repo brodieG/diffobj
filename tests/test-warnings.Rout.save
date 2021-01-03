@@ -1,0 +1,79 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> NAME <- "warnings"
+> source(file.path('_helper', 'init.R'))
+> 
+> # tests designed to produce warnings
+> 
+> # - Extra args for `str` -------------------------------------------------------
+> 
+> a <- "hello"
+> b <- "goodbye"
+> 
+> invisible(diffStr(a, b, extra=list(comp.str="^"))) # "Specifying"
+Warning message:
+In capt_fun(target, current, etc = etc.proc, err = err, extra) :
+  Specifying `comp.str` may cause `str` output level folding to be incorrect
+> invisible(diffStr(a, b, extra=list(comp="^"))) #  "Specifying")
+Warning messages:
+1: In match.call(definition, call, expand.dots, envir) :
+  partial argument match of 'comp' to 'comp.str'
+2: In capt_fun(target, current, etc = etc.proc, err = err, extra) :
+  Specifying `comp.str` may cause `str` output level folding to be incorrect
+> invisible(diffStr(a, b, extra=list(indent.str="..."))) #  "Specifying"
+Warning message:
+In capt_fun(target, current, etc = etc.proc, err = err, extra) :
+  Specifying `indent.str` may cause `str` output level folding to be incorrect
+> invisible(diffStr(a, b, extra=list(indent="..."))) # "Specifying"
+Warning messages:
+1: In match.call(definition, call, expand.dots, envir) :
+  partial argument match of 'indent' to 'indent.str'
+2: In capt_fun(target, current, etc = etc.proc, err = err, extra) :
+  Specifying `indent.str` may cause `str` output level folding to be incorrect
+> 
+> # - Max diffs ------------------------------------------------------------------
+> 
+> # Max limit warnings work properly; these are not fully fleshed out
+> 
+> A3 <- c("a b c", "d e f A B C D", "g h i", "f")
+> B3 <- c("a b c", "xd e f E Q L S", "g h i", "q")
+> 
+> invisible(diffChr(A3, B3, max.diffs=2)) # warn: "Exceeded diff"
+Warning message:
+Exceeded diff limit during diff computation (5 vs. 2 allowed); overall diff is likely not optimal 
+> 
+> # - Overriden formals ----------------------------------------------------------
+> 
+> # warn "Provided `style` argument will override the provided `format` argument"
+> invisible(diffChr(letters, LETTERS, style=StyleRaw(), format="ansi8"))
+Warning message:
+In diffChr(target = letters, current = LETTERS, style = StyleRaw(),  :
+  Provided `style` argument will override the provided `format` argument
+> 
+> # warn: "Provided `style` .* `format` and `color.mode` arguments"
+> invisible(
++   diffChr(letters, LETTERS, style=StyleRaw(), format="ansi8", color.mode="rgb")
++ )
+Warning message:
+In diffChr(target = letters, current = LETTERS, style = StyleRaw(),  :
+  Provided `style` argument will override the provided `format` and `color.mode` arguments.
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  1.620   0.191   1.967 

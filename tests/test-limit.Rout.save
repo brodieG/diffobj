@@ -1,0 +1,133 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> NAME <- "limit"
+> source(file.path('_helper', 'init.R'))
+> 
+> # - Simple limit ---------------------------------------------------------------
+> 
+> A <- B <- letters[1:5]
+> B[2] <- "B"
+> B[6] <- "F"
+> # diffChr(A, B)
+> all.equal(as.character(diffChr(A, B, line.limit=2)), rdsf(100))
+[1] TRUE
+> all.equal(as.character(diffChr(A, B, line.limit=3)), rdsf(200))
+[1] TRUE
+> 
+> # - More Extensive Limits ------------------------------------------------------
+> 
+> Puromycin2 <- Puromycin
+> set.seed(1)
+> Puromycin2$conc[c(8, 15:19, 22)] <- round(runif(7), 2)
+> Puromycin2$state[17] <- "treated"
+> 
+> all.equal(
++   as.character(
++     diffPrint(Puromycin, Puromycin2, line.limit=15, mode="sidebyside")
++   ),
++   rdsf(300)
++ )
+[1] TRUE
+> 
+> # # Not working right
+> # diffPrint(Puromycin, Puromycin2, line.limit=15, mode="context")
+> all.equal(
++   as.character(
++     diffPrint(Puromycin, Puromycin2, line.limit=15, mode="unified")
++   ),
++   rdsf(500)
++ )
+[1] TRUE
+> 
+> all.equal(
++   as.character(
++     diffPrint(Puromycin, Puromycin2, line.limit=5, mode="sidebyside")
++   ),
++   rdsf(600)
++ )
+[1] TRUE
+> all.equal(
++   as.character(
++     diffPrint(Puromycin, Puromycin2, line.limit=5, mode="context")
++   ),
++   rdsf(700)
++ )
+[1] TRUE
+> all.equal(
++   as.character(
++     diffPrint(Puromycin, Puromycin2, line.limit=5, mode="unified")
++   ),
++   rdsf(800)
++ )
+[1] TRUE
+> 
+> Puromycin3 <- Puromycin2
+> names(Puromycin3)[3L] <- "blargh"
+> all.equal(
++   as.character(
++     diffPrint(Puromycin, Puromycin3, line.limit=7, mode="sidebyside")
++   ),
++   rdsf(900)
++ )
+[1] TRUE
+> all.equal(
++   as.character(
++     diffPrint(Puromycin, Puromycin3, line.limit=6, mode="context")
++   ),
++   rdsf(1000)
++ )
+[1] TRUE
+> # - Dual limit values ----------------------------------------------------------
+> 
+> A <- letters[1:10]
+> B <- LETTERS[1:10]
+> all.equal(
++   as.character(diffChr(A, B, line.limit=c(10, 3))), rdsf(1100)
++ )
+[1] TRUE
+> all.equal(
++   as.character(diffChr(A, B, line.limit=c(13, 3))), rdsf(1200)
++ )
+[1] TRUE
+> try(diffChr(A, B, line.limit=c(3, 13))) # "larger than or"
+Error in diffChr(target = A, current = B, line.limit = c(3, 13)) : 
+  Argument `line.limit` must be an integer vector of length 1 or 2 and if length 2, with the first value larger than or equal to the second, or "auto" or the result of calling `auto_line_limit`
+> 
+> # - Cause errors ---------------------------------------------------------------
+> 
+> try(diffChr(letters, LETTERS, line.limit=1:3)) # "vector of length"
+Error in diffChr(target = letters, current = LETTERS, line.limit = 1:3) : 
+  Argument `line.limit` must be an integer vector of length 1 or 2 and if length 2, with the first value larger than or equal to the second, or "auto" or the result of calling `auto_line_limit`
+> 
+> # - Vanishing header -----------------------------------------------------------
+> 
+> # issue 64
+> all.equal(
++   as.character(
++     diffChr(
++       letters, letters[-13], context=auto_context(0, 10), line.limit=1L,
++       pager="off"
++   ) ),
++   rdsf(1300)
++ )
+[1] TRUE
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  2.005   0.211   2.256 

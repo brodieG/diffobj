@@ -1,0 +1,170 @@
+NAME <- "text"
+source(file.path('_helper', 'init.R'))
+
+# - simple wrap
+
+txt1 <- c(
+  "humpty dumpty sat on a wall and had a big fall",
+  "humpty sat on a wall and dumped a big fall"
+)
+res1 <- diffobj:::wrap(txt1, 10, TRUE, sgr.supported=TRUE)
+
+identical(
+  gsub(" *$", "", vapply(res1, paste0, character(1L), collapse="")), txt1
+)
+all.equal(lapply(res1, nchar), list(rep(10L, 5L), rep(10L, 5L)))
+
+txt2 <- "hello world!"
+identical(
+  unlist(diffobj:::wrap(txt2, nchar(txt2), TRUE, sgr.supported=TRUE)),
+  txt2
+)
+identical(
+  paste0(
+    unlist(diffobj:::wrap(txt2, nchar(txt2) / 2, TRUE, sgr.supported=TRUE)),
+    collapse=""
+  ),
+  txt2
+)
+
+# - wrap with escape sequences
+
+txt3 <- c(
+  paste0(
+    "humpty dumpty ", crayon::style("sat on a wall", "red"),
+    " and had a big fall",
+    crayon::style(
+      crayon::style(
+        "humpty sat on a wall and dumped a big fall",
+        "green"
+      ),
+      "bgRed"
+    ), "woohoo"
+  ),
+  paste0(
+    crayon::style("hello ", "inverse"), "beautiful ",
+    crayon::style("world", "blue")
+  )
+)
+res3 <- diffobj:::wrap(txt3, 10, TRUE, sgr.supported=TRUE)
+
+identical(
+  crayon::strip_style(
+    gsub(" *$", "", vapply(res3, paste0, character(1L), collapse=""))
+  ),
+  crayon::strip_style(txt3)
+)
+all.equal(
+  lapply(res3, crayon::col_nchar),
+  list(rep(10L, 10L), rep(10L, 3L))
+)
+
+# - strip hz whitespace
+
+options(crayon.enabled=FALSE)
+all.equal(
+  diffobj:::strip_hz_control("a\tb", stops=4L, sgr.supported=TRUE), "a   b")
+all.equal(
+  diffobj:::strip_hz_control("ab\t", stops=4L, sgr.supported=TRUE), "ab  ")
+all.equal(
+  diffobj:::strip_hz_control("a\tb\t", stops=4L, sgr.supported=TRUE), "a   b   ")
+all.equal(
+  diffobj:::strip_hz_control("\ta\tb\t", stops=4L, sgr.supported=TRUE), 
+  "    a   b   "
+)
+all.equal(
+  diffobj:::strip_hz_control("\ta\tb\t", stops=c(2L, 4L), sgr.supported=TRUE),
+  "  a   b   "
+)
+all.equal(
+  diffobj:::strip_hz_control(
+    c("ab\t", "\ta\tb\t"), sgr.supported=TRUE, stops=4L
+  ),
+  c("ab  ", "    a   b   ")
+)
+# recall that nchar("\033") == 1
+all.equal(
+  diffobj:::strip_hz_control(
+    "\033[31ma\t\033[39mhello\tb", stops=10L, sgr.supported=FALSE
+  ),
+  "\033[31ma    \033[39mhello          b"
+)
+all.equal(
+  diffobj:::strip_hz_control(
+    "\033[31ma\t\033[39mhello\tb", stops=10L, sgr.supported=TRUE
+  ),
+  "\033[31ma\033[39m         \033[31m\033[39mhello     \033[31m\033[39mb"
+)
+# carriage returns
+
+all.equal(
+  diffobj:::strip_hz_control("hellothere\rHELLO", sgr.supported=TRUE),
+  "HELLOthere"
+)
+all.equal(
+  diffobj:::strip_hz_control(
+    c("hellothere\rHELLO", "000\r12345678\rabcdef\rABC"), sgr.supported=TRUE
+  ),
+  c("HELLOthere", "ABCdef78")
+)
+all.equal(
+  diffobj:::strip_hz_control("hellothere\r", sgr.supported=TRUE),
+  "hellothere"
+)
+all.equal(
+  diffobj:::strip_hz_control(character(), sgr.supported=TRUE), character()
+)
+# newlines
+
+all.equal(
+  diffobj:::strip_hz_control(c("a", "", "\n", "a\nb"), sgr.supported=TRUE),
+  c("a", "", "", "a", "b")
+)
+# with colors
+
+options(crayon.enabled=TRUE)
+
+all.equal(
+  crayon::strip_style(
+    diffobj:::strip_hz_control(
+      "\033[31ma\t\033[39mhello\tb", stops=10L, sgr.supported=TRUE)
+  ),
+  "a         hello     b"
+)
+test.chr <- paste0(
+  crayon::red(crayon::`%+%`("000",  crayon::bgBlue("\r12345678"))),
+  "\rabcdef", crayon::green("\rABC")
+)
+# visually inspect these
+
+# cat("\n")
+# cat(test.chr, sep="\n")
+res <- diffobj:::strip_hz_control(test.chr, sgr.supported=TRUE)
+# cat(res, sep="\n")
+all.equal(crayon::strip_style(res), "ABCdef78")
+
+# Mix tabs and carriage returns, visual inspection assumes terminal tab
+# stops at 8L; note output not exactly the same since it seems tabs don't
+# ovewrite prior screen state whereas spaces do
+
+test.chr.2 <- paste0(
+  crayon::red(crayon::`%+%`("000", crayon::bgBlue("\r123\t456\t78"))),
+  "\rab\tcd f", crayon::green("\rABC")
+)
+# cat("\n")
+# cat(test.chr.2, sep="\n")
+res.2 <- diffobj:::strip_hz_control(test.chr.2, stops=8L, sgr.supported=TRUE)
+# cat(res.2, sep="\n")
+
+all.equal(crayon::strip_style(res.2), "ABC     cd f    78")
+
+# multi line
+
+test.chr.3 <- c(test.chr, test.chr.2)
+# cat("\n")
+res.3 <- diffobj:::strip_hz_control(test.chr.3, sgr.supported=TRUE)
+# cat(res.3, sep="\n")
+# cat(test.chr.3, sep="\n")
+
+all.equal(crayon::strip_style(res.3), c("ABCdef78", "ABC     cd f    78"))
+

@@ -1,0 +1,91 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> NAME <- "context"
+> source(file.path('_helper', 'init.R'))
+> 
+> # - interesting context values -------------------------------------------------
+> 
+> all.equal(
++   as.character(diffChr(chr.9, chr.10, context=0)),
++   rdsf(100)
++ )
+[1] TRUE
+> all.equal(
++   as.character(diffChr(chr.9, chr.10, context=-1L)),
++   rdsf(150)
++ )
+[1] TRUE
+> all.equal(
++   as.character(diffChr(chr.9, chr.10, context="auto")),
++   rdsf(200)
++ )
+[1] TRUE
+> all.equal(
++   as.character(diffChr(chr.9, chr.10, context=0, mode="context")), rdsf(300)
++ )
+[1] TRUE
+> # - with line limit ------------------------------------------------------------
+> 
+> all.equal(
++   as.character(diffChr(chr.9, chr.10, context="auto", line.limit=18)),
++   rdsf(400)
++ )
+[1] TRUE
+> all.equal(
++   as.character(diffChr(chr.9, chr.10, context="auto", line.limit=25)),
++   rdsf(500)
++ )
+[1] TRUE
+> # default to min context
+> 
+> a <- b <- letters
+> b[c(3, 20)] <- LETTERS[c(3,20)]
+> all.equal(
++   capture.output(
++     show(diffChr(a, b, line.limit=c(20, 10), context='auto', format='raw'))
++   ),
++   txtf(100)
++ )
+[1] TRUE
+> # trim hunks in auto-context mode
+> 
+> a <- b <- letters
+> b[c(3, 10, 20)] <- LETTERS[c(3,10,20)]
+> all.equal(
++   capture.output(show(
++     diffChr(
++       a, b, hunk.limit=c(2, 1), context=auto_context(1, 5), line.limit=20,
++       format='raw'
++     )
++   )),
++   txtf(200)
++ )
+[1] TRUE
+> # - error handling -------------------------------------------------------------
+> 
+> try(auto_context(min=-1, max=1:3)) # "`min` must be"
+Error in auto_context(min = -1, max = 1:3) : 
+  Argument `min` must be integer(1L) and greater than zero
+> try(auto_context(min=1, max=1:3)) # "`max` must be"
+Error in auto_context(min = 1, max = 1:3) : 
+  Argument `max` must be integer(1L) and not NA
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  1.714   0.151   1.881 
