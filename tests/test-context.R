@@ -1,9 +1,5 @@
+NAME <- "context"
 source(file.path('_helper', 'init.R'))
-
-rdsf <- function(x)
-  readRDS(file.path("testthat", "helper", "context", sprintf("%s.rds", x)))
-txtf <- function(x)
-  readLines(file.path("testthat", "helper", "context", sprintf("%s.txt", x)))
 
 # - interesting context values -------------------------------------------------
 

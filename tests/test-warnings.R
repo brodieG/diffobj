@@ -1,3 +1,4 @@
+NAME <- "warnings"
 source(file.path('_helper', 'init.R'))
 
 # tests designed to produce warnings

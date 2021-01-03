@@ -1,3 +1,4 @@
+NAME <- "file"
 source(file.path('_helper', 'init.R'))
 
 rdsf <- function(x)

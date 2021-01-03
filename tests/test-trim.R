@@ -1,7 +1,5 @@
+NAME <- "trim"
 source(file.path('_helper', 'init.R'))
-
-rdsf <- function(x)
-  readRDS(file.path("testthat", "helper", "trim", sprintf("%s.rds", x)))
 
 .mx.base <- matrix(
   c(

@@ -1,3 +1,4 @@
+NAME <- "ses"
 source(file.path('_helper', 'init.R'))
 
 # Any tests added here should also be added to the valgrind test file

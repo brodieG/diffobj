@@ -23,8 +23,7 @@ VignetteBuilder: knitr
 Encoding: UTF-8
 Suggests:
     knitr,
-    rmarkdown,
-    testthat
+    rmarkdown
 Collate:
     'capt.R'
     'options.R'

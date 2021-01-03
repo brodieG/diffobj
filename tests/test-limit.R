@@ -1,7 +1,5 @@
+NAME <- "limit"
 source(file.path('_helper', 'init.R'))
-
-rdsf <- function(x)
-  readRDS(file.path("testthat", "helper", "limit", sprintf("%s.rds", x)))
 
 # - Simple limit ---------------------------------------------------------------
 

@@ -1,3 +1,4 @@
+NAME <- "scaling"
 source(file.path('_helper', 'init.R'))
 
 # These tests are not actually run since they require manual intervention to
@@ -8,9 +9,6 @@ source(file.path('_helper', 'init.R'))
 # what happens
 
 if(FALSE) { # prevent running
-  setwd("tests")
-  source("testthat/helper.commonobjects.R")
-
   # Text should be allowed to unfurl beyond native width
 
   diffStr(mdl1, mdl2, format="html")

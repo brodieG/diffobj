@@ -1,3 +1,4 @@
+NAME <- "notcran"
 source(file.path('_helper', 'init.R'))
 
 # This one should NOT have an associated .Rout.save file.  Unlike all the other

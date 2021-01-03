@@ -1,3 +1,4 @@
+NAME <- "text"
 source(file.path('_helper', 'init.R'))
 
 # - simple wrap

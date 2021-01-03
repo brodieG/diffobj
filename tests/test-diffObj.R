@@ -1,7 +1,5 @@
+NAME <- "diffObj"
 source(file.path('_helper', 'init.R'))
-
-rdsf <- function(x)
-  readRDS(file.path("testthat", "helper", "diffObj", sprintf("%s.rds", x)))
 
 # - simple diffobj -------------------------------------------------------------
 

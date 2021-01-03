@@ -1,9 +1,5 @@
+NAME <- "diffStr"
 source(file.path('_helper', 'init.R'))
-
-rdsf <- function(x)
-  readRDS(file.path("testthat", "helper", "diffStr", sprintf("%s.rds", x)))
-txtf <- function(x)
-  readLines(file.path("testthat", "helper", "diffStr", sprintf("%s.txt", x)))
 
 # - lm models ------------------------------------------------------------------
 

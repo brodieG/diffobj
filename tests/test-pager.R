@@ -1,8 +1,6 @@
+NAME <- "pager"
 source(file.path('_helper', 'init.R'))
 source(file.path('_helper', 'tools.R'))
-
-txtf <- function(x)
-  readLines(file.path("testthat", "helper", "pager", sprintf("%s.txt", x)))
 
 # void pager, doesn't do anything, just to test side effect of writing to file
 

@@ -1,3 +1,4 @@
+NAME <- "core"
 source(file.path('_helper', 'init.R'))
 
 # The Myers paper strings

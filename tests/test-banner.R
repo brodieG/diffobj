@@ -1,3 +1,4 @@
+NAME <- "banner"
 source(file.path('_helper', 'init.R'))
 
 # - Banner Capture ------------------------------------------------------------

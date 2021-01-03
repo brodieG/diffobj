@@ -1,7 +1,5 @@
+NAME <- "html"
 source(file.path('_helper', 'init.R'))
-
-rdsf <- function(x)
-  file.path(getwd(), "testthat", "helper", "html", sprintf("%s.rds", x))
 
 # Verify that internal css works
 

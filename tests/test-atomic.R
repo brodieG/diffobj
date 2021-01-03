@@ -1,7 +1,5 @@
+NAME <- "atomic"
 source(file.path('_helper', 'init.R'))
-
-rdsf <- function(x)
-  readRDS(file.path("testthat", "helper", "atomic", sprintf("%s.rds", x)))
 
 # - Basic Tests
 

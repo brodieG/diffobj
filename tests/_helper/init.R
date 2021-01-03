@@ -1,10 +1,14 @@
+# Tests intended to be run with tools:::.runPackageTests() (i.e. R CMD check)
+
+stopifnot(basename(getwd()) != 'tests', !exists(NAME))
+
+rdsf <-
+  function(x) readRDS(file.path("_helper", "objs", NAME, sprintf("%s.rds", x)))
+txtf <-
+  function(x) readLines(file.path("_helper", "objs", NAME, sprintf("%s.txt", x)))
+
 library(diffobj)
-no.null.opts <- c(
-  "warnPartialMatchArgs", "warnPartialMatchAttr", "warnPartialMatchDollar"
-)
-no.null.opt.list <- Map(getOption, no.null.opts)
-no.null.nulls <- vapply(no.null.opt.list, is.null, logical(1L))
-no.null.opt.list[no.null.nulls] <- FALSE
+
 all.opts <- c(
   list(
     useFancyQuotes=FALSE,   # all.equals uses fancy quotes
@@ -12,15 +16,14 @@ all.opts <- c(
     diffobj.color.mode="yb",# force yb
     diffobj.pager="off",    # run tests without pager
     width=80L,
-    encoding="UTF-8"        # so Gabor's name renders properly on win...
+    encoding="UTF-8",        # so Gabor's name renders properly on win...
+    warnPartialMatchArgs=TRUE,
+    warnPartialMatchAttr=TRUE,
+    warnPartialMatchDollar=TRUE
   )
 )
-OLD.OPTS <- options(c(diffobj_set_def_opts(), all.opts))
-options(
-  warnPartialMatchArgs=TRUE,
-  warnPartialMatchAttr=TRUE,
-  warnPartialMatchDollar=TRUE
-)
+options(c(diffobj_set_def_opts(), all.opts))
+
 # tests predate 3.5.
 
 if(R.version$major >= 4 || R.version$major >= 3 && R.version$minor >= "5.0")

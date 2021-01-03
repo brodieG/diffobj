@@ -1,9 +1,5 @@
+NAME <- "diffChr"
 source(file.path('_helper', 'init.R'))
-
-rdsf <- function(x)
-  readRDS(file.path("testthat", "helper", "diffChr", sprintf("%s.rds", x)))
-txtf <- function(x)
-  readLines(file.path("testthat", "helper", "diffChr", sprintf("%s.txt", x)))
 
 # - Corner Cases ---------------------------------------------------------------
 

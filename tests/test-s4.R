@@ -1,3 +1,4 @@
+NAME <- "s4"
 source(file.path('_helper', 'init.R'))
 
 # - diff data validation works

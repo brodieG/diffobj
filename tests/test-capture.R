@@ -1,3 +1,4 @@
+NAME <- "capture"
 source(file.path('_helper', 'init.R'))
 
 # - capture width issues -------------------------------------------------------

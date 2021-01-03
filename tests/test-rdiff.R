@@ -1,3 +1,4 @@
+NAME <- "rdiff"
 source(file.path('_helper', 'init.R'))
 
 # - diff util detection --------------------------------------------------------

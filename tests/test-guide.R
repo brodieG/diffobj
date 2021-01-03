@@ -1,7 +1,5 @@
+NAME <- "guide"
 source(file.path('_helper', 'init.R'))
-
-rdsf <- function(x)
-  readRDS(file.path("testthat", "helper", "guides", sprintf("%s.rds", x)))
 
 # - detect_2d_guides -----------------------------------------------------------
 

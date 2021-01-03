@@ -1,3 +1,4 @@
+NAME <- "subset"
 source(file.path('_helper', 'init.R'))
 
 A <- B <- letters[1:5]

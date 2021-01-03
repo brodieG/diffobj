@@ -1,7 +1,5 @@
+NAME <- "methods"
 source(file.path('_helper', 'init.R'))
-
-rdsf <- function(x)
-  readRDS(file.path("testthat", "helper", "methods", sprintf("%s.rds", x)))
 
 # try implementing methods that change default behavior outside of package
 
