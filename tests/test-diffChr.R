@@ -81,7 +81,7 @@ all.equal(
   as.character(diffChr("woo\nhoo\nfoo", c("woo", "foo"))), rdsf(1000)
 )
 all.equal(
-  capture.ouptut(diffChr("hello . world", "hello.  world", format='raw')),
+  capture.output(diffChr("hello . world", "hello.  world", format='raw')),
   txtf(100)
 )
 # - SGR ------------------------------------------------------------------------
@@ -89,16 +89,19 @@ all.equal(
 a <- c("hello \033[31mworld\033[m", "umbrellas", "tomatoes")
 b <- c("hello world", "umbrellas", "tomatoes")
 
-old.opt <- options(diffobj.sgr.supported=TRUE)
-on.exit(old.opt)
-diff <- diffChr(a, b) # warn: 'contained ANSI CSI SGR'
-all.equal(capture.ouptut(show(diff)), txtf(200))
-all.equal(capture.ouptut(show(diffChr(a, b, strip.sgr=FALSE))), txtf(300))
-all.equal(capture.ouptut(show(diffChr(a, b, format='raw'))), txtf(400))
+local({
+  old.opt <- options(diffobj.sgr.supported=TRUE)
+  on.exit(options(old.opt))
+  diff <- diffChr(a, b) # warn: 'contained ANSI CSI SGR'
+  try(diffChr(a, b, strip.sgr=1:3)) # "TRUE, FALSE, or NULL"
+  try(diffChr(a, b, sgr.supported=1:3)) # "TRUE, FALSE, or NULL"
 
-try(diffChr(a, b, strip.sgr=1:3)) # "TRUE, FALSE, or NULL"
-try(diffChr(a, b, sgr.supported=1:3)) # "TRUE, FALSE, or NULL"
-
+  c(
+    all.equal(capture.output(show(diff)), txtf(200)),
+    all.equal(capture.output(show(diffChr(a, b, strip.sgr=FALSE))), txtf(300)),
+    all.equal(capture.output(show(diffChr(a, b, format='raw'))), txtf(400))
+  )
+})
 # - Alignment ------------------------------------------------------------------
 
 chr.7 <- c("a b c d e", "F G h i j k", "xxx", "yyy", "k l m n o")
@@ -139,7 +142,7 @@ b <- c('a b c e', 'x w z f', 'e f g h')
 a <- c('z o o o', 'p o o o', 'A b c e')
 al <- AlignThreshold(threshold=0, min.chars=0)
 all.equal(
-  capture.ouptut(show(diffChr(b, a, align=al, format='raw'))), txtf(500)
+  capture.output(show(diffChr(b, a, align=al, format='raw'))), txtf(500)
 )
 # - NAs ------------------------------------------------------------------------
 

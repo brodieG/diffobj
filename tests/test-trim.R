@@ -29,9 +29,8 @@ all.equal(
 )
 all.equal(diffobj:::which_atomic_rh(capture.output(1:5)), 1)
 
-all.equal_to_reference(
-  as.character(diffPrint(1:3, 2:6, trim=FALSE)), rdsf(50)
-)
+all.equal(as.character(diffPrint(1:3, 2:6, trim=FALSE)), rdsf(50))
+
 # bad headers
 
 bh <- c("[1] a b c", "[4] d e f", "[5] h")

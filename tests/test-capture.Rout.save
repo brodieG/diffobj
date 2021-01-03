@@ -114,4 +114,4 @@ Error in diffobj:::capt_chr(letters, bad_obj, etc, function(...) stop(...),  :
 > 
 > proc.time()
    user  system elapsed 
-  1.211   0.142   1.362 
+  1.093   0.121   1.205 

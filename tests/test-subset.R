@@ -9,7 +9,7 @@ B[6] <- "F"
 local({
   old.opt <- options(diffobj.style=StyleRaw())
   on.exit(options(old.opt))
-  expect_equal(
+  a0 <- all.equal(
     c(as.character(diffChr(A, B)[1:3])),
     c("< A          > B        ", "@@ 1,5 @@    @@ 1,6 @@  ", "  a            a        ")
 
@@ -20,7 +20,7 @@ local({
   b <- all.equal(
     c(as.character(diffChr(A, B)[7:8])), c(as.character(tail(diffChr(A, B), 2)))
   )
-  c(a, b)
+  c(a0, a, b)
 })
 # - subset errors --------------------------------------------------------------
 

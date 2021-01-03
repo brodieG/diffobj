@@ -191,11 +191,11 @@ Type 'q()' to quit R.
 > w4 <- c(w1[1:5], toupper(w1[1:5]), w1[6:15], toupper(w1[1:5]))
 > 
 > all.equal(as.character(diffPrint(w1, w2)), rdsf(2600))
-[1] "9 string mismatches"
+[1] TRUE
 > all.equal(as.character(diffPrint(w1, w3)), rdsf(2700))
-[1] "9 string mismatches"
+[1] TRUE
 > all.equal(as.character(diffPrint(w1, w4)), rdsf(2800))
-[1] "11 string mismatches"
+[1] TRUE
 > 
 > # - Simple word diffs
 > a <- c("a", "b", "c", "d")
@@ -238,4 +238,4 @@ Type 'q()' to quit R.
 > 
 > proc.time()
    user  system elapsed 
-  3.725   0.443   4.315 
+  3.510   0.415   4.021 

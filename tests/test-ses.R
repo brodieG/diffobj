@@ -105,10 +105,12 @@ try(ses(1, a)) # "could not be coerced"
 # - Repeat tests for full coverage in SES file ---------------------------------
 # From test.diffStr.R
 # formula display changed
-if(R.Version()$major >= 3 && R.Version()$minor >= "3.1") {
+if(
+  R.Version()$major >= 3 && R.Version()$minor >= "3.1" ||
+  R.Version()$major >= 4) {
   rdsf1 <- function(x)
-    file.path(getwd(), "helper", "diffStr", sprintf("%s.rds", x))
-  all.equal_to_reference(
+    file.path("testthat", "helper", "diffStr", sprintf("%s.rds", x))
+  all.equal(
     as.character(
       diffStr(mdl1, mdl2, extra=list(strict.width="wrap"), line.limit=30)
     ),
@@ -122,7 +124,8 @@ B3 <- c("a b c", "xd e f E Q L S", "g h i", "q")
 
 diffChr(A3, B3, max.diffs=2) # warn: "Exceeded diff"
 
-# - ses_dat
+# - ses_dat --------------------------------------------------------------------
+
 a <- b <- do.call(paste0, expand.grid(LETTERS, LETTERS))
 set.seed(2)
 b <- b[-sample(length(b), 100)]

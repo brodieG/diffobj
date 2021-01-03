@@ -3,7 +3,7 @@ source(file.path('_helper', 'init.R'))
 rdsf <- function(x)
   readRDS(file.path("testthat", "helper", "diffPrint", sprintf("%s.rds", x)))
 txtf <- function(x)
-  readLines(file.path("testtthat", "helper", "diffPrint", sprintf("%s.txt", x)))
+  readLines(file.path("testthat", "helper", "diffPrint", sprintf("%s.txt", x)))
 
 # Note, atomic prints happen in different test file
 
@@ -166,17 +166,17 @@ all.equal(
 )
 f1 <- factor(1:100)
 f2 <- factor(c(1:20, 22:99, 101))
-expect_known_output(diffPrint(f1, f2), txtf(100), print=TRUE)
+all.equal(capture.output(diffPrint(f1, f2)), txtf(100))
 
 f3 <- factor(letters[1:10])
 f4 <- factor(letters[1:10], levels=letters[1:11])
-expect_known_output(diffPrint(f3, f4), txtf(150), print=TRUE)
+all.equal(capture.output(diffPrint(f3, f4)), txtf(150))
 
 # time series
 
 nhtemp2 <- nhtemp
 nhtemp2[c(5, 30)] <- -999
-expect_known_output(diffPrint(nhtemp, nhtemp2), txtf(175), print=TRUE)
+all.equal(capture.output(diffPrint(nhtemp, nhtemp2)), txtf(175))
 
 # Meta on both sides
 

@@ -33,5 +33,5 @@ source(file.path('_helper', 'init.R'))
 # - any ------------------------------------------------------------------------
 
 isTRUE(any(diffChr('a', 'b')))
-isFALSE(any(diffChr('a', 'a')))
+identical(any(diffChr('a', 'a')), FALSE)
 try(any(diffChr('a', 'a'), 2)) # "supports only one argument"

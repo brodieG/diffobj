@@ -27,7 +27,6 @@ all.equal(
 # Narrow width
 
 old.opt <- options(width=40)
-on.exit(options(old.opt))
 all.equal(diffobj:::detect_2d_guides(capture.output(iris)), c(1, 152))
 all.equal(
   diffobj:::detect_2d_guides(capture.output(USAccDeaths)), c(1, 8, 15)
@@ -37,12 +36,13 @@ all.equal(diffobj:::detect_2d_guides(capture.output(UKgas)), 1)
 # no row.names (#111)
 
 df1 <- capture.output(print(data.frame(a=1:3), row.names=FALSE))
-expect_warning(no.rn.guide <- diffobj:::detect_2d_guides(df1), NA)
+no.rn.guide <- diffobj:::detect_2d_guides(df1)  # no warning
 all.equal(no.rn.guide, 1L)
 
 df2 <- capture.output(print(data.frame(x="A"), row.names=FALSE))
-expect_warning(no.rn.guide.2 <- diffobj:::detect_2d_guides(df2), NA)
+no.rn.guide.2 <- diffobj:::detect_2d_guides(df2)  # no warning
 all.equal(no.rn.guide.2, 1L)
+options(old.opt)
 
 # - detect_list_guides ---------------------------------------------------------
 
@@ -117,15 +117,16 @@ mx10.c <- capture.output(mx10)
 all.equal(
   diffobj:::detect_matrix_guides(mx10.c, dimnames(mx10)), c(1:2, 6:7)
 )
+local({
+  old.opt <- options(width=30L)
+  on.exit(options(old.opt))
+  attr(mx11, "blah") <- letters[1:15]
+  mx11.c <- capture.output(mx11)
 
-old.opt <- options(width=30L)
-on.exit(options(old.opt))
-attr(mx11, "blah") <- letters[1:15]
-mx11.c <- capture.output(mx11)
-
-all.equal(
-  diffobj:::detect_matrix_guides(mx11.c, dimnames(mx11)), c(1, 5, 9, 13)
-)
+  all.equal(
+    diffobj:::detect_matrix_guides(mx11.c, dimnames(mx11)), c(1, 5, 9, 13)
+  )
+})
 # - detect_array_guides --------------------------------------------------------
 
 a.1 <- array(1:6, dim=c(2, 1, 3))

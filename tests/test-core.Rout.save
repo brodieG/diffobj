@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2020-12-27 r79710) -- "Unsuffered Consequences"
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
 Copyright (C) 2020 The R Foundation for Statistical Computing
 Platform: x86_64-apple-darwin17.0 (64-bit)
 
@@ -199,4 +199,4 @@ Type 'q()' to quit R.
 > 
 > proc.time()
    user  system elapsed 
-  0.481   0.061   0.527 
+  1.171   0.125   1.306 

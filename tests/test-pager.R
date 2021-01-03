@@ -2,7 +2,7 @@ source(file.path('_helper', 'init.R'))
 source(file.path('_helper', 'tools.R'))
 
 txtf <- function(x)
-  readLines(file.path("testtthat", "helper", "pager", sprintf("%s.txt", x)))
+  readLines(file.path("testthat", "helper", "pager", sprintf("%s.txt", x)))
 
 # void pager, doesn't do anything, just to test side effect of writing to file
 
@@ -54,8 +54,8 @@ try(PagerSystemLess(pager=pager_mock, flags=letters))
 # - use_pager ------------------------------------------------------------------
 
 local({
-  mock(diffobj:::console_lines, 10L)
-  on.exit(untrace(diffobj:::console_lines))
+  suppressMessages(mock(diffobj:::console_lines, 10L))
+  on.exit(suppressMessages(untrace(diffobj:::console_lines)))
   c(
     isTRUE(diffobj:::use_pager(PagerSystem(threshold=0L), 1L)),
     identical(diffobj:::use_pager(PagerSystem(threshold=50L), 25L), FALSE),
@@ -97,8 +97,8 @@ local({
   viewer <- function(x) "viewer"
   old.external <- options(viewer=viewer, browser=function(url) "browser")
   on.exit(options(old.external))
-  mock(diffobj::make_blocking, quote(fun))
-  on.exit(untrace(diffobj::make_blocking), add=TRUE)
+  suppressMessages(mock(diffobj::make_blocking, quote(fun)))
+  on.exit(suppressMessages(untrace(diffobj::make_blocking)), add=TRUE)
   pager <- PagerBrowser()
   a <- all.equal(pager@pager("blah"), "viewer")
   options(viewer=NULL)
@@ -115,10 +115,10 @@ local({
 # need the mock here
 
 local({
-  mock(diffobj:::interactive, FALSE)
-  on.exit(untrace(diffobj:::interactive))
-  mock(diffobj:::readline, quote(warning("readline")))
-  on.exit(untrace(diffobj:::readline), add=TRUE)
+  suppressMessages(mock(diffobj:::interactive, FALSE))
+  on.exit(suppressMessages(untrace(diffobj:::interactive)))
+  suppressMessages(mock(diffobj:::readline, quote(warning("readline"))))
+  on.exit(suppressMessages(untrace(diffobj:::readline)), add=TRUE)
   try(make_blocking("hello")) # "must be a function"
   try(make_blocking(identity, letters)) # "must be character\\(1L")
   try(make_blocking(identity, "a", "a")) # "must be TRUE"
@@ -133,10 +133,10 @@ local({
   c(a, b)
 })
 local({
-  mock(diffobj:::interactive, TRUE)
-  on.exit(untrace(diffobj:::interactive))
-  mock(diffobj:::readline, quote(warning("readline")))
-  on.exit(untrace(diffobj:::readline), add=TRUE)
+  suppressMessages(mock(diffobj:::interactive, TRUE))
+  on.exit(suppressMessages(untrace(diffobj:::interactive)))
+  suppressMessages(mock(diffobj:::readline, quote(warning("readline"))))
+  on.exit(suppressMessages(untrace(diffobj:::readline)), add=TRUE)
   show( # warn "readline"
     diffChr(
       "a", "b", format='raw',
@@ -153,10 +153,10 @@ local({
 # There should be no warnings in this lot
 
 local({
-  mock(diffobj:::interactive, TRUE)
-  on.exit(untrace(diffobj:::interactive))
-  mock(diffobj:::readline, quote(warning("readline")))
-  on.exit(untrace(diffobj:::readline), add=TRUE)
+  suppressMessages(mock(diffobj:::interactive, TRUE))
+  on.exit(suppressMessages(untrace(diffobj:::interactive)))
+  suppressMessages(mock(diffobj:::readline, quote(warning("readline"))))
+  on.exit(suppressMessages(untrace(diffobj:::readline)), add=TRUE)
   f <- tempfile()
   on.exit(unlink(f), add=TRUE)
   show(  # no warning
@@ -201,12 +201,14 @@ style.obj.1 <- style.obj.2 <- StyleHtmlLightYb()
 style.obj.1@css <- "notafile"
 style.obj.2@js <- "notafile"
 
-capture.output( # warn: "Unable to read provided css file"
-  show(diffChr("A", "B", pager=pager.warn, style=style.obj.1))
-)
-capture.output( # "Unable to read provided js file"
-  show(diffChr("A", "B", pager=pager.warn, style=style.obj.2))
-)
+invisible(
+  capture.output( # warn: "Unable to read provided css file"
+    show(diffChr("A", "B", pager=pager.warn, style=style.obj.1))
+) )
+invisible(
+  capture.output( # "Unable to read provided js file"
+    show(diffChr("A", "B", pager=pager.warn, style=style.obj.2))
+) )
 # - pager_is_less --------------------------------------------------------------
 
 is.less <- pager_is_less()
@@ -237,7 +239,7 @@ if(diffobj:::is.chr.1L(sys.cat) && file_test("-x", sys.cat)) {
     on.exit(options(old.opt))
 
     identical(diffobj:::pager_opt_default(), FALSE)
-    idential(pager_is_less(), FALSE)
+    identical(pager_is_less(), FALSE)
   })
 }
 ## force some checks
@@ -249,7 +251,8 @@ local({
 })
 identical(diffobj:::file_is_less(tempfile()), FALSE)
 
-# - file.path
+# - file.path ------------------------------------------------------------------
+
 f <- tempfile()
 show(
   diffChr(
@@ -269,7 +272,7 @@ show(  # No error on this one
 try(Pager(file.path=letters)) # "must be length 1"
 try(Pager(file.path=1)) # "must be character"
 
-# - basic pager
+# - basic pager ----------------------------------------------------------------
 
 local({
   f <- tempfile()
@@ -282,13 +285,14 @@ local({
             1, 2, pager=Pager(file.path=f, threshold=0L),
             format='raw'
           )
-      ),
+      ) ),
       txtf(100)
-    ) ),
-    all.equal(readLines(txtf(100)), readLines(f))
+    ),
+    all.equal(txtf(100), readLines(f))
   )
 })
-# - format-pager interaction
+
+# - format-pager interaction ---------------------------------------------------
 
 local({
   old.opt <- options(crayon.colors=7)
@@ -301,11 +305,11 @@ local({
     is(
       diffChr(1, 2, format='auto', pager="on", interactive=TRUE)@etc@style,
       "StyleHtml"
-    )
+    ),
     is(
       diffChr(1, 2, format='auto', pager="on", interactive=FALSE)@etc@style,
       "StyleRaw"
-    )
+    ),
     is(
       diffChr(
         1, 2, format='auto', pager=PagerBrowser(), interactive=FALSE

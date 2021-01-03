@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2020-12-27 r79710) -- "Unsuffered Consequences"
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
 Copyright (C) 2020 The R Foundation for Statistical Computing
 Platform: x86_64-apple-darwin17.0 (64-bit)
 
@@ -113,4 +113,4 @@ Error in cont_f("hello")(1:3) : Argument `x` must be character.
 > 
 > proc.time()
    user  system elapsed 
-  0.710   0.083   0.784 
+  1.527   0.141   1.687 

@@ -4,9 +4,9 @@ source(file.path('_helper', 'init.R'))
 
 isTRUE(diffobj:::is.less_flags("RVXF"))
 isTRUE(diffobj:::is.less_flags("rvxF"))
-isFALSE(diffobj:::is.less_flags(c("rvxF", "RVXF")))
-isFALSE(diffobj:::is.less_flags(23))
-isFALSE(diffobj:::is.less_flags("rv xF"))
+identical(diffobj:::is.less_flags(c("rvxF", "RVXF")), FALSE)
+identical(diffobj:::is.less_flags(23), FALSE)
+identical(diffobj:::is.less_flags("rv xF"), FALSE)
 
 # - is.int.2L ------------------------------------------------------------------
 

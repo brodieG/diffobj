@@ -17,27 +17,28 @@ str.txt.w <- capture.output(str(obj, width=30L, strict.width="wrap"))
 if(
   getRversion() >= '3.5.0' && as.numeric(R.Version()[['svn rev']]) >= 73780
 ) {
-  all.equal(
-    diffobj:::str_levels(str.txt, wrap=FALSE),
-    c(0L, 1L, 2L, 1L, 2L, 3L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L, 5L, 2L)
-  )
-  all.equal(
-    diffobj:::str_levels(str.txt.w, wrap=TRUE),
-    c(0L, 1L, 2L, 1L, 1L, 2L, 2L, 3L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
-      1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
-      2L, 2L
-    )
-  )
+  c(
+    all.equal(
+      diffobj:::str_levels(str.txt, wrap=FALSE),
+      c(0L, 1L, 2L, 1L, 2L, 3L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L, 5L, 2L)
+    ),
+    all.equal(
+      diffobj:::str_levels(str.txt.w, wrap=TRUE),
+      c(0L, 1L, 2L, 1L, 1L, 2L, 2L, 3L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
+        1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
+        2L, 2L
+      )
+  ) )
 } else {
-  all.equal(
-    diffobj:::str_levels(str.txt, wrap=FALSE),
-
-    c(0L, 1L, 3L, 1L, 2L, 4L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L,  5L, 2L)
-  )
-  all.equal(
-    diffobj:::str_levels(str.txt.w, wrap=TRUE),
-    c(0L, 1L, 1L, 3L, 1L, 1L, 2L, 2L, 4L, 4L, 1L, 1L, 1L, 1L, 1L,  1L, 1L, 1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L,  5L, 5L, 2L, 2L)
-  )
+  c(
+    all.equal(
+      diffobj:::str_levels(str.txt, wrap=FALSE),
+      c(0L, 1L, 3L, 1L, 2L, 4L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L,  5L, 2L)
+    ),
+    all.equal(
+      diffobj:::str_levels(str.txt.w, wrap=TRUE),
+      c(0L, 1L, 1L, 3L, 1L, 1L, 2L, 2L, 4L, 4L, 1L, 1L, 1L, 1L, 1L,  1L, 1L, 1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L,  5L, 5L, 2L, 2L)
+  ) )
 }
 # cat(
 #   paste(
@@ -81,9 +82,6 @@ all.equal(
 # - lines ----------------------------------------------------------------------
 
 old.val <- Sys.getenv("LINES", unset=NA)
-on.exit(
-  if(is.na(old.val)) Sys.unsetenv("LINES") else Sys.setenv(LINES=old.val)
-)
 Sys.setenv(LINES="25")
 all.equal(console_lines(), 25L)
 Sys.setenv(LINES="-25")

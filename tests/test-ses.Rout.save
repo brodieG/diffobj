@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2020-12-27 r79710) -- "Unsuffered Consequences"
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
 Copyright (C) 2020 The R Foundation for Statistical Computing
 Platform: x86_64-apple-darwin17.0 (64-bit)
 
@@ -76,8 +76,7 @@ Type 'q()' to quit R.
 > w4 <- c(w1[1:5], toupper(w1[1:5]), w1[6:15], toupper(w1[1:5]))
 > 
 > all.equal(ses(w1, w4), c("5a6,10", "15,21d19", "23,25c21,25"))
-[1] "Lengths (2, 3) differ (string compare on first 2)"
-[2] "1 string mismatch"                                
+[1] TRUE
 > 
 > # - longer strings -------------------------------------------------------------
 > 
@@ -159,16 +158,23 @@ Error in ses_prep(a = a, b = b, max.diffs = max.diffs, warn = warn) :
 > # - Repeat tests for full coverage in SES file ---------------------------------
 > # From test.diffStr.R
 > # formula display changed
-> if(R.Version()$major >= 3 && R.Version()$minor >= "3.1") {
+> if(
++   R.Version()$major >= 3 && R.Version()$minor >= "3.1" ||
++   R.Version()$major >= 4) {
 +   rdsf1 <- function(x)
-+     file.path(getwd(), "helper", "diffStr", sprintf("%s.rds", x))
-+   all.equal_to_reference(
++     file.path("testthat", "helper", "diffStr", sprintf("%s.rds", x))
++   all.equal(
 +     as.character(
 +       diffStr(mdl1, mdl2, extra=list(strict.width="wrap"), line.limit=30)
 +     ),
 +     rdsf1(500)
 +   )
 + }
+[1] "Attributes: < Modes: list, NULL >"                   
+[2] "Attributes: < names for target but not for current >"
+[3] "Attributes: < current is not list-like >"            
+[4] "Lengths (28, 1) differ (string compare on first 1)"  
+[5] "1 string mismatch"                                   
 > # from testthat.warnings.R
 > 
 > A3 <- c("a b c", "d e f A B C D", "g h i", "f")
@@ -184,7 +190,8 @@ Error in ses_prep(a = a, b = b, max.diffs = max.diffs, warn = warn) :
 Warning message:
 Exceeded diff limit during diff computation (5 vs. 2 allowed); overall diff is likely not optimal 
 > 
-> # - ses_dat
+> # - ses_dat --------------------------------------------------------------------
+> 
 > a <- b <- do.call(paste0, expand.grid(LETTERS, LETTERS))
 > set.seed(2)
 > b <- b[-sample(length(b), 100)]
@@ -220,4 +227,4 @@ Error in ses_dat(a, b, extra = NA) :
 > 
 > proc.time()
    user  system elapsed 
-  0.600   0.071   0.657 
+  1.954   0.141   2.100 

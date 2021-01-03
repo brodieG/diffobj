@@ -21,5 +21,9 @@ options(
   warnPartialMatchAttr=TRUE,
   warnPartialMatchDollar=TRUE
 )
+# tests predate 3.5.
+
+if(R.version$major >= 4 || R.version$major >= 3 && R.version$minor >= "5.0")
+  suppressWarnings(RNGversion("3.5.2"));
 
 source("_helper/commonobjects.R")

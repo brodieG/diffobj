@@ -166,4 +166,4 @@ Error in diffChr(target = letters, current = LETTERS, context = NA) :
 > 
 > proc.time()
    user  system elapsed 
-  1.241   0.117   1.356 
+  1.235   0.116   1.360 

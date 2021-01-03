@@ -3,13 +3,16 @@ source(file.path('_helper', 'init.R'))
 rdsf <- function(x)
   readRDS(file.path("testthat", "helper", "diffStr", sprintf("%s.rds", x)))
 txtf <- function(x)
-  readLines(file.path("testtthat", "helper", "diffStr", sprintf("%s.txt", x)))
+  readLines(file.path("testthat", "helper", "diffStr", sprintf("%s.txt", x)))
 
 # - lm models ------------------------------------------------------------------
 
 # formula display changed
-if(R.Version()$major >= 3 && R.Version()$minor >= "3.1")
+if(
+  R.Version()$major >= 3 && R.Version()$minor >= "3.1" || R.Version()$major > 3
+)
   all.equal(as.character(diffStr(mdl1, mdl2)), rdsf(100))
+
 # Too strict a line limit, can't get under
 all.equal(
   as.character(diffStr(mdl1[7], mdl2[7], line.limit=10)), rdsf(200)
@@ -25,27 +28,28 @@ all.equal(
 
 all.equal(as.character(diffStr(iris.c, iris.s)), rdsf(400))
 
-# - Strict width
+# - Strict width ---------------------------------------------------------------
 # formula display changed
 if(
-  R.Version()$major >= 3 && R.Version()$minor >= "3.1" || R.Version()$major >3
+  R.Version()$major >= 3 && R.Version()$minor >= "3.1" || R.Version()$major > 3
 ) {
-  all.equal(
-    as.character(
-      diffStr(mdl1, mdl2, extra=list(strict.width="wrap"), line.limit=30)
+  c(
+    all.equal(
+      as.character(
+        diffStr(mdl1, mdl2, extra=list(strict.width="wrap"), line.limit=30)
+      ),
+      rdsf(500)
     ),
-    rdsf(500)
-  )
-  all.equal(
-    as.character(
-      diffStr(mdl1, mdl2, extra=list(strict.width="cut"), line.limit=30)
-    ),
-    rdsf(550)
-  )
+    all.equal(
+      as.character(
+        diffStr(mdl1, mdl2, extra=list(strict.width="cut"), line.limit=30)
+      ),
+      rdsf(550)
+  ) )
 }
 # - max.diffs ------------------------------------------------------------------
 
-diffStr(iris, mtcars, max.diff=2) # warn: "Exceeded diff limit"
+invisible(diffStr(iris, mtcars, max.diffs=2)) # warn: "Exceeded diff limit"
 
 # - max.level ------------------------------------------------------------------
 

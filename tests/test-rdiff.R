@@ -2,8 +2,8 @@ source(file.path('_helper', 'init.R'))
 
 # - diff util detection --------------------------------------------------------
 
-expect_false(has_Rdiff(function(...) warning("test warning")))
-expect_true(has_Rdiff(function(...) NULL))
+identical(has_Rdiff(function(...) warning("test warning")), FALSE)
+isTRUE(has_Rdiff(function(...) NULL))
 
 # - errors ---------------------------------------------------------------------
 

@@ -32,15 +32,15 @@ all.equal(
 )
 all.equal(diffObj(1:1000, 1000:1, line.limit=5)@capt.mode, "str")
 
-# - misc
+# - misc -----------------------------------------------------------------------
 
 try(diffObj(1, 2, extra=list(TRUE))) # "extra"
 
-# - print error
+# - print error ----------------------------------------------------------------
 
 x <- structure("hello", class="diffobj_ogewlhgiadfl")
 y <- structure("goodbye", class="diffobj_ogewlhgiadfl")
-diffObj(x, y) # "Error in calling .diffPrint."
+try(diffObj(x, y)) # "Error in calling .diffPrint."
 
 # Random exmaples to think through `diffObj` output
 

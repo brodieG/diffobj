@@ -3,7 +3,7 @@ source(file.path('_helper', 'init.R'))
 rdsf <- function(x)
   readRDS(file.path("testthat", "helper", "summary", sprintf("%s.rds", x)))
 txtf <- function(x)
-  readLines(file.path("testtthat", "helper", "summary", sprintf("%s.txt", x)))
+  readLines(file.path("testthat", "helper", "summary", sprintf("%s.txt", x)))
 
 # Note, atomic prints happen in different test file
 

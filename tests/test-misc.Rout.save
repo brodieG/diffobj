@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2020-12-27 r79710) -- "Unsuffered Consequences"
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
 Copyright (C) 2020 The R Foundation for Statistical Computing
 Platform: x86_64-apple-darwin17.0 (64-bit)
 
@@ -34,29 +34,30 @@ Type 'q()' to quit R.
 > if(
 +   getRversion() >= '3.5.0' && as.numeric(R.Version()[['svn rev']]) >= 73780
 + ) {
-+   all.equal(
-+     diffobj:::str_levels(str.txt, wrap=FALSE),
-+     c(0L, 1L, 2L, 1L, 2L, 3L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L, 5L, 2L)
-+   )
-+   all.equal(
-+     diffobj:::str_levels(str.txt.w, wrap=TRUE),
-+     c(0L, 1L, 2L, 1L, 1L, 2L, 2L, 3L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
-+       1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
-+       2L, 2L
-+     )
-+   )
++   c(
++     all.equal(
++       diffobj:::str_levels(str.txt, wrap=FALSE),
++       c(0L, 1L, 2L, 1L, 2L, 3L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L, 5L, 2L)
++     ),
++     all.equal(
++       diffobj:::str_levels(str.txt.w, wrap=TRUE),
++       c(0L, 1L, 2L, 1L, 1L, 2L, 2L, 3L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
++         1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
++         2L, 2L
++       )
++   ) )
 + } else {
-+   all.equal(
-+     diffobj:::str_levels(str.txt, wrap=FALSE),
-+ 
-+     c(0L, 1L, 3L, 1L, 2L, 4L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L,  5L, 2L)
-+   )
-+   all.equal(
-+     diffobj:::str_levels(str.txt.w, wrap=TRUE),
-+     c(0L, 1L, 1L, 3L, 1L, 1L, 2L, 2L, 4L, 4L, 1L, 1L, 1L, 1L, 1L,  1L, 1L, 1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L,  5L, 5L, 2L, 2L)
-+   )
++   c(
++     all.equal(
++       diffobj:::str_levels(str.txt, wrap=FALSE),
++       c(0L, 1L, 3L, 1L, 2L, 4L, 1L, 1L, 1L, 2L, 2L, 3L, 4L, 4L, 5L,  5L, 2L)
++     ),
++     all.equal(
++       diffobj:::str_levels(str.txt.w, wrap=TRUE),
++       c(0L, 1L, 1L, 3L, 1L, 1L, 2L, 2L, 4L, 4L, 1L, 1L, 1L, 1L, 1L,  1L, 1L, 1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 5L,  5L, 5L, 2L, 2L)
++   ) )
 + }
-[1] TRUE
+[1] TRUE TRUE
 > # cat(
 > #   paste(
 > #     format(substr(str.txt.w, 1, 20)), diffobj:::str_levels(str.txt.w, TRUE),
@@ -118,9 +119,6 @@ In get_fun(found.call[[1L]], env = par.env) :
 > # - lines ----------------------------------------------------------------------
 > 
 > old.val <- Sys.getenv("LINES", unset=NA)
-> on.exit(
-+   if(is.na(old.val)) Sys.unsetenv("LINES") else Sys.setenv(LINES=old.val)
-+ )
 > Sys.setenv(LINES="25")
 > all.equal(console_lines(), 25L)
 [1] TRUE
@@ -204,4 +202,4 @@ Error in .local(x, ...) : Argument `js` must be character(1L) and not NA.
 > 
 > proc.time()
    user  system elapsed 
-  0.528   0.072   0.598 
+  1.099   0.112   1.203 
