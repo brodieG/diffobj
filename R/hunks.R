@@ -68,9 +68,9 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
           d.ins <- d[which(.edit.map[d[, "type"]] == "Insert"), ,drop=FALSE]
           d.mtc <- d[which(.edit.map[d[, "type"]] == "Match"), ,drop=FALSE]
           # R 3.3.3 had sum(integer(0)) == 1!
-          del.len <- if(nrow(d.del)) sum(d.del[, "len"]) else 0
-          ins.len <- if(nrow(d.ins)) sum(d.ins[, "len"]) else 0
-          mtc.len <- if(nrow(d.mtc)) sum(d.mtc[, "len"]) else 0
+          del.len <- if(nrow(d.del)) sum(d.del[, "len"]) else 0L
+          ins.len <- if(nrow(d.ins)) sum(d.ins[, "len"]) else 0L
+          mtc.len <- if(nrow(d.mtc)) sum(d.mtc[, "len"]) else 0L
           tar.len <- del.len + mtc.len
           cur.len <- ins.len + mtc.len
 
