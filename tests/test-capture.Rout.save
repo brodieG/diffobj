@@ -1,0 +1,118 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> NAME <- "capture"
+> source(file.path('_helper', 'init.R'))
+> 
+> # - capture width issues -------------------------------------------------------
+> 
+> local({
++   old.opt <- options(width=40L)
++   on.exit(options(old.opt))
++   etc <- new("Settings", style=StyleRaw(), text.width=5L)  # impossible width
++   # warn: "Unable to set desired "
++   res <- diffobj:::capture(letters, etc, function(...) do.call(cat, list(...)))
++   all.equal(nchar(res), c(40L, 40L, 36L))
++ })
+[1] TRUE
+Warning message:
+In diffobj:::capture(letters, etc, function(...) do.call(cat, list(...))) :
+  Unable to set desired width 5, (invalid 'width' parameter, allowed 10...10000);proceeding with existing setting.
+> 
+> # - errors in capture ----------------------------------------------------------
+> 
+> etc <- new("Settings", style=StyleRaw())
+> try(diffobj:::capture(stop('boom'), etc, function(...) stop(...))) # boom
+Error in eval(x, etc@frame) : boom
+Error in err("Failed attempting to get text representation of object: ",  : 
+  Failed attempting to get text representation of object: boom
+> print <- function() NULL
+> str <- function() NULL
+> etc@mode <- "auto"
+> etc@frame <- environment()
+> try(diffobj:::capt_print(1, 2, etc, function(...) stop(...), list())) # compose
+Error in match.call(definition, call, expand.dots, envir) : 
+  unused argument (x = NULL)
+Error in err("Unable to compose `print` call") : 
+  Unable to compose `print` call
+> # spec object
+> try(diffobj:::capt_str(1, 2, etc, function(...) stop(...), list(object=1)))
+Error in err("You may not specify `object` as part of `extra`") : 
+  You may not specify `object` as part of `extra`
+> try(  # attempting to deparse
++   diffobj:::capt_deparse(
++     stop('a'), stop('b'), etc,  function(...) stop(...), list()
++   )
++ )
+Error in do.call(deparse, c(list(target), extra), quote = TRUE) : a
+Error in err("Error attempting to deparse object(s)") : 
+  Error attempting to deparse object(s)
+> try(  # target
++   suppressWarnings(
++     diffobj:::capt_file(
++       tempfile(), tempfile(), etc,  function(...) stop(...), list()
++   ) )
++ )
+Error in file(con, "r") : cannot open the connection
+Error in err("Unable to read `target` file.") : 
+  Unable to read `target` file.
+> local({
++   f <- tempfile()
++   on.exit(unlink(f), add=TRUE)
++   writeLines(letters, f)
++   try( # "`current`"
++     suppressWarnings(
++       diffobj:::capt_file(f, tempfile(), etc,  function(...) stop(...), list())
++     )
++   )
++   try( # "`target`"
++     suppressWarnings(
++       diffobj:::capt_csv(
++         tempfile(), tempfile(), etc,  function(...) stop(...), list()
++     ) )
++   )
++   try( # "`current`"
++     suppressWarnings(
++       diffobj:::capt_csv(
++         f, tempfile(), etc,  function(...) stop(...), list()
++     ) )
++   )
++ })
+Error in file(con, "r") : cannot open the connection
+Error in err("Unable to read `current` file.") : 
+  Unable to read `current` file.
+Error in file(file, "rt") : cannot open the connection
+Error in err("Unable to read `target` file.") : 
+  Unable to read `target` file.
+Error in file(file, "rt") : cannot open the connection
+Error in err("Unable to read `current` file.") : 
+  Unable to read `current` file.
+> bad_obj <- structure(list(NULL), class='diffobj_ogewlhgiadfl3')
+> try( # "Coercion of `target`"
++   diffobj:::capt_chr(bad_obj, letters, etc,  function(...) stop(...), list())
++ )
+Error in diffobj:::capt_chr(bad_obj, letters, etc, function(...) stop(...),  : 
+  Coercion of `target` did not produce character object (list).
+> try( # "Coercion of `current`"
++   diffobj:::capt_chr(letters, bad_obj, etc,  function(...) stop(...), list())
++ )
+Error in diffobj:::capt_chr(letters, bad_obj, etc, function(...) stop(...),  : 
+  Coercion of `current` did not produce character object (list).
+> 
+> proc.time()
+   user  system elapsed 
+  1.053   0.116   1.168 

@@ -1,5 +1,11 @@
 # diffobj
 
+## v0.3.3
+
+* Implement experimental .Rout / .Rout.save testing.
+* Fix `all.equal` test breakages from
+  [r79555](https://github.com/r-devel/r-svn/commit/66d016544fe9deb64aa74ae55fa3edfcb721b1c4).
+
 ## v0.3.1-2
 
 * [#150](https://github.com/brodieG/diffobj/issues/150): Make tests compatible

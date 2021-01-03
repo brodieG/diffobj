@@ -12,5 +12,6 @@
 ^scratch\.R
 ^README\.Rmd
 ^README\.html
-.*\.tar\.gz^
+.*\.tar\.gz$
 notcran
+\.Rout$

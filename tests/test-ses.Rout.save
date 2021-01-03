@@ -1,0 +1,227 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> NAME <- "ses"
+> source(file.path('_helper', 'init.R'))
+> 
+> # Any tests added here should also be added to the valgrind test file
+> 
+> # - basic ----------------------------------------------------------------------
+> 
+> all.equal(ses(letters[1:10], letters[1:10]), character())
+[1] TRUE
+> all.equal(ses(letters[1:10], LETTERS[1:10]), "1,10c1,10")
+[1] TRUE
+> all.equal(ses(letters[1:5], LETTERS[1:10]), "1,5c1,10")
+[1] TRUE
+> all.equal(ses(letters[1:10], LETTERS[1:5]), "1,10c1,5")
+[1] TRUE
+> all.equal(ses(letters[2:10], letters[1:7]), c("0a1", "7,9d7"))
+[1] TRUE
+> all.equal(
++   ses(letters[c(1:5, 1:5, 1:5)], c("e", "d", "a", "b", "c")),
++   c("1,4d0", "6,8d1", "10d2", "14,15d5")
++ )
+[1] TRUE
+> all.equal(
++   ses(c("e", "d", "a", "b", "c"), letters[c(1:5, 1:5, 1:5)]),
++   c("0a1,4", "1a6,8", "2a10", "5a14,15")
++ )
+[1] TRUE
+> # edit distance = 1
+> 
+> # - trigger edit distance 1 branches -------------------------------------------
+> 
+> all.equal(ses("a", c("a", "b")), "1a2")
+[1] TRUE
+> all.equal(ses(c("a", "b"), "a"), "2d1")
+[1] TRUE
+> all.equal(ses("c", c("b", "c")), "0a1")
+[1] TRUE
+> all.equal(ses(c("b", "c"), "c"), "1d0")
+[1] TRUE
+> 
+> all.equal(ses("a", character()), "1d0")
+[1] TRUE
+> all.equal(ses(character(), "a"), "0a1")
+[1] TRUE
+> all.equal(ses(character(), character()), character())
+[1] TRUE
+> 
+> ## this is from the atomic tests, haven't dug into why they actually trigger
+> ## the desired branches, but it is fairly complex
+> set.seed(2)
+> w1 <- sample(
++   c(
++   "carrot", "cat", "cake", "eat", "rabbit", "holes", "the", "a", "pasta",
++   "boom", "noon", "sky", "hat", "blah", "paris", "dog", "snake"
++   ), 25, replace=TRUE
++ )
+> w4 <- w3 <- w2 <- w1
+> w2[sample(seq_along(w1), 5)] <- LETTERS[1:5]
+> w3 <- w1[8:15]
+> w4 <- c(w1[1:5], toupper(w1[1:5]), w1[6:15], toupper(w1[1:5]))
+> 
+> all.equal(ses(w1, w4), c("5a6,10", "15,21d19", "23,25c21,25"))
+[1] TRUE
+> 
+> # - longer strings -------------------------------------------------------------
+> 
+> # A bigger string
+> 
+> string <- do.call(paste0, expand.grid(LETTERS, LETTERS, LETTERS))
+> 
+> all.equal(
++   ses(string, c("hello", string[-c(5, 500, 1000)], "goodbye")),
++   c("0a1", "5d5", "500d499", "1000d998", "17576a17575")
++ )
+[1] TRUE
+> all.equal(
++   ses(c(string[200:500], "hello", string[-(1:400)][-c(5, 500, 1000)]), string),
++   c("0a1,199", "207,306d405", "800a900", "1299a1400")
++ )
+[1] TRUE
+> 
+> # - max diffs ------------------------------------------------------------------
+> 
+> ses(letters[1:10], LETTERS[1:10], max.diffs=5) # "Exceeded `max.diffs`"
+[1] "1,10c1,10"
+Warning message:
+In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
+  Exceeded `max.diffs`: 17 vs 5 allowed. Diff is probably suboptimal.
+> all.equal(
++   ses(letters[1:10], LETTERS[1:10], max.diffs=5, warn=FALSE),
++   "1,10c1,10"
++ )
+[1] TRUE
+> all.equal(
++   ses(
++     letters[1:10],
++     c(letters[1], LETTERS[2:5], letters[6:10]), max.diffs=5, warn=FALSE
++   ),
++   "2,5c2,5"
++ )
+[1] TRUE
+> all.equal(
++   ses(
++     letters[1:10],
++     c(letters[1], LETTERS[2:5], letters[6:8], LETTERS[9], letters[10]),
++     max.diffs=5, warn=FALSE
++   ),
++   c("2,5c2,5", "9c9")
++ )
+[1] TRUE
+> # - corner cases? --------------------------------------------------------------
+> 
+> all.equal(ses(letters[1:4], letters[1:3]), "4d3")
+[1] TRUE
+> all.equal(ses(letters[1:3], letters[1:4]), "3a4")
+[1] TRUE
+> 
+> # - errors
+> 
+> try(ses('a', 'b', max.diffs='hello')) # "must be scalar integer"
+Error in ses_prep(a = a, b = b, max.diffs = max.diffs, warn = warn) : 
+  Argument `max.diffs` must be scalar integer.
+> try(ses('a', 'b', warn='hello'))      # "must be TRUE or FALSE"
+Error in ses_prep(a = a, b = b, max.diffs = max.diffs, warn = warn) : 
+  Argument `warn` must be TRUE or FALSE.
+> 
+> a <- structure(1, class='diffobj_ogewlhgiadfl2')
+> try(ses(a, 1)) # "could not be coerced")
+Error in as.character.diffobj_ogewlhgiadfl2(a) : failure2
+Error in ses_prep(a = a, b = b, max.diffs = max.diffs, warn = warn) : 
+  Argument `a` is not character and could not be coerced to such
+> try(ses(1, a)) # "could not be coerced"
+Error in as.character.diffobj_ogewlhgiadfl2(b) : failure2
+Error in ses_prep(a = a, b = b, max.diffs = max.diffs, warn = warn) : 
+  Argument `b` is not character and could not be coerced to such
+> 
+> # We want to have a test file that fully covers the C code in order to run
+> # valgrind with just that one.  We were unable to isolate simple diffs that
+> # triggered all the code, but we were able to do it with the below in addition
+> # to the above.
+> 
+> # - Repeat tests for full coverage in SES file ---------------------------------
+> # From test.diffStr.R
+> # formula display changed
+> if(
++   R.Version()$major >= 3 && R.Version()$minor >= "3.1" ||
++   R.Version()$major >= 4) {
++   rdsf1 <- function(x)
++     readRDS(file.path("_helper", "objs", "diffStr", sprintf("%s.rds", x)))
++   all.equal(
++     as.character(
++       diffStr(mdl1, mdl2, extra=list(strict.width="wrap"), line.limit=30)
++     ),
++     rdsf1(500)
++   )
++ }
+[1] TRUE
+> # from testthat.warnings.R
+> 
+> A3 <- c("a b c", "d e f A B C D", "g h i", "f")
+> B3 <- c("a b c", "xd e f E Q L S", "g h i", "q")
+> 
+> diffChr(A3, B3, max.diffs=2) # warn: "Exceeded diff"
+[33m<[39m [33mA3[39m              [34m>[39m [34mB3[39m            
+[36m@@ 1,4 @@       [39m  [36m@@ 1,4 @@       [39m
+  [90m[39ma b c[90m[39m             [90m[39ma b c[90m[39m         
+[33m<[39m [90m[39m[33md[39m [33me[39m [33mf[39m [33mA[39m [33mB[39m [33mC[39m [33mD[39m[90m[39m   [34m>[39m [90m[39m[34mxd[39m [34me[39m [34mf[39m [34mE[39m [34mQ[39m [34mL[39m [34mS[39m[90m[39m
+[33m<[39m [90m[39m[33mg[39m [33mh[39m [33mi[39m[90m[39m           [34m>[39m [90m[39m[34mg[39m [34mh[39m [34mi[39m[90m[39m         
+[33m<[39m [90m[39m[33mf[39m[90m[39m               [34m>[39m [90m[39m[34mq[39m[90m[39m             
+Warning message:
+Exceeded diff limit during diff computation (5 vs. 2 allowed); overall diff is likely not optimal 
+> 
+> # - ses_dat --------------------------------------------------------------------
+> 
+> a <- b <- do.call(paste0, expand.grid(LETTERS, LETTERS))
+> set.seed(2)
+> b <- b[-sample(length(b), 100)]
+> a <- a[-sample(length(b), 100)]
+> 
+> dat <- ses_dat(a, b)
+> all.equal(dat[['val']][dat[['op']] != 'Delete'], b)
+[1] TRUE
+> all.equal(dat[['val']][dat[['op']] != 'Insert'], a)
+[1] TRUE
+> all.equal(a[dat[['id.a']][!is.na(dat[['id.a']])]], a)
+[1] TRUE
+> 
+> dat2 <- ses_dat(a, b, extra=FALSE)
+> all.equal(dat[1:2], dat2)
+[1] TRUE
+> all.equal(length(dat2), 2L)
+[1] TRUE
+> 
+> try(ses_dat(a, b, extra=NA)) # 'TRUE or FALSE'
+Error in ses_dat(a, b, extra = NA) : 
+  Argument `extra` must be TRUE or FALSE.
+> 
+> # - encoding agnostic #144 -----------------------------------------------------
+> 
+> # h/t @hadley, these are different in string cache, but should compare equal
+> # as per ?identical
+> x <- c("fa\xE7ile", "fa\ue7ile")
+> Encoding(x) <- c("latin1", "UTF-8")
+> y <- rev(x)
+> all.equal(diffobj::ses(x, y), character())
+[1] TRUE
+> 
+> proc.time()
+   user  system elapsed 
+  2.315   0.183   2.679 

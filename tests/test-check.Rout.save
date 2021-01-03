@@ -1,0 +1,170 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> NAME <- "check"
+> source(file.path('_helper', 'init.R'))
+> 
+> # - is.less_flags --------------------------------------------------------------
+> 
+> isTRUE(diffobj:::is.less_flags("RVXF"))
+[1] TRUE
+> isTRUE(diffobj:::is.less_flags("rvxF"))
+[1] TRUE
+> identical(diffobj:::is.less_flags(c("rvxF", "RVXF")), FALSE)
+[1] TRUE
+> identical(diffobj:::is.less_flags(23), FALSE)
+[1] TRUE
+> identical(diffobj:::is.less_flags("rv xF"), FALSE)
+[1] TRUE
+> 
+> # - is.int.2L ------------------------------------------------------------------
+> 
+> isTRUE(diffobj:::is.int.2L(1:2))
+[1] TRUE
+> isTRUE(diffobj:::is.int.2L(as.numeric(1:2)))
+[1] TRUE
+> identical(diffobj:::is.int.2L(c(1.3, 2.2)), FALSE)
+[1] TRUE
+> identical(diffobj:::is.int.2L(1:3), FALSE)
+[1] TRUE
+> identical(diffobj:::is.int.2L(c(1, NA)), FALSE)
+[1] TRUE
+> 
+> # - arg.funs -------------------------------------------------------------------
+> 
+> isTRUE(diffobj:::is.one.arg.fun(function(x) NULL))
+[1] TRUE
+> isTRUE(diffobj:::is.one.arg.fun(function(x, y=5) NULL))
+[1] TRUE
+> 
+> diffobj:::is.one.arg.fun(function(..., x) NULL) # "cannot have `...` as "
+[1] "cannot have `...` as the first argument"
+> diffobj:::is.one.arg.fun(NULL) # "is not a fun"
+[1] "is not a function"
+> diffobj:::is.one.arg.fun(function() NULL) # "have at least"
+[1] "does not have at least one arguments"
+> diffobj:::is.one.arg.fun(function(x, y) NULL) # "cannot have any"
+[1] "cannot have any non-optional arguments other than first one"
+> 
+> isTRUE(diffobj:::is.two.arg.fun(function(x, y) NULL))
+[1] TRUE
+> isTRUE(diffobj:::is.two.arg.fun(function(x, y=5) NULL))
+[1] TRUE
+> 
+> diffobj:::is.two.arg.fun(function(x, ..., y) NULL) # "cannot have `...` as "
+[1] "cannot have `...` as one of the first two arguments"
+> diffobj:::is.two.arg.fun(NULL) # "is not a fun"
+[1] "is not a function"
+> diffobj:::is.two.arg.fun(function(x) NULL) # "have at least")
+[1] "does not have at least two arguments"
+> diffobj:::is.two.arg.fun(function(x, y, z) NULL) # "cannot have any"
+[1] "cannot have any non-optional arguments other than first two"
+> 
+> # - valid_object ---------------------------------------------------------------
+> 
+> s.h <- StyleHtml()
+> s.h@wrap <- TRUE
+> try(diffobj:::valid_object(s.h, "style", stop)) #an invalid `StyleHtml` object
+Error in diffobj:::valid_object(s.h, "style", stop) : 
+  Argument `style` is an invalid `StyleHtml` object because: - slot `wrap` must be FALSE for `styleHtml` objects.
+> 
+> pal <- PaletteOfStyles()
+> pal["html", "light", "yb"] <- list(s.h)
+> try(# "`palette.of.styles` is an invalid"
++   diffChr(
++     "A", "B", palette.of.styles=pal, style="auto", format="html",
++     brightness="light", color.mode="yb"
++   )
++ )
+Error in diffChr(target = "A", current = "B", palette.of.styles = pal,  : 
+  Argument `palette.of.styles` is an invalid `StyleHtml` because it contains and invalid `Style` object: - slot `wrap` must be FALSE for `styleHtml` objects.
+> # - brightness -----------------------------------------------------------------
+> 
+> try(diffPrint(1:3, 3:6, brightness=NA)) # "must be character"
+Error in diffPrint(target = 1:3, current = 3:6, brightness = NA) : 
+  Argument `brightness` must be character and not contain NAs
+> try(diffPrint(1:3, 3:6, brightness="red")) # "may only contain values"
+Error in diffPrint(target = 1:3, current = 3:6, brightness = "red") : 
+  Argument `brightness` may only contain values in `c("neutral", "light", "dark")`
+> try(diffPrint(1:3, 3:6, brightness=c(raw='light'))) # "one empty name"
+Error in diffPrint(target = 1:3, current = 3:6, brightness = c(raw = "light")) : 
+  Argument `brightness` must include at least one empty name `""` if it has names.
+> try(diffPrint(1:3, 3:6, brightness=c('light', 'dark'))) # have names
+Error in diffPrint(target = 1:3, current = 3:6, brightness = c("light",  : 
+  Argument `brightness` must have names if it has length > 1, and those names must include at least an empty name `""` as well as names only from `c("raw", "ansi8", "ansi256", "html")`.
+> 
+> # - misc -----------------------------------------------------------------------
+> 
+> diffobj:::is.one.file.name(1) # "must be character"
+[1] "must be character(1L) and not NA"
+> try(diffPrint(1:3, 2:6, extra="hello")) # "must be a list"
+Error in diffPrint(target = 1:3, current = 2:6, extra = "hello") : 
+  Argument `extra` must be a list.
+> try(diffPrint(1:3, 2:6, context=TRUE)) # "Argument `context` must"
+Error in diffPrint(target = 1:3, current = 2:6, context = TRUE) : 
+  Argument `context` must be integer(1L) and not NA, an object produced by `auto_context`, or "auto".
+> try(diffPrint(1:3, 2:6, mode=1)) # "must be character"
+Error in diffPrint(target = 1:3, current = 2:6, mode = 1) : 
+  Argument `mode` must be character(1L) and in `c("auto", "unified", "context", "sidebyside")`.
+> try(diffPrint(1:3, 2:6, tab.stops=-1)) # "strictly positive"
+Error in diffPrint(target = 1:3, current = 2:6, tab.stops = -1) : 
+  Argument `tab.stops` must be integer containing at least one value and with all values strictly positive
+> try(diffPrint(1:3, 2:6, hunk.limit='hello')) # "integer vector"
+Error in diffPrint(target = 1:3, current = 2:6, hunk.limit = "hello") : 
+  Argument `hunk.limit` must be an integer vector of length 1 or 2 and if length 2, with the first value larger than or equal to the second.
+> try(diffPrint(1:3, 2:6, guides='hello')) # "or a function"
+Error in diffPrint(target = 1:3, current = 2:6, guides = "hello") : 
+  Argument `guides` must be TRUE, FALSE, or a function
+> try(diffPrint(1:3, 2:6, guides=function(x, y, z) NULL))# "cannot have any non"
+Error in diffPrint(target = 1:3, current = 2:6, guides = function(x, y,  : 
+  Argument `guides` cannot have any non-optional arguments other than first two
+> try(diffPrint(1:3, 2:6, trim='hello')) # "TRUE, FALSE, or a function"
+Error in diffPrint(target = 1:3, current = 2:6, trim = "hello") : 
+  Argument `trim` must be TRUE, FALSE, or a function
+> try(diffPrint(1:3, 2:6, trim=function(x, y, z) NULL)) # "cannot have any non"
+Error in diffPrint(target = 1:3, current = 2:6, trim = function(x, y,  : 
+  Argument `trim` cannot have any non-optional arguments other than first two
+> try(diffPrint(1:3, 2:6, interactive='hello')) # "must be TRUE or"
+Error in diffPrint(target = 1:3, current = 2:6, interactive = "hello") : 
+  Argument `interactive` must be TRUE or FALSE.
+> try(diffPrint(1:3, 2:6, max.diffs=1:10)) # "must be integer"
+Error in diffPrint(target = 1:3, current = 2:6, max.diffs = 1:10) : 
+  Argument `max.diffs` must be integer(1L) and not NA.
+> try(diffPrint(1:3, 2:6, tar.banner=1:10)) # "must be atomic"
+Error in diffPrint(target = 1:3, current = 2:6, tar.banner = 1:10) : 
+  Argument `tar.banner` must be atomic and length(1L), NULL, a symbol, or a call
+> try(diffPrint(1:3, 2:6, style=1:10)) # "must be \"auto\", a"
+Error in diffPrint(target = 1:3, current = 2:6, style = 1:10) : 
+  Argument `style` must be "auto", a `Style` object, or a list.
+> try(diffPrint(1:3, 2:6, pager=1:10)) # "must be one of"
+Error in diffPrint(target = 1:3, current = 2:6, pager = 1:10) : 
+  Argument `pager` must be one of `c("auto", "off", "on")`, a `Pager` object, or a list.
+> try(diffPrint(1:3, 2:6, format=1:10)) # "must be character"
+Error in diffPrint(target = 1:3, current = 2:6, format = 1:10) : 
+  Argument `format` must be character(1L) and not NA
+> try(diffPrint(1:3, 2:6, palette.of.styles=1:10)) # "must be a `PaletteOfStyles`"
+Error in diffPrint(target = 1:3, current = 2:6, palette.of.styles = 1:10) : 
+  Argument `palette.of.styles` must be a `PaletteOfStyles` object.
+> try(diffChr(letters, LETTERS, context=NA)) # "must be integer"
+Error in diffChr(target = letters, current = LETTERS, context = NA) : 
+  Argument `context` must be integer(1L) and not NA, an object produced by `auto_context`, or "auto".
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  1.280   0.121   1.399 
