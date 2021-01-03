@@ -11,5 +11,4 @@ mock <- function(f, tracer, where=f, print=FALSE)  {
       bquote(trace(.(substitute(f)), edit=TRUE, print=FALSE, where=.(where))),
       parent.frame()
 ) ) }
-mock(sum, quote(prod(...)), .BaseNamespaceEnv)
 

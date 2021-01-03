@@ -30,8 +30,7 @@ Type 'q()' to quit R.
 [1] TRUE
 > res <- any(diffPrint(iris.s, iris.c)) # warn:  "objects are NOT"
 Warning message:
-In any(new("Diff", target = list(Sepal.Length = c(5.1, 4.9, 4.7,  :
-  No visible differences, but objects are NOT `all.equal`.
+No visible differences, but objects are NOT `all.equal`. 
 > identical(res, FALSE)
 [1] TRUE
 > isTRUE(any(diffPrint(iris.s, iris.4)))
@@ -130,4 +129,4 @@ Error in .local(object, ...) :
 > 
 > proc.time()
    user  system elapsed 
-  3.319   0.244   3.611 
+  3.081   0.219   3.343 

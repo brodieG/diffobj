@@ -24,10 +24,11 @@ Type 'q()' to quit R.
 + )
 > identical(as.character(diffPrint(1 + 2, letters)), ref)
 [1] TRUE
-> setMethod(
-+   "diffPrint", c("numeric", "character"),
-+   function(target, current, ...) callNextMethod()
-+ )
+> invisible(
++   setMethod(
++     "diffPrint", c("numeric", "character"),
++     function(target, current, ...) callNextMethod()
++ ) )
 > identical(as.character(diffPrint(1 + 2, letters)), ref)
 [1] TRUE
 > isTRUE(
@@ -37,4 +38,4 @@ Type 'q()' to quit R.
 > 
 > proc.time()
    user  system elapsed 
-  1.390   0.145   1.558 
+  1.391   0.147   1.541 

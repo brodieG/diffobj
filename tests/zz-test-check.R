@@ -1,4 +1,4 @@
-filelist <- function(x, y) paste0(x, paste0("* ", basename(y), collapse="\n")
+filelist <- function(x, y) paste0(x, paste0("* ", basename(y), collapse="\n"))
 
 test.out <- list.files(pattern="\\.Rout$")
 if(any(lengths(lapply(test.out, tools::showNonASCIIfile))))
@@ -9,12 +9,12 @@ current <- file.path(dirname(targets), sub('\\.save$', '', basename(targets)))
 missing <- !file.exists(current)
 
 if(any(missing))
-  stop(filelist("Test output files are missing:\n", current[missing])
+  stop(filelist("Test output files are missing:\n", current[missing]))
 
 diff.dat <- Map(
   tools::Rdiff, targets[!missing], current[!missing], useDiff=TRUE, Log=TRUE
 )
-diffs <- vapply(diffs, '[', 1, 'status')
-if(any(diffs))
-  stop(filelist("Test output files have differences:\n",current[!!diffs]))
+diffs <- vapply(diff.dat, '[[', 1, 'status')
+if(any(!!diffs))
+  stop(filelist("Test output files have differences:\n", current[!!diffs]))
 

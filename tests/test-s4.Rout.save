@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2020-12-27 r79710) -- "Unsuffered Consequences"
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
 Copyright (C) 2020 The R Foundation for Statistical Computing
 Platform: x86_64-apple-darwin17.0 (64-bit)
 
@@ -51,12 +51,11 @@ Type 'q()' to quit R.
 > 
 > isTRUE(any(diffChr('a', 'b')))
 [1] TRUE
-> isFALSE(any(diffChr('a', 'a')))
+> identical(any(diffChr('a', 'a')), FALSE)
 [1] TRUE
 > try(any(diffChr('a', 'a'), 2)) # "supports only one argument"
-Error in any(new("Diff", target = "a", tar.dat = list(orig = "a", raw = "a",  : 
-  `any` method for `Diff` supports only one argument
+Error : `any` method for `Diff` supports only one argument
 > 
 > proc.time()
    user  system elapsed 
-  0.612   0.082   0.682 
+  1.322   0.143   1.471 

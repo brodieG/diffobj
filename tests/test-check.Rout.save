@@ -23,11 +23,11 @@ Type 'q()' to quit R.
 [1] TRUE
 > isTRUE(diffobj:::is.less_flags("rvxF"))
 [1] TRUE
-> isFALSE(diffobj:::is.less_flags(c("rvxF", "RVXF")))
+> identical(diffobj:::is.less_flags(c("rvxF", "RVXF")), FALSE)
 [1] TRUE
-> isFALSE(diffobj:::is.less_flags(23))
+> identical(diffobj:::is.less_flags(23), FALSE)
 [1] TRUE
-> isFALSE(diffobj:::is.less_flags("rv xF"))
+> identical(diffobj:::is.less_flags("rv xF"), FALSE)
 [1] TRUE
 > 
 > # - is.int.2L ------------------------------------------------------------------
@@ -166,4 +166,4 @@ Error in diffChr(target = letters, current = LETTERS, context = NA) :
 > 
 > proc.time()
    user  system elapsed 
-  1.235   0.116   1.360 
+  1.367   0.132   1.489 

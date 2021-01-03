@@ -17,7 +17,6 @@ Type 'q()' to quit R.
 
 > source(file.path('_helper', 'init.R'))
 > source(file.path('_helper', 'tools.R'))
-Tracing function "sum" in package "namespace:base"
 > 
 > txtf <- function(x)
 +   readLines(file.path("testthat", "helper", "pager", sprintf("%s.txt", x)))
@@ -463,4 +462,4 @@ Error in initialize(value, ...) : Argument `file.path` must be character.
 > 
 > proc.time()
    user  system elapsed 
-  2.271   0.236   2.545 
+  2.168   0.220   2.418 
