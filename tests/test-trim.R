@@ -231,7 +231,7 @@ b <- matrix(101:103)
 fun1 <- function(x, y) cbind(rep(1L, 4), rep(5L, 4))
 
 all.equal(as.character(diffPrint(a, b, trim=fun1)), rdsf(100))
-if(getRversion() >= "3.2") {
+if(getRversion() >= "3.2.2") {
   capture.output(
     trim.err <- as.character(diffPrint(a, b, trim=function(x, y) stop("boom"))),
     type="message"

@@ -221,7 +221,7 @@ b[50] <- -99L
 fun1 <- function(x, y) c(1L, 14L, 53L)
 
 all.equal(as.character(diffPrint(a, b, guides=fun1)), rdsf(100))
-if(getRversion() >= "3.2") {
+if(getRversion() >= "3.2.2") {
   capture.output( # warn: "If you did not specify a `guides`"
     trim.err <-
       as.character(diffPrint(a, b, guides=function(x, y) stop("boom"))),
