@@ -266,7 +266,7 @@ Type 'q()' to quit R.
 > 
 > all.equal(as.character(diffPrint(a, b, guides=fun1)), rdsf(100))
 [1] TRUE
-> if(getRversion() >= "3.2") {
+> if(getRversion() >= "3.2.2") {
 +   capture.output( # warn: "If you did not specify a `guides`"
 +     trim.err <-
 +       as.character(diffPrint(a, b, guides=function(x, y) stop("boom"))),
@@ -310,4 +310,4 @@ Error in guidesPrint(1:26, rep(NA_character_, 26)) :
 > 
 > proc.time()
    user  system elapsed 
-  1.468   0.148   1.621 
+  2.008   0.204   2.481 

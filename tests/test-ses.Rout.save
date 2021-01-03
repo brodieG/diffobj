@@ -162,7 +162,7 @@ Error in ses_prep(a = a, b = b, max.diffs = max.diffs, warn = warn) :
 +   R.Version()$major >= 3 && R.Version()$minor >= "3.1" ||
 +   R.Version()$major >= 4) {
 +   rdsf1 <- function(x)
-+     file.path("testthat", "helper", "diffStr", sprintf("%s.rds", x))
++     readRDS(file.path("testthat", "helper", "diffStr", sprintf("%s.rds", x)))
 +   all.equal(
 +     as.character(
 +       diffStr(mdl1, mdl2, extra=list(strict.width="wrap"), line.limit=30)
@@ -170,11 +170,7 @@ Error in ses_prep(a = a, b = b, max.diffs = max.diffs, warn = warn) :
 +     rdsf1(500)
 +   )
 + }
-[1] "Attributes: < Modes: list, NULL >"                   
-[2] "Attributes: < names for target but not for current >"
-[3] "Attributes: < current is not list-like >"            
-[4] "Lengths (28, 1) differ (string compare on first 1)"  
-[5] "1 string mismatch"                                   
+[1] TRUE
 > # from testthat.warnings.R
 > 
 > A3 <- c("a b c", "d e f A B C D", "g h i", "f")
@@ -227,4 +223,4 @@ Error in ses_dat(a, b, extra = NA) :
 > 
 > proc.time()
    user  system elapsed 
-  1.954   0.141   2.100 
+  2.144   0.167   2.362 
