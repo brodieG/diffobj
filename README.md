@@ -1,6 +1,7 @@
 # diffobj - Diffs for R Objects
 
 [![](https://travis-ci.org/brodieG/diffobj.svg?branch=master)](https://travis-ci.org/brodieG/diffobj)
+[![R build status](https://github.com/brodieG/diffobj/workflows/R-CMD-check/badge.svg)](https://github.com/brodieG/diffobj/actions)
 [![](https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=master)](https://codecov.io/github/brodieG/diffobj?branch=master)
 [![](http://www.r-pkg.org/badges/version/diffobj)](https://cran.r-project.org/package=diffobj)
 [![Dependencies direct/recursive](https://tinyverse.netlify.app/badge/diffobj)](https://tinyverse.netlify.app/)
