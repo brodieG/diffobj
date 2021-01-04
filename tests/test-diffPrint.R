@@ -205,7 +205,7 @@ try(diffPrint(letters, LETTERS, disp.width=5))
 # it shouldn't even be eligible for coverage, need to discuss further with
 # jhester
 
-diffobj:::make_diff_fun()
+invisible(diffobj:::make_diff_fun())
 
 # - Encoding Issues ------------------------------------------------------------
 
