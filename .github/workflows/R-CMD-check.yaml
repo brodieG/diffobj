@@ -85,5 +85,6 @@ jobs:
           path: check
 
       - name: Test coverage
+        if: runner.r == 'devel'
         run: covr::codecov()
         shell: Rscript {0}
