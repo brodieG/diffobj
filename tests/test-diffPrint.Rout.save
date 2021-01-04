@@ -1,5 +1,5 @@
 
-R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+R Under development (unstable) (2020-12-27 r79710) -- "Unsuffered Consequences"
 Copyright (C) 2020 The R Foundation for Statistical Computing
 Platform: x86_64-apple-darwin17.0 (64-bit)
 
@@ -324,8 +324,8 @@ function (target, current, mode = gdo("mode"), context = gdo("context"),
         extra)
     diff
 }
-<bytecode: 0x7fc707acb828>
-<environment: 0x7fc707ac5f60>
+<bytecode: 0x7fb38a0e1c88>
+<environment: 0x7fb38a0e9dd8>
 > 
 > # - Encoding Issues ------------------------------------------------------------
 > 
@@ -339,7 +339,7 @@ function (target, current, mode = gdo("mode"), context = gdo("context"),
 > 
 > # No error
 > 
-> invisible(as.character(diffPrint(list(hell=a, b=NULL), list(hell=b, b=list()))))
+> new <- (as.character(diffPrint(list(hell=a, b=NULL), list(hell=b, b=list()))))
 > 
 > # can't store this in RDS b/c otherwise won't run properly on oses with
 > # different encoding (e.g. windows)
@@ -357,8 +357,7 @@ function (target, current, mode = gdo("mode"), context = gdo("context"),
 + )
 > Encoding(ref) <- 'UTF-8'
 > all.equal(new, ref)
-[1] "Modes of target, current: function, character"
-[2] "target, current do not match when deparsed"   
+[1] TRUE
 > 
 > # issue 106, this used to fail when trying to check for an RDS with a bytes
 > # encoded file name
@@ -408,4 +407,4 @@ Error in .local(target, current, ...) :
 > 
 > proc.time()
    user  system elapsed 
-  5.638   0.630   6.704 
+  5.322   0.585   6.350 

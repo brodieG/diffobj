@@ -219,7 +219,7 @@ Encoding(b) <- 'UTF-8'
 
 # No error
 
-invisible(as.character(diffPrint(list(hell=a, b=NULL), list(hell=b, b=list()))))
+new <- (as.character(diffPrint(list(hell=a, b=NULL), list(hell=b, b=list()))))
 
 # can't store this in RDS b/c otherwise won't run properly on oses with
 # different encoding (e.g. windows)
