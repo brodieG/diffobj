@@ -1,7 +1,7 @@
 # diffobj - Diffs for R Objects
 
 [![R build status](https://github.com/brodieG/diffobj/workflows/R-CMD-check/badge.svg)](https://github.com/brodieG/diffobj/actions)
-[![](https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=master)](https://codecov.io/github/brodieG/diffobj?branch=master)
+[![](https://about.codecov.io/github/brodieG/diffobj/coverage.svg?branch=master)](https://about.codecov.io/github/brodieG/diffobj?branch=master)
 [![](http://www.r-pkg.org/badges/version/diffobj)](https://cran.r-project.org/package=diffobj)
 [![Dependencies direct/recursive](https://tinyverse.netlify.app/badge/diffobj)](https://tinyverse.netlify.app/)
 
@@ -74,7 +74,7 @@ browseVignettes("diffobj")
   particular because of the valgrind level 2 instrumented version of R.
 * All open source developers out there that make their work freely available
   for others to use.
-* [Github](https://github.com/), [Codecov](https://codecov.io/),
+* [Github](https://github.com/), [Codecov](https://about.codecov.io/),
   [Vagrant](https://www.vagrantup.com/), [Docker](https://www.docker.com/),
   [Ubuntu](https://ubuntu.com/), [Brew](https://brew.sh/) for providing
   infrastructure that greatly simplifies open source development.
