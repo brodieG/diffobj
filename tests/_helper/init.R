@@ -8,7 +8,7 @@ txtf <-
   function(x) readLines(file.path("_helper", "objs", NAME, sprintf("%s.txt", x)))
 
 srdsf <- function(x, i)
-  saveRDS(x, file.path("_helper", "objs", NAME, sprintf("%s.rds", i)))
+  saveRDS(x, file.path("_helper", "objs", NAME, sprintf("%s.rds", i)), version=2)
 
 stxtf <- function(x, i)
   writeLines(x, file.path("_helper", "objs", NAME, sprintf("%s.txt", i)))
