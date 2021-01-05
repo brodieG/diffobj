@@ -41,8 +41,9 @@ chr.4 <- c(
   "lorem ipsum dolor something or other I don't remember what the whole thing was anyway"
 )
 # X <- do.call(paste0, expand.grid(LETTERS, LETTERS, LETTERS, LETTERS))
-n <- 500
-# saveRDS(X[seq_len(n)], file.path('_helper', 'objs', 'common', 'aaaa.RDS'))
+n <- 500  # this n is used
+# saveRDS(X[seq_len(n)], file.path('_helper', 'objs', 'common', 'aaaa.RDS'),
+# version=2)
 set.seed(1)
 
 chr.7 <- chr.8 <- readRDS(file.path('_helper', 'objs', 'common', 'aaaa.RDS'))
