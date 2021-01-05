@@ -7,6 +7,12 @@ rdsf <-
 txtf <-
   function(x) readLines(file.path("_helper", "objs", NAME, sprintf("%s.txt", x)))
 
+srdsf <- function(x, i)
+  saveRDS(x, file.path("_helper", "objs", NAME, sprintf("%s.rds", i)))
+
+stxtf <- function(x, i)
+  writeLines(x, file.path("_helper", "objs", NAME, sprintf("%s.txt", i)))
+
 library(diffobj)
 
 all.opts <- c(
