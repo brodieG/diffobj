@@ -60,6 +60,7 @@ if(identical(.Platform$OS.type, "unix") && has_Rdiff()) {
     j <- identical(Rdiff_obj(A2, f2, silent=TRUE), ref.res2)
     k <- identical(Rdiff_obj(f1, f2, silent=TRUE), ref.res2)
 
-    c(a, b, c, d, e, f, g, h, i, k)
+    res <- c(a, b, c, d, e, f, g, h, i, k)
+    if(!all(res)) stop("Failed: ", deparse(which(!res)))
   })
 }

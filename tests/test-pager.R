@@ -225,10 +225,12 @@ if(diffobj:::is.chr.1L(less) && file_test("-x", less)) {
     old.opt <- options(pager=less)
     on.exit(options(old.opt))
 
-    all(
-      c(
-        identical(diffobj:::pager_opt_default(), FALSE), isTRUE(pager_is_less())
-    ) )
+    # has to be stopifnot as we can't return TRUE for systems that don't
+    # meet these requirements
+    stopifnot(
+      identical(diffobj:::pager_opt_default(), FALSE),
+      isTRUE(pager_is_less())
+    )
   })
 }
 if(diffobj:::is.chr.1L(sys.cat) && file_test("-x", sys.cat)) {
@@ -236,8 +238,12 @@ if(diffobj:::is.chr.1L(sys.cat) && file_test("-x", sys.cat)) {
     old.opt <- options(pager=sys.cat)
     on.exit(options(old.opt))
 
-    identical(diffobj:::pager_opt_default(), FALSE)
-    identical(pager_is_less(), FALSE)
+    # has to be stopifnot as we can't return TRUE for systems that don't
+    # meet these requirements
+    stopifnot(
+      identical(diffobj:::pager_opt_default(), FALSE),
+      identical(pager_is_less(), FALSE)
+    )
   })
 }
 ## force some checks
