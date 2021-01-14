@@ -288,23 +288,27 @@ Warning messages:
 +     old.opt <- options(pager=less)
 +     on.exit(options(old.opt))
 + 
-+     all(
-+       c(
-+         identical(diffobj:::pager_opt_default(), FALSE), isTRUE(pager_is_less())
-+     ) )
++     # has to be stopifnot as we can't return TRUE for systems that don't
++     # meet these requirements
++     stopifnot(
++       identical(diffobj:::pager_opt_default(), FALSE),
++       isTRUE(pager_is_less())
++     )
 +   })
 + }
-[1] TRUE
 > if(diffobj:::is.chr.1L(sys.cat) && file_test("-x", sys.cat)) {
 +   local({
 +     old.opt <- options(pager=sys.cat)
 +     on.exit(options(old.opt))
 + 
-+     identical(diffobj:::pager_opt_default(), FALSE)
-+     identical(pager_is_less(), FALSE)
++     # has to be stopifnot as we can't return TRUE for systems that don't
++     # meet these requirements
++     stopifnot(
++       identical(diffobj:::pager_opt_default(), FALSE),
++       identical(pager_is_less(), FALSE)
++     )
 +   })
 + }
-[1] TRUE
 > ## force some checks
 > 
 > local({
@@ -460,4 +464,4 @@ Error in initialize(value, ...) : Argument `file.path` must be character.
 > 
 > proc.time()
    user  system elapsed 
-  2.318   0.278   2.673 
+  1.638   0.199   1.873 

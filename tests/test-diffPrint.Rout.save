@@ -271,61 +271,7 @@ Error in diffPrint(target = letters, current = LETTERS, disp.width = 5) :
 > # it shouldn't even be eligible for coverage, need to discuss further with
 > # jhester
 > 
-> diffobj:::make_diff_fun()
-function (target, current, mode = gdo("mode"), context = gdo("context"), 
-    format = gdo("format"), brightness = gdo("brightness"), color.mode = gdo("color.mode"), 
-    word.diff = gdo("word.diff"), pager = gdo("pager"), guides = gdo("guides"), 
-    trim = gdo("trim"), rds = gdo("rds"), unwrap.atomic = gdo("unwrap.atomic"), 
-    max.diffs = gdo("max.diffs"), disp.width = gdo("disp.width"), 
-    ignore.white.space = gdo("ignore.white.space"), convert.hz.white.space = gdo("convert.hz.white.space"), 
-    tab.stops = gdo("tab.stops"), line.limit = gdo("line.limit"), 
-    hunk.limit = gdo("hunk.limit"), align = gdo("align"), style = gdo("style"), 
-    palette.of.styles = gdo("palette"), frame = par_frame(), 
-    interactive = gdo("interactive"), term.colors = gdo("term.colors"), 
-    tar.banner = NULL, cur.banner = NULL, strip.sgr = gdo("strip.sgr"), 
-    sgr.supported = gdo("sgr.supported"), extra = list()) 
-{
-    frame
-    call.dat <- extract_call(sys.calls(), frame)
-    target
-    current
-    etc.proc <- check_args(call = call.dat$call, tar.exp = call.dat$tar, 
-        cur.exp = call.dat$cur, mode = mode, context = context, 
-        line.limit = line.limit, format = format, brightness = brightness, 
-        color.mode = color.mode, pager = pager, ignore.white.space = ignore.white.space, 
-        max.diffs = max.diffs, align = align, disp.width = disp.width, 
-        hunk.limit = hunk.limit, convert.hz.white.space = convert.hz.white.space, 
-        tab.stops = tab.stops, style = style, palette.of.styles = palette.of.styles, 
-        frame = frame, tar.banner = tar.banner, cur.banner = cur.banner, 
-        guides = guides, rds = rds, trim = trim, word.diff = word.diff, 
-        unwrap.atomic = unwrap.atomic, extra = extra, interactive = interactive, 
-        term.colors = term.colors, strip.sgr = strip.sgr, sgr.supported = sgr.supported, 
-        call.match = match.call())
-    if (rds) {
-        target <- get_rds(target)
-        current <- get_rds(current)
-    }
-    err <- make_err_fun(sys.call())
-    etc.proc@gutter <- gutter_dat(etc.proc)
-    col.pad.width <- nchar2(etc.proc@style@text@pad.col, sgr.supported = etc.proc@sgr.supported)
-    gutt.width <- etc.proc@gutter@width
-    half.width <- as.integer((etc.proc@disp.width - col.pad.width)/2)
-    etc.proc@line.width <- max(etc.proc@disp.width, .min.width + 
-        gutt.width)
-    etc.proc@text.width <- etc.proc@line.width - gutt.width
-    etc.proc@line.width.half <- max(half.width, .min.width + 
-        gutt.width)
-    etc.proc@text.width.half <- etc.proc@line.width.half - gutt.width
-    if (etc.proc@mode == "auto" && etc.proc@disp.width < 80L) 
-        etc.proc@mode <- "unified"
-    if (etc.proc@mode == "sidebyside") 
-        etc.proc <- sideBySide(etc.proc)
-    diff <- capt_fun(target, current, etc = etc.proc, err = err, 
-        extra)
-    diff
-}
-<bytecode: 0x7fc707acb828>
-<environment: 0x7fc707ac5f60>
+> invisible(diffobj:::make_diff_fun())
 > 
 > # - Encoding Issues ------------------------------------------------------------
 > 
@@ -339,7 +285,7 @@ function (target, current, mode = gdo("mode"), context = gdo("context"),
 > 
 > # No error
 > 
-> invisible(as.character(diffPrint(list(hell=a, b=NULL), list(hell=b, b=list()))))
+> new <- (as.character(diffPrint(list(hell=a, b=NULL), list(hell=b, b=list()))))
 > 
 > # can't store this in RDS b/c otherwise won't run properly on oses with
 > # different encoding (e.g. windows)
@@ -357,8 +303,7 @@ function (target, current, mode = gdo("mode"), context = gdo("context"),
 + )
 > Encoding(ref) <- 'UTF-8'
 > all.equal(new, ref)
-[1] "Modes of target, current: function, character"
-[2] "target, current do not match when deparsed"   
+[1] TRUE
 > 
 > # issue 106, this used to fail when trying to check for an RDS with a bytes
 > # encoded file name
@@ -408,4 +353,4 @@ Error in .local(target, current, ...) :
 > 
 > proc.time()
    user  system elapsed 
-  5.638   0.630   6.704 
+  5.686   0.658   6.772 

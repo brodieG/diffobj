@@ -219,7 +219,7 @@ diffChr(x, y, color.mode="rgb")
 
 ### Output Formats
 
-If your terminal supports it `diffobj` will format the output with ANSI escape sequences.  `diffobj` uses Gábor Csárdi's [`crayon`](https://github.com/gaborcsardi/crayon) package to detect ANSI support and to apply ANSI based formatting.  If you are using RStudio or another IDE that supports `getOption("viewer")`, `diffobj` will output an HTML/CSS formatted diff to the viewport.  In other terminals that do not support ANSI colors, `diffobj` will attempt to output to an HTML/CSS formatted diff to your browser using `browseURL`.
+If your terminal supports it `diffobj` will format the output with ANSI escape sequences.  `diffobj` uses Gábor Csárdi's [`crayon`](https://github.com/r-lib/crayon) package to detect ANSI support and to apply ANSI based formatting.  If you are using RStudio or another IDE that supports `getOption("viewer")`, `diffobj` will output an HTML/CSS formatted diff to the viewport.  In other terminals that do not support ANSI colors, `diffobj` will attempt to output to an HTML/CSS formatted diff to your browser using `browseURL`.
 
 You can explicitly specify the output format with the `format` parameter:
 

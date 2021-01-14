@@ -15,3 +15,5 @@
 .*\.tar\.gz$
 notcran
 \.Rout$
+\.Rout.fail$
+^\.github$

@@ -88,11 +88,11 @@ Error in Rdiff_obj(stop("hello"), "goodbye") :
 +     j <- identical(Rdiff_obj(A2, f2, silent=TRUE), ref.res2)
 +     k <- identical(Rdiff_obj(f1, f2, silent=TRUE), ref.res2)
 + 
-+     c(a, b, c, d, e, f, g, h, i, k)
++     res <- c(a, b, c, d, e, f, g, h, i, k)
++     if(!all(res)) stop("Failed: ", deparse(which(!res)))
 +   })
 + }
- [1] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE
 > 
 > proc.time()
    user  system elapsed 
-  1.370   0.204   1.760 
+  0.535   0.139   0.673 

@@ -7,9 +7,10 @@ if(any(lengths(lapply(test.out, tools::showNonASCIIfile))))
 targets <- list.files(pattern='\\.Rout\\.save', full.names=TRUE)
 current <- file.path(dirname(targets), sub('\\.save$', '', basename(targets)))
 missing <- !file.exists(current)
+writeLines(getwd())
 
 if(any(missing))
-  stop(filelist("Test output files are missing:\n", current[missing]))
+  stop(filelist("Test output files are missing (failed?):\n", current[missing]))
 
 diff.dat <- Map(
   tools::Rdiff, targets[!missing], current[!missing], useDiff=TRUE, Log=TRUE

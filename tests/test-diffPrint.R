@@ -205,7 +205,7 @@ try(diffPrint(letters, LETTERS, disp.width=5))
 # it shouldn't even be eligible for coverage, need to discuss further with
 # jhester
 
-diffobj:::make_diff_fun()
+invisible(diffobj:::make_diff_fun())
 
 # - Encoding Issues ------------------------------------------------------------
 
@@ -219,7 +219,7 @@ Encoding(b) <- 'UTF-8'
 
 # No error
 
-invisible(as.character(diffPrint(list(hell=a, b=NULL), list(hell=b, b=list()))))
+new <- (as.character(diffPrint(list(hell=a, b=NULL), list(hell=b, b=list()))))
 
 # can't store this in RDS b/c otherwise won't run properly on oses with
 # different encoding (e.g. windows)
