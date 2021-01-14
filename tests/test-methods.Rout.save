@@ -1,0 +1,80 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> NAME <- "methods"
+> source(file.path('_helper', 'init.R'))
+> 
+> # try implementing methods that change default behavior outside of package
+> 
+> # - Force unified --------------------------------------------------------------
+> 
+> par.env <- new.env()
+> local(
++   envir=par.env, {
++   suppressWarnings(
++     setClass(
++       "testdiffobj", slots=c(a="integer"), where=par.env
++   ) )
++   # First check that we do actually output in side by side mode
++ 
++   print(
++     all.equal(
++       as.character(diffObj(new("testdiffobj", a=1L), new("testdiffobj", a=2L))),
++       rdsf(100)
++   ) )
++   # Now verify that with our new method, we get unified
++ 
++   setMethod("diffObj", c("testdiffobj", "testdiffobj"),
++     function(target, current, ...) {
++       dots <- match.call(expand.dots=FALSE)[["..."]]
++       if("mode" %in% names(dots))
++         callNextMethod()
++       else
++         callNextMethod(target=target, current=current, ..., mode="unified")
++     },
++     where=par.env
++   )
++   on.exit(
++     removeMethod("diffObj", c("testdiffobj", "testdiffobj"), where=par.env)
++   )
++   print(
++     all.equal(
++       as.character(diffObj(new("testdiffobj", a=1L), new("testdiffobj", a=2L))),
++       rdsf(200)
++     ) )
++   # Make sure we can still get side by side?
++   print(
++     all.equal(
++       as.character(
++         diffObj(
++           new("testdiffobj", a=1L), new("testdiffobj", a=2L), mode="sidebyside"
++       ) ),
++       rdsf(100)
++   ) )
++   try( #"Argument `mode` must be"
++     diffObj(new("testdiffobj", a=1L), new("testdiffobj", a=2L), mode="hello")
++   )
++ })
+[1] TRUE
+[1] TRUE
+[1] TRUE
+Error in diffObj(target = new("testdiffobj", a = 1L), current = new("testdiffobj",  : 
+  Error in calling `diffStr`: Argument `mode` must be character(1L) and in `c("auto", "unified", "context", "sidebyside")`.
+> 
+> proc.time()
+   user  system elapsed 
+  1.609   0.172   1.801 

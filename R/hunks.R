@@ -1,4 +1,4 @@
-# Copyright (C) 2020 Brodie Gaslam
+# Copyright (C) 2021 Brodie Gaslam
 #
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -67,9 +67,10 @@ setMethod("as.hunks", c("MyersMbaSes", "Settings"),
           d.del <- d[which(.edit.map[d[, "type"]] == "Delete"), ,drop=FALSE]
           d.ins <- d[which(.edit.map[d[, "type"]] == "Insert"), ,drop=FALSE]
           d.mtc <- d[which(.edit.map[d[, "type"]] == "Match"), ,drop=FALSE]
-          del.len <- sum(d.del[, "len"])
-          ins.len <- sum(d.ins[, "len"])
-          mtc.len <- sum(d.mtc[, "len"])
+          # R 3.3.3 had sum(integer(0)) == 1!
+          del.len <- if(nrow(d.del)) sum(d.del[, "len"]) else 0L
+          ins.len <- if(nrow(d.ins)) sum(d.ins[, "len"]) else 0L
+          mtc.len <- if(nrow(d.mtc)) sum(d.mtc[, "len"]) else 0L
           tar.len <- del.len + mtc.len
           cur.len <- ins.len + mtc.len
 

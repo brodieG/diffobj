@@ -1,0 +1,6 @@
+No visible differences between objects, but there are some differences
+suppressed by `ignore.white.space`, `convert.hz.white.space`, `strip.sgr`,
+and/or `trim`. Set all those arguments to FALSE to highlight the differences.
+< "hello . wo..  > "hello.  wo..
+@@ 1 @@          @@ 1 @@        
+  hello . world    hello.  world

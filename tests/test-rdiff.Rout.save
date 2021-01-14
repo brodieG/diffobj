@@ -1,0 +1,98 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> NAME <- "rdiff"
+> source(file.path('_helper', 'init.R'))
+> 
+> # - diff util detection --------------------------------------------------------
+> 
+> identical(has_Rdiff(function(...) warning("test warning")), FALSE)
+[1] TRUE
+> isTRUE(has_Rdiff(function(...) NULL))
+[1] TRUE
+> 
+> # - errors ---------------------------------------------------------------------
+> 
+> try(Rdiff_chr(stop('hello'), 'goodbye')) # "Unable to coerce"
+Error in try(as.character(from)) : hello
+Error in Rdiff_chr(stop("hello"), "goodbye") : 
+  Unable to coerce `target` to character.
+> try(Rdiff_chr('hello', stop('goodbye'))) #  "Unable to coerce"
+Error in try(as.character(to)) : goodbye
+Error in Rdiff_chr("hello", stop("goodbye")) : 
+  Unable to coerce `current` to character.
+> try(Rdiff_obj(stop('hello'), 'goodbye')) #  "Unable to store"
+Error in vapply(list(from, to), function(x) { : hello
+Error in Rdiff_obj(stop("hello"), "goodbye") : 
+  Unable to store text representation of objects
+> 
+> # - Rdiff_chr/obj --------------------------------------------------------------
+> 
+> # Only run tests on machines that are likely to have diff utility
+> 
+> if(identical(.Platform$OS.type, "unix") && has_Rdiff()) {
++   local({
++     A2 <- c("A", "B", "C")
++     B2 <- c("X", "A", "Y", "C")
++     A3 <- 1:3
++     B3 <- c(100L, 1L, 200L, 3L)
++ 
++     # Rdiff_chr
++ 
++     ref.res <- c("0a1", "2c3")
++     ref.res.1 <- c("0a1", "> X", "2c3", "< B", "---", "> Y")
++ 
++     a <- identical(Rdiff_chr(A2, B2, silent=TRUE, minimal=TRUE), ref.res)
++     capt <- capture.output(res <- Rdiff_chr(A2, B2, silent=FALSE, minimal=TRUE))
++     b <- identical(res, ref.res)
++     c <- identical(capt, res)
++     capt.1 <- capture.output(
++       res.1 <- Rdiff_chr(A2, B2, silent=FALSE, minimal=FALSE)
++     )
++     d <- identical(capt.1, ref.res.1)
++     e <- identical(res.1, ref.res.1)
++ 
++     # test coersion
++     f <- identical(Rdiff_chr(A3, B3, minimal=TRUE, silent=TRUE), ref.res)
++ 
++     # Rdiff_obj
++ 
++     ref.res2 <- c("1c1", "< [1] \"A\" \"B\" \"C\"", "---", "> [1] \"X\" \"A\" \"Y\" \"C\"" )
++     ref.res3 <- c("1c1")
++ 
++     g <- identical(Rdiff_obj(A2, B2, silent=TRUE), ref.res2)
++     h <- identical(Rdiff_obj(A2, B2, minimal=TRUE, silent=TRUE), ref.res3)
++ 
++     # with rds
++     f1 <- tempfile()
++     f2 <- tempfile()
++     saveRDS(A2, f1)
++     saveRDS(B2, f2)
++     on.exit(unlink(c(f1, f2)))
++ 
++     i <- identical(Rdiff_obj(f1, B2, silent=TRUE), ref.res2)
++     j <- identical(Rdiff_obj(A2, f2, silent=TRUE), ref.res2)
++     k <- identical(Rdiff_obj(f1, f2, silent=TRUE), ref.res2)
++ 
++     res <- c(a, b, c, d, e, f, g, h, i, k)
++     if(!all(res)) stop("Failed: ", deparse(which(!res)))
++   })
++ }
+> 
+> proc.time()
+   user  system elapsed 
+  0.535   0.139   0.673 

@@ -1,4 +1,4 @@
-# Copyright (C) 2020 Brodie Gaslam
+# Copyright (C) 2021 Brodie Gaslam
 
 # This file is part of "diffobj - Diffs for R Objects"
 #
@@ -482,14 +482,17 @@ setMethod("any", "Diff",
   function(x, ..., na.rm = FALSE) {
     dots <- list(...)
     if(length(dots))
-      stop("`any` method for `Diff` supports only one argument")
+      stop("`any` method for `Diff` supports only one argument", call. = FALSE)
     res <- any(
       which(
         !vapply(
           unlist(x@diffs, recursive=FALSE), "[[", logical(1L), "context"
     ) ) )
     if(!res && !isTRUE(all.equal(x@target, x@current)))
-      warning("No visible differences, but objects are NOT `all.equal`.")
+      warning(
+        "No visible differences, but objects are NOT `all.equal`.",
+        call.=FALSE
+      )
     res
 } )
 # See diff_myers for explanation of slots

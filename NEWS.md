@@ -1,5 +1,11 @@
 # diffobj
 
+## v0.3.3
+
+* Implement experimental .Rout / .Rout.save testing.
+* Fix `all.equal` test breakages from
+  [r79555](https://github.com/r-devel/r-svn/commit/66d016544fe9deb64aa74ae55fa3edfcb721b1c4).
+
 ## v0.3.1-2
 
 * [#150](https://github.com/brodieG/diffobj/issues/150): Make tests compatible
@@ -180,7 +186,7 @@ affect user facing behavior.
 ## v0.1.3
 
 * First version on CRAN
-* [#51](https://github.com/brodieG/diffobj/issues/51): use RStudio viewport to display HTML diffs when running in RStudio, as per [Noam Ross](https://twitter.com/noamross/status/760115813559009280)
+* [#51](https://github.com/brodieG/diffobj/issues/51): use RStudio viewport to display HTML diffs when running in RStudio (h/t Noam Ross)
 * [#54](https://github.com/brodieG/diffobj/issues/54): [#55](https://github.com/brodieG/diffobj/issues/55), scale HTML output to viewport width (see `?Style`)
 * [#53](https://github.com/brodieG/diffobj/issues/53): default term colors computed on run instead of on package load
 * [#56](https://github.com/brodieG/diffobj/issues/56): disable wrap for HTML output

@@ -1,0 +1,467 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> NAME <- "pager"
+> source(file.path('_helper', 'init.R'))
+> source(file.path('_helper', 'tools.R'))
+> 
+> # void pager, doesn't do anything, just to test side effect of writing to file
+> 
+> void <- function(x) NULL
+> 
+> # - Specifying pager -----------------------------------------------------------
+> 
+> style <- gdo("diffobj.style")
+> if(is.null(style)) style <- StyleAnsi8NeutralYb()
+> style@pager@file.ext <- "xyz"  # make pager identifiable
+> all.equal(
++   diffChr(
++     letters, LETTERS, style=style, pager="auto", interactive=TRUE
++   )@etc@style@pager@file.ext,
++   "xyz"
++ )
+[1] TRUE
+> all.equal(
++   diffChr(
++     letters, LETTERS, style=style, pager="off", interactive=TRUE
++   )@etc@style@pager,
++   PagerOff()
++ )
+[1] TRUE
+> identical(
++   diffChr(
++     letters, LETTERS, style=style, pager="auto", interactive=FALSE
++   )@etc@style@pager,
++   PagerOff()
++ )
+[1] TRUE
+> 
+> # - System Pagers --------------------------------------------------------------
+> 
+> less.orig <- Sys.getenv("LESS")
+> pager_mock <- function(...) {
++   warning(Sys.getenv("LESS"))
++   42
++ }
+> is(PagerSystem(), "PagerSystem")
+[1] TRUE
+> is(
++   pg.less <- PagerSystemLess(pager=pager_mock, flags="VWF"),
++   "PagerSystemLess"
++ )
+[1] TRUE
+> res <- pg.less@pager() # warning: "VWF$"
+Warning message:
+In pager.old(x) : -VWF
+> all.equal(res, 42)
+[1] TRUE
+> all.equal(less.orig, Sys.getenv("LESS"))
+[1] TRUE
+> all.equal(PagerSystemLess(pager=pager_mock)@flags, "R")
+[1] TRUE
+> 
+> try(PagerSystemLess(pager=pager_mock, flags=letters))
+Error in initialize(value, ...) : 
+  Argument `flags` must be character(1L) and not NA
+> 
+> # - use_pager ------------------------------------------------------------------
+> 
+> local({
++   suppressMessages(mock(diffobj:::console_lines, 10L))
++   on.exit(suppressMessages(untrace(diffobj:::console_lines)))
++   c(
++     isTRUE(diffobj:::use_pager(PagerSystem(threshold=0L), 1L)),
++     identical(diffobj:::use_pager(PagerSystem(threshold=50L), 25L), FALSE),
++     isTRUE(diffobj:::use_pager(PagerSystem(threshold=-1L), 25L))
++   )
++ })
+[1] TRUE TRUE TRUE
+> 
+> # - Setting LESS var -----------------------------------------------------------
+> 
+> local({
++   less.orig <- Sys.getenv("LESS", unset=NA)
++   old.opt <- options(crayon.enabled=FALSE)  # problems with crayon and LESS
++   on.exit({
++     diffobj:::reset_less_var(less.orig) # should be tested..., but super simple
++     options(old.opt)
++   })
++ 
++   # Here we change the LESS variable even though we're mocking getenv
++ 
++   Sys.unsetenv("LESS")
++   a0 <- isTRUE(is.na(diffobj:::set_less_var("XF")))
++   a <- all.equal(Sys.getenv("LESS"), "-XF")
++   Sys.setenv(LESS="-X -F")
++   b <- all.equal(diffobj:::set_less_var("VP"), "-X -F")
++   c <- all.equal(Sys.getenv("LESS"), "-X -FVP")
++   diffobj:::reset_less_var("-XF")
++   d <- all.equal(Sys.getenv("LESS"), "-XF")
++   diffobj:::reset_less_var(NA_character_)
++   e <- all.equal(Sys.getenv("LESS"), "")
++   Sys.setenv(LESS="-XF")
++   f <- all.equal(diffobj:::set_less_var("V"), "-XF")
++   g <- all.equal(Sys.getenv("LESS"), "-XFV")
++   c(a0, a, b, c, d, e, f, g)
++ })
+[1] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE
+> 
+> # - viewer vs browser ----------------------------------------------------------
+> 
+> local({
++   viewer <- function(x) "viewer"
++   old.external <- options(viewer=viewer, browser=function(url) "browser")
++   on.exit(options(old.external))
++   suppressMessages(mock(diffobj::make_blocking, quote(fun)))
++   on.exit(suppressMessages(untrace(diffobj::make_blocking)), add=TRUE)
++   pager <- PagerBrowser()
++   a <- all.equal(pager@pager("blah"), "viewer")
++   options(viewer=NULL)
++   b <- all.equal(pager@pager("blah"), "browser")
++   options(viewer=function(x) stop("viewer error"))
++   res <- pager@pager("blah") # warning: "IDE viewer"
++   c <- all.equal(res, "browser")
++   c(a, b, c)
++ })
+[1] TRUE TRUE TRUE
+Warning message:
+In pager@pager("blah") :
+  IDE viewer failed with error viewer error; falling back to `browseURL`
+> 
+> # - blocking -------------------------------------------------------------------
+> 
+> # Note that readline just proceeds in non-interactive mode, which is why we
+> # need the mock here
+> 
+> local({
++   suppressMessages(mock(diffobj:::interactive, FALSE))
++   on.exit(suppressMessages(untrace(diffobj:::interactive)))
++   suppressMessages(mock(diffobj:::readline, quote(warning("readline"))))
++   on.exit(suppressMessages(untrace(diffobj:::readline)), add=TRUE)
++   try(make_blocking("hello")) # "must be a function"
++   try(make_blocking(identity, letters)) # "must be character\\(1L")
++   try(make_blocking(identity, "a", "a")) # "must be TRUE"
++ 
++   res <- make_blocking(sum)(1:10) # warn: "readline"
++   a <- all.equal(sum(1:10), res)
++   b <- isTRUE(
++     withVisible(
++       suppressWarnings(make_blocking(sum, invisible=FALSE)(1:10))
++     )[['visible']]
++   )
++   c(a, b)
++ })
+Error in make_blocking("hello") : Argument `fun` must be a function
+Error in make_blocking(identity, letters) : 
+  Argument `msg` must be character(1L) and not NA
+Error in make_blocking(identity, "a", "a") : 
+  Argument `invisible.res` must be TRUE or FALSE
+[1] TRUE TRUE
+Warning message:
+In readline(msg) : readline
+> local({
++   suppressMessages(mock(diffobj:::interactive, TRUE))
++   on.exit(suppressMessages(untrace(diffobj:::interactive)))
++   suppressMessages(mock(diffobj:::readline, quote(warning("readline"))))
++   on.exit(suppressMessages(untrace(diffobj:::readline)), add=TRUE)
++   show( # warn "readline"
++     diffChr(
++       "a", "b", format='raw',
++       pager=list(pager=void, make.blocking=TRUE, threshold=0)
++     )
++   )
++   show( # warn "readline"
++     diffChr(
++       "a", "b", format='html',
++       pager=list(pager=void, make.blocking=NA, threshold=0)
++   ) )
++   show(diffChr("a", "b", format='html', pager=list(pager=void)))
++ })
+Warning messages:
+1: In readline(msg) : readline
+2: In readline(msg) : readline
+3: In readline(msg) : readline
+> # There should be no warnings in this lot
+> 
+> local({
++   suppressMessages(mock(diffobj:::interactive, TRUE))
++   on.exit(suppressMessages(untrace(diffobj:::interactive)))
++   suppressMessages(mock(diffobj:::readline, quote(warning("readline"))))
++   on.exit(suppressMessages(untrace(diffobj:::readline)), add=TRUE)
++   f <- tempfile()
++   on.exit(unlink(f), add=TRUE)
++   show(  # no warning
++     diffChr(
++       "a", "b", format='html',
++       pager=list(pager=void, make.blocking=NA, file.path=f)
++   ) )
++   show(  # no warning
++     diffChr(
++       "a", "b", format='html',
++       pager=list(pager=void, make.blocking=FALSE, file.path=f)
++   ) )
++   show(  # no warning
++     diffChr("a", "b", format='html', pager=list(pager=void, file.path=f))
++   )
++ })
+> 
+> # - html page output -----------------------------------------------------------
+> 
+> pager <- PagerBrowser(
++   pager=function(x) cat(readLines(x), sep="\n"), make.blocking=FALSE
++ )
+> all.equal(
++   capture.output(show(diffChr("A", "B", pager=pager, style=StyleRaw()))),
++   c("< \"A\"       > \"B\"     ", "@@ 1 @@     @@ 1 @@   ", "< A         > B       ")
++ )
+[1] TRUE
+> pager.warn <- PagerBrowser(
++   pager=function(x) cat(readLines(x), sep="\n"), make.blocking=FALSE
++ )
+> try( # "Unable to instantiate `Style` object: Argument `js` .* is not a file"
++   diffChr(
++     "A", "B", pager=pager.warn, format="html", style=list(js="notafile")
++ ) )
+Error in diffChr(target = "A", current = "B", pager = pager.warn, format = "html",  : 
+  Unable to instantiate `Style` object: Argument `js` ("notafile") is not a file
+> try( # "Unable to instantiate `Style` object: Argument `css` .* is not a file"
++   diffChr(
++     "A", "B", pager=pager.warn, format="html", style=list(css="notafile")
++   )
++ )
+Error in diffChr(target = "A", current = "B", pager = pager.warn, format = "html",  : 
+  Unable to instantiate `Style` object: Argument `css` ("notafile") is not a file
+> # Create objects that bypass the validation
+> 
+> style.obj.1 <- style.obj.2 <- StyleHtmlLightYb()
+> style.obj.1@css <- "notafile"
+> style.obj.2@js <- "notafile"
+> 
+> invisible(
++   capture.output( # warn: "Unable to read provided css file"
++     show(diffChr("A", "B", pager=pager.warn, style=style.obj.1))
++ ) )
+Warning messages:
+1: In file(con, "r") :
+  cannot open file 'notafile': No such file or directory
+2: In .local(x, ...) :
+  Unable to read provided css file "notafile" (error: cannot open the connection).
+> invisible(
++   capture.output( # "Unable to read provided js file"
++     show(diffChr("A", "B", pager=pager.warn, style=style.obj.2))
++ ) )
+Warning messages:
+1: In file(con, "r") :
+  cannot open file 'notafile': No such file or directory
+2: In .local(x, ...) :
+  Unable to read provided js file "notafile" (error: cannot open the connection).
+> # - pager_is_less --------------------------------------------------------------
+> 
+> is.less <- pager_is_less()
+> isTRUE(diffobj:::is.TF(is.less))
+[1] TRUE
+> 
+> less <- tryCatch(
++   system2("which", "less", stdout=TRUE, stderr=TRUE),
++   error=function(e) NULL, warning=function(e) NULL
++ )
+> sys.cat <- tryCatch(
++   system2("which", "cat", stdout=TRUE, stderr=TRUE),
++   error=function(e) NULL, warning=function(e) NULL
++ )
+> if(diffobj:::is.chr.1L(less) && file_test("-x", less)) {
++   local({
++     old.opt <- options(pager=less)
++     on.exit(options(old.opt))
++ 
++     # has to be stopifnot as we can't return TRUE for systems that don't
++     # meet these requirements
++     stopifnot(
++       identical(diffobj:::pager_opt_default(), FALSE),
++       isTRUE(pager_is_less())
++     )
++   })
++ }
+> if(diffobj:::is.chr.1L(sys.cat) && file_test("-x", sys.cat)) {
++   local({
++     old.opt <- options(pager=sys.cat)
++     on.exit(options(old.opt))
++ 
++     # has to be stopifnot as we can't return TRUE for systems that don't
++     # meet these requirements
++     stopifnot(
++       identical(diffobj:::pager_opt_default(), FALSE),
++       identical(pager_is_less(), FALSE)
++     )
++   })
++ }
+> ## force some checks
+> 
+> local({
++   old.opt <- options(pager=NULL)
++   on.exit(options(old.opt))
++   identical(pager_is_less(), FALSE)
++ })
+[1] TRUE
+> identical(diffobj:::file_is_less(tempfile()), FALSE)
+[1] TRUE
+> 
+> # - file.path ------------------------------------------------------------------
+> 
+> f <- tempfile()
+> show(
++   diffChr(
++     "A", "B", format='raw',
++     pager=list(pager=void, file.path=f, threshold=0L)
++ ) )
+> all.equal(
++   readLines(f),
++   c("< \"A\"       > \"B\"     ", "@@ 1 @@     @@ 1 @@   ",
++     "< A         > B       ")
++ )
+[1] TRUE
+> show(  # No error on this one
++   diffChr(
++     "A", "B", format='raw',
++     pager=list(pager=void, file.path=NA, threshold=0L)
++ ) )
+> try(Pager(file.path=letters)) # "must be length 1"
+Error in initialize(value, ...) : Argument `file.path` must be length 1.
+> try(Pager(file.path=1)) # "must be character"
+Error in initialize(value, ...) : Argument `file.path` must be character.
+> 
+> # - basic pager ----------------------------------------------------------------
+> 
+> local({
++   f <- tempfile()
++   on.exit(unlink(f))
++   c(
++     all.equal(
++       capture.output(
++         show(
++           diffChr(
++             1, 2, pager=Pager(file.path=f, threshold=0L),
++             format='raw'
++           )
++       ) ),
++       txtf(100)
++     ),
++     all.equal(txtf(100), readLines(f))
++   )
++ })
+[1] TRUE TRUE
+> 
+> # - format-pager interaction ---------------------------------------------------
+> 
+> local({
++   old.opt <- options(crayon.colors=7)
++   crayon::num_colors(TRUE)
++   on.exit({
++     options(old.opt)
++     crayon::num_colors(TRUE)
++   })
++   c(
++     is(
++       diffChr(1, 2, format='auto', pager="on", interactive=TRUE)@etc@style,
++       "StyleHtml"
++     ),
++     is(
++       diffChr(1, 2, format='auto', pager="on", interactive=FALSE)@etc@style,
++       "StyleRaw"
++     ),
++     is(
++       diffChr(
++         1, 2, format='auto', pager=PagerBrowser(), interactive=FALSE
++       )@etc@style,
++       "StyleHtml"
++     )
++   )
++ })
+[1] TRUE TRUE TRUE
+> # - format-pager interaction 2 -------------------------------------------------
+> 
+> local({
++   old.rs <- Sys.getenv('RSTUDIO', unset=NA)
++   old.rsterm <- Sys.getenv('RSTUDIO_TERM', unset=NA)
++   on.exit({
++     if(is.na(old.rs)) {
++       Sys.unsetenv('RSTUDIO')
++     } else Sys.setenv('RSTUDIO'=old.rs)
++ 
++     if(is.na(old.rsterm)) {
++       Sys.unsetenv('RSTUDIO_TERM')
++     } else Sys.setenv('RSTUDIO_TERM'=old.rsterm)
++   })
++   Sys.unsetenv('RSTUDIO')
++   Sys.unsetenv('RSTUDIO_TERM')
++   old.opt <- options(crayon.colors=8)
++   crayon::num_colors(TRUE)
++   on.exit({options(old.opt); crayon::num_colors(TRUE)}, add=TRUE)
++ 
++   Sys.setenv(RSTUDIO='1')
++ 
++   a <- c(
++     is(
++       diffChr(1, 2, format='auto', pager='on', interactive=TRUE)@etc@style,
++       "StyleHtml"
++     ),
++     is(
++       diffChr(1, 2, format='auto', interactive=FALSE)@etc@style,
++       "StyleAnsi"
++   ) )
++   Sys.setenv(RSTUDIO_TERM='HELLO')
++   crayon::num_colors(TRUE)
++ 
++   c(
++     a,
++     is(
++       diffChr(1, 2, format='auto', pager='on', interactive=TRUE)@etc@style,
++       "StyleAnsi"
++   ) )
++ })
+[1] TRUE TRUE TRUE
+> 
+> # - format-pager interaction 3 -------------------------------------------------
+> 
+> is(
++   diffPrint(1:3, 3:1, format='auto', interactive=FALSE, term.colors=1)@etc@style,
++   "StyleRaw"
++ )
+[1] TRUE
+> is(
++   diffPrint(1:3, 3:1, format='auto', interactive=FALSE, term.colors=8)@etc@style,
++   "StyleAnsi"
++ )
+[1] TRUE
+> 
+> # - Default pager writes to screen ---------------------------------------------
+> 
+> # issue132 thanks Bill Dunlap
+> 
+> local({
++   f <- tempfile()
++   on.exit(unlink(f))
++   writeLines("hello world", f)
++ 
++   all.equal(capture.output(new("Pager")@pager(f)), "hello world")
++ })
+[1] TRUE
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  1.638   0.199   1.873 

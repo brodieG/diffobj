@@ -1,0 +1,212 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> NAME <- "style"
+> source(file.path('_helper', 'init.R'))
+> 
+> ## - Style Palette ------------------------------------------------------------
+> 
+> all.equal(
++   capture.output(diffobj:::display_ansi_256_styles()),
++   rdsf(100)
++ )
+[1] TRUE
+> ## - crayon settings -----------------------------------------------------------
+> 
+>   # make sure crayon options are appropriately overriden
+> local({
++   old.opt <- options(crayon.enabled=FALSE)
++   on.exit(options(old.opt))
++   print(identical(crayon::green("green"), "green"))
++   # should have ANSI coloring despite crayon disabled
++   print(
++     all.equal(
++       as.character(diffChr(letters[1:3], LETTERS[1:3])), rdsf(200)
++     )
++   )
++   identical(crayon::green("green"), "green")
++ })
+[1] TRUE
+[1] TRUE
+[1] TRUE
+> ## - Palette of Styles ---------------------------------------------------------
+> 
+> pos <- PaletteOfStyles()
+> identical(
++   pos[["ansi256", "light", "rgb"]],
++   getClassDef("StyleAnsi256LightRgb", package="diffobj", inherits=FALSE)
++ )
+[1] TRUE
+> all.equal(
++   capture.output(show(pos)), rdsf(300)
++ )
+[1] TRUE
+> all.equal(
++   capture.output(summary(pos)), rdsf(400)
++ )
+[1] TRUE
+> 
+> pos["ansi256", "light", "yb"] <- list(StyleRaw())
+> all.equal(
++   c(pos["ansi256", "light", "yb"]@data), list(StyleRaw()),
++   check.environment=FALSE
++ )
+[1] TRUE
+> all.equal(
++   pos[["ansi256", "light", "yb"]], StyleRaw(),
++   check.environment=FALSE
++ )
+[1] TRUE
+> 
+> ## - Auto Styles ---------------------------------------------------------------
+> 
+> try(diffChr(letters, LETTERS, style="auto", format="xml"))
+Error in diffChr(target = letters, current = LETTERS, style = "auto",  : 
+  Argument `format` must be one of `c("auto", "raw", "ansi8", "ansi256", "html")`.
+> is(
++   diffChr(
++     letters, LETTERS, style="auto", format="auto", brightness="light",
++     term.colors=256
++   )@etc@style,
++   "StyleAnsi256LightYb"
++ )
+[1] TRUE
+> is(
++   diffChr(
++     letters, LETTERS, style="auto", format="auto", brightness="light",
++     term.colors=8
++   )@etc@style,
++   "StyleAnsi8NeutralYb"
++ )
+[1] TRUE
+> is(
++   diffChr(
++     letters, LETTERS, style="auto", format="auto", interactive=FALSE,
++     term.colors=1
++   )@etc@style,
++   "StyleRaw"
++ )
+[1] TRUE
+> is(
++   diffChr(
++     letters, LETTERS, style="auto", format="auto", interactive=TRUE,
++     term.colors=1  # note pager off by default in tests
++   )@etc@style,
++   "StyleRaw"
++ )
+[1] TRUE
+> is(
++   diffChr(
++     letters, LETTERS, style="auto", format="auto", interactive=TRUE,
++     pager="auto", term.colors=1
++   )@etc@style,
++   "StyleHtml"
++ )
+[1] TRUE
+> is(
++   diffChr(
++     letters, LETTERS, style="auto", format="auto", interactive=TRUE,
++     pager="auto", term.colors=9
++   )@etc@style,
++   "StyleAnsi8NeutralYb"
++ )
+[1] TRUE
+> is(
++   diffChr(
++     letters, LETTERS, style="auto", format="auto", interactive=TRUE,
++     pager="auto", brightness='light', term.colors=500
++   )@etc@style,
++   "StyleAnsi256LightYb"
++ )
+[1] TRUE
+> is(
++   diffChr(
++     letters, LETTERS, style="auto", format="html", interactive=TRUE,
++     pager="auto", color.mode=c("rgb", ansi8="yb")
++   )@etc@style,
++   "StyleHtmlLightRgb"
++ )
+[1] TRUE
+> is(
++   diffChr(
++     letters, LETTERS, style="auto", format="html", interactive=TRUE,
++     pager="auto", color.mode=c("rgb", html="yb")
++   )@etc@style,
++   "StyleHtmlLightYb"
++ )
+[1] TRUE
+> ## - Palette Params ------------------------------------------------------------
+> 
+> all.equal(
++   as.character(
++     diffChr(
++       letters, LETTERS, style="auto", format="ansi256",
++       brightness=c("light", ansi256="dark")
++   ) ),
++   rdsf(500)
++ )
+[1] TRUE
+> all.equal(
++   as.character(
++     diffChr(
++       letters, LETTERS, style="auto", format="ansi256", brightness=c("dark")
++   ) ),
++   rdsf(500)
++ )
+[1] TRUE
+> ## - Style Validation ----------------------------------------------------------
+> 
+> s.f <- StyleFuns()
+> isTRUE(validObject(s.f))
+[1] TRUE
+> s.f@word.insert <- function(x, y) NULL
+> try(validObject(s.f)) # word.insert
+Error in validObject(s.f) : 
+  invalid class "StyleFuns" object: Argument `word.insert` may not have non-default formals argument after the first.
+> 
+> try(diffChr(1,2, format='html', style=list(scale=1:3)))
+Error in diffChr(target = 1, current = 2, format = "html", style = list(scale = 1:3)) : 
+  Unable to instantiate `Style` object: Argument `scale` must be TRUE or FALSE
+> try(diffChr(1,2, format='html', style=list(html.output="a")))
+Error in diffChr(target = 1, current = 2, format = "html", style = list(html.output = "a")) : 
+  Unable to instantiate `Style` object: Argument `html.output` must be in `c("auto", "page", "diff.only", "diff.w.style")`.
+> 
+> ## - Pallette w/ Objs ----------------------------------------------------------
+> 
+> pal <- PaletteOfStyles()
+> pal["raw", "neutral", "rgb"] <- list(new(pal[["raw", "neutral", "rgb"]]))
+> 
+> suppressWarnings(
++   withCallingHandlers(
++     invisible(diffChr(
++       letters, LETTERS, format="raw", brightness="neutral", color.mode="rgb",
++       palette.of.styles=pal, style=list(na.sub="NA")
++     )),
++     warning=function(e) writeLines(conditionMessage(e))
++   )
++ )
+Extra `style` arguments cannot be applied because selected object `palette.of.styles` is a `Style` instance rather than a `Style` "classRepresentation".  See documentation for the `style` parameter for details.
+> ## - External Files ------------------------------------------------------------
+> 
+> isTRUE(file_test("-f", diffobj_css()))
+[1] TRUE
+> isTRUE(file_test("-f", diffobj_js()))
+[1] TRUE
+> 
+> proc.time()
+   user  system elapsed 
+  3.692   0.414   4.303 

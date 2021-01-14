@@ -1,6 +1,6 @@
 # diffobj - Diffs for R Objects
 
-[![](https://travis-ci.org/brodieG/diffobj.svg?branch=master)](https://travis-ci.org/brodieG/diffobj)
+[![R build status](https://github.com/brodieG/diffobj/workflows/R-CMD-check/badge.svg)](https://github.com/brodieG/diffobj/actions)
 [![](https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=master)](https://codecov.io/github/brodieG/diffobj?branch=master)
 [![](http://www.r-pkg.org/badges/version/diffobj)](https://cran.r-project.org/package=diffobj)
 [![Dependencies direct/recursive](https://tinyverse.netlify.app/badge/diffobj)](https://tinyverse.netlify.app/)
@@ -44,8 +44,9 @@ browseVignettes("diffobj")
   requests (see NEWS.md).
 * [Gábor Csárdi](https://github.com/gaborcsardi) for
   [crayon](https://github.com/r-lib/crayon).
-* [Jim Hester](https://github.com/jimhester) because
-  [covr](https://cran.r-project.org/package=covr) rocks.
+* [Jim Hester](https://github.com/jimhester) for
+  [covr](https://cran.r-project.org/package=covr), and with Rstudio for
+  [r-lib/actions](https://github.com/r-lib/actions).
 * [Dirk Eddelbuettel](https://github.com/eddelbuettel) and [Carl
   Boettiger](https://github.com/cboettig) for the
   [rocker](https://github.com/rocker-org/rocker) project, and [Gábor
@@ -53,8 +54,7 @@ browseVignettes("diffobj")
   [R-consortium](https://www.r-consortium.org/) for
   [Rhub](https://github.com/r-hub), without which testing bugs on R-devel and
   other platforms would be a nightmare.
-* [Hadley Wickham](https://github.com/hadley/) for
-  [devtools](https://cran.r-project.org/package=devtools) and with [Peter
+* [Hadley Wickham](https://github.com/hadley/) and [Peter
   Danenberg](https://github.com/klutometis) for
   [roxygen2](https://cran.r-project.org/package=roxygen2).
 * [Yihui Xie](https://github.com/yihui) for
@@ -74,11 +74,10 @@ browseVignettes("diffobj")
   particular because of the valgrind level 2 instrumented version of R.
 * All open source developers out there that make their work freely available
   for others to use.
-* [Github](https://github.com/), [Travis-CI](https://travis-ci.org/),
-  [Codecov](https://codecov.io/), [Vagrant](https://www.vagrantup.com/),
-  [Docker](https://www.docker.com/), [Ubuntu](https://ubuntu.com/),
-  [Brew](https://brew.sh/) for providing infrastructure that greatly simplifies
-  open source development.
+* [Github](https://github.com/), [Codecov](https://about.codecov.io/),
+  [Vagrant](https://www.vagrantup.com/), [Docker](https://www.docker.com/),
+  [Ubuntu](https://ubuntu.com/), [Brew](https://brew.sh/) for providing
+  infrastructure that greatly simplifies open source development.
 * [Free Software Foundation](https://www.fsf.org/) for developing the GPL
   license and promotion of the free software movement.
 

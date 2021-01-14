@@ -1,0 +1,104 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> NAME <- "diffObj"
+> source(file.path('_helper', 'init.R'))
+> 
+> # - simple diffobj -------------------------------------------------------------
+> 
+> # no diff for print
+> all.equal(as.character(diffObj(iris.s, iris.c)), rdsf(100))
+[1] TRUE
+> # no diff for str
+> all.equal(
++   as.character(diffObj(1:100, c(1:99, 200L))), rdsf(200)
++ )
+[1] TRUE
+> # diffs for both and must pick one, first one is str, second is print
+> all.equal(
++   as.character(diffObj(mdl1[7], mdl2[7])), rdsf(300)
++ )
+[1] TRUE
+> all.equal(as.character(diffObj(mdl1, mdl2)), rdsf(400))
+[1] TRUE
+> 
+> # - fits or doesn't ------------------------------------------------------------
+> 
+> # Note, the first test used to favor str until we handicapped print
+> all.equal(
++   diffObj(matrix(1:20, ncol=2), matrix(2:21, ncol=2), line.limit=5)@capt.mode,
++   "str"
++ )
+[1] TRUE
+> # test kinda slow, would be better to have one with smaller objects with print
+> # methods
+> 
+> all.equal(
++   diffObj(mdl1, mdl2, line.limit=15, mode='unified')@capt.mode, "print"
++ )
+[1] TRUE
+> all.equal(diffObj(1:1000, 1000:1, line.limit=5)@capt.mode, "str")
+[1] TRUE
+> 
+> # - misc -----------------------------------------------------------------------
+> 
+> try(diffObj(1, 2, extra=list(TRUE))) # "extra"
+Error in .local(target, current, ...) : 
+  Argument `extra` must be empty in `diffObj`.
+> 
+> # - print error ----------------------------------------------------------------
+> 
+> x <- structure("hello", class="diffobj_ogewlhgiadfl")
+> y <- structure("goodbye", class="diffobj_ogewlhgiadfl")
+> try(diffObj(x, y)) # "Error in calling .diffPrint."
+Error in print.diffobj_ogewlhgiadfl(structure("goodbye", class = "diffobj_ogewlhgiadfl")) : 
+  failure
+Error in diffObj(target = x, current = y) : 
+  Error in calling `diffPrint`: Failed attempting to get text representation of object: failure
+> 
+> # Random exmaples to think through `diffObj` output
+> 
+> diffObj(
++   pairlist("`logical(2L)` should be length 2 (is 3)"),
++   pairlist("be length 2 (is 3)")
++ )
+[33m<[39m [33mpairlist("`logical(2L)` should be l..[39m  [34m>[39m [34mpairlist("be length 2 (is 3)")[39m       
+[36m@@ 1,3 @@                              [39m  [36m@@ 1,3 @@                              [39m
+  [90m[39m[[1]][90m[39m                                    [90m[39m[[1]][90m[39m                                
+[33m<[39m [90m[1] [39m[33m"`logical(2L)` should be length 2[39m[90m[39m  [34m>[39m [90m[1] [39m[34m"be length 2 (is 3)"[39m[90m[39m             
+[33m:[39m [90m[39m[33m (is 3)"[39m[90m[39m                               [90m~[39m                                      
+                                                                                
+> 
+> diffObj(
++   pairlist("`matrix(integer(), nrow = 3)` should be matrix (is list)", "`list(character(1L), 1L)[[2]]` should be type \"integer-like\" (is \"character\")"),
++   pairlist("be class \"matrix\" (is \"list\")", "be type \"integer-like\" (is \"character\") at index [[2]]")
++ )
+[33m<[39m [33mpairlist("`matrix(integer(), nrow =..[39m  [34m>[39m [34mpairlist("be class \"matrix\" (is \..[39m
+[36m@@ 1,6 @@                              [39m  [36m@@ 1,6 @@                              [39m
+  [90m[39m[[1]][90m[39m                                    [90m[39m[[1]][90m[39m                                
+[33m<[39m [90m[1] [39m[33m"`matrix(integer(), nrow = 3)` sh[39m[90m[39m  [34m>[39m [90m[1] [39m[34m"be class \"matrix\"[39m [34m(is[39m [34m\[39m[34m"[39m[34mlist[39m[34m\[39m[34m"[39m[34m[39m[34m[39m[90m[39m
+[33m:[39m [90m[39m[33mould be matrix (is list)"[39m[90m[39m              [34m:[39m [90m[39m[34m[39m[34m[39m[34m[39m[34m[39m[34m[39m[34m[39m[34m[39m[34m)[39m[34m"[39m[90m[39m                                   
+                                                                                
+  [90m[39m[[2]][90m[39m                                    [90m[39m[[2]][90m[39m                                
+[33m<[39m [90m[1] [39m[33m"`list(character(1L), 1L)[[2]]` s[39m[90m[39m  [34m>[39m [90m[1] [39m[34m"be type \"integer-like\"[39m (is \"c[34m[39m[34m[39m[34m[39m[90m[39m
+[33m:[39m [90m[39m[33mhould be type \"integer-like\"[39m (is \"[90m[39m  [34m:[39m [90m[39m[34m[39mharacter\") [34mat[39m [34mindex[39m [34m[[2]][39m"[90m[39m          
+[33m:[39m [90m[39m[33m[39mcharacter\")"[90m[39m                          [90m~[39m                                      
+                                                                                
+> 
+> proc.time()
+   user  system elapsed 
+  3.252   0.326   3.687 

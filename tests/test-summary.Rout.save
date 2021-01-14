@@ -1,0 +1,128 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> NAME <- "summary"
+> source(file.path('_helper', 'init.R'))
+> 
+> # Note, atomic prints happen in different test file
+> 
+> # - Any ------------------------------------------------------------------------
+> 
+> identical(any(diffPrint(iris.s, iris.s)), FALSE)
+[1] TRUE
+> res <- any(diffPrint(iris.s, iris.c)) # warn:  "objects are NOT"
+Warning message:
+No visible differences, but objects are NOT `all.equal`. 
+> identical(res, FALSE)
+[1] TRUE
+> isTRUE(any(diffPrint(iris.s, iris.4)))
+[1] TRUE
+> 
+> 
+> # - Small Summary --------------------------------------------------------------
+> 
+> all.equal(
++   as.character(summary(diffPrint(iris.s, iris.4))), rdsf(100)
++ )
+[1] TRUE
+> all.equal(
++   as.character(summary(diffPrint(iris.s, iris.2))), rdsf(200)
++ )
+[1] TRUE
+> all.equal(
++   as.character(summary(diffPrint(iris.s, iris.3))), rdsf(300)
++ )
+[1] TRUE
+> all.equal(
++   as.character(summary(diffPrint(iris.s, iris.c))), rdsf(400)
++ )
+[1] TRUE
+> # All equal
+> 
+> all.equal(
++   as.character(summary(diffChr(letters, letters))), rdsf(450)
++ )
+[1] TRUE
+> 
+> # - Big Summary ----------------------------------------------------------------
+> 
+> # Make sure we test summary reduction, wrapping
+> 
+> all.equal(
++   as.character(summary(diffChr(chr.7, chr.8))), rdsf(500)
++ )
+[1] TRUE
+> all.equal(
++   as.character(summary(diffChr(chr.7, chr.8), scale.threshold=1)), rdsf(600)
++ )
+[1] TRUE
+> all.equal(
++   as.character(summary(diffChr(chr.7, chr.8), scale.threshold=0)), rdsf(700)
++ )
+[1] TRUE
+> # Force truncation of summary
+> all.equal(
++   as.character(
++     summary(diffChr(chr.7, chr.8), scale.threshold=0, max.lines=2)
++   ),
++   rdsf(800)
++ )
+[1] TRUE
+> 
+> # - Show -----------------------------------------------------------------------
+> 
+> isTRUE(
++   paste0(capture.output(summary(diffChr(chr.7, chr.8))), collapse="\n") ==
++   as.character(summary(diffChr(chr.7, chr.8)))
++ )
+[1] TRUE
+> 
+> # - HTML summary ---------------------------------------------------------------
+> 
+> all.equal(
++   as.character(
++     summary(
++       diffPrint(
++         iris.s, iris.4, format="html", style=list(html.output="page")
++   ) ) ),
++   rdsf(900)
++ )
+[1] TRUE
+> 
+> # - errors ---------------------------------------------------------------------
+> 
+> diff <- diffChr("hello green world", "hello red world")
+> try(summary(diff, max.lines=0)) # "strictly positive"
+Error in .local(object, ...) : 
+  Argument `max.lines` must be integer(1L) and strictly positive
+> try(summary(diff, width=1:3)) # "integer\\(1L\\)"
+Error in .local(object, ...) : 
+  Argument `width` must be integer(1L) and positive
+> try(summary(diff, scale.threshold=5)) # "between 0 and 1"
+Error in .local(object, ...) : 
+  Argument `scale.threshold` must be numeric(1L) between 0 and 1
+> 
+> # - width wrap -----------------------------------------------------------------
+> 
+> diff <- diffChr("hello green world", "hello red world", format='raw')
+> all.equal(capture.output(show(summary(diff, width=5))), txtf(100))
+[1] TRUE
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  3.413   0.271   3.813 
