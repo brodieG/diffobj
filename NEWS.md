@@ -1,5 +1,10 @@
 # diffobj
 
+## v0.3.4
+
+* [#152](https://github.com/brodieG/diffobj/issues/152): Fix "unreachable branch
+  2" error (h/t @hadley, @DanChaltiel).
+
 ## v0.3.3
 
 * Implement experimental .Rout / .Rout.save testing.

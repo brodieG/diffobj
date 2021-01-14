@@ -89,7 +89,10 @@ all.equal(
 all.equal(ses(letters[1:4], letters[1:3]), "4d3")
 all.equal(ses(letters[1:3], letters[1:4]), "3a4")
 
-# - errors
+# issue152 h/t @hadley, used to error, now warns
+diffobj::ses(1, 2:9, max.diffs = 8)
+
+# - errors ---------------------------------------------------------------------
 
 try(ses('a', 'b', max.diffs='hello')) # "must be scalar integer"
 try(ses('a', 'b', warn='hello'))      # "must be TRUE or FALSE"
