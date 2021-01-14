@@ -230,10 +230,7 @@ _find_faux_snake(
   }
   /* didn't find a path so use origin */
   if(x_max_f < 0) {
-    // nocov start
-    error(err_msg_ubrnch, 2);
     x_f = y_f = k_f = 0;
-    // nocov end
   } else {
     k_f = k_max_f;
     x_f = x_max_f;
