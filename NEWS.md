@@ -3,7 +3,7 @@
 ## v0.3.4
 
 * [#152](https://github.com/brodieG/diffobj/issues/152): Fix "unreachable branch
-  2" error (h/t @hadley, @DanChaltiel).
+  2" and other `max.diffs` related errors (h/t @hadley, @DanChaltiel, @gadenbui).
 
 ## v0.3.3
 
