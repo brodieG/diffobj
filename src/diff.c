@@ -242,6 +242,7 @@ _find_faux_snake(
   int diffs = 0;    // only diffs from fake snake
   int step_dir = 1; /* last direction we moved in, 1 is down */
 
+  //Rprintf("x %d y %d u %d v %d\n", x, y, ms.u, ms.v);
   if(x > ms.u || y > ms.v)
     error("Logic Error: fake fwd snake overshot bwd snake. Contact maintainer."); // nocov
   if(max_steps < 0)
@@ -254,17 +255,17 @@ _find_faux_snake(
       x < ms.u && y < ms.v &&
       _comp_chr(a, aoff + x, b, boff + y)
     ) {
-      Rprintf("MATCH\n");
+      //Rprintf("MATCH\n");
       x++; y++;
       *(faux_snake_tmp + steps) = DIFF_MATCH;
     } else if (x < ms.u && (step_dir || y >= ms.v)) {
-      Rprintf("DEL\n");
+      //Rprintf("DEL\n");
       x++;
       diffs++;
       step_dir = !step_dir;
       *(faux_snake_tmp + steps) = DIFF_DELETE;
     } else if (y < ms.v && (!step_dir || x >= ms.u)) {
-      Rprintf("INS\n");
+      //Rprintf("INS\n");
       y++;
       diffs++;
       *(faux_snake_tmp + steps) = DIFF_INSERT;
@@ -277,6 +278,7 @@ _find_faux_snake(
   if(x != ms.u || y != ms.v || steps >= max_steps) {
     error("Logic Error: faux snake process failed; contact maintainer."); // nocov
   }
+  //Rprintf("Extra diffs %d\n", diffs);
   *faux_snake = faux_snake_tmp;
   return diffs;
 }
@@ -306,9 +308,11 @@ _find_middle_snake(
   // );
   int delta, odd, mid, d;
   int x_max, y_max, v_max, u_max;
-  x_max = y_max = 0;
-  v_max = n;
-  u_max = m;
+  x_max = 0;
+  y_max = 0;
+  u_max = n;
+  v_max = m;
+  double dist = (x_max - u_max)^2 + (y_max - v_max)^2;
 
   delta = n - m;
   odd = delta & 1;
@@ -324,7 +328,7 @@ _find_middle_snake(
    * First loop does not actually find a difference
    */
   for (d = 0; d <= mid; d++) {
-    Rprintf("d: %d\n", d);
+    //Rprintf("d: %d\n", d);
     int k, x, y;
 
     /* Reached maximum allowable differences before real exit condition.
@@ -341,6 +345,7 @@ _find_middle_snake(
       // So far we've found 2*(d - 1) differences
       ctx->dmaxhit = 1;
       ms->x = x_max; ms->y = y_max; ms->u = u_max; ms->v = v_max;
+      //Rprintf("d %d\n", d);
       return 2 * (d - 1) + _find_faux_snake(
         a, aoff, n, b, boff, m, *ms, faux_snake
       );
@@ -365,7 +370,9 @@ _find_middle_snake(
         /* matching characters, just walk down diagonal */
         x++; y++;
       }
-      if(x^2 + y^2 > x_max^2 + y_max^2) {
+      double dist_new = (x - ms->u)^2 + (y - ms->v)^2;
+      if(x < n && y < m && dist_new < dist) {
+        dist_new = dist;
         x_max = x;
         y_max = y;
       }
@@ -386,7 +393,7 @@ _find_middle_snake(
        */
       if (odd && k >= (delta - (d - 1)) && k <= (delta + (d - 1))) {
         if (x >= RV(k)) {
-          Rprintf("Return FWD d %d %d\n", d, 2 * d - 1);
+          //Rprintf("Return FWD d %d %d\n", d, 2 * d - 1);
           ms->u = x;
           ms->v = y;
           return 2 * d - 1;
@@ -413,7 +420,9 @@ _find_middle_snake(
         /* matching characters, just walk up diagonal */
         x--; y--;
       }
-      if((n - x)^2 + (m - y)^2 > (n - u_max)^2 + (m - v_max)^2) {
+      double dist_new = (ms->x - x)^2 + (ms->y - y)^2;
+      if(x > 0 && y > 0 && dist_new < dist) {
+        dist_new = dist;
         u_max = x;
         v_max = y;
       }
@@ -422,7 +431,7 @@ _find_middle_snake(
       /* see comments in forward section */
       if (!odd && kr >= -d && kr <= d) {
         if (x <= FV(kr)) {
-          Rprintf("Return BCK d %d %d\n", d, 2 * d);
+          //Rprintf("Return BCK d %d %d\n", d, 2 * d);
           ms->x = x;
           ms->y = y;
           return 2 * d;
@@ -525,7 +534,7 @@ _ses(
     faux_snake = &fsv;
 
     d = _find_middle_snake(a, aoff, n, b, boff, m, ctx, &ms, &faux_snake);
-    Rprintf("## D val %d extra %d\n", d);
+    //Rprintf("## D val %d extra %d\n", d);
     //Rprintf(
     //  "Found fake (%d) ms d %d x %d y %d u %d v %d\n",
     //  *faux_snake != DIFF_NULL, d, ms.x, ms.y, ms.u, ms.v
