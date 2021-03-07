@@ -76,7 +76,10 @@
  *   script rather than simply saying the shortest edit script is longer than
  *   allowable diffs; this is all the `faux_snake` stuff.  This algorithm tries
  *   to salvage whatever the myers algo computed up to the point of max diffs
- * - Adding lots of comments as we worked through the logic
+ * - Pick the complete path that travels along the diagonal closest to the
+ *   center of the N x M space instead of the one closest to the top when there
+ *   are multiple paths with the same number of differences.
+ * - Comments.
  */
 /*
  * Terms
@@ -232,7 +235,7 @@ int _comp_chr(SEXP a, int aidx, SEXP b, int bidx) {
  */
 static int
 _find_faux_snake(
-  SEXP a, int aoff, int n, SEXP b, int boff, int m, 
+  SEXP a, int aoff, int n, SEXP b, int boff, int m,
   struct middle_snake ms, diff_op ** faux_snake
 ) {
   int x = ms.x;
@@ -333,13 +336,12 @@ _find_middle_snake(
 
     /* Reached maximum allowable differences before real exit condition.
      * Each loop iteration finds up to 2 d differences (one forward, one
-     * backward).
+     * backward).  We could check before the backward loop too, but lazy, so we
+     * might overshoot diff.max by 1.
      *
      * We know there is going to be at least one more difference because there
      * must be at least one for us to get here, and there might be two if the
      * extra forward difference doesn't find the end.
-     *
-     * Logic is such we could overshoot dmax by 1.
      */
     if (2 * d - 1 > ctx->dmax) {
       // So far we've found 2*(d - 1) differences
@@ -350,12 +352,22 @@ _find_middle_snake(
         a, aoff, n, b, boff, m, *ms, faux_snake
       );
     }
-    /* Forward (from top left) paths*/
+    /* Forward (from top left) paths, visit all diagonals between k and -k
+     * starting from diagonal closest to center, i.e. if d == 3 the k sequence
+     * should be -1, 1, -3, 3.  This means paths closer to the center diagonal
+     * will match before those further out (a smidge slower than original algo,
+     * but more compact diff display)*/
 
-    for (k = d; k >= -d; k -= 2) {
-      // Roughly, if at lowest possible diagonal, or not at
-      // highest and next diagonal up is further along in x,
-      // move to the right, otherwise move down.
+    int ki = 0;
+    k = d % 2 ? 1 : 0;
+    //Rprintf("== D %d\n", d);
+    for (;
+      k >= -d && k <= d;
+      ki++, k += 2 * ki * (ki % 2 ? -1 : 1)
+    ) {
+      //Rprintf("  k %d ki %d d %d\n", k, ki, d);
+      // If at lowest possible diag, or not at highest and next diag up is
+      // further along in x, move to the right, otherwise move down.
       if (k == -d || (k != d && FV(k - 1) < FV(k + 1))) {
         x = FV(k + 1);      // move to the right, effectively
       } else {
@@ -367,8 +379,7 @@ _find_middle_snake(
       ms->x = x;
       ms->y = y;
       while(x < n && y < m && _comp_chr(a, aoff + x, b, boff + y)) {
-        /* matching characters, just walk down diagonal */
-        x++; y++;
+        x++; y++;  /* matching characters, just walk down diagonal */
       }
       double dist_new = (x - ms->u)^2 + (y - ms->v)^2;
       if(x < n && y < m && dist_new < dist) {
@@ -378,18 +389,14 @@ _find_middle_snake(
       }
       _setv(ctx, k, 0, x);
 
-      /* for this diagonal we (think we) are now at farthest reaching point for
-       * a given d.  Then return if:
-       * - If we're at the edge of the addressable part of the graph
+      /* For this diagonal k we are now at farthest reaching point for a given
+       * `d`.  Then return if:
+       *
+       * - We're at the edge of the addressable part of the graph
        * - The reverse snakes are already overlapping in the `x` coordinate
        *
-       * then it means that the only way to get to the snake coming from the
-       * other direction is by either moving down or across for every remaining
-       * move, so record the current coord as `u` and `v` and return
-       *
-       * Note that for the backward snake we reverse xy and uv so that the
-       * matching snake is always defined in `ms` as starting at `ms.(xy)` and
-       * ending at `ms.(uv)`
+       * For the backward snake we reverse xy and uv so that the matching snake
+       * is defined ` as starting at `ms.(xy)` and ending at `ms.(uv)`
        */
       if (odd && k >= (delta - (d - 1)) && k <= (delta + (d - 1))) {
         if (x >= RV(k)) {
@@ -400,9 +407,14 @@ _find_middle_snake(
         }
       }
     }
-    /* Backwards (from bottom right) paths*/
+    /* Backwards (from bottom right) paths (see forward loop) */
 
-    for (k = d; k >= -d; k -= 2) {
+    ki = 0;
+    k = d % 2 ? 1 : 0;
+    for (;
+      k >= -d && k <= d;
+      ki++, k += 2 * ki * (ki % 2 ? -1 : 1)
+    ) {
       int kr = (n - m) + k;
 
       if (k == d || (k != -d && RV(kr - 1) < RV(kr + 1))) {
@@ -515,13 +527,12 @@ _ses(
     _edit(ctx, DIFF_DELETE, aoff, n);
     d = n;
   } else {
-    /* Find the middle "snake" around which we
-     * recursively solve the sub-problems.  Note this modifies `ms` by ref to
-     * set the beginning and end coordinates of the snake of the furthest
-     * reaching path.  The beginning is always the top left part of the snake,
-     * irrespective of whether it was found on a forward or reverse path as
-     * f_m_s will flip the coordinates when appropriately when recording them
-     * in `ms`
+    /* Find the middle "snake" around which we recursively solve the
+     * sub-problems.  Note this modifies `ms` by ref to set the beginning and
+     * end coordinates of the snake of the furthest reaching path.  The
+     * beginning is always the top left part of the snake, irrespective of
+     * whether it was found on a forward or reverse path as f_m_s will flip the
+     * coordinates when appropriately when recording them in `ms`
      *
      * Additionally, if diffs exceed max.diffs, then `faux.snake` will also
      * be set.  `faux_snake` is a pointer to a pointer that points to a the
