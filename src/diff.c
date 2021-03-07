@@ -258,17 +258,17 @@ _find_faux_snake(
       x < ms.u && y < ms.v &&
       _comp_chr(a, aoff + x, b, boff + y)
     ) {
-      //Rprintf("MATCH\n");
+      //Rprintf("  MATCH\n");
       x++; y++;
       *(faux_snake_tmp + steps) = DIFF_MATCH;
     } else if (x < ms.u && (step_dir || y >= ms.v)) {
-      //Rprintf("DEL\n");
+      //Rprintf("  DEL\n");
       x++;
       diffs++;
       step_dir = !step_dir;
       *(faux_snake_tmp + steps) = DIFF_DELETE;
     } else if (y < ms.v && (!step_dir || x >= ms.u)) {
-      //Rprintf("INS\n");
+      //Rprintf("  INS\n");
       y++;
       diffs++;
       *(faux_snake_tmp + steps) = DIFF_INSERT;
@@ -311,11 +311,13 @@ _find_middle_snake(
   // );
   int delta, odd, mid, d;
   int x_max, y_max, v_max, u_max;
-  x_max = 0;
-  y_max = 0;
-  u_max = n;
-  v_max = m;
-  double dist = (x_max - u_max)^2 + (y_max - v_max)^2;
+  ms->x = x_max = 0;
+  ms->y = y_max = 0;
+  ms->u = u_max = n;
+  ms->v = v_max = m;
+  double dist = (x_max - u_max) * (x_max - u_max) +
+    (y_max - v_max) * (y_max - v_max);
+  //Rprintf("dist0 %f x %d y %d u %d v %d\n", dist, x_max, y_max, u_max, v_max);
 
   delta = n - m;
   odd = delta & 1;
@@ -352,20 +354,19 @@ _find_middle_snake(
         a, aoff, n, b, boff, m, *ms, faux_snake
       );
     }
-    /* Forward (from top left) paths, visit all diagonals between k and -k
-     * starting from diagonal closest to center, i.e. if d == 3 the k sequence
-     * should be -1, 1, -3, 3.  This means paths closer to the center diagonal
-     * will match before those further out (a smidge slower than original algo,
-     * but more compact diff display)*/
+    /* Forward (from top left) paths */
 
-    int ki = 0;
-    k = d % 2 ? 1 : 0;
-    //Rprintf("== D %d\n", d);
-    for (;
-      k >= -d && k <= d;
-      ki++, k += 2 * ki * (ki % 2 ? -1 : 1)
-    ) {
-      //Rprintf("  k %d ki %d d %d\n", k, ki, d);
+    // // Alternate looping picks path closest to middle diagonal.  If we change
+    // // this we also should change it for backward paths.  This leads to more
+    // // compact diffs, but TBD whether this is good IRL so we abandon it for
+    // // now to avoid introducing behavior change.
+    // int ki = 0;
+    // k = d % 2 ? 1 : 0;
+    // for (;
+    //   k >= -d && k <= d;
+    //   ki++, k += 2 * ki * (ki % 2 ? -1 : 1)
+    // ) {
+    for (k = d; k >= -d; k -= 2) {
       // If at lowest possible diag, or not at highest and next diag up is
       // further along in x, move to the right, otherwise move down.
       if (k == -d || (k != d && FV(k - 1) < FV(k + 1))) {
@@ -374,16 +375,17 @@ _find_middle_snake(
         x = FV(k - 1) + 1;  // move down, effectively
       }
       y = x - k;
-      // Rprintf("  k %d x %d y %d\n", k, x, y);
 
       ms->x = x;
       ms->y = y;
       while(x < n && y < m && _comp_chr(a, aoff + x, b, boff + y)) {
         x++; y++;  /* matching characters, just walk down diagonal */
       }
-      double dist_new = (x - ms->u)^2 + (y - ms->v)^2;
+      double dist_new = (x - ms->u)*(x - ms->u) +
+        (y - ms->v) * (y - ms->v);
+      //Rprintf("dist_new1 %f dist %f x %d y %d u %d v %d\n", dist_new, dist, x, y, ms->u, ms->v);
       if(x < n && y < m && dist_new < dist) {
-        dist_new = dist;
+        dist = dist_new;
         x_max = x;
         y_max = y;
       }
@@ -409,12 +411,7 @@ _find_middle_snake(
     }
     /* Backwards (from bottom right) paths (see forward loop) */
 
-    ki = 0;
-    k = d % 2 ? 1 : 0;
-    for (;
-      k >= -d && k <= d;
-      ki++, k += 2 * ki * (ki % 2 ? -1 : 1)
-    ) {
+    for (k = d; k >= -d; k -= 2) {
       int kr = (n - m) + k;
 
       if (k == d || (k != -d && RV(kr - 1) < RV(kr + 1))) {
@@ -432,9 +429,11 @@ _find_middle_snake(
         /* matching characters, just walk up diagonal */
         x--; y--;
       }
-      double dist_new = (ms->x - x)^2 + (ms->y - y)^2;
+      double dist_new = (ms->x - x) * (ms->x - x) +
+        (ms->y - y) * (ms->y - y);
+      //Rprintf("dist_new2 %f dist %f x %d y %d u %d v %d\n", dist_new, dist, x, y, ms->u, ms->v);
       if(x > 0 && y > 0 && dist_new < dist) {
-        dist_new = dist;
+        dist = dist_new;
         u_max = x;
         v_max = y;
       }
