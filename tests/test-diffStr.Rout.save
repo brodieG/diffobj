@@ -1,6 +1,6 @@
 
-R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
-Copyright (C) 2020 The R Foundation for Statistical Computing
+R version 4.0.4 beta (2021-02-06 r79953) -- "Lost Library Book"
+Copyright (C) 2021 The R Foundation for Statistical Computing
 Platform: x86_64-apple-darwin17.0 (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -69,7 +69,7 @@ Type 'q()' to quit R.
 > 
 > invisible(diffStr(iris, mtcars, max.diffs=2)) # warn: "Exceeded diff limit"
 Warning message:
-Exceeded diff limit during diff computation (17 vs. 2 allowed); overall diff is likely not optimal 
+Exceeded diff limit during diff computation (18 vs. 2 allowed); overall diff is likely not optimal 
 > 
 > # - max.level ------------------------------------------------------------------
 > 
@@ -139,4 +139,4 @@ Exceeded diff limit during diff computation (17 vs. 2 allowed); overall diff is 
 > 
 > proc.time()
    user  system elapsed 
-  4.331   0.335   4.935 
+  2.434   0.219   2.702 

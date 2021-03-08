@@ -102,7 +102,7 @@ Type 'q()' to quit R.
 [1] "1,10c1,10"
 Warning message:
 In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
-  Exceeded `max.diffs`: 17 vs 5 allowed. Diff is probably suboptimal.
+  Exceeded `max.diffs`: 20 vs 5 allowed. Diff is probably suboptimal.
 > all.equal(
 +   ses(letters[1:10], LETTERS[1:10], max.diffs=5, warn=FALSE),
 +   "1,10c1,10"
@@ -173,20 +173,20 @@ In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
 > 
 > # In <0.3.4: Exceeded buffer for finding fake snake
 > ses(a[-c(15:38, 50:90)], b[-c(40:85, 100:125)], max.diffs=80)
-[1] "1,15c1,6"    "17c8,12"     "19,31c14,57" "33c59,60"    "35,42c62,67"
-[6] "44,49d68"   
+[1] "1,3c1,9"     "5,13c11,12"  "15,25c14,48" "26a50"       "28,29d51"   
+[6] "31c53,57"    "33c59,60"    "35,42c62,67" "44,49d68"   
 Warning message:
 In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
-  Exceeded `max.diffs`: 44 vs 80 allowed. Diff is probably suboptimal.
+  Exceeded `max.diffs`: 101 vs 80 allowed. Diff is probably suboptimal.
 > 
 > # In <0.3.4: Faux Snake Process Failed
 > ses(a[-(18:38)], b[-(50:80)], max.diffs=115)
-[1] "1,18c1,6"      "20c8,12"       "22,62c14,61"   "64d62"        
-[5] "66,74c64,88"   "75a90,98"      "77c100,101"    "79,86c103,108"
-[9] "88,93d109"    
+ [1] "1,3c1,9"       "5,7c11,26"     "9,12c28,38"    "13a40,46"     
+ [5] "15,54c48,82"   "56,68d83"      "70,74c85,88"   "75a90,98"     
+ [9] "77c100,101"    "79,86c103,108" "88,93d109"    
 Warning message:
 In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
-  Exceeded `max.diffs`: 87 vs 115 allowed. Diff is probably suboptimal.
+  Exceeded `max.diffs`: 182 vs 115 allowed. Diff is probably suboptimal.
 > 
 > # - errors ---------------------------------------------------------------------
 > 
@@ -241,7 +241,7 @@ Error in ses_prep(a = a, b = b, max.diffs = max.diffs, warn = warn) :
 [33m<[39m [90m[39m[33mg[39m [33mh[39m [33mi[39m[90m[39m           [34m>[39m [90m[39m[34mg[39m [34mh[39m [34mi[39m[90m[39m         
 [33m<[39m [90m[39m[33mf[39m[90m[39m               [34m>[39m [90m[39m[34mq[39m[90m[39m             
 Warning message:
-Exceeded diff limit during diff computation (5 vs. 2 allowed); overall diff is likely not optimal 
+Exceeded diff limit during diff computation (6 vs. 2 allowed); overall diff is likely not optimal 
 > 
 > # - ses_dat --------------------------------------------------------------------
 > 
@@ -280,4 +280,4 @@ Error in ses_dat(a, b, extra = NA) :
 > 
 > proc.time()
    user  system elapsed 
-  1.120   0.102   1.222 
+  1.180   0.113   1.288 
