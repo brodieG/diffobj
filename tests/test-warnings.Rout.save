@@ -1,6 +1,6 @@
 
-R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
-Copyright (C) 2020 The R Foundation for Statistical Computing
+R version 4.0.4 beta (2021-02-06 r79953) -- "Lost Library Book"
+Copyright (C) 2021 The R Foundation for Statistical Computing
 Platform: x86_64-apple-darwin17.0 (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -55,7 +55,7 @@ Warning messages:
 > 
 > invisible(diffChr(A3, B3, max.diffs=2)) # warn: "Exceeded diff"
 Warning message:
-Exceeded diff limit during diff computation (5 vs. 2 allowed); overall diff is likely not optimal 
+Exceeded diff limit during diff computation (6 vs. 2 allowed); overall diff is likely not optimal 
 > 
 > # - Overriden formals ----------------------------------------------------------
 > 
@@ -76,4 +76,4 @@ In diffChr(target = letters, current = LETTERS, style = StyleRaw(),  :
 > 
 > proc.time()
    user  system elapsed 
-  1.620   0.191   1.967 
+  0.827   0.134   0.966 

@@ -315,6 +315,7 @@ _find_middle_snake(
   ms->y = y_max = 0;
   ms->u = u_max = n;
   ms->v = v_max = m;
+  //Rprintf("n %d m %d\n", n, m);
   double dist = (x_max - u_max) * (x_max - u_max) +
     (y_max - v_max) * (y_max - v_max);
   //Rprintf("dist0 %f x %d y %d u %d v %d\n", dist, x_max, y_max, u_max, v_max);
@@ -381,13 +382,13 @@ _find_middle_snake(
       while(x < n && y < m && _comp_chr(a, aoff + x, b, boff + y)) {
         x++; y++;  /* matching characters, just walk down diagonal */
       }
-      double dist_new = (x - ms->u)*(x - ms->u) +
-        (y - ms->v) * (y - ms->v);
+      double dist_new = (x - u_max) * (x - u_max) + (y - v_max) * (y - v_max);
       //Rprintf("dist_new1 %f dist %f x %d y %d u %d v %d\n", dist_new, dist, x, y, ms->u, ms->v);
-      if(x < n && y < m && dist_new < dist) {
+      if(x <= n && y <= m && dist_new < dist) {
         dist = dist_new;
         x_max = x;
         y_max = y;
+        //Rprintf("  update dist1 x_max %d y_max %d\n", x, y);
       }
       _setv(ctx, k, 0, x);
 
@@ -429,13 +430,13 @@ _find_middle_snake(
         /* matching characters, just walk up diagonal */
         x--; y--;
       }
-      double dist_new = (ms->x - x) * (ms->x - x) +
-        (ms->y - y) * (ms->y - y);
+      double dist_new = (x_max - x) * (x_max - x) + (y_max - y) * (y_max - y);
       //Rprintf("dist_new2 %f dist %f x %d y %d u %d v %d\n", dist_new, dist, x, y, ms->u, ms->v);
-      if(x > 0 && y > 0 && dist_new < dist) {
+      if(x >= 0 && y >= 0 && dist_new < dist) {
         dist = dist_new;
         u_max = x;
         v_max = y;
+        //Rprintf("  update dist2 u_max %d v_max %d\n", x, y);
       }
       _setv(ctx, kr, 1, x);
 
