@@ -188,6 +188,25 @@ Warning message:
 In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
   Exceeded `max.diffs`: 182 vs 115 allowed. Diff is probably suboptimal.
 > 
+> # - issue 157 ------------------------------------------------------------------
+> 
+> # Arguably could match on 'A' instead of 'X' and be more comparct
+> a <- c('a', 'b', 'c', 'A', 'X', 'Y', 'Z', 'W')
+> b <- c('X', 'C', 'A', 'U', 1, 2, 3)
+> ses(a, b, max.diffs=13)
+[1] "1,4d0"   "6,8c2,7"
+> 
+> # segfault (but may have beend debugging code)
+> ses(letters[1:2], LETTERS[1:2], max.diffs = 4)
+[1] "1,2c1,2"
+> 
+> # snake overrun
+> ses(c("G", "C", "T", "C", "A", "C", "G", "C"), c("T", "G"), max.diffs=2)
+[1] "0a1"   "2,8d2"
+Warning message:
+In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
+  Exceeded `max.diffs`: 9 vs 2 allowed. Diff is probably suboptimal.
+> 
 > # - errors ---------------------------------------------------------------------
 > 
 > try(ses('a', 'b', max.diffs='hello')) # "must be scalar integer"
@@ -280,4 +299,4 @@ Error in ses_dat(a, b, extra = NA) :
 > 
 > proc.time()
    user  system elapsed 
-  1.180   0.113   1.288 
+  1.210   0.113   1.316 
