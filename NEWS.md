@@ -2,9 +2,9 @@
 
 ## v0.3.4
 
-* [#152](https://github.com/brodieG/diffobj/issues/152): Fix "unreachable branch
-  2" and other `max.diffs` related errors by re-writing "O(n)" bailout algorithm
-  that kicks in when hitting `max.diffs` (h/t @hadley, @DanChaltiel, @gadenbui).
+* [#152](https://github.com/brodieG/diffobj/issues/152): Rewrite the
+  fall-back "O(n)" algorithm that kicks in when there are `max.diff` differences
+  to be more robust (h/t @hadley, @DanChaltiel, @gadenbui).
 
 ## v0.3.3
 
