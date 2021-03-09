@@ -205,7 +205,7 @@ when diffing e.g. \code{capture.output} data, we now declare it a feature.}
 
 \item{max.diffs}{integer(1L), number of \emph{differences} after which we
 abandon the \code{O(n^2)} diff algorithm in favor of a naive \code{O(n)}
-one. Set to \code{-1L} to always stick to the original algorithm (defaults
+one. Set to \code{0L} to always stick to the original algorithm (defaults
 to 50000L).  The diff might try up to `max.diffs + 1` under the original
 algorithm before falling back to the linear one.}
 

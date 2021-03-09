@@ -130,6 +130,19 @@ ses(a[-c(15:38, 50:90)], b[-c(40:85, 100:125)], max.diffs=80)
 # In <0.3.4: Faux Snake Process Failed
 ses(a[-(18:38)], b[-(50:80)], max.diffs=115)
 
+# - issue 157 ------------------------------------------------------------------
+
+# Arguably could match on 'A' instead of 'X' and be more comparct
+a <- c('a', 'b', 'c', 'A', 'X', 'Y', 'Z', 'W')
+b <- c('X', 'C', 'A', 'U', 1, 2, 3)
+ses(a, b, max.diffs=13)
+
+# segfault (but may have beend debugging code)
+ses(letters[1:2], LETTERS[1:2], max.diffs = 4)
+
+# snake overrun
+ses(c("G", "C", "T", "C", "A", "C", "G", "C"), c("T", "G"), max.diffs=2)
+
 # - errors ---------------------------------------------------------------------
 
 try(ses('a', 'b', max.diffs='hello')) # "must be scalar integer"
