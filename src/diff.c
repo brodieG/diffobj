@@ -257,7 +257,7 @@ _find_faux_snake(
 
   diff_op * faux_snake_tmp = (diff_op*) R_alloc(max_steps, sizeof(diff_op));
   for(int i = 0; i < max_steps; i++) *(faux_snake_tmp + i) = DIFF_NULL;
-  while(x < ms->u | y < ms->v) {
+  while((x < ms->u) || (y < ms->v)) {
     if(
       x < ms->u && y < ms->v &&
       _comp_chr(a, aoff + x, b, boff + y)
