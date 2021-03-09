@@ -76,9 +76,6 @@
  *   script rather than simply saying the shortest edit script is longer than
  *   allowable diffs; this is all the `faux_snake` stuff.  This algorithm tries
  *   to salvage whatever the myers algo computed up to the point of max diffs
- * - Pick the complete path that travels along the diagonal closest to the
- *   center of the N x M space instead of the one closest to the top when there
- *   are multiple paths with the same number of differences.
  * - Comments.
  */
 /*
@@ -249,7 +246,7 @@ _find_faux_snake(
     // the prior backward closest point.  In this case toss backward snake.
     ms->u = n;
     ms->v = m;
-    diffs = d / 2;  // we're also tossing accrued differences from back snake
+    diffs -= d;  // we're also tossing accrued differences from back snake
   }
   int max_steps = ms->u - x + ms->v - y + 1;
   if(max_steps < 0)
