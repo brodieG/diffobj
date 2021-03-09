@@ -236,38 +236,43 @@ int _comp_chr(SEXP a, int aidx, SEXP b, int bidx) {
 static int
 _find_faux_snake(
   SEXP a, int aoff, int n, SEXP b, int boff, int m,
-  struct middle_snake ms, diff_op ** faux_snake
+  struct middle_snake *ms, diff_op ** faux_snake, int d
 ) {
-  int x = ms.x;
-  int y = ms.y;
-  int max_steps = ms.u - x + ms.v - y + 1;
+  int x = ms->x;
+  int y = ms->y;
   int steps = 0;
   int diffs = 0;    // only diffs from fake snake
   int step_dir = 1; /* last direction we moved in, 1 is down */
 
-  //Rprintf("x %d y %d u %d v %d\n", x, y, ms.u, ms.v);
-  if(x > ms.u || y > ms.v)
-    error("Logic Error: fake fwd snake overshot bwd snake. Contact maintainer."); // nocov
+  //Rprintf("x %d y %d u %d v %d\n", x, y, ms->u, ms->v);
+  if(x > ms->u || y > ms->v) {
+    // Overshot backward snake, e.g. you hit a long diagonal run that overshoots
+    // the prior backward closest point.  In this case toss backward snake.
+    ms->u = n;
+    ms->v = m;
+    diffs = d / 2;  // we're also tossing accrued differences from back snake
+  }
+  int max_steps = ms->u - x + ms->v - y + 1;
   if(max_steps < 0)
     error("Logic Error: fake snake step overflow? Contact maintainer."); // nocov
 
   diff_op * faux_snake_tmp = (diff_op*) R_alloc(max_steps, sizeof(diff_op));
   for(int i = 0; i < max_steps; i++) *(faux_snake_tmp + i) = DIFF_NULL;
-  while(x < ms.u | y < ms.v) {
+  while(x < ms->u | y < ms->v) {
     if(
-      x < ms.u && y < ms.v &&
+      x < ms->u && y < ms->v &&
       _comp_chr(a, aoff + x, b, boff + y)
     ) {
       //Rprintf("  MATCH\n");
       x++; y++;
       *(faux_snake_tmp + steps) = DIFF_MATCH;
-    } else if (x < ms.u && (step_dir || y >= ms.v)) {
+    } else if (x < ms->u && (step_dir || y >= ms->v)) {
       //Rprintf("  DEL\n");
       x++;
       diffs++;
       step_dir = !step_dir;
       *(faux_snake_tmp + steps) = DIFF_DELETE;
-    } else if (y < ms.v && (!step_dir || x >= ms.u)) {
+    } else if (y < ms->v && (!step_dir || x >= ms->u)) {
       //Rprintf("  INS\n");
       y++;
       diffs++;
@@ -278,7 +283,7 @@ _find_faux_snake(
     }
     steps++;
   }
-  if(x != ms.u || y != ms.v || steps >= max_steps) {
+  if(x != ms->u || y != ms->v || steps >= max_steps) {
     error("Logic Error: faux snake process failed; contact maintainer."); // nocov
   }
   //Rprintf("Extra diffs %d\n", diffs);
@@ -352,7 +357,7 @@ _find_middle_snake(
       ms->x = x_max; ms->y = y_max; ms->u = u_max; ms->v = v_max;
       //Rprintf("d %d\n", d);
       return 2 * (d - 1) + _find_faux_snake(
-        a, aoff, n, b, boff, m, *ms, faux_snake
+        a, aoff, n, b, boff, m, ms, faux_snake, d - 1
       );
     }
     /* Forward (from top left) paths */
@@ -376,6 +381,7 @@ _find_middle_snake(
         x = FV(k - 1) + 1;  // move down, effectively
       }
       y = x - k;
+      //Rprintf("d %d k %d x %d y %d\n",d,k,x,y);
 
       ms->x = x;
       ms->y = y;
