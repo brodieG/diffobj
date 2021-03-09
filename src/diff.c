@@ -200,9 +200,8 @@ _v(struct _ctx *ctx, int k, int r)
  *
  * Needs to account for special case when indeces are oob for the strings.  The
  * oob checks seem to be necessary since algo is requesting reads past length
- * of string, but not sure if that is intentional or not.  In theory it should
- * not be, but perhaps this was handled gracefully by the varray business b4
- * we changed it.
+ * of string (maybe this worked with the varrays).  As the current algo is
+ * written, it does not seem to be the case that we even attempt oob reads.
  */
 int _comp_chr(SEXP a, int aidx, SEXP b, int bidx) {
   int alen = XLENGTH(a);
@@ -214,7 +213,7 @@ int _comp_chr(SEXP a, int aidx, SEXP b, int bidx) {
     comp = 1;
     // nocov end
   } else if(aidx >= alen || bidx >= blen) {
-    comp = 0;
+    comp = 0;  // nocov
   } else comp = STRING_ELT(a, aidx) == STRING_ELT(b, bidx);
   return(comp);
 }

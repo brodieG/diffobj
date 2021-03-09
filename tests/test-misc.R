@@ -137,3 +137,10 @@ try(finalizeHtml(letters, letters, letters)) # "must be character\\(1L"
 # - c.factor -------------------------------------------------------------------
 
 all.equal(diffobj:::c.factor(), factor(character()))
+
+# - strip_hz -------------------------------------------------------------------
+
+# Can't trigger this directly because wrapper doesn't let this case through
+diffobj:::strip_hz_c_int(character(), 8L, TRUE)
+
+
