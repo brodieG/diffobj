@@ -143,6 +143,11 @@ ses(letters[1:2], LETTERS[1:2], max.diffs = 4)
 # snake overrun
 ses(c("G", "C", "T", "C", "A", "C", "G", "C"), c("T", "G"), max.diffs=2)
 
+# effect of max.diffs on compactness (waldo logical comparison)
+ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=0)
+ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=1)
+ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=2)
+
 # - errors ---------------------------------------------------------------------
 
 try(ses('a', 'b', max.diffs='hello')) # "must be scalar integer"

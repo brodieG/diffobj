@@ -207,6 +207,23 @@ Warning message:
 In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
   Exceeded `max.diffs`: 8 vs 2 allowed. Diff is probably suboptimal.
 > 
+> # effect of max.diffs on compactness (waldo logical comparison)
+> ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=0)
+[1] "1c1" "3c3" "5c5"
+Warning message:
+In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
+  Exceeded `max.diffs`: 6 vs 0 allowed. Diff is probably suboptimal.
+> ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=1)
+[1] "0a1"   "2c3"   "4,5c5"
+Warning message:
+In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
+  Exceeded `max.diffs`: 6 vs 1 allowed. Diff is probably suboptimal.
+> ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=2)
+[1] "0a1"   "2,4c3" "5a5"  
+Warning message:
+In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
+  Exceeded `max.diffs`: 6 vs 2 allowed. Diff is probably suboptimal.
+> 
 > # - errors ---------------------------------------------------------------------
 > 
 > try(ses('a', 'b', max.diffs='hello')) # "must be scalar integer"
@@ -299,4 +316,4 @@ Error in ses_dat(a, b, extra = NA) :
 > 
 > proc.time()
    user  system elapsed 
-  1.157   0.101   1.253 
+  1.356   0.121   1.508 

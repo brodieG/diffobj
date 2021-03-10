@@ -256,22 +256,18 @@ _find_faux_snake(
   diff_op * faux_snake_tmp = (diff_op*) R_alloc(max_steps, sizeof(diff_op));
   for(int i = 0; i < max_steps; i++) *(faux_snake_tmp + i) = DIFF_NULL;
   while((x < ms->u) || (y < ms->v)) {
-    //Rprintf("x %d y %d u %d v %d ", x, y, ms->u, ms->v);
     if(
       x < ms->u && y < ms->v &&
       _comp_chr(a, aoff + x, b, boff + y)
     ) {
-      //Rprintf("MATCH\n");
       x++; y++;
       *(faux_snake_tmp + steps) = DIFF_MATCH;
     } else if (x < ms->u && (step_dir || y >= ms->v)) {
-      //Rprintf("DEL\n");
       x++;
       diffs++;
       step_dir = !step_dir;
       *(faux_snake_tmp + steps) = DIFF_DELETE;
     } else if (y < ms->v && (!step_dir || x >= ms->u)) {
-      //Rprintf("INS\n");
       y++;
       diffs++;
       *(faux_snake_tmp + steps) = DIFF_INSERT;
@@ -304,7 +300,6 @@ _find_middle_snake(
   SEXP a, int aoff, int n, SEXP b, int boff, int m, struct _ctx *ctx,
   struct middle_snake *ms, diff_op ** faux_snake
 ) {
-  //Rprintf("ms aoff %d boff %d n %d m %d\n", aoff, boff, n, m);
   int delta, odd, mid, d;
   int x_max, y_max, v_max, u_max;
   ms->x = x_max = 0;
@@ -340,7 +335,6 @@ _find_middle_snake(
      * extra forward difference doesn't find the end.
      */
     if (2 * (d - 1) + 1 > ctx->dmax) {
-      //Rprintf("Fake for d %d\n", d);
       // So far we've found 2*(d - 1) differences
       ctx->dmaxhit = 1;
       ms->x = x_max; ms->y = y_max; ms->u = u_max; ms->v = v_max;
@@ -402,7 +396,6 @@ _find_middle_snake(
     }
     // Check again if we'd go over by engaging the reverse snake
     if (2 * d > ctx->dmax) {
-      //Rprintf("Fake for d bwd %d\n", d);
       // So far we've found 2*(d - 1) differences
       ctx->dmaxhit = 1;
       ms->x = x_max; ms->y = y_max; ms->u = u_max; ms->v = v_max;
@@ -686,7 +679,7 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
   ctx.ses = ses;
   ctx.si = 0;
   ctx.simax = n + m;
-  ctx.dmax = dmax ? dmax : INT_MAX;
+  ctx.dmax = dmax >= 0 ? dmax : INT_MAX;
   ctx.dmaxhit = 0;
 
   /* initialize first ses edit struct*/
