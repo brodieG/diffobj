@@ -221,7 +221,7 @@ int _comp_chr(SEXP a, int aidx, SEXP b, int bidx) {
  * Handle cases where differences exceed maximum allowable differences
  *
  * General logic is to try to connect the prior furthest points by naively
- * incrementing in each dimension and hoping from some diagonal runs.
+ * incrementing in each dimension and hoping for some diagonal runs.
  *
  * @param a character vector
  * @param b character vector

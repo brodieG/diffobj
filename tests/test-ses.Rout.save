@@ -1,5 +1,5 @@
 
-R version 4.0.4 beta (2021-02-06 r79953) -- "Lost Library Book"
+R version 4.0.4 (2021-02-15) -- "Lost Library Book"
 Copyright (C) 2021 The R Foundation for Statistical Computing
 Platform: x86_64-apple-darwin17.0 (64-bit)
 
@@ -190,7 +190,7 @@ In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
 > 
 > # - issue 157 ------------------------------------------------------------------
 > 
-> # Arguably could match on 'A' instead of 'X' and be more comparct
+> # Arguably could match on 'A' instead of 'X' and be more compact
 > a <- c('a', 'b', 'c', 'A', 'X', 'Y', 'Z', 'W')
 > b <- c('X', 'C', 'A', 'U', 1, 2, 3)
 > ses(a, b, max.diffs=13)
@@ -316,4 +316,4 @@ Error in ses_dat(a, b, extra = NA) :
 > 
 > proc.time()
    user  system elapsed 
-  1.356   0.121   1.508 
+  1.231   0.113   1.340 

@@ -132,7 +132,7 @@ ses(a[-(18:38)], b[-(50:80)], max.diffs=115)
 
 # - issue 157 ------------------------------------------------------------------
 
-# Arguably could match on 'A' instead of 'X' and be more comparct
+# Arguably could match on 'A' instead of 'X' and be more compact
 a <- c('a', 'b', 'c', 'A', 'X', 'Y', 'Z', 'W')
 b <- c('X', 'C', 'A', 'U', 1, 2, 3)
 ses(a, b, max.diffs=13)
