@@ -238,6 +238,9 @@ _find_faux_snake(
 ) {
   int x = ms->x;
   int y = ms->y;
+  if(x < 0 || y < 0) 
+      error("Internal Error: fake snake with -ve start; contact maintainer.");  // nocov
+
   int steps = 0;
   int diffs = 0;    // only diffs from fake snake
   int step_dir = 1; /* last direction we moved in, 1 is down */
@@ -248,7 +251,10 @@ _find_faux_snake(
     ms->u = n;
     ms->v = m;
     diffs -= d;  // we're also tossing accrued differences from back snake
+    if(x > ms->u || y > ms->v)
+      error("Internal Error: can't correct fwd snake overshoot; contact maintainer") // nocov
   }
+  if(
   int max_steps = ms->u - x + ms->v - y + 1;
   if(max_steps < 0)
     error("Logic Error: fake snake step overflow? Contact maintainer."); // nocov
@@ -334,7 +340,7 @@ _find_middle_snake(
      * must be at least one for us to get here, and there might be two if the
      * extra forward difference doesn't find the end.
      */
-    if (2 * (d - 1) + 1 > ctx->dmax) {
+    if (2 * (d - 1) > ctx->dmax - 1) {
       // So far we've found 2*(d - 1) differences
       ctx->dmaxhit = 1;
       ms->x = x_max; ms->y = y_max; ms->u = u_max; ms->v = v_max;
@@ -658,14 +664,18 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
 ) {
   if(n < 0 || m < 0)
     error("Logic Error: negative lengths; contact maintainer.");  // nocov
+  if(n > INT_MAX - m)
+    error("Combined length of diffed vectors exeeds INT_MAX (%d)", INT_MAX);  // nocov
   struct _ctx ctx;
   int d, x, y;
   struct diff_edit *e = NULL;
   int delta = n - m;
   if(delta < 0) delta = -delta;
+  if(n + m > INT_MAX - delta)
+    error("Logic Error: exceeded max allowable combined string length.");  // nocov
+  if(n + m + delta > INT_MAX / 4 - 1)
+    error("Logic Error: exceeded max allowable combined string length.");  // nocov
   int bufmax = 4 * (n + m + delta) + 1;  // see _setv
-  if(bufmax < n || bufmax < m)
-    error("Logic Error: exceeded maximum allowable combined string length.");  // nocov
 
   int *tmp = (int *) R_alloc(bufmax, sizeof(int));
   for(int i = 0; i < bufmax; i++) *(tmp + i) = 0;
@@ -689,18 +699,16 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
     }
     e->op = 0;
   }
-
   /* The _ses function assumes the SES will begin or end with a delete
    * or insert. The following will ensure this is true by eating any
    * beginning matches. This is also a quick to process sequences
    * that match entirely.
    */
   x = y = 0;
+  if(boff > INT_MAX - m || aoff > INT_MAX - n)
+      error("Internal error: overflow for a/boff; contact maintainer"); //nocov
+
   while (x < n && y < m) {
-    if(boff > INT_MAX - y)
-      error("Internal error: overflow for boff; contact maintainer"); //nocov
-    if(aoff > INT_MAX - x)
-      error("Internal error: overflow for aoff; contact maintainer"); //nocov
     if(!_comp_chr(a, aoff + x, b, boff + y)) break;
     x++; y++;
   }

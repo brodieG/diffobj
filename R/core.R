@@ -299,12 +299,12 @@ ses_prep <- function(a, b, max.diffs, warn) {
 #' @param a character
 #' @param b character
 #' @param max.diffs integer(1L) how many differences before giving up; set to
-#'   zero to allow as many as there are
+#'   -1 to allow as many as there are up to the maximum allowed (~INT_MAX/4).
 #' @param warn TRUE or FALSE, whether to warn if we hit `max.diffs`.
 #' @return MyersMbaSes object
 #' @useDynLib diffobj, .registration=TRUE, .fixes="DIFFOBJ_"
 
-diff_myers <- function(a, b, max.diffs=0L, warn=FALSE) {
+diff_myers <- function(a, b, max.diffs=-1L, warn=FALSE) {
   stopifnot(
     is.character(a), is.character(b), all(!is.na(c(a, b))), is.int.1L(max.diffs),
     is.TF(warn)
