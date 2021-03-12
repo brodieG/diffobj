@@ -238,7 +238,8 @@ _find_faux_snake(
 ) {
   int x = ms->x;
   int y = ms->y;
-  if(x < 0 || y < 0) 
+  // Should switch to unsigned int...
+  if(x < 0 || y < 0 || ms->u < 0 || ms->v < 0) 
       error("Internal Error: fake snake with -ve start; contact maintainer.");  // nocov
 
   int steps = 0;
@@ -252,12 +253,13 @@ _find_faux_snake(
     ms->v = m;
     diffs -= d;  // we're also tossing accrued differences from back snake
     if(x > ms->u || y > ms->v)
-      error("Internal Error: can't correct fwd snake overshoot; contact maintainer") // nocov
+      error("Internal Error: can't correct fwd snake overshoot; contact maintainer"); // nocov
   }
-  if(
-  int max_steps = ms->u - x + ms->v - y + 1;
-  if(max_steps < 0)
+  if(ms->u > INT_MAX - ms->v - 1) // x/y positive, so this is conservative
     error("Logic Error: fake snake step overflow? Contact maintainer."); // nocov
+
+  int max_steps;
+  max_steps = (ms->u - x) + (ms->v - y) + 1;
 
   diff_op * faux_snake_tmp = (diff_op*) R_alloc(max_steps, sizeof(diff_op));
   for(int i = 0; i < max_steps; i++) *(faux_snake_tmp + i) = DIFF_NULL;
@@ -317,7 +319,7 @@ _find_middle_snake(
 
   delta = n - m;
   odd = delta & 1;
-  mid = (n + m) / 2;
+  mid = (n + m) / 2;  // we check in `diff` that this won't overflow int
   mid += odd;
 
   _setv(ctx, 1, 0, 0);
