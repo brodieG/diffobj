@@ -148,6 +148,12 @@ ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=0)
 ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=1)
 ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=2)
 
+# back snake all matches before faux snake triggered
+ses_dat(
+  a=c("T", "A", "A", "C", "C", "A"),
+  b=c("A", "G", "A", "A"), max.diffs = 0
+)
+
 # - errors ---------------------------------------------------------------------
 
 try(ses('a', 'b', max.diffs='hello')) # "must be scalar integer"

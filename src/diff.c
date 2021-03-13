@@ -553,7 +553,7 @@ _ses(
       error(err_msg_ubrnch, 6);
       return d;
       // nocov end
-    } else if (d > 1) {
+    } else if (d != 1) {
       /* in this case we have something along the lines of (note the non-
        * diagonal bits are just non-diagonal, we're making no claims about
        * whether they should or could be of the horizontal variety)
@@ -563,6 +563,9 @@ _ses(
        *        \- ...
        * so we will record the snake (diagonal) in the middle, and recurse
        * on the stub at the beginning and on the stub at the end separately
+       *
+       * Also have d == 0 case which can happen when the backward snake only has
+       * matches.
        */
 
       /* Beginning stub */
@@ -597,14 +600,12 @@ _ses(
       boff += ms.v;
       n -= ms.u;
       m -= ms.v;
-      if (_ses(a, aoff, n, b, boff, m, ctx)  == -1) {
+      if(_ses(a, aoff, n, b, boff, m, ctx) == -1) {
         // nocov start
         error("Logic error: failed trying to run ses 2; contact maintainer.");
         // nocov end
       }
-    } else {
-      // No d == 0 case b/c that should have been dealt with by eating all
-      // leading matches
+    } else if (d == 1) {
       int x = ms.x;
       int u = ms.u;
 
@@ -644,8 +645,8 @@ _ses(
         // Should never get here since this should be a D 2 case
         // nocov start
         error(
-          "%s n %d m %d aoff %d boff %d u %d; contact maintainer\n",
-          "Logic Error: special case", n, m, aoff, boff, ms.u
+          "%s d %d n %d m %d aoff %d boff %d u %d; contact maintainer\n",
+          "Logic Error: special case", d, n, m, aoff, boff, ms.u
         );
         // nocov end
       }
