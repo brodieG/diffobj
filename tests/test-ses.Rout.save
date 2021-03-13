@@ -224,6 +224,19 @@ Warning message:
 In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
   Exceeded `max.diffs`: 6 vs 2 allowed. Diff is probably suboptimal.
 > 
+> # back snake all matches before faux snake triggered
+> ses_dat(
++   a=c("T", "A", "A", "C", "C", "A"),
++   b=c("A", "G", "A", "A"), max.diffs = 0
++ )
+   1 2 3 4 5 6 7
+D: T       C C  
+M:   A   A     A
+I:     G        
+Warning message:
+In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
+  Exceeded `max.diffs`: 4 vs 0 allowed. Diff is probably suboptimal.
+> 
 > # - errors ---------------------------------------------------------------------
 > 
 > try(ses('a', 'b', max.diffs='hello')) # "must be scalar integer"
@@ -316,4 +329,4 @@ Error in ses_dat(a, b, extra = NA) :
 > 
 > proc.time()
    user  system elapsed 
-  1.231   0.113   1.340 
+  1.536   0.149   3.134 
