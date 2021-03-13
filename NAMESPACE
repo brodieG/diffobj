@@ -3,6 +3,7 @@
 S3method(as.character,diffobj_ogewlhgiadfl2)
 S3method(as.character,diffobj_ogewlhgiadfl3)
 S3method(print,diffobj_ogewlhgiadfl)
+S3method(print,ses_dat)
 export(AlignThreshold)
 export(Pager)
 export(PagerBrowser)

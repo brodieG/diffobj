@@ -164,7 +164,7 @@ make_diff_fun <- function(capt_fun) {
 #' methods do.
 #'
 #' Strings are re-encoded to UTF-8 with \code{\link{enc2utf8}} prior to
-#' comparison to avoid spurious encoding-only differences.
+#' comparison to avoid encoding-only differences.
 #'
 #' The text representation of `target` and `current` should each have no more
 #' than ~INT_MAX/4 lines.

@@ -19,6 +19,7 @@ LazyData: true
 URL: https://github.com/brodieG/diffobj
 BugReports: https://github.com/brodieG/diffobj/issues
 RoxygenNote: 7.1.1
+Roxygen: list(load = "installed")
 VignetteBuilder: knitr
 Encoding: UTF-8
 Suggests:

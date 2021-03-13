@@ -2,9 +2,12 @@
 
 ## v0.3.4
 
+* Add a print method for `ses_dat` return values that makes it easier to
+  interpret the diff.
 * [#152](https://github.com/brodieG/diffobj/issues/152): Rewrite the
   fall-back "O(n)" algorithm that kicks in when there are `max.diff` differences
   to be more robust (h/t @hadley, @DanChaltiel, @gadenbui).
+
 
 ## v0.3.3
 
