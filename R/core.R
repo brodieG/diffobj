@@ -259,7 +259,7 @@ print.ses_dat <- function(x, quote=FALSE, ...) {
   op <- x[['op']]
   diff <- matrix(
     "", 3, nrow(x),
-    dimnames=list(c('D:', 'M:', 'I:'), seq_len(nrow(x)))
+    dimnames=list(c('D:', 'M:', 'I:'), character(nrow(x)))
   )
   d <- op == 'Delete'
   m <- op == 'Match'
@@ -267,6 +267,11 @@ print.ses_dat <- function(x, quote=FALSE, ...) {
   diff[1, d] <- x[['val']][d]
   diff[2, m] <- x[['val']][m]
   diff[3, i] <- x[['val']][i]
+  writeLines(
+    sprintf(
+      "\"ses_dat\" object (Match: %d, Delete: %d, Insert: %d):",
+      sum(m), sum(d), sum(i)
+  ) )
   print(diff, quote=quote, ...)
   invisible(x)
 }
