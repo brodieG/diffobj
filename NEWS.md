@@ -5,9 +5,11 @@
 * Add a print method for `ses_dat` return values that makes it easier to
   interpret the diff.
 * [#152](https://github.com/brodieG/diffobj/issues/152): Rewrite the
-  fall-back "O(n)" algorithm that kicks in when there are `max.diff` differences
-  to be more robust (h/t @hadley, @DanChaltiel, @gadenbui).
-
+  fall-back "O(n)" algorithm that kicks in when there are `max.diffs`
+  differences to be more robust (h/t @hadley, @DanChaltiel, @gadenbui).
+* Related to #152: `max.diffs=0` used to mean the same as `max.diffs=-1` (i.e.
+  unlimited), but this was undocumented and an error.  `max.diffs=0` will now
+  immediately fall back to the "O(n)" algorithm.
 
 ## v0.3.3
 
