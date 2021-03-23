@@ -203,10 +203,10 @@ character vector that contains output that looks like the atomic vectors
 described above.  This is a bug, but as the functionality could be useful
 when diffing e.g. \code{capture.output} data, we now declare it a feature.}
 
-\item{max.diffs}{integer(1L), number of \emph{differences} after which we
-abandon the \code{O(n^2)} diff algorithm in favor of a naive element by
-element comparison. Set to \code{-1L} to always stick to the original
-algorithm (defaults to 50000L).}
+\item{max.diffs}{integer(1L), number of \emph{differences} (default 50000L)
+after which we abandon the \code{O(n^2)} diff algorithm in favor of a naive
+\code{O(n)} one. Set to \code{-1L} to stick to the original algorithm up to
+the maximum allowed (~INT_MAX/4).}
 
 \item{disp.width}{integer(1L) number of display columns to take up; note that
 in \dQuote{sidebyside} \code{mode} the effective display width is half this

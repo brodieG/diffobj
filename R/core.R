@@ -153,8 +153,10 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' raw diff data and not the printed output of \code{diffobj}, but do not wish
 #' to manually parse the \code{ses} output.  Whether it is faster than
 #' \code{ses} or not depends on the ratio of matching to non-matching values as
-#' \code{ses_dat} includes matching values whereas \code{ses} does not.  See
-#' examples.
+#' \code{ses_dat} includes matching values whereas \code{ses} does not.
+#' \code{ses_dat} objects have a print method that makes it easy to interpret
+#' the diff, but are actually data.frames.  You can see the underlying data by
+#' using \code{as.data.frame}, removing the "ses_dat" class, etc..
 #'
 #' @export
 #' @param a character
@@ -166,17 +168,18 @@ setMethod("as.data.frame", "MyersMbaSes",
 #' @param warn TRUE (default) or FALSE whether to warn if we hit
 #'   \code{max.diffs}.
 #' @return character shortest edit script, or a machine readable version of it
-#'   as a \code{data.frame} with columns \code{op} (factor, values
-#'   \dQuote{Match}, \dQuote{Insert}, or \dQuote{Delete}), \code{val} character
-#'   corresponding to the value taken from either \code{a} or \code{b},
-#'   and if \code{extra} is TRUE, integer columns \code{id.a} and \code{id.b}
-#'   corresponding to the indices in \code{a} or \code{b} that \code{val} was
-#'   taken from.  See Details.
+#'   as a \code{ses_dat} object, which is a \code{data.frame} with columns
+#'   \code{op} (factor, values \dQuote{Match}, \dQuote{Insert}, or
+#'   \dQuote{Delete}), \code{val} character corresponding to the value taken
+#'   from either \code{a} or \code{b}, and if \code{extra} is TRUE, integer
+#'   columns \code{id.a} and \code{id.b} corresponding to the indices in
+#'   \code{a} or \code{b} that \code{val} was taken from.  See Details.
 #' @examples
 #' a <- letters[1:6]
 #' b <- c('b', 'CC', 'DD', 'd', 'f')
 #' ses(a, b)
 #' (dat <- ses_dat(a, b))
+#' str(dat)                 # data.frame with a print method
 #'
 #' ## use `ses_dat` output to construct a minimal diff
 #' ## color with ANSI CSI SGR
@@ -237,7 +240,7 @@ ses_dat <- function(
   values <- character(length(id))
   values[use.a] <- a[id2[use.a]]
   values[use.b] <- b[id2[use.b]]
-  if(extra) {
+  res <- if(extra) {
     id.a <- id.b <- rep(NA_integer_, length(values))
     id.a[use.a] <- id2[use.a]
     id.b[use.b] <- id2[use.b]
@@ -248,7 +251,31 @@ ses_dat <- function(
   } else {
     data.frame(op=type2, val=values, stringsAsFactors=FALSE)
   }
+  structure(res, class=c('ses_dat', class(res)))
 }
+#' @export
+
+print.ses_dat <- function(x, quote=FALSE, ...) {
+  op <- x[['op']]
+  diff <- matrix(
+    "", 3, nrow(x),
+    dimnames=list(c('D:', 'M:', 'I:'), character(nrow(x)))
+  )
+  d <- op == 'Delete'
+  m <- op == 'Match'
+  i <- op == 'Insert'
+  diff[1, d] <- x[['val']][d]
+  diff[2, m] <- x[['val']][m]
+  diff[3, i] <- x[['val']][i]
+  writeLines(
+    sprintf(
+      "\"ses_dat\" object (Match: %d, Delete: %d, Insert: %d):",
+      sum(m), sum(d), sum(i)
+  ) )
+  print(diff, quote=quote, ...)
+  invisible(x)
+}
+
 # Internal validation fun for ses_*
 
 ses_prep <- function(a, b, max.diffs, warn) {
@@ -299,12 +326,12 @@ ses_prep <- function(a, b, max.diffs, warn) {
 #' @param a character
 #' @param b character
 #' @param max.diffs integer(1L) how many differences before giving up; set to
-#'   zero to allow as many as there are
+#'   -1 to allow as many as there are up to the maximum allowed (~INT_MAX/4).
 #' @param warn TRUE or FALSE, whether to warn if we hit `max.diffs`.
 #' @return MyersMbaSes object
 #' @useDynLib diffobj, .registration=TRUE, .fixes="DIFFOBJ_"
 
-diff_myers <- function(a, b, max.diffs=0L, warn=FALSE) {
+diff_myers <- function(a, b, max.diffs=-1L, warn=FALSE) {
   stopifnot(
     is.character(a), is.character(b), all(!is.na(c(a, b))), is.int.1L(max.diffs),
     is.TF(warn)

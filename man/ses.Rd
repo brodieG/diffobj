@@ -14,10 +14,10 @@ ses_dat(a, b, extra = TRUE, max.diffs = gdo("max.diffs"), warn = gdo("warn"))
 
 \item{b}{character}
 
-\item{max.diffs}{integer(1L), number of \emph{differences} after which we
-abandon the \code{O(n^2)} diff algorithm in favor of a naive element by
-element comparison. Set to \code{-1L} to always stick to the original
-algorithm (defaults to 50000L).}
+\item{max.diffs}{integer(1L), number of \emph{differences} (default 50000L)
+after which we abandon the \code{O(n^2)} diff algorithm in favor of a naive
+\code{O(n)} one. Set to \code{-1L} to stick to the original algorithm up to
+the maximum allowed (~INT_MAX/4).}
 
 \item{warn}{TRUE (default) or FALSE whether to warn if we hit
 \code{max.diffs}.}

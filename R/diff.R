@@ -164,7 +164,10 @@ make_diff_fun <- function(capt_fun) {
 #' methods do.
 #'
 #' Strings are re-encoded to UTF-8 with \code{\link{enc2utf8}} prior to
-#' comparison to avoid spurious encoding-only differences.
+#' comparison to avoid encoding-only differences.
+#'
+#' The text representation of `target` and `current` should each have no more
+#' than ~INT_MAX/4 lines.
 #'
 #' @section Matrices and Data Frames:
 #'
@@ -350,10 +353,10 @@ make_diff_fun <- function(capt_fun) {
 #'   particular diff is a function of how many differences, and also how much
 #'   \code{context} is used since context can cause two hunks to bleed into
 #'   each other and become one.
-#' @param max.diffs integer(1L), number of \emph{differences} after which we
-#'   abandon the \code{O(n^2)} diff algorithm in favor of a naive element by
-#'   element comparison. Set to \code{-1L} to always stick to the original
-#'   algorithm (defaults to 50000L).
+#' @param max.diffs integer(1L), number of \emph{differences} (default 50000L)
+#'   after which we abandon the \code{O(n^2)} diff algorithm in favor of a naive
+#'   \code{O(n)} one. Set to \code{-1L} to stick to the original algorithm up to
+#'   the maximum allowed (~INT_MAX/4).
 #' @param disp.width integer(1L) number of display columns to take up; note that
 #'   in \dQuote{sidebyside} \code{mode} the effective display width is half this
 #'   number (set to 0L to use default widths which are \code{getOption("width")}

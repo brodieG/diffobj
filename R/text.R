@@ -285,7 +285,7 @@ strip_hz_c_int <- function(txt, stops, sgr.supported) {
             gsub(paste0(".*", ansi_regex, ".*"), "\\1", tail(x, 1L), perl=TRUE)
         ) }
         res
-      } else x
+      } else x # nocov has.cr elements can't have length zero after split...
     },
     character(1L)
   )

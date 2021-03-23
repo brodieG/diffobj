@@ -1,6 +1,6 @@
 
-R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
-Copyright (C) 2020 The R Foundation for Statistical Computing
+R version 4.0.4 beta (2021-02-06 r79953) -- "Lost Library Book"
+Copyright (C) 2021 The R Foundation for Statistical Computing
 Platform: x86_64-apple-darwin17.0 (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -201,6 +201,14 @@ Error in .local(x, ...) : Argument `js` must be character(1L) and not NA.
 > all.equal(diffobj:::c.factor(), factor(character()))
 [1] TRUE
 > 
+> # - strip_hz -------------------------------------------------------------------
+> 
+> # Can't trigger this directly because wrapper doesn't let this case through
+> diffobj:::strip_hz_c_int(character(), 8L, TRUE)
+character(0)
+> 
+> 
+> 
 > proc.time()
    user  system elapsed 
-  1.137   0.125   1.264 
+  0.607   0.078   0.674 

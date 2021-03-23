@@ -3,7 +3,7 @@ Type: Package
 Title: Diffs for R Objects
 Description: Generate a colorized diff of two R objects for an intuitive
     visualization of their differences.
-Version: 0.3.3
+Version: 0.3.4
 Authors@R: c(
     person(
     "Brodie", "Gaslam", email="brodie.gaslam@yahoo.com",
@@ -18,7 +18,8 @@ License: GPL (>= 2)
 LazyData: true
 URL: https://github.com/brodieG/diffobj
 BugReports: https://github.com/brodieG/diffobj/issues
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
+Roxygen: list(load = "installed")
 VignetteBuilder: knitr
 Encoding: UTF-8
 Suggests:

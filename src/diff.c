@@ -76,12 +76,32 @@
  *   script rather than simply saying the shortest edit script is longer than
  *   allowable diffs; this is all the `faux_snake` stuff.  This algorithm tries
  *   to salvage whatever the myers algo computed up to the point of max diffs
- * - Adding lots of comments as we worked through the logic
+ * - Comments.
+ */
+/*
+ * Terms
+ *
+ * * A: first string
+ * * B: second string
+ * * N: length of A
+ * * M: length of B
+ * * K: grid-diagonal, numbered from -M to N.  For each grid-diagonal K,
+ *   X - Y == K, i.e. (3, 1) is on diagonal K == 2.
+ * * D: Number of differences in a path.
+ * * Snake: sequence of diagonal moves (i.e. matching substrings).  An edit
+ *   script (path) will combine snakes with (possibly zero) right/down moves.  A
+ *   D-path may have up to D + 1 snakes, some or all zero length.
+ * * Middle Snake: Possibly zero length snake in which the forward and reverse
+ *   paths meet in the Linear Space Refinement algorithm.  Defined in terms of
+ *   (x, y, u, v) where (x, y) are the coordinates from (0, 0), and (u, v) those
+ *   from (M, N).
  */
 
 
 #include <stdlib.h>
 #include "diffobj.h"
+
+// See _v and _setv for details
 
 #define FV(k) _v(ctx, (k), 0)
 #define RV(k) _v(ctx, (k), 1)
@@ -124,9 +144,13 @@ const char * _op_to_chr(diff_op op) {
 }
 */
 /*
- * k = diagonal number
- * val = x value
- * r = presumably whether we are looking up in reverse snakes
+ * For each diagonal k, we only store the path that up to this point has gotten
+ * furthest on it (well, two really, one from the forward and one from the
+ * reverse directins)
+ *
+ * @param k = diagonal number
+ * @param val = x value
+ * @param r = 0 for forward snake, 1 for backward snake
  */
   static void
 _setv(struct _ctx *ctx, int k, int r, int val)
@@ -151,8 +175,9 @@ _setv(struct _ctx *ctx, int k, int r, int val)
 }
 /*
  * For any given `k` diagonal, return the x coordinate of the furthest reaching
- * path we've found.  Use `r` to look for the x coordinate for the paths that
- * are starting from the bottom right instead of top left
+ * path we've found.
+ *
+ * See `_set_v`.
  */
   static int
 _v(struct _ctx *ctx, int k, int r)
@@ -175,9 +200,8 @@ _v(struct _ctx *ctx, int k, int r)
  *
  * Needs to account for special case when indeces are oob for the strings.  The
  * oob checks seem to be necessary since algo is requesting reads past length
- * of string, but not sure if that is intentional or not.  In theory it should
- * not be, but perhaps this was handled gracefully by the varray business b4
- * we changed it.
+ * of string (maybe this worked with the varrays).  As the current algo is
+ * written, it does not seem to be the case that we even attempt oob reads.
  */
 int _comp_chr(SEXP a, int aidx, SEXP b, int bidx) {
   int alen = XLENGTH(a);
@@ -189,141 +213,70 @@ int _comp_chr(SEXP a, int aidx, SEXP b, int bidx) {
     comp = 1;
     // nocov end
   } else if(aidx >= alen || bidx >= blen) {
-    comp = 0;
+    comp = 0;  // nocov
   } else comp = STRING_ELT(a, aidx) == STRING_ELT(b, bidx);
   return(comp);
 }
 /*
  * Handle cases where differences exceed maximum allowable differences
  *
- * General logic is to create a faux snake that instead of moving down
- * diagonally will chain right and down moves until it hits a path coming
- * from the other direction.  This snake is stored in `ctx`, and is then
- * written by `ses` to the `ses` list.
+ * General logic is to try to connect the prior furthest points by naively
+ * incrementing in each dimension and hoping for some diagonal runs.
+ *
+ * @param a character vector
+ * @param b character vector
+ * @param d number of differences associated with the backward snake implicit in
+ *   the ms.u/v values.
+ * forward loops in difference seeking; this is not the same as the
+ *   number of differences as in each loop we find a forward and backward
+ *   difference.
  */
 static int
 _find_faux_snake(
-  SEXP a, int aoff, int n, SEXP b, int boff, int m, struct _ctx *ctx,
-  struct middle_snake *ms, int d, diff_op ** faux_snake
+  SEXP a, int aoff, int n, SEXP b, int boff, int m,
+  struct middle_snake *ms, diff_op ** faux_snake, int d
 ) {
-  /* normally we would record k/x values at the end of the furthest reaching
-   * snake, but here we need pick a path from top left  and extend it until
-   * we hit something coming from bottom right.
-   */
-  /* start by finding which diagonal has the furthest reaching value
-   * when looking from top left
-   */
-  int k_max_f = 0, x_max_f = -1;
-  int x_f, y_f, k_f;
-  int delta = n - m;
+  int x = ms->x;
+  int y = ms->y;
+  // Should switch to unsigned int...
+  if(x < 0 || y < 0 || ms->u < 0 || ms->v < 0) 
+      error("Internal Error: fake snake with -ve start; contact maintainer.");  // nocov
 
-  for (int k = d - 1; k >= -d + 1; k -= 2) { /* might need to shift by 1 */
-    int x_f = FV(k);
-    int f_dist = x_f - abs(k);
-
-    if(x_f > n || x_f - k > m) continue;
-
-    if(f_dist > x_max_f - abs(k_max_f)) {
-      x_max_f = x_f;
-      k_max_f = k;
-    }
-  }
-  /* didn't find a path so use origin */
-  if(x_max_f < 0) {
-    // nocov start
-    error(err_msg_ubrnch, 2);
-    x_f = y_f = k_f = 0;
-    // nocov end
-  } else {
-    k_f = k_max_f;
-    x_f = x_max_f;
-    y_f = x_f - k_max_f;
-  }
-  /*
-   * now look for the furthest reaching point in any diagonal that is
-   * below the diagonal we found above since those are the only ones we
-   * can connect to
-   *
-   */
-  int k_max_r = 0, x_max_r = n + 1;
-  int x_r, y_r;
-
-  for (int k = -d; k <= k_max_f - delta; k += 2) {
-    int x_r = RV(k);
-    int r_dist = n - x_r - abs(k);
-    /* skip reverse snakes that overshoot our forward snake
-     * ---\
-     *     \
-     *   \
-     *    \
-     *     \---
-     * where there should be a decent path we can use, but because we are only
-     * tracking the last coordinates we don't really have a way connecting this
-     * type of path so we just go straight to the origin even though that is
-     * even more sub-optinal; not even sure if this is a possible scenario
-     */
-    if(x_r < x_f || x_r - k - delta < y_f) continue;
-
-    /* since buffer is init to zero, an x_r value of zero means nothing, and
-     * not all the way to the left of the graph; also, in reverse snakes the
-     * snake should end at x == 1 in the leftmost case (we think)
-     */
-    if(r_dist > n - x_max_r - abs(k_max_r) && x_r) {
-      x_max_r = x_r;
-      k_max_r = k;
-    }
-  }
-  if(x_max_r >= n) {
-    x_r = n; y_r = m;
-  } else {
-    x_r = x_max_r;
-    /* not 100% sure about this one; seems like k_max_r is relative to the
-     * bottom right origin, so maybe this should be x_r - k_max_r - delta?
-     */
-    y_r = x_r - k_max_r - delta;
-  }
-  /*
-   * attempt to connect the two paths we found.  We need to store this
-   * information as our "faux" snake since it will have to be processed
-   * in a manner similar as the middle snake would be processed; start by
-   * figuring out max number of steps it would take to connect the two
-   * paths
-   */
-  int max_steps = x_r - x_f + y_r - y_f + 1;
   int steps = 0;
-  int diffs = 0;
+  int diffs = 0;    // only diffs from fake snake
   int step_dir = 1; /* last direction we moved in, 1 is down */
-  int x_sn = x_f, y_sn = y_f;
 
-  /* initialize the fake snake */
-  if(max_steps < 0)
+  if(x > ms->u || y > ms->v) {
+    // Overshot backward snake, e.g. you hit a long diagonal run that overshoots
+    // the prior backward closest point.  In this case toss backward snake.
+    ms->u = n;
+    ms->v = m;
+    diffs -= d;  // we're also tossing accrued differences from back snake
+    if(x > ms->u || y > ms->v)
+      error("Internal Error: can't correct fwd snake overshoot; contact maintainer"); // nocov
+  }
+  if(ms->u > INT_MAX - ms->v - 1) // x/y positive, so this is conservative
     error("Logic Error: fake snake step overflow? Contact maintainer."); // nocov
+
+  int max_steps;
+  max_steps = (ms->u - x) + (ms->v - y) + 1;
 
   diff_op * faux_snake_tmp = (diff_op*) R_alloc(max_steps, sizeof(diff_op));
   for(int i = 0; i < max_steps; i++) *(faux_snake_tmp + i) = DIFF_NULL;
-
-  /* we have a further reaching reverse snake:
-   * not entirely sure if this should happen, but it seems it does
-   */
-  while(x_sn < x_r || y_sn < y_r) {
-    if(x_sn > x_r || y_sn > y_r) {
-      error("Logic Error: Exceeded buffer for finding fake snake; contact maintainer.");  // nocov
-    }
-    /* check to see if we could possibly move on a diagonal, and do so
-     * if possible, if not alternate going down and right*/
+  while((x < ms->u) || (y < ms->v)) {
     if(
-        x_sn <= x_r && y_sn <= y_r &&
-        _comp_chr(a, aoff + x_sn, b, boff + y_sn)
+      x < ms->u && y < ms->v &&
+      _comp_chr(a, aoff + x, b, boff + y)
     ) {
-      x_sn++; y_sn++;
+      x++; y++;
       *(faux_snake_tmp + steps) = DIFF_MATCH;
-    } else if (x_sn < x_r && (step_dir || y_sn >= y_r)) {
-      x_sn++;
+    } else if (x < ms->u && (step_dir || y >= ms->v)) {
+      x++;
       diffs++;
       step_dir = !step_dir;
       *(faux_snake_tmp + steps) = DIFF_DELETE;
-    } else if (y_sn < y_r && (!step_dir || x_sn >= x_r)) {
-      y_sn++;
+    } else if (y < ms->v && (!step_dir || x >= ms->u)) {
+      y++;
       diffs++;
       *(faux_snake_tmp + steps) = DIFF_INSERT;
       step_dir = !step_dir;
@@ -332,23 +285,10 @@ _find_faux_snake(
     }
     steps++;
   }
-  /* corner cases; must absolutely make sure steps LT max_steps since we rely
-   * on at least one zero at the end of the faux_snake when we read it to know
-   * to stop reading it
-   */
-  if(x_sn != x_r || y_sn != y_r || steps >= max_steps) {
+  if(x != ms->u || y != ms->v || steps >= max_steps) {
     error("Logic Error: faux snake process failed; contact maintainer."); // nocov
   }
-  /* modify the pointer to the pointer so we can return in by ref */
-
   *faux_snake = faux_snake_tmp;
-
-  /* record the coordinates of our faux snake using `ms` */
-  ms->x = x_f;
-  ms->y = y_f;
-  ms->u = x_r;
-  ms->v = y_r;
-
   return diffs;
 }
 
@@ -360,6 +300,8 @@ _find_faux_snake(
  * the maximum number of differences, we return to `_ses` with the number of
  * differences found.  `_ses` will then attempt to stitch back the snakes
  * together.
+ *
+ * @param ms tracks beginning (x,y) and end (u,v) coords of the middle snake
  */
   static int
 _find_middle_snake(
@@ -367,10 +309,17 @@ _find_middle_snake(
   struct middle_snake *ms, diff_op ** faux_snake
 ) {
   int delta, odd, mid, d;
+  int x_max, y_max, v_max, u_max;
+  ms->x = x_max = 0;
+  ms->y = y_max = 0;
+  ms->u = u_max = n;
+  ms->v = v_max = m;
+  double dist = (x_max - u_max) * (x_max - u_max) +
+    (y_max - v_max) * (y_max - v_max);
 
   delta = n - m;
   odd = delta & 1;
-  mid = (n + m) / 2;
+  mid = (n + m) / 2;  // we check in `diff` that this won't overflow int
   mid += odd;
 
   _setv(ctx, 1, 0, 0);
@@ -378,45 +327,72 @@ _find_middle_snake(
 
   /* For each number of differences `d`, compute the farthest reaching paths
    * from both the top left and bottom right of the edit graph
+   *
+   * First loop does NOT actually find a difference, which makes all the
+   * difference calculations weird.
    */
   for (d = 0; d <= mid; d++) {
     int k, x, y;
 
-    /* reached maximum allowable differences before real exit condition*/
-    if ((2 * d - 1) >= ctx->dmax) {
+    /* Reached maximum allowable differences before real exit condition.
+     * Each loop iteration finds up to 2 d differences (one forward, one
+     * backward).
+     *
+     * We know there is going to be at least one more difference because there
+     * must be at least one for us to get here, and there might be two if the
+     * extra forward difference doesn't find the end.
+     */
+    if (2 * (d - 1) > ctx->dmax - 1) {
+      // So far we've found 2*(d - 1) differences
       ctx->dmaxhit = 1;
-      return _find_faux_snake(a, aoff, n, b, boff, m, ctx, ms, d, faux_snake);
+      ms->x = x_max; ms->y = y_max; ms->u = u_max; ms->v = v_max;
+      return 2 * (d - 1) + _find_faux_snake(
+        a, aoff, n, b, boff, m, ms, faux_snake, d - 1
+      );
     }
-    /* Forward (from top left) paths*/
+    /* Forward (from top left) paths */
 
+    // // Alternate looping picks path closest to middle diagonal.  If we change
+    // // this we also should change it for backward paths.  This leads to more
+    // // compact diffs, but TBD whether this is good IRL so we abandon it for
+    // // now to avoid introducing behavior change.
+    // int ki = 0;
+    // k = d % 2 ? 1 : 0;
+    // for (;
+    //   k >= -d && k <= d;
+    //   ki++, k += 2 * ki * (ki % 2 ? -1 : 1)
+    // ) {
     for (k = d; k >= -d; k -= 2) {
+      // If at lowest possible diag, or not at highest and next diag up is
+      // further along in x, move to the right, otherwise move down.
       if (k == -d || (k != d && FV(k - 1) < FV(k + 1))) {
-        x = FV(k + 1);
+        x = FV(k + 1);      // move to the right, effectively
       } else {
-        x = FV(k - 1) + 1;
+        x = FV(k - 1) + 1;  // move down, effectively
       }
       y = x - k;
 
       ms->x = x;
       ms->y = y;
       while(x < n && y < m && _comp_chr(a, aoff + x, b, boff + y)) {
-        /* matching characters, just walk down diagonal */
-        x++; y++;
+        x++; y++;  /* matching characters, just walk down diagonal */
+      }
+      double dist_new = (x - u_max) * (x - u_max) + (y - v_max) * (y - v_max);
+      if(x <= n && y <= m && dist_new < dist) {
+        dist = dist_new;
+        x_max = x;
+        y_max = y;
       }
       _setv(ctx, k, 0, x);
 
-      /* for this diagonal we (think we) are now at farthest reaching point for
-       * a given d.  Then return if:
-       * - If we're at the edge of the addressable part of the graph
+      /* For this diagonal k we are now at farthest reaching point for a given
+       * `d`.  Then return if:
+       *
+       * - We're at the edge of the addressable part of the graph
        * - The reverse snakes are already overlapping in the `x` coordinate
        *
-       * then it means that the only way to get to the snake coming from the
-       * other direction is by either moving down or across for every remaining
-       * move, so record the current coord as `u` and `v` and return
-       *
-       * Note that for the backward snake we reverse xy and uv so that the
-       * matching snake is always defined in `ms` as starting at `ms.(xy)` and
-       * ending at `ms.(uv)`
+       * For the backward snake we reverse xy and uv so that the matching snake
+       * is defined ` as starting at `ms.(xy)` and ending at `ms.(uv)`
        */
       if (odd && k >= (delta - (d - 1)) && k <= (delta + (d - 1))) {
         if (x >= RV(k)) {
@@ -426,8 +402,19 @@ _find_middle_snake(
         }
       }
     }
-    /* Backwards (from bottom right) paths*/
-
+    // Check again if we'd go over by engaging the reverse snake
+    if (2 * d > ctx->dmax) {
+      // So far we've found 2*(d - 1) differences
+      ctx->dmaxhit = 1;
+      ms->x = x_max; ms->y = y_max; ms->u = u_max; ms->v = v_max;
+      return 2 * (d - 1) + 1 + _find_faux_snake(
+        a, aoff, n, b, boff, m, ms, faux_snake, d - 1
+      );
+    }
+    /* Backwards (from bottom right) paths (see forward loop).  The two loops
+     * are very similar so it is tempting to fold them into each other now, but
+     * would require some work + ensuring no performance degradation.
+     */
     for (k = d; k >= -d; k -= 2) {
       int kr = (n - m) + k;
 
@@ -444,6 +431,12 @@ _find_middle_snake(
       while (x > 0 && y > 0 && _comp_chr(a, aoff + x - 1, b, boff + y - 1)) {
         /* matching characters, just walk up diagonal */
         x--; y--;
+      }
+      double dist_new = (x_max - x) * (x_max - x) + (y_max - y) * (y_max - y);
+      if(x >= 0 && y >= 0 && dist_new < dist) {
+        dist = dist_new;
+        u_max = x;
+        v_max = y;
       }
       _setv(ctx, kr, 1, x);
 
@@ -524,7 +517,6 @@ _ses(
   struct middle_snake ms;
   int d;
 
-  //Rprintf("m: %d n: %d\n", m, n);
   if (n == 0) {
     _edit(ctx, DIFF_INSERT, boff, m);
     d = m;
@@ -532,13 +524,12 @@ _ses(
     _edit(ctx, DIFF_DELETE, aoff, n);
     d = n;
   } else {
-    /* Find the middle "snake" around which we
-     * recursively solve the sub-problems.  Note this modifies `ms` by ref to
-     * set the beginning and end coordinates of the snake of the furthest
-     * reaching path.  The beginning is always the top left part of the snake,
-     * irrespective of whether it was found on a forward or reverse path as
-     * f_m_s will flip the coordinates when appropriately when recording them
-     * in `ms`
+    /* Find the middle "snake" around which we recursively solve the
+     * sub-problems.  Note this modifies `ms` by ref to set the beginning and
+     * end coordinates of the snake of the furthest reaching path.  The
+     * beginning is always the top left part of the snake, irrespective of
+     * whether it was found on a forward or reverse path as f_m_s will flip the
+     * coordinates when appropriately when recording them in `ms`
      *
      * Additionally, if diffs exceed max.diffs, then `faux.snake` will also
      * be set.  `faux_snake` is a pointer to a pointer that points to a the
@@ -549,15 +540,8 @@ _ses(
     diff_op fsv = DIFF_NULL;
     diff_op * faux_snake;
     faux_snake = &fsv;
-    //
-    // d
-    // diff_op * fsp = NULL;
-    // diff_op fsv = DIFF_NULL;
-    // *fsp = fsv;
-    // **faux_snake = *fsp;
 
     d = _find_middle_snake(a, aoff, n, b, boff, m, ctx, &ms, &faux_snake);
-    //Rprintf("d: %d\n", d);
     if (d == -1) {
       // nocov start
       error(
@@ -569,7 +553,7 @@ _ses(
       error(err_msg_ubrnch, 6);
       return d;
       // nocov end
-    } else if (d > 1) {
+    } else if (d != 1) {
       /* in this case we have something along the lines of (note the non-
        * diagonal bits are just non-diagonal, we're making no claims about
        * whether they should or could be of the horizontal variety)
@@ -579,6 +563,9 @@ _ses(
        *        \- ...
        * so we will record the snake (diagonal) in the middle, and recurse
        * on the stub at the beginning and on the stub at the end separately
+       *
+       * Also have d == 0 case which can happen when the backward snake only has
+       * matches.
        */
 
       /* Beginning stub */
@@ -613,19 +600,19 @@ _ses(
       boff += ms.v;
       n -= ms.u;
       m -= ms.v;
-      if (_ses(a, aoff, n, b, boff, m, ctx) == -1) {
+      if(_ses(a, aoff, n, b, boff, m, ctx) == -1) {
         // nocov start
         error("Logic error: failed trying to run ses 2; contact maintainer.");
         // nocov end
       }
-    } else {
+    } else if (d == 1) {
       int x = ms.x;
       int u = ms.u;
 
-      /* There are only 4 base cases when the
-       * edit distance is 1.  Having a hard time finding cases that trigger the
-       * x == u, possibly because the algo eats leading matches, although
-       * apparently we do achieve it somewhere in the test suite.
+      /* There are only 4 base cases when the edit distance is 1.  Having a hard
+       * time finding cases that trigger the x == u, possibly because the algo
+       * eats leading matches, although apparently we do achieve it somewhere in
+       * the test suite.
        *
        * n > m   m > n
        *
@@ -638,7 +625,6 @@ _ses(
        *     -       |
        */
 
-      //Rprintf("x: %d u: %d y: %d v: %d\n",  ms.x, ms.u, ms.y, ms.v);
       if (m > n) {
         if (x == u) {
           _edit(ctx, DIFF_MATCH, aoff, n);
@@ -659,8 +645,8 @@ _ses(
         // Should never get here since this should be a D 2 case
         // nocov start
         error(
-          "Very special case n %d m %d aoff %d boff %d u %d\n", n, m,
-          aoff, boff, ms.u
+          "%s d %d n %d m %d aoff %d boff %d u %d; contact maintainer\n",
+          "Logic Error: special case", d, n, m, aoff, boff, ms.u
         );
         // nocov end
       }
@@ -681,14 +667,18 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
 ) {
   if(n < 0 || m < 0)
     error("Logic Error: negative lengths; contact maintainer.");  // nocov
+  if(n > INT_MAX - m)
+    error("Combined length of diffed vectors exeeds INT_MAX (%d)", INT_MAX);  // nocov
   struct _ctx ctx;
   int d, x, y;
   struct diff_edit *e = NULL;
   int delta = n - m;
   if(delta < 0) delta = -delta;
+  if(n + m > INT_MAX - delta)
+    error("Logic Error: exceeded max allowable combined string length.");  // nocov
+  if(n + m + delta > INT_MAX / 4 - 1)
+    error("Logic Error: exceeded max allowable combined string length.");  // nocov
   int bufmax = 4 * (n + m + delta) + 1;  // see _setv
-  if(bufmax < n || bufmax < m)
-    error("Logic Error: exceeded maximum allowable combined string length.");  // nocov
 
   int *tmp = (int *) R_alloc(bufmax, sizeof(int));
   for(int i = 0; i < bufmax; i++) *(tmp + i) = 0;
@@ -702,7 +692,7 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
   ctx.ses = ses;
   ctx.si = 0;
   ctx.simax = n + m;
-  ctx.dmax = dmax ? dmax : INT_MAX;
+  ctx.dmax = dmax >= 0 ? dmax : INT_MAX;
   ctx.dmaxhit = 0;
 
   /* initialize first ses edit struct*/
@@ -712,18 +702,16 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
     }
     e->op = 0;
   }
-
   /* The _ses function assumes the SES will begin or end with a delete
    * or insert. The following will ensure this is true by eating any
    * beginning matches. This is also a quick to process sequences
    * that match entirely.
    */
   x = y = 0;
+  if(boff > INT_MAX - m || aoff > INT_MAX - n)
+      error("Internal error: overflow for a/boff; contact maintainer"); //nocov
+
   while (x < n && y < m) {
-    if(boff > INT_MAX - y)
-      error("Internal error: overflow for boff; contact maintainer"); //nocov
-    if(aoff > INT_MAX - x)
-      error("Internal error: overflow for aoff; contact maintainer"); //nocov
     if(!_comp_chr(a, aoff + x, b, boff + y)) break;
     x++; y++;
   }
