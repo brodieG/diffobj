@@ -68,14 +68,16 @@ diffobj_set_def_opts <- function() options(.default.opts)
 
 #' Shorthand Function for Accessing diffobj Options
 #'
-#' \code{gdo(x)} is equivalent to \code{getOption(sprintf("diffobj.\%s", x))}.
+#' \code{gdo(x)} is equivalent to \code{getOption(sprintf("diffobj.\%s", x))},
+#' falling back to \pkg{diffobj}'s internal default value if the option is
+#' not set.
 #'
 #' @export
 #' @param x character(1L) name off \code{diffobj} option to retrieve, without
 #'   the \dQuote{diffobj.} prefix
 #' @examples
 #' gdo("format")
-
-gdo <- function(x) getOption(sprintf("diffobj.%s", x))
-
-
+gdo <- function(x) {
+  opt <- sprintf("diffobj.%s", x)
+  getOption(opt, .default.opts[[opt]])
+}
