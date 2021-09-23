@@ -39,19 +39,7 @@ res <- lapply(
 
 diffdisp <- function(x) {
   ses <- x[[1]]
-  op <- ses[['op']]
-  diff <- matrix(
-    "", 3, nrow(ses),
-    dimnames=list(c('D:', 'M:', 'I:'), seq_len(nrow(ses)))
-  )
-  d <- op == 'Delete'
-  m <- op == 'Match'
-  i <- op == 'Insert'
-  diff[1, d] <- ses[['val']][d]
-  diff[2, m] <- ses[['val']][m]
-  diff[3, i] <- ses[['val']][i]
-
-  print(diff, quote=FALSE)
+  print(ses)
   writeLines(
     c(
       "",
@@ -63,7 +51,8 @@ diffdisp <- function(x) {
 set.seed(1)
 
 res.warn <- vapply(res, function(x) nzchar(x[['warn']]), TRUE)
-res2 <- res[res.warn]
+# res2 <- res[res.warn]
+res2 <- res
 i <- sample(seq_along(res2))
 
 for(j in i) {

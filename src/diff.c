@@ -76,9 +76,6 @@
  *   script rather than simply saying the shortest edit script is longer than
  *   allowable diffs; this is all the `faux_snake` stuff.  This algorithm tries
  *   to salvage whatever the myers algo computed up to the point of max diffs
- * - Pick the complete path that travels along the diagonal closest to the
- *   center of the N x M space instead of the one closest to the top when there
- *   are multiple paths with the same number of differences.
  * - Comments.
  */
 /*
@@ -203,9 +200,8 @@ _v(struct _ctx *ctx, int k, int r)
  *
  * Needs to account for special case when indeces are oob for the strings.  The
  * oob checks seem to be necessary since algo is requesting reads past length
- * of string, but not sure if that is intentional or not.  In theory it should
- * not be, but perhaps this was handled gracefully by the varray business b4
- * we changed it.
+ * of string (maybe this worked with the varrays).  As the current algo is
+ * written, it does not seem to be the case that we even attempt oob reads.
  */
 int _comp_chr(SEXP a, int aidx, SEXP b, int bidx) {
   int alen = XLENGTH(a);
@@ -217,7 +213,7 @@ int _comp_chr(SEXP a, int aidx, SEXP b, int bidx) {
     comp = 1;
     // nocov end
   } else if(aidx >= alen || bidx >= blen) {
-    comp = 0;
+    comp = 0;  // nocov
   } else comp = STRING_ELT(a, aidx) == STRING_ELT(b, bidx);
   return(comp);
 }
@@ -225,11 +221,13 @@ int _comp_chr(SEXP a, int aidx, SEXP b, int bidx) {
  * Handle cases where differences exceed maximum allowable differences
  *
  * General logic is to try to connect the prior furthest points by naively
- * incrementing in each dimension and hoping from some diagonal runs.
+ * incrementing in each dimension and hoping for some diagonal runs.
  *
  * @param a character vector
  * @param b character vector
- * @param d number of forward loops in difference seeking; this is not the same as the
+ * @param d number of differences associated with the backward snake implicit in
+ *   the ms.u/v values.
+ * forward loops in difference seeking; this is not the same as the
  *   number of differences as in each loop we find a forward and backward
  *   difference.
  */
@@ -240,6 +238,10 @@ _find_faux_snake(
 ) {
   int x = ms->x;
   int y = ms->y;
+  // Should switch to unsigned int...
+  if(x < 0 || y < 0 || ms->u < 0 || ms->v < 0) 
+      error("Internal Error: fake snake with -ve start; contact maintainer.");  // nocov
+
   int steps = 0;
   int diffs = 0;    // only diffs from fake snake
   int step_dir = 1; /* last direction we moved in, 1 is down */
@@ -249,11 +251,15 @@ _find_faux_snake(
     // the prior backward closest point.  In this case toss backward snake.
     ms->u = n;
     ms->v = m;
-    diffs = d / 2;  // we're also tossing accrued differences from back snake
+    diffs -= d;  // we're also tossing accrued differences from back snake
+    if(x > ms->u || y > ms->v)
+      error("Internal Error: can't correct fwd snake overshoot; contact maintainer"); // nocov
   }
-  int max_steps = ms->u - x + ms->v - y + 1;
-  if(max_steps < 0)
+  if(ms->u > INT_MAX - ms->v - 1) // x/y positive, so this is conservative
     error("Logic Error: fake snake step overflow? Contact maintainer."); // nocov
+
+  int max_steps;
+  max_steps = (ms->u - x) + (ms->v - y) + 1;
 
   diff_op * faux_snake_tmp = (diff_op*) R_alloc(max_steps, sizeof(diff_op));
   for(int i = 0; i < max_steps; i++) *(faux_snake_tmp + i) = DIFF_NULL;
@@ -313,7 +319,7 @@ _find_middle_snake(
 
   delta = n - m;
   odd = delta & 1;
-  mid = (n + m) / 2;
+  mid = (n + m) / 2;  // we check in `diff` that this won't overflow int
   mid += odd;
 
   _setv(ctx, 1, 0, 0);
@@ -322,21 +328,21 @@ _find_middle_snake(
   /* For each number of differences `d`, compute the farthest reaching paths
    * from both the top left and bottom right of the edit graph
    *
-   * First loop does not actually find a difference
+   * First loop does NOT actually find a difference, which makes all the
+   * difference calculations weird.
    */
   for (d = 0; d <= mid; d++) {
     int k, x, y;
 
     /* Reached maximum allowable differences before real exit condition.
      * Each loop iteration finds up to 2 d differences (one forward, one
-     * backward).  We could check before the backward loop too, but lazy, so we
-     * might overshoot diff.max by 1.
+     * backward).
      *
      * We know there is going to be at least one more difference because there
      * must be at least one for us to get here, and there might be two if the
      * extra forward difference doesn't find the end.
      */
-    if (2 * d - 1 > ctx->dmax) {
+    if (2 * (d - 1) > ctx->dmax - 1) {
       // So far we've found 2*(d - 1) differences
       ctx->dmaxhit = 1;
       ms->x = x_max; ms->y = y_max; ms->u = u_max; ms->v = v_max;
@@ -396,8 +402,19 @@ _find_middle_snake(
         }
       }
     }
-    /* Backwards (from bottom right) paths (see forward loop) */
-
+    // Check again if we'd go over by engaging the reverse snake
+    if (2 * d > ctx->dmax) {
+      // So far we've found 2*(d - 1) differences
+      ctx->dmaxhit = 1;
+      ms->x = x_max; ms->y = y_max; ms->u = u_max; ms->v = v_max;
+      return 2 * (d - 1) + 1 + _find_faux_snake(
+        a, aoff, n, b, boff, m, ms, faux_snake, d - 1
+      );
+    }
+    /* Backwards (from bottom right) paths (see forward loop).  The two loops
+     * are very similar so it is tempting to fold them into each other now, but
+     * would require some work + ensuring no performance degradation.
+     */
     for (k = d; k >= -d; k -= 2) {
       int kr = (n - m) + k;
 
@@ -536,7 +553,7 @@ _ses(
       error(err_msg_ubrnch, 6);
       return d;
       // nocov end
-    } else if (d > 1) {
+    } else if (d != 1) {
       /* in this case we have something along the lines of (note the non-
        * diagonal bits are just non-diagonal, we're making no claims about
        * whether they should or could be of the horizontal variety)
@@ -546,6 +563,9 @@ _ses(
        *        \- ...
        * so we will record the snake (diagonal) in the middle, and recurse
        * on the stub at the beginning and on the stub at the end separately
+       *
+       * Also have d == 0 case which can happen when the backward snake only has
+       * matches.
        */
 
       /* Beginning stub */
@@ -580,14 +600,12 @@ _ses(
       boff += ms.v;
       n -= ms.u;
       m -= ms.v;
-      if (_ses(a, aoff, n, b, boff, m, ctx)  == -1) {
+      if(_ses(a, aoff, n, b, boff, m, ctx) == -1) {
         // nocov start
         error("Logic error: failed trying to run ses 2; contact maintainer.");
         // nocov end
       }
-    } else {
-      // No d == 0 case b/c that should have been dealt with by eating all
-      // leading matches
+    } else if (d == 1) {
       int x = ms.x;
       int u = ms.u;
 
@@ -627,8 +645,8 @@ _ses(
         // Should never get here since this should be a D 2 case
         // nocov start
         error(
-          "%s n %d m %d aoff %d boff %d u %d; contact maintainer\n",
-          "Logic Error: special case", n, m, aoff, boff, ms.u
+          "%s d %d n %d m %d aoff %d boff %d u %d; contact maintainer\n",
+          "Logic Error: special case", d, n, m, aoff, boff, ms.u
         );
         // nocov end
       }
@@ -649,14 +667,18 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
 ) {
   if(n < 0 || m < 0)
     error("Logic Error: negative lengths; contact maintainer.");  // nocov
+  if(n > INT_MAX - m)
+    error("Combined length of diffed vectors exeeds INT_MAX (%d)", INT_MAX);  // nocov
   struct _ctx ctx;
   int d, x, y;
   struct diff_edit *e = NULL;
   int delta = n - m;
   if(delta < 0) delta = -delta;
+  if(n + m > INT_MAX - delta)
+    error("Logic Error: exceeded max allowable combined string length.");  // nocov
+  if(n + m + delta > INT_MAX / 4 - 1)
+    error("Logic Error: exceeded max allowable combined string length.");  // nocov
   int bufmax = 4 * (n + m + delta) + 1;  // see _setv
-  if(bufmax < n || bufmax < m)
-    error("Logic Error: exceeded maximum allowable combined string length.");  // nocov
 
   int *tmp = (int *) R_alloc(bufmax, sizeof(int));
   for(int i = 0; i < bufmax; i++) *(tmp + i) = 0;
@@ -670,7 +692,7 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
   ctx.ses = ses;
   ctx.si = 0;
   ctx.simax = n + m;
-  ctx.dmax = dmax ? dmax : INT_MAX;
+  ctx.dmax = dmax >= 0 ? dmax : INT_MAX;
   ctx.dmaxhit = 0;
 
   /* initialize first ses edit struct*/
@@ -680,18 +702,16 @@ diff(SEXP a, int aoff, int n, SEXP b, int boff, int m,
     }
     e->op = 0;
   }
-
   /* The _ses function assumes the SES will begin or end with a delete
    * or insert. The following will ensure this is true by eating any
    * beginning matches. This is also a quick to process sequences
    * that match entirely.
    */
   x = y = 0;
+  if(boff > INT_MAX - m || aoff > INT_MAX - n)
+      error("Internal error: overflow for a/boff; contact maintainer"); //nocov
+
   while (x < n && y < m) {
-    if(boff > INT_MAX - y)
-      error("Internal error: overflow for boff; contact maintainer"); //nocov
-    if(aoff > INT_MAX - x)
-      error("Internal error: overflow for aoff; contact maintainer"); //nocov
     if(!_comp_chr(a, aoff + x, b, boff + y)) break;
     x++; y++;
   }

@@ -1,5 +1,5 @@
 
-R version 4.0.4 beta (2021-02-06 r79953) -- "Lost Library Book"
+R version 4.0.4 (2021-02-15) -- "Lost Library Book"
 Copyright (C) 2021 The R Foundation for Statistical Computing
 Platform: x86_64-apple-darwin17.0 (64-bit)
 
@@ -190,7 +190,7 @@ In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
 > 
 > # - issue 157 ------------------------------------------------------------------
 > 
-> # Arguably could match on 'A' instead of 'X' and be more comparct
+> # Arguably could match on 'A' instead of 'X' and be more compact
 > a <- c('a', 'b', 'c', 'A', 'X', 'Y', 'Z', 'W')
 > b <- c('X', 'C', 'A', 'U', 1, 2, 3)
 > ses(a, b, max.diffs=13)
@@ -205,7 +205,38 @@ In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
 [1] "0a1"   "2,8d2"
 Warning message:
 In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
-  Exceeded `max.diffs`: 9 vs 2 allowed. Diff is probably suboptimal.
+  Exceeded `max.diffs`: 8 vs 2 allowed. Diff is probably suboptimal.
+> 
+> # effect of max.diffs on compactness (waldo logical comparison)
+> ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=0)
+[1] "1c1" "3c3" "5c5"
+Warning message:
+In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
+  Exceeded `max.diffs`: 6 vs 0 allowed. Diff is probably suboptimal.
+> ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=1)
+[1] "0a1"   "2c3"   "4,5c5"
+Warning message:
+In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
+  Exceeded `max.diffs`: 6 vs 1 allowed. Diff is probably suboptimal.
+> ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=2)
+[1] "0a1"   "2,4c3" "5a5"  
+Warning message:
+In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
+  Exceeded `max.diffs`: 6 vs 2 allowed. Diff is probably suboptimal.
+> 
+> # back snake all matches before faux snake triggered
+> ses_dat(
++   a=c("T", "A", "A", "C", "C", "A"),
++   b=c("A", "G", "A", "A"), max.diffs = 0
++ )
+"ses_dat" object (Match: 3, Delete: 3, Insert: 1):
+                
+D: T       C C  
+M:   A   A     A
+I:     G        
+Warning message:
+In diff_myers(args[["a"]], args[["b"]], max.diffs = args[["max.diffs"]],  :
+  Exceeded `max.diffs`: 4 vs 0 allowed. Diff is probably suboptimal.
 > 
 > # - errors ---------------------------------------------------------------------
 > 
@@ -299,4 +330,4 @@ Error in ses_dat(a, b, extra = NA) :
 > 
 > proc.time()
    user  system elapsed 
-  1.210   0.113   1.316 
+  1.135   0.107   1.244 

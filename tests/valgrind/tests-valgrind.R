@@ -142,6 +142,17 @@ writeLines("corner cases?")
     # snake overrun
     ses(c("G", "C", "T", "C", "A", "C", "G", "C"), c("T", "G"), max.diffs=2)
 
+    # effect of max.diffs on compactness (waldo logical comparison)
+    ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=0)
+    ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=1)
+    ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=2)
+
+    # back snake all matches before faux snake triggered
+    ses_dat(
+      a=c("T", "A", "A", "C", "C", "A"),
+      b=c("A", "G", "A", "A"), max.diffs = 0
+    )
+
 writeLines("errors")
     # expect_error(ses("a", "b", max.diffs = "hello"), "must be scalar integer")
     try(ses("a", "b", max.diffs = "hello"), silent=TRUE)

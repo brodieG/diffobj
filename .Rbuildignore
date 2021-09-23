@@ -17,3 +17,4 @@ notcran
 \.Rout$
 \.Rout.fail$
 ^\.github$
+^revdep

@@ -132,7 +132,7 @@ ses(a[-(18:38)], b[-(50:80)], max.diffs=115)
 
 # - issue 157 ------------------------------------------------------------------
 
-# Arguably could match on 'A' instead of 'X' and be more comparct
+# Arguably could match on 'A' instead of 'X' and be more compact
 a <- c('a', 'b', 'c', 'A', 'X', 'Y', 'Z', 'W')
 b <- c('X', 'C', 'A', 'U', 1, 2, 3)
 ses(a, b, max.diffs=13)
@@ -142,6 +142,17 @@ ses(letters[1:2], LETTERS[1:2], max.diffs = 4)
 
 # snake overrun
 ses(c("G", "C", "T", "C", "A", "C", "G", "C"), c("T", "G"), max.diffs=2)
+
+# effect of max.diffs on compactness (waldo logical comparison)
+ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=0)
+ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=1)
+ses(c('A','A','A','A','A'), c('B','A','B','A','B'), max.diffs=2)
+
+# back snake all matches before faux snake triggered
+ses_dat(
+  a=c("T", "A", "A", "C", "C", "A"),
+  b=c("A", "G", "A", "A"), max.diffs = 0
+)
 
 # - errors ---------------------------------------------------------------------
 
