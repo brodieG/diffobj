@@ -2,7 +2,7 @@ filelist <- function(x, y) paste0(x, paste0("* ", basename(y), collapse="\n"))
 
 test.out <- list.files(pattern="\\.Rout$")
 if(any(lengths(lapply(test.out, tools::showNonASCIIfile))))
-  warning(bullets("Some test output files contain non-ASCII:\n", test.out))
+  warning(filelist("Some test output files contain non-ASCII:\n", test.out))
 
 targets <- list.files(pattern='\\.Rout\\.save', full.names=TRUE)
 current <- file.path(dirname(targets), sub('\\.save$', '', basename(targets)))
