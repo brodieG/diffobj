@@ -1,5 +1,10 @@
 # diffobj
 
+## v0.3.5
+
+* Options automatically fallback to factory defaults if they are unset (h/t
+  @gadenbui).
+
 ## v0.3.4
 
 * Add a print method for `ses_dat` return values that makes it easier to
