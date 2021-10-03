@@ -76,7 +76,8 @@ detect_2d_guides <- function(txt) {
   first.spaces <- grep("^\\s+\\S+", txt)
 
   if(length(first.spaces)) {
-    # Now look for data
+    # Now look for data; space.rows are rows that start with spaces, and thus
+    # likely contain the column headers.
 
     first.space <- min(first.spaces)
     space.rows <-
@@ -106,18 +107,13 @@ detect_2d_guides <- function(txt) {
         # print gets truncated; should allow last in sequence to have fewer rows,
         # but we don't do that yet...
 
-        seq.diffs <- abs(apply(seq.dat, 1L, diff))
-        valid.rep <- max(
-          which(
-            cumsum(colSums(cbind(integer(2L), seq.diffs))) == 0L
-          ),
-          0L
-        )
-        if(valid.rep) {
-          res <- which(
-            rep(rep(c(TRUE, FALSE), valid.rep), seq.dat[seq_len(valid.rep * 2L)])
-          ) + head.row - 1L
-  } } } }
+        valid.grps <- colSums(seq.dat - seq.dat[,1L] == 0L) == 2L
+        if(length(valid.grps) && any(valid.grps[-1L])) {
+          # Figure out which rows the headers correspond to
+          res <- array(cumsum(seq.dat), dim=dim(seq.dat))[1L, valid.grps] +
+            head.row - 1L
+        }
+  } } }
   res
 }
 # Definitely approximate matching, we are lazy in matching the `$` versions
