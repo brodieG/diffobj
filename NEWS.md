@@ -4,6 +4,8 @@
 
 * Options automatically fallback to factory defaults if they are unset (h/t
   @gadenbui).
+* [#158](https://github.com/brodieG/diffobj/issues/158): Calling `diff*` with
+  `do.call` now works without warnings.
 * [#117](https://github.com/brodieG/diffobj/issues/117): Fix guide detection
   with very wide wrapped data.frames (h/t @bastician, @overvolting).
 
