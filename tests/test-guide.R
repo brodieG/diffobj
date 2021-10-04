@@ -244,4 +244,11 @@ all.equal(
 try(guidesStr(1:26, rep(NA_character_, 26))) # "Cannot compute guides"
 try(guidesPrint(1:26, rep(NA_character_, 26))) # "Cannot compute guides"
 
+# - issue 117 - 2d guide failure -----------------------------------------------
 
+# Thanks to Sebastian Meyer (@bastician) for MRE
+a <- b <- data.frame(ID = 0, value = 1)
+b$value <- 2
+a <- a[c(rep(1, 86), 2)]
+b <- b[c(rep(1, 86), 2)]
+diffPrint(a, b, mode = "unified", format='raw', context=0)
