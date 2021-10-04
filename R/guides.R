@@ -108,10 +108,13 @@ detect_2d_guides <- function(txt) {
         # but we don't do that yet...
 
         valid.grps <- colSums(seq.dat - seq.dat[,1L] == 0L) == 2L
-        if(length(valid.grps) && any(valid.grps[-1L])) {
+        if(any(valid.grps)) {
           # Figure out which rows the headers correspond to
           res <- array(cumsum(seq.dat), dim=dim(seq.dat))[1L, valid.grps] +
             head.row - 1L
+          # If there is more than one row for each header, expand out the header
+          if(seq.dat[1L, 1L] > 1L)
+            res <- sequence(seq.dat[1L,], res - seq.dat[1L,1L] + 1L)
         }
   } } }
   res
