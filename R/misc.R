@@ -113,7 +113,7 @@ get_fun <- function(name, env) {
     ) && length(name) == 3L
   ) {
     get.fun <- try(eval(name, env))
-  }
+  } else function(...) NULL
   if(is.function(get.fun)) get.fun else {
     warning(
       "Unable to find function `", deparse(name), "` to ",
