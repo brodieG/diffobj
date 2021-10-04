@@ -5,7 +5,7 @@
 * Options automatically fallback to factory defaults if they are unset (h/t
   @gadenbui).
 * [#117](https://github.com/brodieG/diffobj/issues/117): Fix guide detection
-  with very wide wrapped data.frames.
+  with very wide wrapped data.frames (h/t @bastician, @overvolting).
 
 ## v0.3.4
 
