@@ -1,11 +1,13 @@
 
-R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
-Copyright (C) 2020 The R Foundation for Statistical Computing
+R Under development (unstable) (2021-07-17 r80639) -- "Unsuffered Consequences"
+Copyright (C) 2021 The R Foundation for Statistical Computing
 Platform: x86_64-apple-darwin17.0 (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
 
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
@@ -304,8 +306,18 @@ Error in guidesStr(1:26, rep(NA_character_, 26)) :
 Error in guidesPrint(1:26, rep(NA_character_, 26)) : 
   Cannot compute guides if `obj.as.chr` contains NAs
 > 
+> # - issue 117 - 2d guide failure -----------------------------------------------
 > 
+> # Thanks to Sebastian Meyer (@bastician) for MRE
+> a <- b <- data.frame(ID = 0, value = 1)
+> b$value <- 2
+> a <- a[c(rep(1, 86), 2)]
+> b <- b[c(rep(1, 86), 2)]
+> diffPrint(a, b, mode = "unified", format='raw', context=0)
+< a            
+> b            
+@@ 16 / 16 @@  
+~   value      
+< 1     1      
+> 1     2      
 > 
-> proc.time()
-   user  system elapsed 
-  1.803   0.185   2.214 
