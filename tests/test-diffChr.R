@@ -195,4 +195,7 @@ zlnew <- structure(
 )
 diffChr(zlold, zlnew) # no warning
 
+# - do.call, issue 158 ---------------------------------------------------------
+
+do.call(diffChr, list(1:2, 3:4, format='raw'))
 
