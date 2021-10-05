@@ -109,12 +109,17 @@ detect_2d_guides <- function(txt) {
 
         valid.grps <- colSums(seq.dat - seq.dat[,1L] == 0L) == 2L
         if(any(valid.grps)) {
-          # Figure out which rows the headers correspond to
+          # Figure out which rows the headers correspond to by cumsuming the
+          # header and non-header rows, and then adding the initial offset.
           res <- array(cumsum(seq.dat), dim=dim(seq.dat))[1L, valid.grps] +
             head.row - 1L
           # If there is more than one row for each header, expand out the header
           if(seq.dat[1L, 1L] > 1L)
-            res <- sequence(seq.dat[1L,], res - seq.dat[1L,1L] + 1L)
+            # sequence only gained `from` param in R4.x, so this is our
+            # "backport"
+            res <- base::unname(
+              sequence(seq.dat[1L,]) + rep(res - seq.dat[1L,], seq.dat[1L,])
+            )
         }
   } } }
   res
