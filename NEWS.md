@@ -1,5 +1,14 @@
 # diffobj
 
+## v0.3.5
+
+* Options automatically fallback to factory defaults if they are unset (h/t
+  @gadenbui).
+* [#158](https://github.com/brodieG/diffobj/issues/158): Calling `diff*` with
+  `do.call` now works without warnings.
+* [#117](https://github.com/brodieG/diffobj/issues/117): Fix guide detection
+  with very wide wrapped data.frames (h/t @bastician, @overvolting).
+
 ## v0.3.4
 
 * Add a print method for `ses_dat` return values that makes it easier to
