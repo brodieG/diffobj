@@ -85,6 +85,6 @@ jobs:
           path: check
 
       - name: Test coverage
-        if: runner.r == 'release'
+        if: matrix.config.r == 'release'
         run: covr::codecov()
         shell: Rscript {0}
