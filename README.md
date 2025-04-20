@@ -50,7 +50,7 @@ browseVignettes("diffobj")
   Boettiger](https://github.com/cboettig) for the
   [rocker](https://github.com/rocker-org/rocker) project, and [Gábor
   Csárdi](https://github.com/gaborcsardi) and the
-  [R-consortium](https://www.r-consortium.org/) for
+  [R-consortium](https://r-consortium.org/) for
   [Rhub](https://github.com/r-hub), without which testing bugs on R-devel and
   other platforms would be a nightmare.
 * [Hadley Wickham](https://github.com/hadley/) and [Peter
