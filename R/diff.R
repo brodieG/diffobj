@@ -149,6 +149,9 @@ make_diff_fun <- function(capt_fun) {
 #' anything past the \code{color.mode} parameter.  Default values are specified
 #' as options so that users may configure diffs in a persistent manner.
 #' \code{\link{gdo}} is a shorthand function to access \code{diffobj} options.
+#' Examples of what you aspects of the display you can control include many of
+#' the basic adjustment offered by traditional diff programs, color schemes,
+#' panel headers/titles, and more.
 #'
 #' Parameter order after \code{color.mode} is not guaranteed.  Future versions
 #' of \code{diffobj} may add parameters and re-order existing parameters past
@@ -173,13 +176,10 @@ make_diff_fun <- function(capt_fun) {
 #' While \code{diffPrint} attempts to handle the default R behavior that wraps
 #' wide tables, the results are often sub-optimal.  A better approach is to set
 #' the \code{disp.width} parameter to a large enough value such that wrapping is
-#' not necessary, and a browser-based \code{pager}.  In the future we will add
-#' the capability to specify different capture widths and wrap widths so that
-#' this is an option for terminal output (see
-#' \href{https://github.com/brodieG/diffobj/issues/109}{issue 109}).
+#' not necessary, and a browser-based \code{pager}.  If this bothers  you see
+#' \href{https://github.com/brodieG/diffobj/issues/109}{issue 109}.
 #'
-#' One thing to keep in mind is that \code{diffPrint} is not designed to work
-#' with very large data frames.
+#' \code{diffPrint} is not designed to work with large data frames.
 #'
 #' @export
 #' @seealso \code{\link{diffObj}}, \code{\link{diffStr}},
@@ -459,8 +459,15 @@ make_diff_fun <- function(capt_fun) {
 #' @export
 #' @examples
 #' ## `pager="off"` for CRAN compliance; you may omit in normal use
-#' diffPrint(letters, letters[-5], pager="off")
-
+#' old.opt <- options(diffobj.pager='off'); on.exit(old.opt)
+#'
+#' diffPrint(letters, letters[-5])
+#'
+#' ## Change the default banner/title
+#' diffPrint(
+#'   letters, letters[-5],
+#'   tar.banner='COMPLETE', cur.banner='INCOMPLETE'
+#' )
 setGeneric(
   "diffPrint", function(target, current, ...) standardGeneric("diffPrint")
 )
