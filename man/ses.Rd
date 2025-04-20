@@ -28,12 +28,12 @@ small performance gain.}
 }
 \value{
 character shortest edit script, or a machine readable version of it
-  as a \code{data.frame} with columns \code{op} (factor, values
-  \dQuote{Match}, \dQuote{Insert}, or \dQuote{Delete}), \code{val} character
-  corresponding to the value taken from either \code{a} or \code{b},
-  and if \code{extra} is TRUE, integer columns \code{id.a} and \code{id.b}
-  corresponding to the indices in \code{a} or \code{b} that \code{val} was
-  taken from.  See Details.
+  as a \code{ses_dat} object, which is a \code{data.frame} with columns
+  \code{op} (factor, values \dQuote{Match}, \dQuote{Insert}, or
+  \dQuote{Delete}), \code{val} character corresponding to the value taken
+  from either \code{a} or \code{b}, and if \code{extra} is TRUE, integer
+  columns \code{id.a} and \code{id.b} corresponding to the indices in
+  \code{a} or \code{b} that \code{val} was taken from.  See Details.
 }
 \description{
 Computes shortest edit script to convert \code{a} into \code{b} by removing
@@ -55,14 +55,17 @@ precursor data to \code{ses} that may be useful for those desiring to use the
 raw diff data and not the printed output of \code{diffobj}, but do not wish
 to manually parse the \code{ses} output.  Whether it is faster than
 \code{ses} or not depends on the ratio of matching to non-matching values as
-\code{ses_dat} includes matching values whereas \code{ses} does not.  See
-examples.
+\code{ses_dat} includes matching values whereas \code{ses} does not.
+\code{ses_dat} objects have a print method that makes it easy to interpret
+the diff, but are actually data.frames.  You can see the underlying data by
+using \code{as.data.frame}, removing the "ses_dat" class, etc..
 }
 \examples{
 a <- letters[1:6]
 b <- c('b', 'CC', 'DD', 'd', 'f')
 ses(a, b)
 (dat <- ses_dat(a, b))
+str(dat)                 # data.frame with a print method
 
 ## use `ses_dat` output to construct a minimal diff
 ## color with ANSI CSI SGR

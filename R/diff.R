@@ -25,9 +25,8 @@
 #' @importFrom stats ave frequency is.ts setNames
 #' @importFrom grDevices rgb
 #' @name diffobj-package
-#' @docType package
 
-NULL
+"_PACKAGE"
 
 # Because all these functions are so similar, we have constructed them with a
 # function factory.  This allows us to easily maintain consistent formals during
@@ -225,7 +224,7 @@ make_diff_fun <- function(capt_fun) {
 #'       web page (see docs for \code{html.output} under \code{\link{Style}}).
 #'   }
 #'   Defaults to \dQuote{auto}.  See \code{palette.of.styles} for details
-#'   on customization, \code{\link{style}} for full control of output format.
+#'   on customization, \code{\link{Style}} for full control of output format.
 #'   See `pager` parameter for more discussion of Rstudio behavior.
 #' @param brightness character, one of \dQuote{light}, \dQuote{dark},
 #'   \dQuote{neutral}, useful for adjusting color scheme to light or dark
@@ -412,12 +411,12 @@ make_diff_fun <- function(capt_fun) {
 #'   HTML.
 #' @param term.colors integer(1L) how many ANSI colors are supported by the
 #'   terminal.  This variable is provided for when
-#'   \code{\link[=num_colors]{crayon::num_colors}} does not properly detect how
-#'   many ANSI colors are supported by your terminal. Defaults to return value
-#'   of \code{\link[=num_colors]{crayon::num_colors}} and should be 8 or 256 to
-#'   allow ANSI colors, or any other number to disallow them.  This only
-#'   impacts output format selection when \code{style} and \code{format} are
-#'   both set to \dQuote{auto}.
+#'   \code{\link[crayon:num_colors]{crayon::num_colors}} does not properly
+#'   detect how many ANSI colors are supported by your terminal. Defaults to
+#'   return value of \code{\link[crayon:num_colors]{crayon::num_colors}} and
+#'   should be 8 or 256 to allow ANSI colors, or any other number to disallow
+#'   them.  This only impacts output format selection when \code{style} and
+#'   \code{format} are both set to \dQuote{auto}.
 #' @param tar.banner character(1L), language, or NULL, used to generate the
 #'   text to display ahead of the diff section representing the target output.
 #'   If NULL will use the deparsed \code{target} expression, if language, will
