@@ -22,7 +22,7 @@ MyersMbaSes object
 \description{
 Implementation of Myer's Diff algorithm with linear space refinement
 originally implemented by Mike B. Allen as part of
-\href{http://www.ioplex.com/~miallen/libmba/}{libmba}
+\href{https://www.ioplex.com/~miallen/libmba/}{libmba}
 version 0.9.1.  This implementation is a heavily modified version of the
 original C code and is not compatible with the \code{libmba} library.
 The C code is simplified by using fixed size arrays instead of variable
