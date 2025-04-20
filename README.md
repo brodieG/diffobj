@@ -1,9 +1,8 @@
 # diffobj - Diffs for R Objects
 
-[![R build status](https://github.com/brodieG/diffobj/workflows/R-CMD-check/badge.svg)](https://github.com/brodieG/diffobj/actions)
-[![](https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=master)](https://codecov.io/github/brodieG/diffobj?branch=master)
-[![](http://www.r-pkg.org/badges/version/diffobj)](https://cran.r-project.org/package=diffobj)
-[![Dependencies direct/recursive](https://tinyverse.netlify.app/badge/diffobj)](https://tinyverse.netlify.app/)
+[![R build
+status](https://github.com/brodieG/diffobj/workflows/R-CMD-check/badge.svg)](https://github.com/brodieG/diffobj/actions)
+[![](https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=rc)](https://app.codecov.io/gh/brodieG/diffobj?branch=rc)
 
 Generate a colorized diff of two R objects for an intuitive visualization of their differences.
 
