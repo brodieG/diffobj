@@ -1,18 +1,11 @@
 on:
   push:
-    branches:
-      - master
-      - rc
+    branches: [rc]
   pull_request:
-    branches:
-      - master
-      - development
 
 name: R-CMD-check
 
-# Increment this version when we want to clear cache
-env:
-  cache-version: v1
+permissions: read-all
 
 jobs:
   R-CMD-check:
@@ -24,71 +17,37 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: ubuntu-20.04,   r: 'devel' }
-          - {os: ubuntu-20.04,   r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
-          - {os: ubuntu-20.04,   r: 'oldrel', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
-          - {os: ubuntu-20.04,   r: '3.3', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
+          - {os: ubuntu-latest,  r: 'devel', http-user-agent: 'release'}
+          - {os: ubuntu-latest,  r: 'release'}
+          - {os: ubuntu-latest,  r: 'oldrel-1'}
 
     env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
-      RSPM: ${{ matrix.config.rspm }}
       # don't treat missing suggested packages as error
       _R_CHECK_FORCE_SUGGESTS_: false
+      # trick CMD check into checking subdirs, which then whitelists
+      # non-CRAN packages
+      _R_CHECK_PACKAGES_USED_IN_TESTS_USE_SUBDIRS_: true
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - uses: r-lib/actions/setup-r@master
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
         with:
           r-version: ${{ matrix.config.r }}
+          http-user-agent: ${{ matrix.config.http-user-agent }}
+          use-public-rspm: true
 
-      - uses: r-lib/actions/setup-pandoc@master
-
-      - name: Query dependencies
-        run: |
-          install.packages('remotes')
-          saveRDS(remotes::dev_package_deps(dependencies = TRUE), "depends.Rds", version = 2)
-        shell: Rscript {0}
-
-      - name: Cache R packages
-        if: runner.os != 'Windows'
-        uses: actions/cache@v1
+      - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          path: ${{ env.R_LIBS_USER }}
-          key: ${{ env.cache-version }}-${{ runner.os }}-r-${{ matrix.config.r }}-${{ hashFiles('depends.Rds') }}
-          restore-keys: ${{ env.cache-version }}-${{ runner.os }}-r-${{ matrix.config.r }}-
+          extra-packages: any::rcmdcheck
+          needs: check
 
-      - name: Install system dependencies on Linux
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get install libcurl4-openssl-dev
-          while read -r cmd
-          do
-            eval sudo $cmd
-          done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "16.04"))')
-      - name: Install dependencies
-        run: |
-          remotes::install_deps(dependencies = TRUE)
-          remotes::install_cran("rcmdcheck")
-          remotes::install_cran("covr")
-        shell: Rscript {0}
-
-      - name: Check
-        run: rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "warning", check_dir = "check")
-        shell: Rscript {0}
-
-      - name: Upload check results
-        if: failure()
-        uses: actions/upload-artifact@master
+      - uses: r-lib/actions/check-r-package@v2
         with:
-          name: ${{ runner.os }}-r${{ matrix.config.r }}-results
-          path: check
-
-      - name: Test coverage
-        if: matrix.config.r == 'release'
-        run: |
-          options(covr.exclude_end="(?://|#)[[:space:]]*nocov[[:space:]]*end")
-          options(covr.exclude_start="(?://|#)[[:space:]]*nocov[[:space:]]*start")
-          options(covr.exclude_pattern="(?://|#)[[:space:]]*nocov")
-          covr::codecov()
-        shell: Rscript {0}
+          upload-snapshots: true
+          build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
