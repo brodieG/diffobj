@@ -11,7 +11,9 @@ gdo(x)
 the \dQuote{diffobj.} prefix}
 }
 \description{
-\code{gdo(x)} is equivalent to \code{getOption(sprintf("diffobj.\%s", x))}.
+\code{gdo(x)} is equivalent to \code{getOption(sprintf("diffobj.\%s", x))},
+falling back to \pkg{diffobj}'s internal default value if the option is
+not set.
 }
 \examples{
 gdo("format")
