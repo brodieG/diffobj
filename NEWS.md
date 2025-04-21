@@ -1,5 +1,11 @@
 # diffobj
 
+## v0.3.6
+
+* Fix bad xrefs in docs (h/t CRAN team).
+* [#159](https://github.com/brodieG/diffobj/issues/154): make it clearer how to
+  adjust diff panel headers/titles (aka banners).
+
 ## v0.3.5
 
 * Options automatically fallback to factory defaults if they are unset (h/t
