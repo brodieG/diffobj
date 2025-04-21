@@ -72,7 +72,7 @@ browseVignettes("diffobj")
   [r-debug](https://hub.docker.com/r/wch1/r-debug/) docker container, in
   particular because of the valgrind level 2 instrumented version of R.
 * [Gábor Csárdi](https://github.com/gaborcsardi), the
-  [R-consortium](https://www.r-consortium.org/), etal for
+  [R-consortium](https://r-consortium.org/), etal for
   [revdepcheck](https://github.com/r-lib/revdepcheck) to simplify reverse
   dependency checks.
 * All open source developers out there that make their work freely available
