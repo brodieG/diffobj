@@ -1,9 +1,8 @@
 # diffobj - Diffs for R Objects
 
-[![R build status](https://github.com/brodieG/diffobj/workflows/R-CMD-check/badge.svg)](https://github.com/brodieG/diffobj/actions)
-[![](https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=master)](https://codecov.io/github/brodieG/diffobj?branch=master)
-[![](http://www.r-pkg.org/badges/version/diffobj)](https://cran.r-project.org/package=diffobj)
-[![Dependencies direct/recursive](https://tinyverse.netlify.app/badge/diffobj)](https://tinyverse.netlify.app/)
+[![R build
+status](https://github.com/brodieG/diffobj/workflows/R-CMD-check/badge.svg)](https://github.com/brodieG/diffobj/actions)
+[![](https://codecov.io/github/brodieG/diffobj/coverage.svg?branch=rc)](https://app.codecov.io/gh/brodieG/diffobj?branch=rc)
 
 Generate a colorized diff of two R objects for an intuitive visualization of their differences.
 
@@ -39,7 +38,7 @@ browseVignettes("diffobj")
 * R Core for developing and maintaining such a wonderful language.
 * CRAN maintainers, for patiently shepherding packages onto CRAN and maintaining
   the repository, and Uwe Ligges in particular for maintaining
-  [Winbuilder](http://win-builder.r-project.org/).
+  [Winbuilder](https://win-builder.r-project.org/).
 * The users who have reported bugs and possible fixes, and/or made feature
   requests (see NEWS.md).
 * [Gábor Csárdi](https://github.com/gaborcsardi) for
@@ -51,7 +50,7 @@ browseVignettes("diffobj")
   Boettiger](https://github.com/cboettig) for the
   [rocker](https://github.com/rocker-org/rocker) project, and [Gábor
   Csárdi](https://github.com/gaborcsardi) and the
-  [R-consortium](https://www.r-consortium.org/) for
+  [R-consortium](https://r-consortium.org/) for
   [Rhub](https://github.com/r-hub), without which testing bugs on R-devel and
   other platforms would be a nightmare.
 * [Hadley Wickham](https://github.com/hadley/) and [Peter
@@ -73,7 +72,7 @@ browseVignettes("diffobj")
   [r-debug](https://hub.docker.com/r/wch1/r-debug/) docker container, in
   particular because of the valgrind level 2 instrumented version of R.
 * [Gábor Csárdi](https://github.com/gaborcsardi), the
-  [R-consortium](https://www.r-consortium.org/), etal for
+  [R-consortium](https://r-consortium.org/), etal for
   [revdepcheck](https://github.com/r-lib/revdepcheck) to simplify reverse
   dependency checks.
 * All open source developers out there that make their work freely available

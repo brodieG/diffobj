@@ -269,7 +269,7 @@ as described in:
 > E. Myers, "An O(ND) Difference Algorithm and Its Variations",
 Algorithmica 1, 2 (1986), 251-266.
 
-and should be the same algorithm used by GNU diff.  The implementation used here is a heavily modified version of Michael B. Allen's diff program from the [`libmba`](http://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz) `C`
+and should be the same algorithm used by GNU diff.  The implementation used here is a heavily modified version of Michael B. Allen's diff program from the [`libmba`](https://www.ioplex.com/~miallen/libmba/dl/libmba-0.9.1.tar.gz) `C`
 library.  Any and all bugs in the C code in this package were most likely introduced by yours truly.  Please note that the resulting C code is incompatible with the original `libmba` library.
 
 ## Performance Considerations

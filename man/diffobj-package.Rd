@@ -2,9 +2,27 @@
 % Please edit documentation in R/diff.R
 \docType{package}
 \name{diffobj-package}
+\alias{diffobj}
 \alias{diffobj-package}
 \title{Diffs for R Objects}
 \description{
 Generate a colorized diff of two R objects for an intuitive visualization of
 their differences.  See `vignette(package="diffobj", "diffobj")` for details.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/brodieG/diffobj}
+  \item Report bugs at \url{https://github.com/brodieG/diffobj/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Brodie Gaslam \email{brodie.gaslam@yahoo.com}
+
+Other contributors:
+\itemize{
+  \item Michael B. Allen \email{ioplex@gmail.com} (Original C implementation of Myers Diff Algorithm) [contributor, copyright holder]
+}
+
 }
