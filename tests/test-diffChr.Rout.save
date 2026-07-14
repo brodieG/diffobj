@@ -242,7 +242,7 @@ Error in diffChr(target = a, current = b, sgr.supported = 1:3) :
 > 
 > zlold <- c("0x0000, 0x001F", "0x007F, 0x009F", "0x0300, 0x036F")
 > zlnew <- structure(
-+   c("0x0000, 0x001F", "0x008F, 0x009F", "0x0300, 0x036F"), .Dim = 3L
++   c("0x0000, 0x001F", "0x008F, 0x009F", "0x0300, 0x036F"), dim = 3L
 + )
 > diffChr(zlold, zlnew) # no warning
 [33m<[39m [33mzlold[39m           [34m>[39m [34mzlnew[39m         

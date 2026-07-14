@@ -110,7 +110,7 @@ capture.output(
 )
 identical(
   res.1,
-  structure(list(type = structure(c(3L, 1L, 3L, 1L, 2L, 1L, 2L), .Label = c("Match", 
+  structure(list(type = structure(c(3L, 1L, 3L, 1L, 2L, 1L, 2L), levels = c("Match",
 "Insert", "Delete"), class = "factor"), string = c("ab", "c", 
 "a", "b", "a", "ba", "c"), len = c(2L, 1L, 1L, 1L, 1L, 2L, 1L
 ), offset = c(1L, 3L, 4L, 5L, 3L, 6L, 6L)), class = "data.frame", row.names = c(NA, 
@@ -121,7 +121,7 @@ capture.output(
 )
 identical(
   res.2,
-  structure(list(type = structure(c(3L, 1L, 3L, 1L, 2L, 1L, 2L), .Label = c("Match", "Insert", "Delete"), class = "factor"), len = c(2L, 1L, 1L, 1L, 1L, 2L, 1L), offset = c(1L, 3L, 4L, 5L, 3L, 6L, 6L)), .Names = c("type", "len", "offset"), row.names = c(NA, -7L), class = "data.frame")
+  structure(list(type = structure(c(3L, 1L, 3L, 1L, 2L, 1L, 2L), levels = c("Match", "Insert", "Delete"), class = "factor"), len = c(2L, 1L, 1L, 1L, 1L, 2L, 1L), offset = c(1L, 3L, 4L, 5L, 3L, 6L, 6L)), names = c("type", "len", "offset"), row.names = c(NA, -7L), class = "data.frame")
 )
 identical(
   capture.output(print(diffobj:::diff_myers(A, B))), ses(A, B)
