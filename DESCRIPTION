@@ -13,11 +13,10 @@ Authors@R: c(
     role=c("ctb", "cph"),
     comment="Original C implementation of Myers Diff Algorithm"))
 Depends:
-    R (>= 3.1.0)
+    R (>= 4.1.0)
 License: GPL-2 | GPL-3
 URL: https://github.com/brodieG/diffobj
 BugReports: https://github.com/brodieG/diffobj/issues
-RoxygenNote: 7.2.3
 Roxygen: list(load = "installed")
 VignetteBuilder: knitr
 Encoding: UTF-8
@@ -57,3 +56,4 @@ Imports:
     methods,
     utils,
     stats
+Config/roxygen2/version: 8.0.0

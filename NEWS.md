@@ -3,6 +3,8 @@
 ## v0.3.7
 
 * Fix tests for changes to `structure()` in r90216.
+* Require R 4.1 or greater so we can drop the internal `c.factor` implementation
+  in favor of the base R implementation.
 
 ## v0.3.6
 
