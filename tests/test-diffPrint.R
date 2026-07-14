@@ -142,11 +142,11 @@ all.equal(
 
 res1 <- structure(
   c(-1717, 101, 0.938678984853783),
-  .Names = c("intercept", "slope", "rsq"), class = "fastlm"
+  names = c("intercept", "slope", "rsq"), class = "fastlm"
 )
 res2 <- structure(
   c(-3.541306e+13, 701248600000, 0.938679),
-  .Names = c("intercept", "slope", "rsq"), class = "fastlm"
+  names = c("intercept", "slope", "rsq"), class = "fastlm"
 )
 all.equal(as.character(diffPrint(res1, res2)), rdsf(3000))
 all.equal(
