@@ -1,5 +1,9 @@
 # diffobj
 
+## v0.3.7
+
+* Fix tests for changes to `structure()` in r90216.
+
 ## v0.3.6
 
 * Fix bad xrefs in docs (h/t CRAN team).
