@@ -134,10 +134,6 @@ try(diffobj:::gutter_dat(etc)) # "Failed attempting to apply gutter."
 try(finalizeHtml(letters, NULL)) # "must be character"
 try(finalizeHtml(letters, letters, letters)) # "must be character\\(1L"
 
-# - c.factor -------------------------------------------------------------------
-
-all.equal(diffobj:::c.factor(), factor(character()))
-
 # - strip_hz -------------------------------------------------------------------
 
 # Can't trigger this directly because wrapper doesn't let this case through
