@@ -5,33 +5,13 @@
 \alias{StyleText-class}
 \alias{StyleText}
 \title{Character Tokens Used in Diffs}
+\usage{
+StyleText(...)
+}
 \arguments{
-\item{gutter.insert}{character(1L) text to use as visual cue to indicate
-whether a diff line is an insertion, defaults to \dQuote{> }}
-
-\item{gutter.insert.ctd}{character(1L) if a diff line is wrapped, the
-visual cue shifts to this character to indicate wrapping occured}
-
-\item{gutter.delete}{character(1L) see \code{gutter.insert} above}
-
-\item{gutter.delete.ctd}{character(1L) see \code{gutter.insert.ctd} above}
-
-\item{gutter.match}{character(1L) see \code{gutter.insert} above}
-
-\item{gutter.match.ctd}{character(1L) see \code{gutter.insert.ctd} above}
-
-\item{gutter.guide}{character(1L) see \code{gutter.insert} above}
-
-\item{gutter.guide.ctd}{character(1L) see \code{gutter.insert.ctd} above}
-
-\item{gutter.fill}{character(1L) see \code{gutter.insert} above}
-
-\item{gutter.fill.ctd}{character(1L) see \code{gutter.insert.ctd} above}
-
-\item{gutter.pad}{character(1L) separator between gutter characters and the
-rest of a line in a diff}
-
-\item{pad.col}{character(1L) separator between columns in side by side mode}
+\item{...}{named values for the slots described in the
+\dQuote{Constructor Arguments} section
+below; all are optional}
 }
 \value{
 a StyleText S4 object
@@ -41,6 +21,38 @@ Various character tokens are used throughout diffs to provide visual cues.
 For example, gutters will contain characters that denote deletions and
 insertions (\code{<} and \code{>} by default).
 }
+\section{Constructor Arguments}{
+
+\describe{
+\item{\code{gutter.insert}}{character(1L) text to use as visual cue to indicate
+whether a diff line is an insertion, defaults to \dQuote{> }}
+
+\item{\code{gutter.insert.ctd}}{character(1L) if a diff line is wrapped, the
+visual cue shifts to this character to indicate wrapping occured}
+
+\item{\code{gutter.delete}}{character(1L) see \code{gutter.insert} above}
+
+\item{\code{gutter.delete.ctd}}{character(1L) see \code{gutter.insert.ctd} above}
+
+\item{\code{gutter.match}}{character(1L) see \code{gutter.insert} above}
+
+\item{\code{gutter.match.ctd}}{character(1L) see \code{gutter.insert.ctd} above}
+
+\item{\code{gutter.guide}}{character(1L) see \code{gutter.insert} above}
+
+\item{\code{gutter.guide.ctd}}{character(1L) see \code{gutter.insert.ctd} above}
+
+\item{\code{gutter.fill}}{character(1L) see \code{gutter.insert} above}
+
+\item{\code{gutter.fill.ctd}}{character(1L) see \code{gutter.insert.ctd} above}
+
+\item{\code{gutter.pad}}{character(1L) separator between gutter characters and the
+rest of a line in a diff}
+
+\item{\code{pad.col}}{character(1L) separator between columns in side by side mode}
+}
+}
+
 \seealso{
 \code{\link{Style}}
 }
