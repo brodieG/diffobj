@@ -162,7 +162,7 @@ Type 'q()' to quit R.
 [7] "6  Match     ba   2      6" "7 Insert      c   1      6"
 > identical(
 +   res.1,
-+   structure(list(type = structure(c(3L, 1L, 3L, 1L, 2L, 1L, 2L), .Label = c("Match", 
++   structure(list(type = structure(c(3L, 1L, 3L, 1L, 2L, 1L, 2L), levels = c("Match",
 + "Insert", "Delete"), class = "factor"), string = c("ab", "c", 
 + "a", "b", "a", "ba", "c"), len = c(2L, 1L, 1L, 1L, 1L, 2L, 1L
 + ), offset = c(1L, 3L, 4L, 5L, 3L, 6L, 6L)), class = "data.frame", row.names = c(NA, 
@@ -177,7 +177,7 @@ Type 'q()' to quit R.
 [7] "6  Match   2      6" "7 Insert   1      6"
 > identical(
 +   res.2,
-+   structure(list(type = structure(c(3L, 1L, 3L, 1L, 2L, 1L, 2L), .Label = c("Match", "Insert", "Delete"), class = "factor"), len = c(2L, 1L, 1L, 1L, 1L, 2L, 1L), offset = c(1L, 3L, 4L, 5L, 3L, 6L, 6L)), .Names = c("type", "len", "offset"), row.names = c(NA, -7L), class = "data.frame")
++   structure(list(type = structure(c(3L, 1L, 3L, 1L, 2L, 1L, 2L), levels = c("Match", "Insert", "Delete"), class = "factor"), len = c(2L, 1L, 1L, 1L, 1L, 2L, 1L), offset = c(1L, 3L, 4L, 5L, 3L, 6L, 6L)), names = c("type", "len", "offset"), row.names = c(NA, -7L), class = "data.frame")
 + )
 [1] TRUE
 > identical(

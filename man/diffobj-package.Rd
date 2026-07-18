@@ -20,6 +20,11 @@ Useful links:
 \author{
 \strong{Maintainer}: Brodie Gaslam \email{brodie.gaslam@yahoo.com}
 
+Authors:
+\itemize{
+  \item Brodie Gaslam \email{brodie.gaslam@yahoo.com}
+}
+
 Other contributors:
 \itemize{
   \item Michael B. Allen \email{ioplex@gmail.com} (Original C implementation of Myers Diff Algorithm) [contributor, copyright holder]

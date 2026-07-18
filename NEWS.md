@@ -1,5 +1,12 @@
 # diffobj
 
+## v0.3.7-8
+
+* Fix tests for changes to `structure()` in r90216.
+* Require R 4.1 or greater so we can drop the internal `c.factor` implementation
+  in favor of the base R implementation.
+* Fix docs to pass new `_R_CHECK_RD_CONTENTS_USAGE_` CRAN flag.
+
 ## v0.3.6
 
 * Fix bad xrefs in docs (h/t CRAN team).
