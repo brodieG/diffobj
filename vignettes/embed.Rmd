@@ -71,7 +71,7 @@ code over and over.
 
 A better option is to provide the CSS directly by modifying the `output`
 portion of the [YAML
-header](https://bookdown.org/yihui/rmarkdown/r-package-vignette.html):
+header](https://pkg.yihui.org/rmarkdown-book/r-package-vignette.html):
 
 ```
 ---

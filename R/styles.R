@@ -43,33 +43,63 @@ NULL
 #'   such as those defined in the \code{crayon} package.  Despite this seemingly
 #'   permissive slot definition, only functions are allowed in the slots by
 #'   the validation functions.
-#' @param container function used primarily by HTML styles to generate an
-#'   outermost \code{DIV} that allows for CSS targeting of its contents
-#'   (see \code{\link{cont_f}} for a function generator appropriate for use
-#'   here)
-#' @param line function
-#' @param line.insert function
-#' @param line.delete function
-#' @param line.match function
-#' @param line.guide function formats guide lines (see \code{\link{guides}})
-#' @param text function
-#' @param text.insert function
-#' @param text.delete function
-#' @param text.match function
-#' @param text.guide function formats guide lines (see \code{\link{guides}})
-#' @param gutter function
-#' @param gutter.insert function
-#' @param gutter.delete function
-#' @param gutter.match function
-#' @param gutter.guide function
-#' @param gutter.pad function
-#' @param header function to format each hunk header with
-#' @param banner function to format entire banner
-#' @param banner.insert function to format insertion banner
-#' @param banner.delete function to format deletion banner
-#' @param meta function format meta information lines
-#' @param context.sep function to format the separator used to visually
-#'   distinguish the A and B hunks in \dQuote{context} \code{mode}
+#' @usage
+#' StyleFuns(...)
+#' @param ... named values for the slots described in the
+#'   \dQuote{Constructor Arguments} section
+#'   below; all are optional
+#' @section Constructor Arguments:
+#' \describe{
+#' \item{\code{container}}{function used primarily by HTML styles to generate an
+#' outermost \code{DIV} that allows for CSS targeting of its contents
+#' (see \code{\link{cont_f}} for a function generator appropriate for use
+#' here)}
+#'
+#' \item{\code{line}}{function}
+#'
+#' \item{\code{line.insert}}{function}
+#'
+#' \item{\code{line.delete}}{function}
+#'
+#' \item{\code{line.match}}{function}
+#'
+#' \item{\code{line.guide}}{function formats guide lines (see \code{\link{guides}})}
+#'
+#' \item{\code{text}}{function}
+#'
+#' \item{\code{text.insert}}{function}
+#'
+#' \item{\code{text.delete}}{function}
+#'
+#' \item{\code{text.match}}{function}
+#'
+#' \item{\code{text.guide}}{function formats guide lines (see \code{\link{guides}})}
+#'
+#' \item{\code{gutter}}{function}
+#'
+#' \item{\code{gutter.insert}}{function}
+#'
+#' \item{\code{gutter.delete}}{function}
+#'
+#' \item{\code{gutter.match}}{function}
+#'
+#' \item{\code{gutter.guide}}{function}
+#'
+#' \item{\code{gutter.pad}}{function}
+#'
+#' \item{\code{header}}{function to format each hunk header with}
+#'
+#' \item{\code{banner}}{function to format entire banner}
+#'
+#' \item{\code{banner.insert}}{function to format insertion banner}
+#'
+#' \item{\code{banner.delete}}{function to format deletion banner}
+#'
+#' \item{\code{meta}}{function format meta information lines}
+#'
+#' \item{\code{context.sep}}{function to format the separator used to visually
+#' distinguish the A and B hunks in \dQuote{context} \code{mode}}
+#' }
 #' @return a StyleFuns S4 object
 #' @seealso \code{\link{Style}}
 #' @rdname StyleFuns
@@ -152,21 +182,40 @@ StyleFunsAnsi <- setClass(
 #' For example, gutters will contain characters that denote deletions and
 #' insertions (\code{<} and \code{>} by default).
 #'
-#' @param gutter.insert character(1L) text to use as visual cue to indicate
-#'   whether a diff line is an insertion, defaults to \dQuote{> }
-#' @param gutter.insert.ctd character(1L) if a diff line is wrapped, the
-#'   visual cue shifts to this character to indicate wrapping occured
-#' @param gutter.delete character(1L) see \code{gutter.insert} above
-#' @param gutter.delete.ctd character(1L) see \code{gutter.insert.ctd} above
-#' @param gutter.match character(1L) see \code{gutter.insert} above
-#' @param gutter.match.ctd character(1L) see \code{gutter.insert.ctd} above
-#' @param gutter.guide character(1L) see \code{gutter.insert} above
-#' @param gutter.guide.ctd character(1L) see \code{gutter.insert.ctd} above
-#' @param gutter.fill character(1L) see \code{gutter.insert} above
-#' @param gutter.fill.ctd character(1L) see \code{gutter.insert.ctd} above
-#' @param gutter.pad character(1L) separator between gutter characters and the
-#'   rest of a line in a diff
-#' @param pad.col character(1L) separator between columns in side by side mode
+#' @usage
+#' StyleText(...)
+#' @param ... named values for the slots described in the
+#'   \dQuote{Constructor Arguments} section
+#'   below; all are optional
+#' @section Constructor Arguments:
+#' \describe{
+#' \item{\code{gutter.insert}}{character(1L) text to use as visual cue to indicate
+#' whether a diff line is an insertion, defaults to \dQuote{> }}
+#'
+#' \item{\code{gutter.insert.ctd}}{character(1L) if a diff line is wrapped, the
+#' visual cue shifts to this character to indicate wrapping occured}
+#'
+#' \item{\code{gutter.delete}}{character(1L) see \code{gutter.insert} above}
+#'
+#' \item{\code{gutter.delete.ctd}}{character(1L) see \code{gutter.insert.ctd} above}
+#'
+#' \item{\code{gutter.match}}{character(1L) see \code{gutter.insert} above}
+#'
+#' \item{\code{gutter.match.ctd}}{character(1L) see \code{gutter.insert.ctd} above}
+#'
+#' \item{\code{gutter.guide}}{character(1L) see \code{gutter.insert} above}
+#'
+#' \item{\code{gutter.guide.ctd}}{character(1L) see \code{gutter.insert.ctd} above}
+#'
+#' \item{\code{gutter.fill}}{character(1L) see \code{gutter.insert} above}
+#'
+#' \item{\code{gutter.fill.ctd}}{character(1L) see \code{gutter.insert.ctd} above}
+#'
+#' \item{\code{gutter.pad}}{character(1L) separator between gutter characters and the
+#' rest of a line in a diff}
+#'
+#' \item{\code{pad.col}}{character(1L) separator between columns in side by side mode}
+#' }
 #' @return a StyleText S4 object
 #' @seealso \code{\link{Style}}
 #' @rdname StyleText
@@ -417,73 +466,113 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' @rdname Style
 #' @export Style
 #' @exportClass Style
-#' @param funs a \code{\link{StyleFuns}} object that contains all the functions
-#'   represented above
-#' @param text a \code{\link{StyleText}} object that contains the non-content
-#'   text used by the diff (e.g. \code{gutter.insert.txt})
-#' @param summary a \code{\link{StyleSummary}} object that contains formatting
-#'   functions and other meta data for rendering summaries
-#' @param wrap TRUE or FALSE, whether the text should be hard wrapped to fit in
-#'   the console
-#' @param pad TRUE or FALSE, whether text should be right padded
-#' @param pager what type of \code{\link{Pager}} to use
-#' @param nchar.fun function to use to count characters; intended mostly for
-#'   internal use (used only for gutters as of version 0.2.0).
-#' @param wrap TRUE or FALSE, whether text should be hard wrapped at
-#'   \code{disp.width}
-#' @param na.sub what character value to substitute for NA elements; NA elements
-#'   are generated when lining up side by side diffs by adding padding rows; by
-#'   default the text styles replace these with a blank character string, and
-#'   the HTML styles leave them as NA for the HTML formatting functions to deal
-#'   with
-#' @param blank sub what character value to replace blanks with; needed in
-#'   particular for HTML rendering (uses \code{"&nbsp;"}) to prevent lines from
-#'   collapsing
-#' @param disp.width how many columns the text representation of the objects to
-#'   diff is allowed to take up before it is hard wrapped (assuming \code{wrap}
-#'   is TRUE).  See param \code{disp.width} for \code{\link{diffPrint}}.
-#' @param finalizer function that accepts at least two parameters and requires
-#'   no more than two parameters, will receive as the first parameter the
-#'   the object to render (either a \code{Diff} or a \code{DiffSummary}
-#'   object), and the text representation of that object as the second
-#'   argument.  This allows final modifications to the character output so that
-#'   it is displayed correctly by the pager.  For example, \code{StyleHtml}
-#'   objects use it to generate HTML headers if the \code{Diff} is destined to
-#'   be displayed in a browser.  The object themselves are passed along to
-#'   provide information about the paging device and other contextual data to
-#'   the function.
-#' @param html.output (\code{StyleHtml} objects only) one of:
-#'   \itemize{
-#'     \item \dQuote{page}: Include all HTML/CSS/JS required to create a
-#'       stand-alone web page with the diff; in this mode the diff string will
-#'       be re-encoded with \code{\link{enc2utf8}} and the HTML page encoding
-#'       will be declared as UTF-8.
-#'     \item \dQuote{diff.w.style}: The CSS and HTML, but without any of the
-#'       outer tags that would make it a proper HTML page (i.e. no
-#'       \code{<html>/<head>} tags or the like) and without the JS; note that
-#'       technically this is illegal HTML since we have \code{<style>} tags
-#'       floating outside of \code{<head>} tags, but it seems to work in most
-#'       browsers.
-#'     \item \dQuote{diff.only}: Like \dQuote{diff.w.style}, but without the CSS
-#'     \item \dQuote{auto}: Pick one of the above based on \code{Pager}, will
-#'        chose \dQuote{page} if the pager is of type \code{PagerBrowser} (as in
-#'        that case the output is destined to be displayed in a browser like
-#'        device), or \dQuote{diff.only} if it is not.
-#'   }
-#' @param escape.html.entities (\code{StyleHtml} objects only) TRUE (default)
-#'   or FALSE, whether to escape HTML entities in the input
-#' @param scale (\code{StyleHtml} objects only) TRUE (default) or FALSE,
-#'   whether to scale HTML output to fit to the viewport
-#' @param css (\code{StyleHtml} objects only) path to file containing CSS styles
-#'   to style HTML output with
-#' @param js (\code{StyleHtml} objects only) path to file containing Javascript
-#'   used for scaling output to viewports.
+#' @usage
+#' Style(...)
+#'
+#' StyleRaw(...)
+#'
+#' StyleAnsi(...)
+#'
+#' StyleAnsi8NeutralRgb(...)
+#'
+#' StyleAnsi8NeutralYb(...)
+#'
+#' StyleAnsi256LightRgb(...)
+#'
+#' StyleAnsi256LightYb(...)
+#'
+#' StyleAnsi256DarkRgb(...)
+#'
+#' StyleAnsi256DarkYb(...)
+#'
+#' StyleHtml(...)
+#'
+#' StyleHtmlLightRgb(...)
+#'
+#' StyleHtmlLightYb(...)
+#' @param ... named values for the slots described in the
+#'   \dQuote{Constructor Arguments} section
+#'   below; all are optional
+#' @section Constructor Arguments:
+#' \describe{
+#' \item{\code{funs}}{a \code{\link{StyleFuns}} object that contains all the functions
+#' represented above}
+#'
+#' \item{\code{text}}{a \code{\link{StyleText}} object that contains the non-content
+#' text used by the diff (e.g. \code{gutter.insert.txt})}
+#'
+#' \item{\code{summary}}{a \code{\link{StyleSummary}} object that contains formatting
+#' functions and other meta data for rendering summaries}
+#'
+#' \item{\code{pad}}{TRUE or FALSE, whether text should be right padded}
+#'
+#' \item{\code{pager}}{what type of \code{\link{Pager}} to use}
+#'
+#' \item{\code{nchar.fun}}{function to use to count characters; intended mostly for
+#' internal use (used only for gutters as of version 0.2.0).}
+#'
+#' \item{\code{wrap}}{TRUE or FALSE, whether text should be hard wrapped at
+#' \code{disp.width}}
+#'
+#' \item{\code{na.sub}}{what character value to substitute for NA elements; NA elements
+#' are generated when lining up side by side diffs by adding padding rows; by
+#' default the text styles replace these with a blank character string, and
+#' the HTML styles leave them as NA for the HTML formatting functions to deal
+#' with}
+#'
+#' \item{\code{blank}}{sub what character value to replace blanks with; needed in
+#' particular for HTML rendering (uses \code{"&nbsp;"}) to prevent lines from
+#' collapsing}
+#'
+#' \item{\code{disp.width}}{how many columns the text representation of the objects to
+#' diff is allowed to take up before it is hard wrapped (assuming \code{wrap}
+#' is TRUE).  See param \code{disp.width} for \code{\link{diffPrint}}.}
+#'
+#' \item{\code{finalizer}}{function that accepts at least two parameters and requires
+#' no more than two parameters, will receive as the first parameter the
+#' the object to render (either a \code{Diff} or a \code{DiffSummary}
+#' object), and the text representation of that object as the second
+#' argument.  This allows final modifications to the character output so that
+#' it is displayed correctly by the pager.  For example, \code{StyleHtml}
+#' objects use it to generate HTML headers if the \code{Diff} is destined to
+#' be displayed in a browser.  The object themselves are passed along to
+#' provide information about the paging device and other contextual data to
+#' the function.}
+#'
+#' \item{\code{html.output}}{(\code{StyleHtml} objects only) one of:
+#' \itemize{
+#'   \item \dQuote{page}: Include all HTML/CSS/JS required to create a
+#'     stand-alone web page with the diff; in this mode the diff string will
+#'     be re-encoded with \code{\link{enc2utf8}} and the HTML page encoding
+#'     will be declared as UTF-8.
+#'   \item \dQuote{diff.w.style}: The CSS and HTML, but without any of the
+#'     outer tags that would make it a proper HTML page (i.e. no
+#'     \code{<html>/<head>} tags or the like) and without the JS; note that
+#'     technically this is illegal HTML since we have \code{<style>} tags
+#'     floating outside of \code{<head>} tags, but it seems to work in most
+#'     browsers.
+#'   \item \dQuote{diff.only}: Like \dQuote{diff.w.style}, but without the CSS
+#'   \item \dQuote{auto}: Pick one of the above based on \code{Pager}, will
+#'      chose \dQuote{page} if the pager is of type \code{PagerBrowser} (as in
+#'      that case the output is destined to be displayed in a browser like
+#'      device), or \dQuote{diff.only} if it is not.
+#' }}
+#'
+#' \item{\code{escape.html.entities}}{(\code{StyleHtml} objects only) TRUE (default)
+#' or FALSE, whether to escape HTML entities in the input}
+#'
+#' \item{\code{scale}}{(\code{StyleHtml} objects only) TRUE (default) or FALSE,
+#' whether to scale HTML output to fit to the viewport}
+#'
+#' \item{\code{css}}{(\code{StyleHtml} objects only) path to file containing CSS styles
+#' to style HTML output with}
+#'
+#' \item{\code{js}}{(\code{StyleHtml} objects only) path to file containing Javascript
+#' used for scaling output to viewports.}
+#' }
 #' @return Style S4 object
 #' @examples
 #' \dontrun{
-#' ## Create a new style based on existing style by changing
-#' ## gutter symbols and guide color; see `?StyleFuns` and
-#' ## `?StyleText` for a full list of adjustable elements
 #' my.style <- StyleAnsi8NeutralYb()
 #' my.style   ## `show` method gives you a preview of the style
 #' my.style@text@gutter.insert <- "+++"
@@ -491,22 +580,14 @@ StyleSummaryHtml <- setClass("StyleSummaryHtml", contains="StyleSummary",
 #' my.style@funs@text.guide <- crayon::green
 #' my.style   ## Notice gutters and guide color
 #'
-#' ## Provide a custom style sheet; here we assume there is a style sheet at
-#' ## `HOME/web/mycss.css`
 #' my.css <- file.path(path.expand("~"), "web", "mycss.css")
 #' diffPrint(1:5, 2:6, style=StyleHtmlLightYb(css=my.css))
 #'
-#' ## Turn of scaling; notice how we pass a list to `style`
-#' ## and we do not need to specify a specific style
 #' diffPrint(letters, letters[-5], format="html", style=list(scale=FALSE))
 #'
-#' ## Alternatively we can do the same by specifying a style, but we must
-#' ## give an exact html style instead of relying on preferences to pick
-#' ## one for us
 #' my.style <- StyleHtmlLightYb(scale=FALSE)
 #' diffPrint(letters, letters[-5], style=my.style)
 #' }
-#' ## Return only the raw HTML without any of the headers
 #' as.character(
 #'   diffPrint(1:5, 2:6, format="html", style=list(html.output="diff.only"))
 #' )
