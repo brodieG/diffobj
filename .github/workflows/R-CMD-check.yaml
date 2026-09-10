@@ -30,7 +30,8 @@ jobs:
       # trick CMD check into checking subdirs, which then whitelists
       # non-CRAN packages
       _R_CHECK_PACKAGES_USED_IN_TESTS_USE_SUBDIRS_: true
-
+      # \arguments-without-\usage note from r90246, 2026-07-13
+      _R_CHECK_RD_CONTENTS_USAGE_: true
     steps:
       - uses: actions/checkout@v4
 

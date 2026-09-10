@@ -5,56 +5,13 @@
 \alias{StyleFuns-class}
 \alias{StyleFuns}
 \title{Functions Used for Styling Diff Components}
+\usage{
+StyleFuns(...)
+}
 \arguments{
-\item{container}{function used primarily by HTML styles to generate an
-outermost \code{DIV} that allows for CSS targeting of its contents
-(see \code{\link{cont_f}} for a function generator appropriate for use
-here)}
-
-\item{line}{function}
-
-\item{line.insert}{function}
-
-\item{line.delete}{function}
-
-\item{line.match}{function}
-
-\item{line.guide}{function formats guide lines (see \code{\link{guides}})}
-
-\item{text}{function}
-
-\item{text.insert}{function}
-
-\item{text.delete}{function}
-
-\item{text.match}{function}
-
-\item{text.guide}{function formats guide lines (see \code{\link{guides}})}
-
-\item{gutter}{function}
-
-\item{gutter.insert}{function}
-
-\item{gutter.delete}{function}
-
-\item{gutter.match}{function}
-
-\item{gutter.guide}{function}
-
-\item{gutter.pad}{function}
-
-\item{header}{function to format each hunk header with}
-
-\item{banner}{function to format entire banner}
-
-\item{banner.insert}{function to format insertion banner}
-
-\item{banner.delete}{function to format deletion banner}
-
-\item{meta}{function format meta information lines}
-
-\item{context.sep}{function to format the separator used to visually
-distinguish the A and B hunks in \dQuote{context} \code{mode}}
+\item{...}{named values for the slots described in the
+\dQuote{Constructor Arguments} section
+below; all are optional}
 }
 \value{
 a StyleFuns S4 object
@@ -81,6 +38,61 @@ the slots are set to class \dQuote{ANY} to allow classed functions
   permissive slot definition, only functions are allowed in the slots by
   the validation functions.
 }
+\section{Constructor Arguments}{
+
+\describe{
+\item{\code{container}}{function used primarily by HTML styles to generate an
+outermost \code{DIV} that allows for CSS targeting of its contents
+(see \code{\link{cont_f}} for a function generator appropriate for use
+here)}
+
+\item{\code{line}}{function}
+
+\item{\code{line.insert}}{function}
+
+\item{\code{line.delete}}{function}
+
+\item{\code{line.match}}{function}
+
+\item{\code{line.guide}}{function formats guide lines (see \code{\link{guides}})}
+
+\item{\code{text}}{function}
+
+\item{\code{text.insert}}{function}
+
+\item{\code{text.delete}}{function}
+
+\item{\code{text.match}}{function}
+
+\item{\code{text.guide}}{function formats guide lines (see \code{\link{guides}})}
+
+\item{\code{gutter}}{function}
+
+\item{\code{gutter.insert}}{function}
+
+\item{\code{gutter.delete}}{function}
+
+\item{\code{gutter.match}}{function}
+
+\item{\code{gutter.guide}}{function}
+
+\item{\code{gutter.pad}}{function}
+
+\item{\code{header}}{function to format each hunk header with}
+
+\item{\code{banner}}{function to format entire banner}
+
+\item{\code{banner.insert}}{function to format insertion banner}
+
+\item{\code{banner.delete}}{function to format deletion banner}
+
+\item{\code{meta}}{function format meta information lines}
+
+\item{\code{context.sep}}{function to format the separator used to visually
+distinguish the A and B hunks in \dQuote{context} \code{mode}}
+}
+}
+
 \seealso{
 \code{\link{Style}}
 }
