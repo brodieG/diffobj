@@ -88,7 +88,5 @@ iris.4a <- setNames(iris.4, c("S.L", "S.W", "P.L", "P.W", "Sp"))
 
 ## Models -----------------
 
-frm1 <- as.formula("Sepal.Length ~ Sepal.Width", env=.GlobalEnv)
-frm2 <- as.formula("Sepal.Length ~ Sepal.Width + Species", env=.GlobalEnv)
-mdl1 <- lm(frm1, iris)
-mdl2 <- lm(frm2, iris)
+mdl1 <- lm(Sepal.Length ~ Sepal.Width, iris)
+mdl2 <- lm(Sepal.Length ~ Sepal.Width + Species, iris)
