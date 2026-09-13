@@ -178,6 +178,11 @@ all.equal(
   diffobj:::detect_array_guides(c.a.6, dimnames(a.6)),
   c(1L, 2L)
 )
+# unevenly spaced array guides must not be detected
+c.a.7 <- c(c.a.3[1:14], "  [3,] 7", "  [4,] 8", c.a.3[15:21])
+all.equal(
+  diffobj:::detect_array_guides(c.a.7, dimnames(a.3)), integer(0L)
+)
 # - detect_s4_guides -----------------------------------------------------------
 
 setClass("gtest2", slots=c(hello="integer", `good bye`="list"))
