@@ -10,11 +10,10 @@ str.legacy <- getRversion() < "4.7.0" ||
 
 rdsf <- function(x, name=NAME) {
   f <- sprintf("%s.rds", x)
+  # str output changed with r90805
   new <- file.path("_helper", "objs-str-r90805", name, f)
-  readRDS(
-    if(!str.legacy && file.exists(new)) new else
-      file.path("_helper", "objs", name, f)
-  )
+  ref <- file.path("_helper", "objs", name, f)
+  readRDS(if(!str.legacy && file.exists(new)) new else ref)
 }
 txtf <-
   function(x) readLines(file.path("_helper", "objs", NAME, sprintf("%s.txt", x)))
