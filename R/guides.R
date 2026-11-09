@@ -241,7 +241,7 @@ detect_array_guides <- function(txt, dim.n) {
   if(
     length(dim.guides) && length(blanks) &&
     all(dim.guides + 1L %in% blanks) &&
-    (length(dim.guides) == 1L || length(unique(diff(dim.guides)) == 1L))
+    (length(dim.guides) == 1L || length(unique(diff(dim.guides))) == 1L)
   ) {
     # Make sure within each array section there is a matrix representation
 
