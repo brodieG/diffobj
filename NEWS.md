@@ -1,5 +1,10 @@
 # diffobj
 
+## v0.3.10
+
+* Fix test failures on R-devel caused by str() behavior change from r90805.
+* Fix array guide detection bugs (h/t @sims1253).
+
 ## v0.3.9
 
 * Fix test failures on R-devel caused by lm() behavior change from r90471.
