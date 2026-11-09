@@ -4,8 +4,17 @@
 if(nzchar(Sys.getenv('NOT_CRAN')))
   stopifnot(grepl('tests', basename(getwd())), exists("NAME"))
 
-rdsf <-
-  function(x) readRDS(file.path("_helper", "objs", NAME, sprintf("%s.rds", x)))
+# str() output changed in R-devel r90805 (PR#18719); unknown svn rev is new
+str.legacy <- getRversion() < "4.7.0" ||
+  isTRUE(suppressWarnings(as.integer(R.version[["svn rev"]]) < 90805L))
+
+rdsf <- function(x, name=NAME) {
+  f <- sprintf("%s.rds", x)
+  # str output changed with r90805
+  new <- file.path("_helper", "objs-str-r90805", name, f)
+  ref <- file.path("_helper", "objs", name, f)
+  readRDS(if(!str.legacy && file.exists(new)) new else ref)
+}
 txtf <-
   function(x) readLines(file.path("_helper", "objs", NAME, sprintf("%s.txt", x)))
 
